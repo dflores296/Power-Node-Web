@@ -37,7 +37,7 @@ ID: `<letra>-<número>`. La letra dice el frente (`M` motor, `I` interfaz, `P` p
 | I-21 · Sin líneas entre columnas, el cuadro se veía amontonado | P2 | **Cerrado** | `4730182` |
 | I-22 · La clase `grupo` del cuadro chocaba con la de las tarjetas: cada celda se dibujó como tarjeta | P1 | **Cerrado** | `228478d` |
 | I-23 · Un multipolar decía «ocupado por el circuito N» en vez de verse ocupando | P2 | **Cerrado** | `acdcf42` |
-| I-24 · Al bloque combinado le faltaba la línea del número: `:last-child` se la comía | P2 | **Cerrado** | este commit |
+| I-24 · Al bloque combinado le faltaba la línea del número: `:last-child` se la comía | P2 | **Cerrado** | `73cb16b` |
 
 ---
 
@@ -321,7 +321,7 @@ cualquier directorio de tablero—, **menos la columna del número, que no se co
 Va en la captura y en el documento impreso. Y sigue sin repetir la carga en los renglones
 ocupados: repetirla haría que sumar la columna la contara dos o tres veces.
 
-### I-24 — `:last-child` le quitaba el borde al renglón de continuación · este commit
+### I-24 — `:last-child` le quitaba el borde al renglón de continuación · `73cb16b`
 
 La regla que apaga el borde derecho de la última columna estaba escrita como
 `.cuadro td:last-child { border-right: 0 }`. **En el renglón de continuación de un multipolar la
