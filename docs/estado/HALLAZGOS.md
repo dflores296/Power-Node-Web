@@ -29,9 +29,9 @@ ID: `<letra>-<número>`. La letra dice el frente (`M` motor, `I` interfaz, `P` p
 | I-13 · No había documento imprimible ni memoria por tablero | P1 | **Cerrado** | `cc92ad5` |
 | I-14 · La tensión F-N salía siempre de dividir entre √3 | P1 | **Cerrado** | `cc92ad5` |
 | I-15 · Los circuitos de Fuerza (Art. 430) no se pueden capturar | P2 | Pendiente | — |
-| I-16 · Encabezados partidos en dos líneas: el cuadro se leía torcido | P2 | **Cerrado** | este commit |
-| I-17 · El cuadro no traía hilos, mm² ni designación del conductor | P2 | **Cerrado** | este commit |
-| I-18 · No se dibujaba el interior del tablero ni dónde cae cada circuito | P1 | **Cerrado** | este commit |
+| I-16 · Encabezados partidos en dos líneas: el cuadro se leía torcido | P2 | **Cerrado** | `c2bb19c` |
+| I-17 · El cuadro no traía hilos, mm² ni designación del conductor | P2 | **Cerrado** | `c2bb19c` |
+| I-18 · No se dibujaba el interior del tablero ni dónde cae cada circuito | P1 | **Cerrado** | `c2bb19c` |
 
 ---
 
@@ -234,7 +234,7 @@ corriente de cada circuito sale 13 % baja.
 **Corregido** llamando a `SistemaDelTablero.TensionFaseNeutro`, que distingue los tres casos. Lo
 cubre `LaTensionFaseNeutroNoEsSiempreEntreRaizDeTres`.
 
-### I-16 a I-18 — Lo que David señaló al ver el cuadro corriendo · este commit
+### I-16 a I-18 — Lo que David señaló al ver el cuadro corriendo · `c2bb19c`
 
 Tres cosas, todas de la misma raíz: **el cuadro enseñaba resultados pero no se dejaba leer.**
 
