@@ -36,6 +36,7 @@ ID: `<letra>-<número>`. La letra dice el frente (`M` motor, `I` interfaz, `P` p
 | I-20 · Unidades en mayúsculas: «MM2», «L (M)», «E (%)» | P2 | **Cerrado** | `4730182` |
 | I-21 · Sin líneas entre columnas, el cuadro se veía amontonado | P2 | **Cerrado** | `4730182` |
 | I-22 · La clase `grupo` del cuadro chocaba con la de las tarjetas: cada celda se dibujó como tarjeta | P1 | **Cerrado** | `228478d` |
+| I-23 · Un multipolar decía «ocupado por el circuito N» en vez de verse ocupando | P2 | **Cerrado** | este commit |
 
 ---
 
@@ -302,3 +303,19 @@ estiraron a 118 px. El cuadro quedó irreconocible.
 **Lo que esto enseña:** el CSS de este repo no tiene ámbito. Una clase con nombre genérico
 (`grupo`, `fila`, `celda`) alcanza cualquier elemento de cualquier pantalla. Los nombres nuevos van
 acotados a su bloque.
+
+### I-23 — La ocupación de un multipolar se leía en vez de verse · este commit
+
+Un interruptor de 2 o 3 polos ponía «↳ ocupado por el circuito 1» en cada espacio que se comía.
+**Es exactamente la primera versión del exportador de escritorio, y David la señaló allá con la
+misma razón:** eso *se lee* en vez de *verse*.
+
+La solución es la que ya quedó decidida en `PowerNode-DesignSuite`
+(`docs/referencia/cuadro-de-carga.md` §5) y aquí se reprodujo tal cual: **las celdas se combinan
+hacia abajo** cubriendo los espacios que ocupa —así se ve que abarca tres renglones, como en
+cualquier directorio de tablero—, **menos la columna del número, que no se combina**, porque
+1 / 3 / 5 es justo lo que se quiere leer. Contenido centrado en el alto que abarca, igual que el
+`XLAlignmentVerticalValues.Center` del exportador de escritorio.
+
+Va en la captura y en el documento impreso. Y sigue sin repetir la carga en los renglones
+ocupados: repetirla haría que sumar la columna la contara dos o tres veces.

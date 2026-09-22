@@ -132,68 +132,72 @@
                 Van en UNA sola tabla y no en dos, aunque se vean como dos bloques: dos tablas
                 independientes calculan sus anchos de columna por separado, y los renglones de
                 abajo no cuadrarían con los de arriba.
+
+                UN MULTIPOLAR ES UN SOLO RENGLÓN ALTO. Sus celdas se combinan hacia abajo cubriendo
+                los espacios que ocupa —así se VE que abarca tres—, menos la columna del número, que
+                sigue renglón por renglón porque 1 / 3 / 5 es justo lo que se quiere leer. Misma
+                decisión que el exportador de escritorio, tomada con esta misma queja: antes decía
+                "↳ ocupado por el circuito 1" en cada espacio, y eso se LEE en vez de VERSE.
             *@
-            @foreach (var (bloque, indice) in new[] { Cuadro.Nones, Cuadro.Pares }.Select((b, i) => (b, i)))
+            @foreach (var (lado, indice) in Lados.Select((b, i) => (b, i)))
             {
                 @if (indice > 0)
                 {
                     <tr class="separador"><td colspan="@Columnas"></td></tr>
                 }
 
-                @foreach (var c in bloque)
+                @foreach (var c in lado.Where(x => !x.EsContinuacion))
                 {
-                    @if (c.EsContinuacion)
-                    {
-                        <tr class="continuacion">
-                            <td class="num">@c.Espacio</td>
-                            <td colspan="@(Columnas - 1)" class="izq">↳ ocupado por el circuito @c.ContinuacionDe</td>
-                        </tr>
-                    }
-                    else
+                    <tr class="@(c.Resultado is null ? "vacio" : null)">
+                        <td class="num">@c.Espacio</td>
+                        <td rowspan="@c.Polos"><input class="desc" @bind="c.Descripcion" @bind:event="oninput" placeholder="—" /></td>
+                        <td rowspan="@c.Polos">
+                            <select class="tipo" @bind="c.Tipo" @bind:after="Recalcular">
+                                <option value="@TipoCarga.Alumbrado">Alumbrado</option>
+                                <option value="@TipoCarga.Contactos">Contactos</option>
+                                <option value="@TipoCarga.Equipo">Equipo</option>
+                            </select>
+                        </td>
+                        <td rowspan="@c.Polos"><input class="va" type="number" min="0" @bind="c.ContinuaVA" @bind:after="Recalcular" /></td>
+                        <td rowspan="@c.Polos"><input class="va" type="number" min="0" @bind="c.NoContinuaVA" @bind:after="Recalcular" /></td>
+                        @foreach (var barra in Datos.Barras)
+                        {
+                            <td rowspan="@c.Polos" class="num tenue">@(c.TieneCarga && c.Fases.Contains(barra) ? c.CargaPorFaseVA.ToString("N0") : "")</td>
+                        }
+                        <td rowspan="@c.Polos"><input class="va corto" type="number" min="0" @bind="c.LongitudM" @bind:after="Recalcular" /></td>
+                        <td rowspan="@c.Polos">
+                            <select class="polos" value="@c.Polos"
+                                    @onchange="e => CambiarPolos(c, e.Value?.ToString())">
+                                @foreach (var p in Enumerable.Range(1, Datos.MaximoPolos)) { <option value="@p">@p</option> }
+                            </select>
+                        </td>
+                        <td rowspan="@c.Polos" class="fase">
+                            @foreach (var barra in c.Fases)
+                            {
+                                <span class="fase-@char.ToLowerInvariant(barra)">@barra</span>
+                            }
+                        </td>
+                        <td rowspan="@c.Polos" class="num">@c.Resultado?.CorrienteDisenoA.ToString("N2")</td>
+                        <td rowspan="@c.Polos" class="num">@c.Resultado?.ProteccionA.ToString("N0")</td>
+                        @Conductor(c.Resultado?.CalibreFase, c.Resultado?.NumeroConductoresParalelo ?? 0, c.Polos)
+                        @Conductor(c.Resultado?.CalibreNeutro, c.Resultado is null ? 0 : 1, c.Polos)
+                        @Conductor(c.Resultado?.CalibreTierra, c.Resultado is null ? 0 : 1, c.Polos)
+                        <td rowspan="@c.Polos" class="num @(Excede(c) ? "excede" : null)">@c.Resultado?.CaidaTensionPct.ToString("N2")</td>
+                    </tr>
+
+                    @foreach (var seguido in lado.Where(x => x.ContinuacionDe == c.Espacio))
                     {
                         <tr class="@(c.Resultado is null ? "vacio" : null)">
-                            <td class="num">@c.Espacio</td>
-                            <td><input class="desc" @bind="c.Descripcion" @bind:event="oninput" placeholder="—" /></td>
-                            <td>
-                                <select class="tipo" @bind="c.Tipo" @bind:after="Recalcular">
-                                    <option value="@TipoCarga.Alumbrado">Alumbrado</option>
-                                    <option value="@TipoCarga.Contactos">Contactos</option>
-                                    <option value="@TipoCarga.Equipo">Equipo</option>
-                                </select>
-                            </td>
-                            <td><input class="va" type="number" min="0" @bind="c.ContinuaVA" @bind:after="Recalcular" /></td>
-                            <td><input class="va" type="number" min="0" @bind="c.NoContinuaVA" @bind:after="Recalcular" /></td>
-                            @foreach (var barra in Datos.Barras)
-                            {
-                                <td class="num tenue">@(c.TieneCarga && c.Fases.Contains(barra) ? c.CargaPorFaseVA.ToString("N0") : "")</td>
-                            }
-                            <td><input class="va corto" type="number" min="0" @bind="c.LongitudM" @bind:after="Recalcular" /></td>
-                            <td>
-                                <select class="polos" value="@c.Polos"
-                                        @onchange="e => CambiarPolos(c, e.Value?.ToString())">
-                                    @foreach (var p in Enumerable.Range(1, Datos.MaximoPolos)) { <option value="@p">@p</option> }
-                                </select>
-                            </td>
-                            <td class="fase">
-                                @foreach (var barra in c.Fases)
-                                {
-                                    <span class="fase-@char.ToLowerInvariant(barra)">@barra</span>
-                                }
-                            </td>
-                            <td class="num">@c.Resultado?.CorrienteDisenoA.ToString("N2")</td>
-                            <td class="num">@c.Resultado?.ProteccionA.ToString("N0")</td>
-                            @Conductor(c.Resultado?.CalibreFase, c.Resultado?.NumeroConductoresParalelo ?? 0)
-                            @Conductor(c.Resultado?.CalibreNeutro, c.Resultado is null ? 0 : 1)
-                            @Conductor(c.Resultado?.CalibreTierra, c.Resultado is null ? 0 : 1)
-                            <td class="num @(Excede(c) ? "excede" : null)">@c.Resultado?.CaidaTensionPct.ToString("N2")</td>
+                            <td class="num">@seguido.Espacio</td>
                         </tr>
-                        @if (c.Error is not null || _motivo.TryGetValue(c.Espacio, out _))
-                        {
-                            <tr class="fila-error">
-                                <td></td>
-                                <td colspan="@(Columnas - 1)">@(c.Error ?? _motivo[c.Espacio])</td>
-                            </tr>
-                        }
+                    }
+
+                    @if (c.Error is not null || _motivo.TryGetValue(c.Espacio, out _))
+                    {
+                        <tr class="fila-error">
+                            <td></td>
+                            <td colspan="@(Columnas - 1)">@(c.Error ?? _motivo[c.Espacio])</td>
+                        </tr>
                     }
                 }
             }
@@ -379,8 +383,14 @@
     /// </summary>
     private int Columnas => 20 + Datos.Barras.Count;
 
-    /// <summary>Las tres celdas de un conductor: hilos, mm² y designación AWG/kcmil.</summary>
-    private static RenderFragment Conductor(Calibre? calibre, int hilos) => builder =>
+    /// <summary>Los dos bloques del cuadro, ya materializados: cada uno se recorre más de una vez.</summary>
+    private List<CircuitoDelCuadro>[] Lados => [Cuadro.Nones.ToList(), Cuadro.Pares.ToList()];
+
+    /// <summary>
+    /// Las tres celdas de un conductor: hilos, mm² y designación AWG/kcmil. Se combinan hacia abajo
+    /// tantos renglones como polos tenga el interruptor.
+    /// </summary>
+    private static RenderFragment Conductor(Calibre? calibre, int hilos, int polos) => builder =>
     {
         var textos = calibre is null || hilos <= 0
             ? ["", "", ""]
@@ -390,7 +400,8 @@
         {
             builder.OpenElement(0, "td");
             builder.AddAttribute(1, "class", "num");
-            builder.AddContent(2, texto);
+            builder.AddAttribute(2, "rowspan", polos);
+            builder.AddContent(3, texto);
             builder.CloseElement();
         }
     };

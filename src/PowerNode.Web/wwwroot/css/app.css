@@ -205,8 +205,9 @@ select.tipo { width: 108px; padding: 2px 4px 2px 6px; border-radius: var(--radio
     border-top: 1px solid var(--linea); border-bottom: 1px solid var(--linea);
 }
 
-/* Un renglón que se comió el interruptor multipolar de arriba: se ve ocupado, no se captura. */
-.cuadro tr.continuacion td { color: var(--tenue); font-size: 11px; font-style: italic; }
+/* La celda combinada de un multipolar: su contenido va centrado en el alto que abarca, que es lo
+   que hace que se lea como UN interruptor de tres espacios y no como tres renglones pegados. */
+.cuadro td[rowspan], .doc-cuadro td[rowspan] { vertical-align: middle; }
 
 /* ------------------------------------------------------------------------------------------------
    EL CIERRE — resumen de carga y alimentador, que en el Excel son el recuadro de arriba a la

@@ -49,6 +49,11 @@ fórmulas que un circuito**.
 **Verificado corriendo**, con Playwright contra `dotnet run`: captura, cuadro impreso y memoria, sin
 un solo error de consola; y el PDF de impresión revisado con `media: print` emulado.
 
+**Un multipolar ya se ve ocupando, no lo cuenta** (I-23): decía «↳ ocupado por el circuito 1» en
+cada espacio que se comía, que es la primera versión del exportador de escritorio y la queja que
+David hizo allá. Se reprodujo la decisión que ya estaba tomada: celdas combinadas hacia abajo menos
+la del número, que sigue renglón por renglón para que se lea 1 / 3 / 5.
+
 **Y un destrozo propio, corregido en caliente** (I-22): para marcar los grupos de columnas se reusó
 `class="grupo"`, que **ya era la clase de las tarjetas de la ficha** — cada celda que abría grupo se
 dibujó como tarjeta, con borde redondeado, relleno y campos de 118 px. Se acotó la regla de la ficha
