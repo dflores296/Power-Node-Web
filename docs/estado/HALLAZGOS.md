@@ -35,7 +35,7 @@ ID: `<letra>-<número>`. La letra dice el frente (`M` motor, `I` interfaz, `P` p
 | I-19 · Un circuito multipolar pintaba sus barras en negro | P2 | **Cerrado** | `4730182` |
 | I-20 · Unidades en mayúsculas: «MM2», «L (M)», «E (%)» | P2 | **Cerrado** | `4730182` |
 | I-21 · Sin líneas entre columnas, el cuadro se veía amontonado | P2 | **Cerrado** | `4730182` |
-| I-22 · La clase `grupo` del cuadro chocaba con la de las tarjetas: cada celda se dibujó como tarjeta | P1 | **Cerrado** | este commit |
+| I-22 · La clase `grupo` del cuadro chocaba con la de las tarjetas: cada celda se dibujó como tarjeta | P1 | **Cerrado** | `228478d` |
 
 ---
 
@@ -283,7 +283,7 @@ no cabía y había que recorrerlo de lado para ver la caída de tensión.
 **Y la protección dejó de ir en negritas.** Una columna entera en negritas no dice «esto importa
 más», dice que el cuadro tiene un favorito; las negritas se quedan para los renglones de total.
 
-### I-22 — `grupo` era el nombre de dos cosas distintas · este commit
+### I-22 — `grupo` era el nombre de dos cosas distintas · `228478d`
 
 Para marcar dónde abría cada grupo de columnas se reusó `class="grupo"` — **que ya era la clase de
 las cuatro tarjetas de la ficha del tablero** (`background`, `border`, `border-radius: 14px`,
