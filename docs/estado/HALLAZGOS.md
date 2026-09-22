@@ -36,7 +36,7 @@ ID: `<letra>-<número>`. La letra dice el frente (`M` motor, `I` interfaz, `P` p
 | I-20 · Unidades en mayúsculas: «MM2», «L (M)», «E (%)» | P2 | **Cerrado** | `4730182` |
 | I-21 · Sin líneas entre columnas, el cuadro se veía amontonado | P2 | **Cerrado** | `4730182` |
 | I-22 · La clase `grupo` del cuadro chocaba con la de las tarjetas: cada celda se dibujó como tarjeta | P1 | **Cerrado** | `228478d` |
-| I-23 · Un multipolar decía «ocupado por el circuito N» en vez de verse ocupando | P2 | **Cerrado** | este commit |
+| I-23 · Un multipolar decía «ocupado por el circuito N» en vez de verse ocupando | P2 | **Cerrado** | `acdcf42` |
 
 ---
 
@@ -304,7 +304,7 @@ estiraron a 118 px. El cuadro quedó irreconocible.
 (`grupo`, `fila`, `celda`) alcanza cualquier elemento de cualquier pantalla. Los nombres nuevos van
 acotados a su bloque.
 
-### I-23 — La ocupación de un multipolar se leía en vez de verse · este commit
+### I-23 — La ocupación de un multipolar se leía en vez de verse · `acdcf42`
 
 Un interruptor de 2 o 3 polos ponía «↳ ocupado por el circuito 1» en cada espacio que se comía.
 **Es exactamente la primera versión del exportador de escritorio, y David la señaló allá con la
