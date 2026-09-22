@@ -20,14 +20,14 @@ ID: `<letra>-<número>`. La letra dice el frente (`M` motor, `I` interfaz, `P` p
 | P-03 · El navegador se quedaba con el CSS y los iconos viejos | P1 | **Cerrado** | este commit |
 | I-07 · Faltaba `favicon.ico`: el navegador seguía con el icono de Blazor | P1 | **Cerrado** | este commit |
 | I-08 · El selector de tipo cortaba el texto: «Alumbrac» | P2 | **Cerrado** | este commit |
-| I-04 · No hay resumen de carga ni balanceo por fase | P2 | **Cerrado** | este commit |
+| I-04 · No hay resumen de carga ni balanceo por fase | P2 | **Cerrado** | `cc92ad5` |
 | I-05 · No se puede guardar ni abrir un proyecto | P1 | Pendiente | — |
-| I-09 · Los datos de identificación del Excel no se capturaban | P2 | **Cerrado** | este commit |
-| I-10 · La fase del espacio se calculaba en la pantalla, no en el motor | P1 | **Cerrado** | este commit |
-| I-11 · Un multipolar no ocupaba los espacios que se come | P1 | **Cerrado** | este commit |
-| I-12 · No había alimentador ni interruptor principal | P1 | **Cerrado** | este commit |
-| I-13 · No había documento imprimible ni memoria por tablero | P1 | **Cerrado** | este commit |
-| I-14 · La tensión F-N salía siempre de dividir entre √3 | P1 | **Cerrado** | este commit |
+| I-09 · Los datos de identificación del Excel no se capturaban | P2 | **Cerrado** | `cc92ad5` |
+| I-10 · La fase del espacio se calculaba en la pantalla, no en el motor | P1 | **Cerrado** | `cc92ad5` |
+| I-11 · Un multipolar no ocupaba los espacios que se come | P1 | **Cerrado** | `cc92ad5` |
+| I-12 · No había alimentador ni interruptor principal | P1 | **Cerrado** | `cc92ad5` |
+| I-13 · No había documento imprimible ni memoria por tablero | P1 | **Cerrado** | `cc92ad5` |
+| I-14 · La tensión F-N salía siempre de dividir entre √3 | P1 | **Cerrado** | `cc92ad5` |
 | I-15 · Los circuitos de Fuerza (Art. 430) no se pueden capturar | P2 | Pendiente | — |
 
 ---
@@ -201,7 +201,7 @@ fallaba era que el usuario no podía leerlo.
 
 ---
 
-### I-10 — La fase de cada espacio se calculaba en la pantalla · este commit
+### I-10 — La fase de cada espacio se calculaba en la pantalla · `cc92ad5`
 
 `Pages/CuadroDeCarga.razor` traía su propia copia de la convención NEMA
 (`"ABC"[((numero - 1) / 2) % 3]`) y su propia noción de cuántos polos caben (`_tensionFF <= 127 ? [1]
@@ -212,7 +212,7 @@ ofrecía.
 **Corregido** delegando en `DistribucionBarras.FasesQueOcupa` y `SistemaDelTablero.MaximoPolos`, que
 son donde el motor guarda esa regla — el mismo arreglo que el escritorio hizo el 2026-08-21.
 
-### I-11 — Un interruptor de 2 o 3 polos no ocupaba nada · este commit
+### I-11 — Un interruptor de 2 o 3 polos no ocupaba nada · `cc92ad5`
 
 El selector de polos cambiaba la fase que se mostraba, pero los espacios `N+2` y `N+4` **seguían
 capturando carga propia**: se podían capturar dos circuitos encima del mismo interruptor, y los dos
@@ -222,7 +222,7 @@ sumaban al total.
 escritorio— y marcando los renglones ocupados como continuación. Un cambio de polos que no cabe
 **no se aplica y dice por qué**, en vez de dejar que el selector mienta.
 
-### I-14 — La tensión fase-neutro salía siempre de dividir entre √3 · este commit
+### I-14 — La tensión fase-neutro salía siempre de dividir entre √3 · `cc92ad5`
 
 Venía del Excel (`=ROUND(T22/SQRT(3),1)`), y es correcto **solo en una estrella**. En un centro de
 carga de 240 V (1F-3H, derivación central) daba **138.6 V** en vez de 120 — y con esa tensión, la
