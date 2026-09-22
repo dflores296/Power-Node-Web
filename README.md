@@ -1,32 +1,41 @@
 # Power Node Web
 
-Calculadora de cuadros de carga según la **NOM-001-SEDE-2012**. Un tablero por vez, hasta 42
-espacios — el mismo alcance que el Excel que dio origen al proyecto, con la ventaja de que cada
-resultado cita el artículo de la norma del que sale.
+Calculadora de cuadros de carga según la **NOM-001-SEDE-2012**.
 
-Corre completo en el navegador. Sin instalar nada, sin servidor, sin base de datos con la que
-hablar por red.
+Un tablero de hasta 42 espacios, con la geometría real: nones a la izquierda, pares a la derecha, y
+la fase de cada circuito derivada de su espacio y sus polos. Por cada circuito resuelve la
+protección, los conductores de fase, neutro y tierra, y la caída de tensión.
 
-## Estado
+**Cada resultado cita el artículo de la norma del que sale.** No es un número suelto: la memoria
+dice *«240-6(a) · Capacidad mínima 7.09 A → protección estándar 15 A»*, de modo que quien revisa
+puede tomar la fórmula del artículo citado y llegar al mismo resultado.
 
-**En construcción — no hay interfaz todavía.** El motor de cálculo ya compila y está verificado.
-Ver [`docs/estado/TABLERO.md`](docs/estado/TABLERO.md) para el avance real.
+Corre completo en el navegador. Sin instalar nada, sin cuenta, sin servidor.
 
-## De dónde viene
+## Lo que calcula
 
-Nace de dos proyectos hermanos:
+| | Artículos |
+|---|---|
+| Corriente de diseño y carga continua al 125 % | 210-19(a)(1), 210-20(a) |
+| Protección, con los valores normalizados de la NOM | 240-6(a) |
+| Conductor por capacidad, con corrección por temperatura y agrupamiento | 310-15(b)(16)/(17), (b)(2)(a), (b)(3)(a) |
+| Temperatura de terminal y crédito de aislamiento | 110-14(c), 310-104(a) |
+| Caída de tensión por impedancia completa, no por fórmula aproximada | Tabla 9 |
+| Conductor de puesta a tierra, con ajuste proporcional | 250-122, 250-122(b) |
 
-- **[`NOM-001-SEDE-2012`](https://github.com/dflores296/NOM-001-SEDE-2012)** — la norma completa,
-  estructurada y verificada artículo por artículo. Es la fuente de cada tabla que este calculador
-  usa.
-- **[`PowerNode-DesignSuite`](https://github.com/dflores296/PowerNode-DesignSuite)** — la versión de
-  escritorio, con SQL Server, catálogo de equipos y coordinación de protecciones. Esta web reusa su
-  motor de cálculo, recortado a lo que hacía el Excel original: un solo cuadro de carga.
+## De dónde salen los números
+
+De [**NOM-001-SEDE-2012**](https://github.com/dflores296/NOM-001-SEDE-2012): la norma completa,
+estructurada y **verificada celda por celda contra el PDF del DOF**. Cada tabla que esta calculadora
+usa viaja con la fecha en que se cotejó, y hay integración continua que rompe el build si los datos
+publicados aquí se despegan de los de allá.
+
+> Los resultados no sustituyen el criterio del ingeniero responsable del proyecto.
 
 ## Desarrollo
 
 ```bash
-dotnet build src/PowerNode.DesignSuite.Domain/PowerNode.DesignSuite.Domain.csproj
+dotnet run --project src/PowerNode.Web
 ```
 
-Documentación completa del proyecto en [`docs/LEEME.md`](docs/LEEME.md).
+Blazor WebAssembly sobre .NET 8. Documentación del proyecto en [`docs/LEEME.md`](docs/LEEME.md).

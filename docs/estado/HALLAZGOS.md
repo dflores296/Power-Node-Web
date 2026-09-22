@@ -15,7 +15,7 @@ ID: `<letra>-<número>`. La letra dice el frente (`M` motor, `I` interfaz, `P` p
 | P-01 · No hay workflow de despliegue a GitHub Pages | P1 | **Cerrado** (sin ejecutar) | este commit |
 | I-02 · `NumeroFases` se pasaba del tablero, no del circuito | P0 | **Cerrado** | este commit |
 | I-03 · El piso práctico de calibre no se aplicaba | P1 | **Cerrado** | este commit |
-| P-02 · GitHub Pages no está activado en el repo | P1 | Pendiente (lo hace David) | — |
+| P-02 · Pages quedó en «Deploy from a branch», sirve el README y no la app | P1 | Pendiente (lo hace David) | — |
 | I-04 · No hay resumen de carga ni balanceo por fase | P2 | Pendiente | — |
 | I-05 · No se puede guardar ni abrir un proyecto | P1 | Pendiente | — |
 
@@ -72,3 +72,18 @@ JSON de **39 KB** en vez de SQL Server. Detalle en
 240-6(a) de la **NOM incluye los valores IEC** —16, 32, 63— que el NEC no tiene. La primera versión
 de la prueba esperaba que el inmediato superior de 15.1 A fuera 20 A, por costumbre del NEC, y falló:
 son **16 A**. El código estaba bien; la prueba estaba mal.
+
+### P-02 — Pages sirve el README, no la aplicación
+
+**El `deploy.yml` funciona: el que está mal configurado es el repo.** La corrida del 2026-09-22
+(`35681198926`) pasó los once pasos del job `build` —clonar la norma, `--check` de las tablas, las
+6 pruebas, `dotnet publish` del WASM y subir el artefacto— y **falló sólo en `actions/deploy-pages@v4`**,
+que es exactamente lo que ocurre cuando el origen de Pages no es GitHub Actions.
+
+La prueba del otro lado: hay una corrida `pages build and deployment`
+(`dynamic/pages/pages-build-deployment`) que **sí** tuvo éxito. Ése es el workflow de **Jekyll** que
+GitHub dispara solo cuando el origen es una rama — y es el que está publicando el `README.md`
+renderizado en lugar de la aplicación.
+
+**Arreglo:** `Settings → Pages → Build and deployment → Source:` cambiar de *Deploy from a branch* a
+**GitHub Actions**. No lo puede hacer una sesión de Claude.
