@@ -17,7 +17,7 @@
       .tinta { stroke: #E8ECEF; }
     }
   </style>
-  <g class="tinta" fill="none" stroke-width="8" stroke-linecap="butt">
+  <g class="tinta" fill="none" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
     <path d="M32,16 L32,40"></path>
     <path d="M12,40 L52,40"></path>
     <path d="M12,40 L12,56"></path>

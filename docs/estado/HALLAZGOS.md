@@ -19,6 +19,7 @@ ID: `<letra>-<número>`. La letra dice el frente (`M` motor, `I` interfaz, `P` p
 | I-06 · Pantalla de carga: una bola negra, y el favicon de Blazor | P2 | **Cerrado** | este commit |
 | P-03 · El navegador se quedaba con el CSS y los iconos viejos | P1 | **Cerrado** | este commit |
 | I-07 · Faltaba `favicon.ico`: el navegador seguía con el icono de Blazor | P1 | **Cerrado** | este commit |
+| I-08 · El selector de tipo cortaba el texto: «Alumbrac» | P2 | **Cerrado** | este commit |
 | I-04 · No hay resumen de carga ni balanceo por fase | P2 | Pendiente | — |
 | I-05 · No se puede guardar ni abrir un proyecto | P1 | Pendiente | — |
 
@@ -179,3 +180,14 @@ su tipo MIME correcto desde el subdirectorio `/Power-Node-Web/`.
 > **Para distinguir "no se publicó" de "el navegador no lo suelta"**, abre el archivo directo:
 > `https://dflores296.github.io/Power-Node-Web/favicon.ico`. Si ahí se ve el logo, el sitio está
 > bien y lo que queda es caché del navegador.
+
+### I-08 — El selector de tipo decía «Alumbrac» · este commit
+
+A 92 px de ancho, el navegador cortaba «Alumbrado» en **«Alumbrac»** y «Contactos» en
+«Contacto». **Un campo que miente sobre su propio valor es peor que uno estrecho** — sobre todo
+cuando el valor decide el piso práctico de calibre (ver I-03), así que leer mal el tipo es leer mal
+el resultado. Subido a 108 px, que es lo que pide la palabra completa más la flecha.
+
+Salió al revisar la captura de la pantalla ya redondeada, no de una prueba: es la clase de defecto
+que ninguna aserción atrapa porque el valor del `<select>` era correcto todo el tiempo — lo que
+fallaba era que el usuario no podía leerlo.

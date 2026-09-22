@@ -45,6 +45,7 @@ confirma a Claude que lo escriba.
 | Documento | Qué es |
 |---|---|
 | [`conocimiento/motor-copiado.md`](conocimiento/motor-copiado.md) | Exactamente qué se trajo de `PowerNode-DesignSuite`, qué se dejó fuera, y los cinco ajustes que hizo falta hacer para que compilara solo. |
+| [`conocimiento/marca.md`](conocimiento/marca.md) | El logo, los colores reales, la escala de redondeo, y en qué se aparta del escritorio. |
 | [`conocimiento/tablas-de-la-norma.md`](conocimiento/tablas-de-la-norma.md) | Cómo el motor lee la NOM sin base de datos: la costura (`FilaTabla`), los 39 KB de JSON, el `--check` que rompe el build, y cómo agregar una tabla. |
 
 ## ⚪ `historico/` — lo cerrado. Nunca se borra, se mueve aquí.

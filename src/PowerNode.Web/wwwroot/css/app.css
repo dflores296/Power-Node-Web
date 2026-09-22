@@ -9,6 +9,15 @@
     --fondo: #f5f7fa;
     --papel: #fff;
     --alerta: #b3261e;
+
+    /* Escala de redondeo. Nace del logo: sus líneas rematan en semicírculo
+       (stroke-linecap="round"), no en escuadra. La interfaz sigue el mismo criterio --
+       cuanto más grande el elemento, más generoso el radio -- en vez de los valores
+       sueltos de 3/4/5 px que había antes, que no respondían a nada. */
+    --radio-xs: 6px;    /* celdas editables, chips */
+    --radio-sm: 9px;    /* campos, selectores, botones */
+    --radio-md: 14px;   /* tarjetas y la tabla */
+    --radio-lg: 18px;   /* el panel de la memoria */
 }
 
 * { box-sizing: border-box; }
@@ -41,11 +50,16 @@ select, input { font: inherit; padding: 5px 8px; border: 1px solid var(--linea);
 .lados { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 18px; }
 @media (max-width: 1100px) { .lados { grid-template-columns: 1fr; } }
 
-.cuadro { width: 100%; border-collapse: collapse; background: var(--papel);
-          border: 1px solid var(--linea); font-variant-numeric: tabular-nums; }
+/* separate y no collapse: con border-collapse: collapse el navegador IGNORA el
+   border-radius y las esquinas salen cuadradas. Las líneas interiores se dibujan
+   entonces con border-bottom en las celdas, no con el borde de la tabla. */
+.cuadro { width: 100%; border-collapse: separate; border-spacing: 0;
+          background: var(--papel); border: 1px solid var(--linea);
+          border-radius: var(--radio-md); overflow: hidden;
+          font-variant-numeric: tabular-nums; }
 .cuadro th { background: #eef2f7; font-size: 10px; text-transform: uppercase;
              letter-spacing: .03em; color: var(--tenue); font-weight: 600;
-             padding: 6px 4px; border-bottom: 1px solid var(--linea); text-align: center; }
+             padding: 8px 4px; border-bottom: 1px solid var(--linea); text-align: center; }
 .cuadro th small { font-weight: 400; text-transform: none; }
 .cuadro td { padding: 2px 4px; border-bottom: 1px solid #eef1f5; text-align: center; }
 .cuadro tbody tr:hover { background: #f8fafc; }
@@ -56,10 +70,22 @@ select, input { font: inherit; padding: 5px 8px; border: 1px solid var(--linea);
 .fuerte { font-weight: 600; }
 .excede { color: var(--alerta); font-weight: 600; }
 
-input.desc { width: 100%; border: none; background: transparent; padding: 3px 4px; }
-input.desc:focus { background: #fff; border: 1px solid var(--acento); border-radius: 3px; }
-input.va { width: 62px; border: none; background: transparent; padding: 3px 2px; text-align: right; }
-input.va:focus { background: #fff; border: 1px solid var(--acento); border-radius: 3px; }
+/* Los campos de la cuadrícula nacen invisibles -- la tabla tiene que leerse como una
+   tabla, no como un formulario -- y sólo se dibujan al enfocarse. */
+input.desc, input.va {
+    border: 1px solid transparent;
+    border-radius: var(--radio-xs);
+    background: transparent;
+    padding: 3px 6px;
+    box-shadow: none;
+}
+input.desc { width: 100%; }
+input.va { width: 62px; text-align: right; }
+input.desc:focus, input.va:focus {
+    background: var(--papel);
+    border-color: var(--acento);
+    box-shadow: 0 0 0 3px rgb(11 110 153 / .12);
+}
 
 .fase { font-weight: 600; }
 .fase-a { color: #8a1d1d; }
@@ -69,10 +95,10 @@ input.va:focus { background: #fff; border: 1px solid var(--acento); border-radiu
 .fila-error td { color: var(--alerta); font-size: 11px; text-align: left; padding: 4px 8px 8px; }
 
 .memoria { margin-top: 22px; background: var(--papel); border: 1px solid var(--linea);
-           border-radius: 5px; padding: 14px 18px; }
+           border-radius: var(--radio-lg); padding: 16px 20px; }
 .memoria ul { margin: 0; padding-left: 18px; }
 .memoria li { margin: 4px 0; font-size: 12px; }
-.memoria code { background: #eceff3; padding: 1px 5px; border-radius: 3px; font-size: 11px; }
+.memoria code { background: #eceff3; padding: 2px 7px; border-radius: var(--radio-xs); font-size: 11px; }
 
 .pie { margin-top: 26px; color: var(--tenue); font-size: 11px; line-height: 1.6; }
 .pie a { color: var(--acento); }
@@ -105,5 +131,8 @@ input.va:focus { background: #fff; border: 1px solid var(--acento); border-radiu
 #blazor-error-ui { background: #ffe9e6; border-top: 2px solid var(--alerta);
                    bottom: 0; display: none; left: 0; padding: 10px 16px; position: fixed;
                    width: 100%; z-index: 1000; }
-select.polos { width: 44px; padding: 2px 3px; }
-select.tipo { width: 88px; padding: 2px 3px; }
+select.polos { width: 48px; padding: 2px 4px; border-radius: var(--radio-xs); }
+/* Ancho suficiente para "Alumbrado" completo MÁS la flecha del selector. A 92 px el
+   navegador lo cortaba en "Alumbrac", que no es una palabra: un campo que miente sobre
+   su propio valor es peor que uno estrecho. */
+select.tipo { width: 108px; padding: 2px 4px 2px 6px; border-radius: var(--radio-xs); }
