@@ -1,10 +1,13 @@
 :root {
-    --tinta: #16202c;
-    --tenue: #6b7785;
+    /* Los tres primeros son los de la marca, tomados de Recursos/Marca del repo de escritorio:
+       no son aproximaciones. El resto se derivó alrededor de ellos. */
+    --tinta: #101418;
+    --acento: #0B6E99;
+    --tenue: #5A6570;
+
     --linea: #d8dee6;
     --fondo: #f5f7fa;
     --papel: #fff;
-    --acento: #1b5e9c;
     --alerta: #b3261e;
 }
 
@@ -73,6 +76,31 @@ input.va:focus { background: #fff; border: 1px solid var(--acento); border-radiu
 
 .pie { margin-top: 26px; color: var(--tenue); font-size: 11px; line-height: 1.6; }
 .pie a { color: var(--acento); }
+
+.arranque {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    gap: 2px;
+    animation: aparecer .4s ease-out;
+}
+.arranque-logo { opacity: .9; }
+.arranque-nombre {
+    margin: 12px 0 0;
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--tinta);
+}
+.arranque-nota { margin: 4px 0 0; font-size: 12px; color: var(--tenue); }
+
+@keyframes aparecer { from { opacity: 0; } to { opacity: 1; } }
+
+/* La marca en el encabezado: el icono al lado del título, no encima. */
+.titulo { display: flex; align-items: center; gap: 11px; }
+.titulo img { flex: none; }
 
 #blazor-error-ui { background: #ffe9e6; border-top: 2px solid var(--alerta);
                    bottom: 0; display: none; left: 0; padding: 10px 16px; position: fixed;

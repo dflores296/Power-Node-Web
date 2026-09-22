@@ -16,6 +16,7 @@ ID: `<letra>-<número>`. La letra dice el frente (`M` motor, `I` interfaz, `P` p
 | I-02 · `NumeroFases` se pasaba del tablero, no del circuito | P0 | **Cerrado** | este commit |
 | I-03 · El piso práctico de calibre no se aplicaba | P1 | **Cerrado** | este commit |
 | P-02 · Pages quedó en «Deploy from a branch», sirve el README y no la app | P1 | Pendiente (lo hace David) | — |
+| I-06 · Pantalla de carga: una bola negra, y el favicon de Blazor | P2 | **Cerrado** | este commit |
 | I-04 · No hay resumen de carga ni balanceo por fase | P2 | Pendiente | — |
 | I-05 · No se puede guardar ni abrir un proyecto | P1 | Pendiente | — |
 
@@ -87,3 +88,27 @@ renderizado en lugar de la aplicación.
 
 **Arreglo:** `Settings → Pages → Build and deployment → Source:` cambiar de *Deploy from a branch* a
 **GitHub Actions**. No lo puede hacer una sesión de Claude.
+
+### I-06 — La bola negra del arranque, y el icono morado · este commit
+
+Dos defectos visibles que **sólo se ven en el sitio publicado**, no corriendo en local, porque son
+del primer instante de carga y de la pestaña del navegador:
+
+1. **La bola negra.** La plantilla de Blazor pone un `<svg class="loading-progress">` con dos
+   círculos, y los dibuja con estilos que ella misma mete en `css/app.css`. Al reescribir esa hoja
+   por completo, esos estilos se fueron — y **un `<circle>` de SVG sin `fill` declarado se pinta
+   negro sólido**. De ahí el disco negro en la esquina.
+2. **El icono morado.** El `favicon.png` que trae la plantilla, nunca reemplazado.
+
+**Corregido con la marca real**, tomada de `Recursos/Marca/` del repo de escritorio
+(`powernode-icono.svg` y sus variantes): el unifilar de nodo, barra y tres derivaciones. Los colores
+de la aplicación se alinearon a los de la marca —tinta `#101418`, azul `#0B6E99`, gris `#5A6570`—
+en vez de las aproximaciones que traía.
+
+**El favicon lleva `prefers-color-scheme` adentro del SVG**, y eso no es adorno: la tinta de la marca
+es casi negra y la barra de pestañas del usuario está en tema oscuro, donde el logo desaparecía. El
+azul del nodo no cambia — tiene contraste contra los dos fondos.
+
+**Verificado como lo sirve GitHub Pages, no en local:** `dotnet publish` + el mismo `sed` del
+`base href` del workflow, servido desde un subdirectorio `/Power-Node-Web/`. Arranca sin un solo
+error de consola ni un 404.

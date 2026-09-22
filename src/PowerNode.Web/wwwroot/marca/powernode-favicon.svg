@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <!--
+    El icono de Power Node para la pestaña del navegador. Es el mismo unifilar de
+    powernode-icono.svg -- nodo, barra y tres derivaciones -- con una sola diferencia:
+    LA TINTA SE ADAPTA AL TEMA.
+
+    Por qué: la tinta de la marca es #101418, casi negro, y una barra de pestañas en tema
+    oscuro lo vuelve invisible. Un favicon que no se ve no es un favicon. El azul del nodo
+    (#0B6E99) no cambia: tiene contraste suficiente contra los dos fondos y es lo que
+    identifica la marca de un vistazo.
+
+    Trazo a 8 en vez de 4 (la variante de 16 px): a tamaño de pestaña, 4 desaparece.
+  -->
+  <style>
+    .tinta { stroke: #101418; }
+    @media (prefers-color-scheme: dark) {
+      .tinta { stroke: #E8ECEF; }
+    }
+  </style>
+  <g class="tinta" fill="none" stroke-width="8" stroke-linecap="butt">
+    <path d="M32,16 L32,40"></path>
+    <path d="M12,40 L52,40"></path>
+    <path d="M12,40 L12,56"></path>
+    <path d="M32,40 L32,56"></path>
+    <path d="M52,40 L52,56"></path>
+  </g>
+  <circle cx="32" cy="14" r="10" fill="#0B6E99"></circle>
+</svg>

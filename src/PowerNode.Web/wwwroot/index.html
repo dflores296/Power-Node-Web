@@ -1,27 +1,38 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>PowerNode.Web</title>
+    <title>Power Node · Cuadro de carga NOM-001-SEDE-2012</title>
+    <meta name="description" content="Calculadora de cuadros de carga según la NOM-001-SEDE-2012. Protección, conductores y caída de tensión, con la cita del artículo de cada resultado. Corre completa en el navegador." />
     <base href="/" />
     <link rel="stylesheet" href="css/app.css" />
-    <link rel="icon" type="image/png" href="favicon.png" />
+    <link rel="icon" type="image/svg+xml" href="marca/powernode-favicon.svg" />
 </head>
 
 <body>
+    <!--
+      La pantalla de carga. Antes era el <svg class="loading-progress"> de la plantilla de Blazor,
+      y salía como UNA BOLA NEGRA: sus dos círculos los dibujan los estilos que la plantilla pone
+      en css/app.css, y al reescribir esa hoja se quedaron sin ellos. Un <circle> de SVG sin `fill`
+      declarado se pinta negro sólido.
+
+      Se reemplazó por la marca en vez de recuperar aquel indicador: la app pesa ~3.4 MB la primera
+      vez y después queda en caché, así que esto se ve unos segundos y conviene que diga de qué
+      programa se trata.
+    -->
     <div id="app">
-        <svg class="loading-progress">
-            <circle r="40%" cx="50%" cy="50%" />
-            <circle r="40%" cx="50%" cy="50%" />
-        </svg>
-        <div class="loading-progress-text"></div>
+        <div class="arranque">
+            <img class="arranque-logo" src="marca/powernode-icono.svg" alt="" width="56" height="56" />
+            <p class="arranque-nombre">Power Node</p>
+            <p class="arranque-nota">Cargando el cálculo y las tablas de la norma…</p>
+        </div>
     </div>
 
     <div id="blazor-error-ui">
-        An unhandled error has occurred.
-        <a href="" class="reload">Reload</a>
+        Algo falló y la página no puede seguir.
+        <a href="" class="reload">Recargar</a>
         <a class="dismiss">🗙</a>
     </div>
     <script src="_framework/blazor.webassembly.js"></script>
