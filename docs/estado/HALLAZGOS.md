@@ -15,8 +15,9 @@ ID: `<letra>-<número>`. La letra dice el frente (`M` motor, `I` interfaz, `P` p
 | P-01 · No hay workflow de despliegue a GitHub Pages | P1 | **Cerrado** (sin ejecutar) | este commit |
 | I-02 · `NumeroFases` se pasaba del tablero, no del circuito | P0 | **Cerrado** | este commit |
 | I-03 · El piso práctico de calibre no se aplicaba | P1 | **Cerrado** | este commit |
-| P-02 · Pages quedó en «Deploy from a branch», sirve el README y no la app | P1 | Pendiente (lo hace David) | — |
+| P-02 · Pages quedó en «Deploy from a branch», sirve el README y no la app | P1 | **Cerrado** | David lo cambió a GitHub Actions |
 | I-06 · Pantalla de carga: una bola negra, y el favicon de Blazor | P2 | **Cerrado** | este commit |
+| P-03 · El navegador se quedaba con el CSS y los iconos viejos | P1 | **Cerrado** | este commit |
 | I-04 · No hay resumen de carga ni balanceo por fase | P2 | Pendiente | — |
 | I-05 · No se puede guardar ni abrir un proyecto | P1 | Pendiente | — |
 
@@ -112,3 +113,29 @@ azul del nodo no cambia — tiene contraste contra los dos fondos.
 **Verificado como lo sirve GitHub Pages, no en local:** `dotnet publish` + el mismo `sed` del
 `base href` del workflow, servido desde un subdirectorio `/Power-Node-Web/`. Arranca sin un solo
 error de consola ni un 404.
+
+### P-03 — Caché: el index nuevo con el CSS viejo · este commit
+
+**El despliegue era correcto y aun así el sitio se veía mal.** Tras publicar la marca, la pantalla
+de carga salía **sin formato** —el logo arriba a la izquierda, el texto en color de enlace— y la
+pestaña seguía con el icono morado de Blazor.
+
+No era el despliegue: la corrida de `7cf69c5` terminó en verde a las 03:54:58, y esa vez **ya no
+corrió el workflow de Jekyll**, lo que confirma que P-02 quedó resuelto. Era el **navegador**, que
+tenía en caché el `css/app.css` anterior. Con el `index.html` nuevo —que ya trae el marcado
+`.arranque`— y la hoja vieja —que aún no tiene sus reglas—, el resultado es marcado sin estilo. Los
+favicons son peor: se cachean tan agresivamente que ni `Ctrl+F5` los refresca.
+
+**Es exactamente el problema que `msa-toolkit` ya documentó** en su `docs/despliegue.md`, con las
+mismas palabras: *«la página se ve igual y parece que no se publicó nada»*.
+
+**Corregido con el mismo patrón, pero automatizado:** el workflow le pega `?v=<hash del commit>` al
+CSS y a los tres iconos al publicar. `msa-toolkit` lo lleva a mano (`?v=20260830b`, que hay que
+acordarse de subir en cada cambio); aquí sale del `GITHUB_SHA`, porque un número que depende de la
+memoria tarde o temprano no se sube. `_framework/` no lo necesita: Blazor ya versiona lo suyo.
+
+**De paso, tres iconos en vez de uno:** el SVG (nítido, con `prefers-color-scheme`), un PNG de 32
+para el navegador que no sirva SVG como icono, y uno de 180 para iOS.
+
+**Verificado sirviendo el publicado desde `/Power-Node-Web/` con caché vacía:** `.arranque` computa
+`display=flex` centrado, los tres iconos llevan su `?v=`, cero errores y cero 404.

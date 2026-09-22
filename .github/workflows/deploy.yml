@@ -42,12 +42,28 @@ jobs:
       - name: Pruebas
         run: dotnet test tests/PowerNode.Normativa.Tests --configuration Release
 
-      # El base href tiene que apuntar al subdirectorio del repo, o los archivos de _framework/
-      # se piden a la raíz del dominio y no cargan nada.
+      # Dos reescrituras sobre el index.html publicado:
+      #
+      # 1. El base href tiene que apuntar al subdirectorio del repo, o los archivos de _framework/
+      #    se piden a la raíz del dominio y no cargan nada.
+      #
+      # 2. El sufijo ?v=<commit> en el CSS y los iconos. GitHub Pages los sirve con caché, así que
+      #    sin esto un navegador que ya visitó el sitio SIGUE USANDO LOS VIEJOS aunque el despliegue
+      #    haya sido correcto -- y el síntoma es de los que hacen perder una tarde, porque la página
+      #    "se ve igual" y parece que no se publicó nada. Pasó de verdad el 2026-09-22: el index.html
+      #    nuevo llegó con el app.css viejo y la pantalla de carga salió sin formato.
+      #
+      #    Va con el hash del commit y no a mano (que es como lo hace msa-toolkit, ver su
+      #    docs/despliegue.md): un número que hay que acordarse de subir en cada cambio tarde o
+      #    temprano no se sube. _framework/ no lo necesita: Blazor ya versiona sus propios archivos.
       - name: Publicar
         run: |
           dotnet publish src/PowerNode.Web --configuration Release --output publicado
           sed -i 's|<base href="/" />|<base href="/Power-Node-Web/" />|g' publicado/wwwroot/index.html
+          V="${GITHUB_SHA::7}"
+          sed -i "s|href=\"css/app.css\"|href=\"css/app.css?v=$V\"|g; s|href=\"marca/powernode-favicon.svg\"|href=\"marca/powernode-favicon.svg?v=$V\"|g; s|href=\"marca/powernode-32.png\"|href=\"marca/powernode-32.png?v=$V\"|g; s|href=\"marca/powernode-180.png\"|href=\"marca/powernode-180.png?v=$V\"|g" publicado/wwwroot/index.html
+          echo "Versión de assets: $V"
+          grep -oE 'href="(css/app\.css|marca/[a-z0-9.-]+)\?v=[a-f0-9]+"' publicado/wwwroot/index.html
 
       # Sin .nojekyll, GitHub Pages ignora _framework/ por empezar con guion bajo, y la página
       # publica "bien" pero no arranca, sin error visible. Es la trampa clásica de Blazor en Pages.
