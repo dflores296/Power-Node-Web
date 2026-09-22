@@ -43,9 +43,9 @@ los mismos valores que ya se verificaron a mano contra el PDF del DOF.
 **El tablero está completo y el entregable se imprime.** Tres pantallas de trabajo en dos rutas:
 
 - **`/` — captura.** La ficha del tablero con los campos del Excel (identificación, sistema,
-  gabinete, condiciones de cálculo), los dos bloques de espacios —nones izquierda, pares derecha—,
-  el resumen de carga con su factor de demanda, el balanceo por fase con el desbalanceo, y el
-  alimentador con el interruptor principal.
+  gabinete, condiciones de cálculo), los espacios en **un solo cuadro a todo lo ancho —nones
+  arriba, pares abajo—** como la hoja, el resumen de carga con su factor de demanda, el balanceo
+  por fase con el desbalanceo, y el alimentador con el interruptor principal.
 - **`/documento` — el cuadro de carga impreso**, con las mismas 24 columnas que emite el exportador
   de escritorio, más el renglón del alimentador y el resumen.
 - **`/documento` → memoria** — las **nueve secciones** del Excel original por circuito y por

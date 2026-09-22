@@ -83,87 +83,94 @@
     </div>
 </section>
 
-<div class="lados">
-    @foreach (var (titulo, circuitos) in new[]
-              {
-                  ("Lado izquierdo (nones)", Cuadro.Nones.ToList()),
-                  ("Lado derecho (pares)", Cuadro.Pares.ToList()),
-              })
-    {
-        <section class="lado">
-            <h2>@titulo</h2>
-            <table class="cuadro">
-                <thead>
-                    <tr>
-                        <th>N.º</th>
-                        <th class="izq">Descripción</th>
-                        <th>Tipo</th>
-                        <th>Continua<br /><small>VA</small></th>
-                        <th>No continua<br /><small>VA</small></th>
-                        <th>L<br /><small>m</small></th>
-                        <th>P</th>
-                        <th>Fase</th>
-                        <th>In<br /><small>A</small></th>
-                        <th>Protec.</th>
-                        <th>Fase</th>
-                        <th>N</th>
-                        <th>T</th>
-                        <th>e %</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var c in circuitos)
+<section class="cuadro-completo">
+    <table class="cuadro">
+        <thead>
+            <tr>
+                <th>N.º</th>
+                <th class="izq">Descripción</th>
+                <th>Tipo</th>
+                <th>Continua<br /><small>VA</small></th>
+                <th>No continua<br /><small>VA</small></th>
+                <th>L<br /><small>m</small></th>
+                <th>P</th>
+                <th>Fase</th>
+                <th>In<br /><small>A</small></th>
+                <th>Protec.</th>
+                <th>Fase</th>
+                <th>N</th>
+                <th>T</th>
+                <th>e %</th>
+            </tr>
+        </thead>
+        <tbody>
+            @*
+                Los nones arriba y los pares abajo, separados por un renglón delgado — es como está
+                armado el Excel (filas 34-54, una fila en blanco de 6 pt, y 56-76), y ahí NO hay
+                ningún rótulo de "lado": el número de circuito dice de qué columna del gabinete es.
+
+                Van en UNA sola tabla y no en dos, aunque se vean como dos bloques: dos tablas
+                independientes calculan sus anchos de columna por separado, y los renglones de
+                abajo no cuadrarían con los de arriba.
+            *@
+            @foreach (var (bloque, indice) in new[] { Cuadro.Nones, Cuadro.Pares }.Select((b, i) => (b, i)))
+            {
+                @if (indice > 0)
+                {
+                    <tr class="separador"><td colspan="14"></td></tr>
+                }
+
+                @foreach (var c in bloque)
+                {
+                    @if (c.EsContinuacion)
                     {
-                        @if (c.EsContinuacion)
+                        <tr class="continuacion">
+                            <td class="num">@c.Espacio</td>
+                            <td colspan="13" class="izq">↳ ocupado por el circuito @c.ContinuacionDe</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        <tr class="@(c.Resultado is null ? "vacio" : null)">
+                            <td class="num">@c.Espacio</td>
+                            <td><input class="desc" @bind="c.Descripcion" @bind:event="oninput" placeholder="—" /></td>
+                            <td>
+                                <select class="tipo" @bind="c.Tipo" @bind:after="Recalcular">
+                                    <option value="@TipoCarga.Alumbrado">Alumbrado</option>
+                                    <option value="@TipoCarga.Contactos">Contactos</option>
+                                    <option value="@TipoCarga.Equipo">Equipo</option>
+                                </select>
+                            </td>
+                            <td><input class="va" type="number" min="0" @bind="c.ContinuaVA" @bind:after="Recalcular" /></td>
+                            <td><input class="va" type="number" min="0" @bind="c.NoContinuaVA" @bind:after="Recalcular" /></td>
+                            <td><input class="va" type="number" min="0" @bind="c.LongitudM" @bind:after="Recalcular" /></td>
+                            <td>
+                                <select class="polos" value="@c.Polos"
+                                        @onchange="e => CambiarPolos(c, e.Value?.ToString())">
+                                    @foreach (var p in Enumerable.Range(1, Datos.MaximoPolos)) { <option value="@p">@p</option> }
+                                </select>
+                            </td>
+                            <td class="fase fase-@c.Fases.ToLowerInvariant()">@c.Fases</td>
+                            <td class="num">@c.Resultado?.CorrienteDisenoA.ToString("N2")</td>
+                            <td class="num fuerte">@(c.Resultado is null ? "" : $"{c.Resultado.ProteccionA:N0} A")</td>
+                            <td class="num">@c.Resultado?.CalibreFase.Designacion</td>
+                            <td class="num">@c.Resultado?.CalibreNeutro.Designacion</td>
+                            <td class="num">@c.Resultado?.CalibreTierra.Designacion</td>
+                            <td class="num @(Excede(c) ? "excede" : null)">@c.Resultado?.CaidaTensionPct.ToString("N2")</td>
+                        </tr>
+                        @if (c.Error is not null || _motivo.TryGetValue(c.Espacio, out _))
                         {
-                            <tr class="continuacion">
-                                <td class="num">@c.Espacio</td>
-                                <td colspan="13" class="izq">↳ ocupado por el circuito @c.ContinuacionDe</td>
+                            <tr class="fila-error">
+                                <td></td>
+                                <td colspan="13">@(c.Error ?? _motivo[c.Espacio])</td>
                             </tr>
-                        }
-                        else
-                        {
-                            <tr class="@(c.Resultado is null ? "vacio" : null)">
-                                <td class="num">@c.Espacio</td>
-                                <td><input class="desc" @bind="c.Descripcion" @bind:event="oninput" placeholder="—" /></td>
-                                <td>
-                                    <select class="tipo" @bind="c.Tipo" @bind:after="Recalcular">
-                                        <option value="@TipoCarga.Alumbrado">Alumbrado</option>
-                                        <option value="@TipoCarga.Contactos">Contactos</option>
-                                        <option value="@TipoCarga.Equipo">Equipo</option>
-                                    </select>
-                                </td>
-                                <td><input class="va" type="number" min="0" @bind="c.ContinuaVA" @bind:after="Recalcular" /></td>
-                                <td><input class="va" type="number" min="0" @bind="c.NoContinuaVA" @bind:after="Recalcular" /></td>
-                                <td><input class="va" type="number" min="0" @bind="c.LongitudM" @bind:after="Recalcular" /></td>
-                                <td>
-                                    <select class="polos" value="@c.Polos"
-                                            @onchange="e => CambiarPolos(c, e.Value?.ToString())">
-                                        @foreach (var p in Enumerable.Range(1, Datos.MaximoPolos)) { <option value="@p">@p</option> }
-                                    </select>
-                                </td>
-                                <td class="fase fase-@c.Fases.ToLowerInvariant()">@c.Fases</td>
-                                <td class="num">@c.Resultado?.CorrienteDisenoA.ToString("N2")</td>
-                                <td class="num fuerte">@(c.Resultado is null ? "" : $"{c.Resultado.ProteccionA:N0} A")</td>
-                                <td class="num">@c.Resultado?.CalibreFase.Designacion</td>
-                                <td class="num">@c.Resultado?.CalibreNeutro.Designacion</td>
-                                <td class="num">@c.Resultado?.CalibreTierra.Designacion</td>
-                                <td class="num @(Excede(c) ? "excede" : null)">@c.Resultado?.CaidaTensionPct.ToString("N2")</td>
-                            </tr>
-                            @if (c.Error is not null || _motivo.TryGetValue(c.Espacio, out _))
-                            {
-                                <tr class="fila-error">
-                                    <td></td>
-                                    <td colspan="13">@(c.Error ?? _motivo[c.Espacio])</td>
-                                </tr>
-                            }
                         }
                     }
-                </tbody>
-            </table>
-        </section>
-    }
-</div>
+                }
+            }
+        </tbody>
+    </table>
+</section>
 
 <div class="cierre">
     <section class="tarjeta">

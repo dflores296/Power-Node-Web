@@ -27,12 +27,19 @@ de cálculo no tiene otro lugar donde ponerlo.
 
 ## Los renglones
 
-| Renglones | Circuitos | Lado |
+| Renglones | Circuitos | Qué son |
 |---|---|---|
-| 34–54 (21) | 1, 3, 5 … 41 | **izquierdo** (nones) |
-| 56–76 (21) | 2, 4, 6 … 42 | **derecho** (pares) |
+| 34–54 (21) | 1, 3, 5 … 41 | los **nones** — la columna izquierda del gabinete |
+| 55 | — | **renglón en blanco de 6 pt**: el único corte entre los dos bloques |
+| 56–76 (21) | 2, 4, 6 … 42 | los **pares** — la columna derecha |
 | 78 | `TOTAL UNIDADES` | — |
 | 79 | `TOTAL (VA)` y **la fila del alimentador** | — |
+
+> **Los bloques no llevan rótulo, y va un bloque encima del otro.** Se buscó «LADO», «IZQUIERDO»,
+> «DERECHO», «NONES» y «PARES» en las 4 022 celdas con contenido de la hoja: no aparecen. Lo único
+> que separa los nones de los pares es ese renglón delgado de la fila 55 — **el número de circuito
+> ya dice de qué columna del gabinete es**. Por eso aquí tampoco se rotulan, y la pantalla de captura
+> los apila igual que la hoja en vez de ponerlos lado a lado.
 
 O sea **42 espacios**. Para un tablero más chico se ocultaban renglones a mano, de los dos bloques
 por igual. **Ese paso manual desaparece aquí:** el cuadro se dibuja con los espacios declarados.

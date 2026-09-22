@@ -49,6 +49,15 @@ fórmulas que un circuito**.
 **Verificado corriendo**, con Playwright contra `dotnet run`: captura, cuadro impreso y memoria, sin
 un solo error de consola; y el PDF de impresión revisado con `media: print` emulado.
 
+**Corrección del mismo día, a pedido de David:** los espacios estaban en dos tablas lado a lado, y
+en el Excel van **una encima de la otra**. Se comprobó en el archivo antes de moverlo: la hoja no
+dice «LADO IZQUIERDO» ni «DERECHO» en ninguna de sus 4 022 celdas con contenido — son los nones
+(34‑54), un renglón en blanco de 6 pt (55) y los pares (56‑76), y el número de circuito es lo que
+dice de qué columna del gabinete es cada uno. Ahora es **un solo `<table>` a todo lo ancho** con un
+renglón separador: si fueran dos tablas apiladas, cada una calcularía sus anchos de columna por
+separado y los renglones de abajo no cuadrarían con los de arriba. Se quitó el rótulo de lado
+también del documento impreso.
+
 ---
 
 ## 2026-09-22 (segunda parte) — Primera pantalla viva, calculando de verdad
