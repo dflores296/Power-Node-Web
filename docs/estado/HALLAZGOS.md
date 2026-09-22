@@ -29,6 +29,9 @@ ID: `<letra>-<número>`. La letra dice el frente (`M` motor, `I` interfaz, `P` p
 | I-13 · No había documento imprimible ni memoria por tablero | P1 | **Cerrado** | `cc92ad5` |
 | I-14 · La tensión F-N salía siempre de dividir entre √3 | P1 | **Cerrado** | `cc92ad5` |
 | I-15 · Los circuitos de Fuerza (Art. 430) no se pueden capturar | P2 | Pendiente | — |
+| I-16 · Encabezados partidos en dos líneas: el cuadro se leía torcido | P2 | **Cerrado** | este commit |
+| I-17 · El cuadro no traía hilos, mm² ni designación del conductor | P2 | **Cerrado** | este commit |
+| I-18 · No se dibujaba el interior del tablero ni dónde cae cada circuito | P1 | **Cerrado** | este commit |
 
 ---
 
@@ -230,3 +233,20 @@ corriente de cada circuito sale 13 % baja.
 
 **Corregido** llamando a `SistemaDelTablero.TensionFaseNeutro`, que distingue los tres casos. Lo
 cubre `LaTensionFaseNeutroNoEsSiempreEntreRaizDeTres`.
+
+### I-16 a I-18 — Lo que David señaló al ver el cuadro corriendo · este commit
+
+Tres cosas, todas de la misma raíz: **el cuadro enseñaba resultados pero no se dejaba leer.**
+
+1. **Encabezados partidos en dos líneas** (`IN` sobre `A`, `L` sobre `m`). Con el resto de las
+   columnas en una sola línea y todo centrado verticalmente, las cabeceras no cuadraban entre sí.
+   Ahora la unidad va entre paréntesis en el mismo renglón —`In (A)`, `L (m)`, `e (%)`— y lo que no
+   cabe en el rótulo va en un **tooltip**, no en una segunda línea. Y `FASE N T`, que no decía nada,
+   ahora es **Fase / Neutro / Puesta a tierra**.
+2. **Faltaban los hilos, los mm² y la designación AWG/kcmil** de cada conductor — las nueve columnas
+   que el Excel sí lleva (`BM`–`BX`) y que el documento impreso ya emitía. El cuadro de captura las
+   tenía resumidas a una sola columna por conductor.
+3. **No se dibujaba el interior del tablero.** El editor de gabinete es de lo más útil que tiene la
+   versión de escritorio y aquí no existía: no había dónde ver **en qué espacio cae cada circuito**
+   ni qué barra muerde. Se portó con la misma regla de allá — **una celda por interruptor, tan alta
+   como polos tiene**, no una por espacio.

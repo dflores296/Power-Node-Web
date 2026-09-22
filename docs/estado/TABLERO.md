@@ -44,8 +44,10 @@ los mismos valores que ya se verificaron a mano contra el PDF del DOF.
 
 - **`/` — captura.** La ficha del tablero con los campos del Excel (identificación, sistema,
   gabinete, condiciones de cálculo), los espacios en **un solo cuadro a todo lo ancho —nones
-  arriba, pares abajo—** como la hoja, el resumen de carga con su factor de demanda, el balanceo
-  por fase con el desbalanceo, y el alimentador con el interruptor principal.
+  arriba, pares abajo—** como la hoja, con el balanceo por fase renglón por renglón y las nueve
+  columnas de conductor (hilos, mm², AWG/kcmil de fase, neutro y tierra); **el dibujo del interior
+  del gabinete**, con una celda por interruptor y las barras que toca; el resumen de carga con su
+  factor de demanda y el desbalanceo; y el alimentador con el interruptor principal.
 - **`/documento` — el cuadro de carga impreso**, con las mismas 24 columnas que emite el exportador
   de escritorio, más el renglón del alimentador y el resumen.
 - **`/documento` → memoria** — las **nueve secciones** del Excel original por circuito y por

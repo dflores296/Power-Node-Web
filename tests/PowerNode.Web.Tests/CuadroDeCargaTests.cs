@@ -274,4 +274,51 @@ public class CuadroDeCargaTests
         Assert.True(cuadro.InterruptorPrincipalA < 30m);
         Assert.Contains(cuadro.Alimentador.Avisos, a => a.Contains("30 A"));
     }
+
+    // ---- El interior del gabinete ---------------------------------------------------------------
+
+    [Fact]
+    public void ElGabineteDibujaUnBloquePorInterruptor_NoUnoPorEspacio()
+    {
+        var cuadro = Nuevo(espacios: 12);
+        Assert.Null(cuadro.CambiarPolos(Espacio(cuadro, 1), 3)); // ocupa 1-3-5
+
+        var trifasico = cuadro.Gabinete.Single(b => b.Circuito.Espacio == 1);
+
+        Assert.Equal("1-3-5", trifasico.Numeros);
+        Assert.Equal("ABC", trifasico.Barras);
+        Assert.Equal(3, trifasico.Espacios);
+        Assert.Equal(1, trifasico.Fila);
+        Assert.Equal(1, trifasico.Columna);
+
+        // Los espacios 3 y 5 ya no son bloques propios: se los comió el de arriba.
+        Assert.DoesNotContain(cuadro.Gabinete, b => b.Circuito.Espacio is 3 or 5);
+    }
+
+    [Fact]
+    public void NonesALaIzquierdaYParesALaDerecha_ConSuRenglon()
+    {
+        var cuadro = Nuevo(espacios: 12);
+
+        foreach (var (espacio, fila, columna) in new[] { (1, 1, 1), (2, 1, 2), (3, 2, 1), (4, 2, 2), (11, 6, 1), (12, 6, 2) })
+        {
+            var bloque = cuadro.Gabinete.Single(b => b.Circuito.Espacio == espacio);
+            Assert.Equal(fila, bloque.Fila);
+            Assert.Equal(columna, bloque.Columna);
+        }
+    }
+
+    [Fact]
+    public void LaOcupacionCuentaPolos_YSoloLoQueTieneCarga()
+    {
+        var cuadro = Nuevo(espacios: 12);
+        Assert.Equal(0, cuadro.EspaciosOcupados);
+        Assert.Equal(12, cuadro.EspaciosLibres);
+
+        Espacio(cuadro, 2).ContinuaVA = 3000m;
+        Assert.Null(cuadro.CambiarPolos(Espacio(cuadro, 2), 3)); // 2-4-6, con carga
+
+        Assert.Equal(3, cuadro.EspaciosOcupados);
+        Assert.Equal(9, cuadro.EspaciosLibres);
+    }
 }

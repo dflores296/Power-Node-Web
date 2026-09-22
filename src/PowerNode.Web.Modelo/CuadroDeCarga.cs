@@ -71,6 +71,18 @@ public sealed class CuadroDeCarga
 
     public RenglonDelAlimentador Alimentador { get; private set; } = new(null, null, [], 3);
 
+    /// <summary>
+    /// El interior del tablero dibujado: un bloque por interruptor, con su renglón, su columna y
+    /// cuántos espacios abarca. Nones a la izquierda y pares a la derecha — <b>la geometría no se
+    /// decide aquí</b>, sale de <see cref="DistribucionBarras"/>.
+    /// </summary>
+    public IReadOnlyList<BloqueDelGabinete> Gabinete { get; private set; } = [];
+
+    /// <summary>Espacios con un interruptor con carga capturada. Un multipolar cuenta por sus polos.</summary>
+    public int EspaciosOcupados => Gabinete.Where(b => b.Ocupado).Sum(b => b.Espacios);
+
+    public int EspaciosLibres => Datos.NumeroEspacios - EspaciosOcupados;
+
     /// <summary>El interruptor principal del tablero, en amperes. 0 mientras no haya carga capturada.</summary>
     public decimal InterruptorPrincipalA => Alimentador.Resultado?.ProteccionA ?? 0m;
 
@@ -84,6 +96,7 @@ public sealed class CuadroDeCarga
         AjustarEspacios();
         ResolverOcupacion();
         CalcularCircuitos();
+        DibujarGabinete();
         CalcularResumen();
         CalcularAlimentador();
     }
@@ -191,6 +204,32 @@ public sealed class CuadroDeCarga
                 c.Error = ex.Message;
             }
         }
+    }
+
+    /// <summary>
+    /// Arma los bloques del interior. Cada interruptor empieza en su espacio y abarca sus polos
+    /// hacia abajo por la MISMA columna, que es como se apilan los polos físicamente.
+    /// </summary>
+    private void DibujarGabinete()
+    {
+        Gabinete =
+        [
+            .. _circuitos
+                .Where(c => !c.EsContinuacion)
+                .Select(c =>
+                {
+                    var espacios = DistribucionBarras.EspaciosQueOcupa(c.Espacio, c.Polos);
+
+                    return new BloqueDelGabinete(
+                        Circuito: c,
+                        // El espacio 1 y el 2 están en el primer renglón; el 3 y el 4, en el segundo.
+                        Fila: (c.Espacio + 1) / 2,
+                        Columna: c.Espacio % 2 == 1 ? 1 : 2,
+                        Espacios: c.Polos,
+                        Numeros: string.Join("-", espacios),
+                        Barras: c.Fases);
+                })
+        ];
     }
 
     private void CalcularResumen()

@@ -56,17 +56,17 @@
                     <th colspan="3">Fase</th>
                     <th colspan="3">Neutro</th>
                     <th colspan="3">Puesta a tierra</th>
-                    <th rowspan="2">In<br /><small>A</small></th>
-                    <th rowspan="2">L<br /><small>m</small></th>
-                    <th rowspan="2">e<br /><small>%</small></th>
+                    <th rowspan="2">In (A)</th>
+                    <th rowspan="2">L (m)</th>
+                    <th rowspan="2">e (%)</th>
                 </tr>
                 <tr>
                     <th>Continua</th><th>F.D.</th><th>No cont.</th><th>F.D.</th><th>Instalada</th>
                     @foreach (var barra in Datos.Barras) { <th>@barra</th> }
                     <th>P</th><th>A</th>
-                    <th>Hilos</th><th>mm²</th><th>AWG</th>
-                    <th>Hilos</th><th>mm²</th><th>AWG</th>
-                    <th>Hilos</th><th>mm²</th><th>AWG</th>
+                    <th>Hilos</th><th>mm²</th><th>AWG/kcm</th>
+                    <th>Hilos</th><th>mm²</th><th>AWG/kcm</th>
+                    <th>Hilos</th><th>mm²</th><th>AWG/kcm</th>
                 </tr>
             </thead>
             <tbody>
@@ -150,7 +150,7 @@
                 {
                     <table class="doc-resumen">
                         <tr>
-                            <th>P × A</th><th>Fase</th><th>Neutro</th><th>Tierra</th><th>In (A)</th><th>L (m)</th><th>e (%)</th>
+                            <th>P × A</th><th>Fase</th><th>Neutro</th><th>Puesta a tierra</th><th>In (A)</th><th>L (m)</th><th>e (%)</th>
                         </tr>
                         <tr>
                             <td class="num fuerte">@Cuadro.Alimentador.Polos × @a.ProteccionA.ToString("N0")</td>

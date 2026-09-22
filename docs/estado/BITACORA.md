@@ -49,6 +49,14 @@ fórmulas que un circuito**.
 **Verificado corriendo**, con Playwright contra `dotnet run`: captura, cuadro impreso y memoria, sin
 un solo error de consola; y el PDF de impresión revisado con `media: print` emulado.
 
+**Segunda corrección del mismo día, con el cuadro ya corriendo enfrente** (I-16 a I-18): los
+encabezados partidos en dos líneas (`IN` sobre `A`) desalineaban el cuadro, `FASE N T` no decía
+nada, y faltaban los hilos/mm²/AWG de cada conductor. Ahora la unidad va entre paréntesis en el
+mismo renglón, lo que no cabe va en **tooltip**, y están las nueve columnas de conductor que el
+Excel lleva en `BM`–`BX`. Y lo más gordo que faltaba: **el dibujo del interior del tablero**, que es
+donde se ve en qué espacio cae cada circuito. Se portó del editor de gabinete de escritorio con su
+regla —una celda por interruptor, tan alta como polos tiene— y sus pastillas de barra apiladas.
+
 **Corrección del mismo día, a pedido de David:** los espacios estaban en dos tablas lado a lado, y
 en el Excel van **una encima de la otra**. Se comprobó en el archivo antes de moverlo: la hoja no
 dice «LADO IZQUIERDO» ni «DERECHO» en ninguna de sus 4 022 celdas con contenido — son los nones

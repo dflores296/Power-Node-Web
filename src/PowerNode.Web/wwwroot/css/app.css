@@ -48,8 +48,11 @@ select, input { font: inherit; padding: 5px 8px; border: 1px solid var(--linea);
                 border-radius: 4px; background: var(--papel); color: var(--tinta); }
 
 /* Los nones arriba y los pares abajo, en un solo bloque a todo lo ancho: es como está armado el
-   Excel, y de paso la columna de descripción deja de ir apretada. */
-.cuadro-completo { margin-top: 18px; }
+   Excel, y de paso la columna de descripción deja de ir apretada.
+
+   overflow-x en vez de encoger las columnas: el cuadro lleva 23 columnas y en una pantalla angosta
+   prefiero que se recorra a que los números se aprieten hasta no leerse. */
+.cuadro-completo { margin-top: 18px; overflow-x: auto; }
 
 /* separate y no collapse: con border-collapse: collapse el navegador IGNORA el
    border-radius y las esquinas salen cuadradas. Las líneas interiores se dibujan
@@ -60,11 +63,24 @@ select, input { font: inherit; padding: 5px 8px; border: 1px solid var(--linea);
           font-variant-numeric: tabular-nums; }
 .cuadro th { background: #eef2f7; font-size: 10px; text-transform: uppercase;
              letter-spacing: .03em; color: var(--tenue); font-weight: 600;
-             padding: 8px 4px; border-bottom: 1px solid var(--linea); text-align: center; }
-.cuadro th small { font-weight: 400; text-transform: none; }
+             padding: 6px 4px; border-bottom: 1px solid var(--linea); text-align: center;
+             vertical-align: middle; white-space: nowrap; }
+/* Las cabeceras de grupo (Carga, Balanceo, Fase, Neutro, Puesta a tierra) se separan con una línea
+   vertical para que se vea dónde empieza y dónde acaba cada grupo. */
+.cuadro thead tr:first-child th[colspan] { border-left: 1px solid var(--linea);
+                                           border-right: 1px solid var(--linea); }
+
+/* Un rótulo que esconde su explicación: subrayado punteado y cursor de ayuda, para que se note que
+   hay algo que leer. El texto va en el title, no en una segunda línea del encabezado. */
+.ayuda { border-bottom: 1px dotted #9aa6b2; cursor: help; }
+
+/* La descripción se queda con lo que sobra: las demás columnas son de ancho de contenido, así que
+   sin esto el navegador le daba lo mínimo y "Alumbrado oficinas" salía cortado. */
+.cuadro th.descripcion { width: 16%; min-width: 170px; }
 .cuadro td { padding: 2px 4px; border-bottom: 1px solid #eef1f5; text-align: center; }
 .cuadro tbody tr:hover { background: #f8fafc; }
 .cuadro tr.vacio { color: #b9c2cc; }
+.cuadro td.tenue { color: var(--tenue); }
 
 .izq { text-align: left !important; }
 .num { font-variant-numeric: tabular-nums; }
@@ -82,6 +98,7 @@ input.desc, input.va {
 }
 input.desc { width: 100%; }
 input.va { width: 62px; text-align: right; }
+input.va.corto { width: 46px; }
 input.desc:focus, input.va:focus {
     background: var(--papel);
     border-color: var(--acento);
@@ -179,16 +196,20 @@ select.tipo { width: 108px; padding: 2px 4px 2px 6px; border-radius: var(--radio
    derecha y la fila 79.
    ------------------------------------------------------------------------------------------------ */
 
-.cierre { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 22px; }
-@media (max-width: 1100px) { .cierre { grid-template-columns: 1fr; } }
+.cierre { display: grid; grid-template-columns: 1.15fr 1fr 1fr; gap: 20px; margin-top: 22px;
+          align-items: start; }
+@media (max-width: 1400px) { .cierre { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 900px) { .cierre { grid-template-columns: 1fr; } }
 
 .tarjeta { background: var(--papel); border: 1px solid var(--linea);
            border-radius: var(--radio-lg); padding: 16px 20px; }
 .tarjeta h2.separado { margin-top: 18px; }
 .datos { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
 .datos th { font-size: 10px; text-transform: uppercase; letter-spacing: .03em;
-            color: var(--tenue); font-weight: 600; text-align: right; padding: 4px 6px; }
-.datos td { padding: 4px 6px; text-align: right; border-top: 1px solid #eef1f5; }
+            color: var(--tenue); font-weight: 600; text-align: right; padding: 4px 6px;
+            white-space: nowrap; }
+.datos td { padding: 4px 6px; text-align: right; border-top: 1px solid #eef1f5;
+            white-space: nowrap; }
 .datos tr.total td { font-weight: 600; border-top: 1px solid var(--linea); }
 .datos input.chico { width: 62px; }
 label.suelto { display: flex; align-items: center; justify-content: space-between;
@@ -266,3 +287,46 @@ label.suelto input { width: 90px; }
     @page { size: landscape; margin: 10mm; }
 }
 .intro { margin: 4px 0 2px; font-size: 11px; }
+
+/* ------------------------------------------------------------------------------------------------
+   EL INTERIOR DEL GABINETE — la cuadrícula de dos columnas con la rotación por pares.
+
+   Es una rejilla CSS de verdad y no una lista: hace falta que un interruptor multipolar sea UNA
+   celda que abarque varios renglones (grid-row: span N), y una lista reparte una casilla por
+   elemento sin saber fusionarlas. Mismo motivo por el que el editor de escritorio usa un Grid con
+   RowSpan y no un UniformGrid.
+   ------------------------------------------------------------------------------------------------ */
+
+.sin-margen { margin-top: 0; }
+
+.interior { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin: 10px 0 4px; }
+
+.bloque { display: flex; align-items: center; gap: 6px; min-height: 30px;
+          border: 1px solid var(--linea); border-radius: var(--radio-xs);
+          padding: 3px 6px; background: var(--fondo); overflow: hidden; }
+.bloque.ocupado { background: #eaf3f8; border-color: #bcd7e5; }
+.bloque .numeros { font-size: 10px; font-weight: 700; color: var(--tenue);
+                   min-width: 30px; text-align: center; font-variant-numeric: tabular-nums; }
+.bloque .pastillas { display: flex; flex-direction: column; gap: 2px; }
+.bloque .etiqueta { font-size: 11px; overflow: hidden; text-overflow: ellipsis;
+                    white-space: nowrap; flex: 1; }
+.bloque.vacante .etiqueta { color: #b9c2cc; font-style: italic; }
+.bloque .amperes { font-size: 10px; font-weight: 600; color: var(--tenue);
+                   font-variant-numeric: tabular-nums; }
+
+/* Una pastilla por barra que toca, apiladas: un 3 polos toca A, B y C, y fundir eso en un solo
+   color perdería justo el dato que el color existe para enseñar.
+
+   Los tonos salen de los colores de fase que ya usa el cuadro (A vinto, B azul, C verde). OJO: el
+   editor de escritorio pinta la A de azul; si algún día se quiere una sola paleta entre los dos
+   programas, hay que decidir cuál manda. */
+.pastilla { width: 17px; height: 17px; border-radius: var(--radio-xs); font-size: 10px;
+            font-weight: 700; display: flex; align-items: center; justify-content: center; }
+.pastilla-a { background: #f7e0e0; color: #8a1d1d; }
+.pastilla-b { background: #dfe6f7; color: #1d3f8a; }
+.pastilla-c { background: #ddeee3; color: #1d6b3a; }
+
+.principal { margin-top: 8px; padding: 8px 10px; text-align: center; font-size: 11px;
+             color: var(--tenue); background: #eef2f7; border: 1px solid var(--linea);
+             border-radius: var(--radio-sm); }
+.principal strong { color: var(--tinta); }

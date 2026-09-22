@@ -86,21 +86,41 @@
 <section class="cuadro-completo">
     <table class="cuadro">
         <thead>
+            @*
+                Encabezados en UN renglón con la unidad entre paréntesis —«In (A)», «L (m)», «e (%)»—
+                y no partidos en dos líneas: partidos, las columnas de una sola línea quedaban
+                desalineadas con las de dos y el cuadro se leía torcido. Lo que no cabe en el rótulo
+                va en el tooltip, no en una segunda línea.
+            *@
             <tr>
-                <th>N.º</th>
-                <th class="izq">Descripción</th>
-                <th>Tipo</th>
-                <th>Continua<br /><small>VA</small></th>
-                <th>No continua<br /><small>VA</small></th>
-                <th>L<br /><small>m</small></th>
-                <th>P</th>
-                <th>Fase</th>
-                <th>In<br /><small>A</small></th>
-                <th>Protec.</th>
-                <th>Fase</th>
-                <th>N</th>
-                <th>T</th>
-                <th>e %</th>
+                <th rowspan="2"><span class="ayuda" title="Número de circuito: es el espacio que ocupa en la barra. Nones arriba, pares abajo.">N.º</span></th>
+                <th rowspan="2" class="izq descripcion">Descripción</th>
+                <th rowspan="2"><span class="ayuda" title="Alumbrado, Contactos o Equipo. Decide el piso práctico de calibre (12 AWG en alumbrado, 10 en contactos) y el mínimo de protección.">Tipo</span></th>
+                <th colspan="2"><span class="ayuda" title="Carga continua es la que opera 3 horas o más (210-20(a)); la no continua entra al 100 %.">Carga (VA)</span></th>
+                <th colspan="@Datos.Barras.Count"><span class="ayuda" title="La carga del circuito repartida entre las barras que toca, igual que las columnas de balanceo del Excel.">Balanceo de fases (VA)</span></th>
+                <th rowspan="2"><span class="ayuda" title="Longitud del circuito, en metros. Es la que decide la caída de tensión.">L (m)</span></th>
+                <th rowspan="2"><span class="ayuda" title="Polos del interruptor. Un multipolar ocupa espacios de dos en dos del mismo lado.">P</span></th>
+                <th rowspan="2"><span class="ayuda" title="Barras que toca el interruptor. Las fija el espacio donde está montado, no se eligen.">Barras</span></th>
+                <th rowspan="2"><span class="ayuda" title="Corriente nominal de diseño del circuito, la que resulta de la carga capturada — 210-19(a)(1).">In (A)</span></th>
+                <th rowspan="2"><span class="ayuda" title="Protección contra sobrecorriente: el valor normalizado que le toca — 240-6(a).">Protec. (A)</span></th>
+                <th colspan="3"><span class="ayuda" title="Conductor de fase: cuántos hilos por fase, su sección en mm² y su designación AWG/kcmil.">Fase</span></th>
+                <th colspan="3"><span class="ayuda" title="Conductor de neutro.">Neutro</span></th>
+                <th colspan="3"><span class="ayuda" title="Conductor de puesta a tierra de equipos — Tabla 250-122, con el ajuste proporcional de 250-122(b).">Puesta a tierra</span></th>
+                <th rowspan="2"><span class="ayuda" title="Caída de tensión del circuito. La recomendada es 3 % en el derivado y 5 % combinada — 310-15, NOTA 4.">e (%)</span></th>
+            </tr>
+            <tr>
+                <th><span class="ayuda" title="Carga que opera 3 horas o más. Entra al 125 % — 210-20(a).">Continua</span></th>
+                <th><span class="ayuda" title="Carga que no opera 3 horas seguidas. Entra al 100 %.">No continua</span></th>
+                @foreach (var barra in Datos.Barras)
+                {
+                    <th><span class="ayuda" title="Carga que este circuito le cuelga a la barra @barra.">@barra</span></th>
+                }
+                @foreach (var _ in new[] { "fase", "neutro", "tierra" })
+                {
+                    <th><span class="ayuda" title="Conductores en paralelo por fase.">Hilos</span></th>
+                    <th><span class="ayuda" title="Sección transversal del conductor, en mm² — Tabla 8.">mm²</span></th>
+                    <th><span class="ayuda" title="Designación del calibre en AWG o kcmil.">AWG/kcm</span></th>
+                }
             </tr>
         </thead>
         <tbody>
@@ -117,7 +137,7 @@
             {
                 @if (indice > 0)
                 {
-                    <tr class="separador"><td colspan="14"></td></tr>
+                    <tr class="separador"><td colspan="@Columnas"></td></tr>
                 }
 
                 @foreach (var c in bloque)
@@ -126,7 +146,7 @@
                     {
                         <tr class="continuacion">
                             <td class="num">@c.Espacio</td>
-                            <td colspan="13" class="izq">↳ ocupado por el circuito @c.ContinuacionDe</td>
+                            <td colspan="@(Columnas - 1)" class="izq">↳ ocupado por el circuito @c.ContinuacionDe</td>
                         </tr>
                     }
                     else
@@ -143,7 +163,11 @@
                             </td>
                             <td><input class="va" type="number" min="0" @bind="c.ContinuaVA" @bind:after="Recalcular" /></td>
                             <td><input class="va" type="number" min="0" @bind="c.NoContinuaVA" @bind:after="Recalcular" /></td>
-                            <td><input class="va" type="number" min="0" @bind="c.LongitudM" @bind:after="Recalcular" /></td>
+                            @foreach (var barra in Datos.Barras)
+                            {
+                                <td class="num tenue">@(c.TieneCarga && c.Fases.Contains(barra) ? c.CargaPorFaseVA.ToString("N0") : "")</td>
+                            }
+                            <td><input class="va corto" type="number" min="0" @bind="c.LongitudM" @bind:after="Recalcular" /></td>
                             <td>
                                 <select class="polos" value="@c.Polos"
                                         @onchange="e => CambiarPolos(c, e.Value?.ToString())">
@@ -152,17 +176,17 @@
                             </td>
                             <td class="fase fase-@c.Fases.ToLowerInvariant()">@c.Fases</td>
                             <td class="num">@c.Resultado?.CorrienteDisenoA.ToString("N2")</td>
-                            <td class="num fuerte">@(c.Resultado is null ? "" : $"{c.Resultado.ProteccionA:N0} A")</td>
-                            <td class="num">@c.Resultado?.CalibreFase.Designacion</td>
-                            <td class="num">@c.Resultado?.CalibreNeutro.Designacion</td>
-                            <td class="num">@c.Resultado?.CalibreTierra.Designacion</td>
+                            <td class="num fuerte">@c.Resultado?.ProteccionA.ToString("N0")</td>
+                            @Conductor(c.Resultado?.CalibreFase, c.Resultado?.NumeroConductoresParalelo ?? 0)
+                            @Conductor(c.Resultado?.CalibreNeutro, c.Resultado is null ? 0 : 1)
+                            @Conductor(c.Resultado?.CalibreTierra, c.Resultado is null ? 0 : 1)
                             <td class="num @(Excede(c) ? "excede" : null)">@c.Resultado?.CaidaTensionPct.ToString("N2")</td>
                         </tr>
                         @if (c.Error is not null || _motivo.TryGetValue(c.Espacio, out _))
                         {
                             <tr class="fila-error">
                                 <td></td>
-                                <td colspan="13">@(c.Error ?? _motivo[c.Espacio])</td>
+                                <td colspan="@(Columnas - 1)">@(c.Error ?? _motivo[c.Espacio])</td>
                             </tr>
                         }
                     }
@@ -173,6 +197,71 @@
 </section>
 
 <div class="cierre">
+    @*
+        El interior del tablero, calcado del editor de gabinete de escritorio: UNA celda por
+        interruptor —tan alta como polos tiene—, no una por espacio. Un trifásico dibujado como tres
+        celdas sueltas con una flecha de "continúa" fue justo lo que David señaló allá el
+        2026-08-20: en un directorio de tablero real, un interruptor es una sola celda.
+    *@
+    <section class="tarjeta">
+        <h2>Gabinete · convención NEMA</h2>
+        <p class="derivado sin-margen">
+            <strong>@Cuadro.EspaciosOcupados</strong> de @Datos.NumeroEspacios espacios ocupados ·
+            @Cuadro.EspaciosLibres libres
+        </p>
+
+        <div class="interior">
+            @foreach (var bloque in Cuadro.Gabinete)
+            {
+                <div class="bloque @(bloque.Ocupado ? "ocupado" : "vacante")"
+                     style="grid-column: @bloque.Columna; grid-row: @bloque.Fila / span @bloque.Espacios"
+                     title="@Titulo(bloque)">
+                    <span class="numeros">@bloque.Numeros</span>
+                    <span class="pastillas">
+                        @foreach (var barra in bloque.Barras)
+                        {
+                            <span class="pastilla pastilla-@char.ToLowerInvariant(barra)">@barra</span>
+                        }
+                    </span>
+                    <span class="etiqueta">
+                        @(bloque.Ocupado
+                            ? (string.IsNullOrWhiteSpace(bloque.Circuito.Descripcion)
+                                ? MemoriaDeCalculo.Etiqueta(bloque.Circuito.Tipo)
+                                : bloque.Circuito.Descripcion)
+                            : "libre")
+                    </span>
+                    @if (bloque.Ocupado)
+                    {
+                        <span class="amperes">@bloque.Circuito.Resultado?.ProteccionA.ToString("N0") A</span>
+                    }
+                </div>
+            }
+        </div>
+
+        @*
+            El principal va abajo y centrado, fuera de las dos columnas: sin catálogo no se sabe si
+            su marco es el de un derivado (y entonces se comería espacios numerados) o si trae
+            alojamiento propio, y suponerlo sería inventar espacios que no se pueden usar. Se dibuja
+            como lo que es seguro: existe y protege al tablero.
+        *@
+        @if (Datos.UsaInterruptorPrincipal)
+        {
+            <div class="principal">
+                Interruptor principal
+                @if (Cuadro.InterruptorPrincipalA > 0m)
+                {
+                    <strong>@Cuadro.InterruptorPrincipalA.ToString("N0") A · @Cuadro.Alimentador.Polos polos</strong>
+                }
+            </div>
+        }
+
+        <p class="nota">
+            La barra de cada espacio (@string.Join("/", Datos.Barras)) la fija su número, no se
+            elige: por eso un interruptor de 3 polos en los espacios 1-3-5 toca las tres barras. Un
+            multipolar ocupa espacios de dos en dos del mismo lado.
+        </p>
+    </section>
+
     <section class="tarjeta">
         <h2>Resumen de carga</h2>
         <table class="datos">
@@ -278,6 +367,33 @@
     private DatosDelTablero Datos => Cuadro.Datos;
 
     private void Recalcular() => Cuadro.Recalcular();
+
+    /// <summary>
+    /// Cuántas columnas tiene el cuadro, para los <c>colspan</c> de los renglones que abarcan todo.
+    /// Depende de las barras: un tablero de dos barras no tiene columna de balanceo para la C.
+    /// </summary>
+    private int Columnas => 20 + Datos.Barras.Count;
+
+    /// <summary>Las tres celdas de un conductor: hilos, mm² y designación AWG/kcmil.</summary>
+    private static RenderFragment Conductor(Calibre? calibre, int hilos) => builder =>
+    {
+        var textos = calibre is null || hilos <= 0
+            ? ["", "", ""]
+            : new[] { hilos.ToString(), calibre.AreaMm2.ToString("N2"), calibre.Designacion };
+
+        foreach (var texto in textos)
+        {
+            builder.OpenElement(0, "td");
+            builder.AddAttribute(1, "class", "num");
+            builder.AddContent(2, texto);
+            builder.CloseElement();
+        }
+    };
+
+    private static string Titulo(BloqueDelGabinete bloque) =>
+        bloque.Ocupado
+            ? $"Espacio(s) {bloque.Numeros} · barra(s) {bloque.Barras} · {bloque.Espacios} polo(s)"
+            : $"Espacio {bloque.Numeros} · barra {bloque.Barras} · libre";
 
     private bool Excede(CircuitoDelCuadro c) =>
         c.Resultado is not null && c.Resultado.CaidaTensionPct > Datos.CaidaMaxDerivadoPct;
