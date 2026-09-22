@@ -1,0 +1,51 @@
+# Índice de la documentación
+
+Organizado por **para qué lo buscas**, no por quién lo escribió. Mismo patrón que
+`dflores296/msa-toolkit` y `dflores296/AbaSuite`.
+
+Última revisión: **22 de septiembre de 2026**.
+
+---
+
+## 🔴 `estado/` — lo vivo. Máximo 4 archivos, a propósito
+
+Si algún día son más de 4, algo se poda a `historico/` — no se agrega un quinto. Es la regla que
+`AbaSuite` tuvo que aprender a la mala (10 archivos, ~6 000 líneas, más de la mitad ya cerrado).
+
+| Documento | Para qué |
+|---|---|
+| [`estado/TABLERO.md`](estado/TABLERO.md) | **Los frentes con su %, y la lista que lo justifica.** Empezar aquí. |
+| [`estado/HALLAZGOS.md`](estado/HALLAZGOS.md) | Cada defecto encontrado, con ID estable. No se cierra sin commit. |
+| [`estado/BITACORA.md`](estado/BITACORA.md) | Qué se hizo cada sesión. |
+| [`estado/POR-VERIFICAR.md`](estado/POR-VERIFICAR.md) | Lo escrito sin verse corriendo, esperando confirmación. |
+
+## 🟢 `decisiones/` — una por archivo, con autor y estado
+
+Cada decisión dice **quién** la tomó y **cuándo**. Sin eso no cuenta:
+
+| Estado | Significa |
+|---|---|
+| `PROPUESTA · <quién> · <fecha>` | La sugirió alguien. No es válida todavía. |
+| `CONFIRMADA · <quién> · <fecha>` | La confirmó David. Manda. |
+| `HEREDADA · origen desconocido` | Estaba antes de este esquema, sin autor claro. Sospechosa hasta revisarse. |
+
+**Una sesión de Claude nunca escribe `CONFIRMADA`** — eso lo hace únicamente David, o él le
+confirma a Claude que lo escriba.
+
+| Documento | Estado |
+|---|---|
+| [`decisiones/alcance-v1-un-tablero.md`](decisiones/alcance-v1-un-tablero.md) | CONFIRMADA · David |
+| [`decisiones/motor-copiado-no-enlazado.md`](decisiones/motor-copiado-no-enlazado.md) | CONFIRMADA · David |
+| [`decisiones/sin-catalogo-square-d.md`](decisiones/sin-catalogo-square-d.md) | CONFIRMADA · David |
+| [`decisiones/blazor-webassembly-sin-backend.md`](decisiones/blazor-webassembly-sin-backend.md) | CONFIRMADA · David |
+| [`decisiones/hallazgos-en-markdown.md`](decisiones/hallazgos-en-markdown.md) | CONFIRMADA · David |
+
+## 📘 `conocimiento/` — lo que se aprendió, no cambia cada sesión
+
+| Documento | Qué es |
+|---|---|
+| [`conocimiento/motor-copiado.md`](conocimiento/motor-copiado.md) | Exactamente qué se trajo de `PowerNode-DesignSuite`, qué se dejó fuera, y los cinco ajustes que hizo falta hacer para que compilara solo. |
+
+## ⚪ `historico/` — lo cerrado. Nunca se borra, se mueve aquí.
+
+Vacío todavía — es el primer día de este repo.

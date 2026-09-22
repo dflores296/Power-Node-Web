@@ -1,0 +1,22 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      # Domain arrastra Calculo por ProjectReference, así que basta con construirlo a él para
+      # verificar que las dos carpetas del motor siguen compilando solas -- sin Data, sin EF Core,
+      # sin SQL Server. Cuando exista el proyecto Blazor, se agrega su propio build aquí.
+      - name: Construir el motor (Calculo + Domain)
+        run: dotnet build src/PowerNode.DesignSuite.Domain/PowerNode.DesignSuite.Domain.csproj --configuration Release

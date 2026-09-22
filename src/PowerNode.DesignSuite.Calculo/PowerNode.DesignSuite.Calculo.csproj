@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Copiado de dflores296/PowerNode-DesignSuite (repo de escritorio, privado), commit 29f660f,
+    2026-09-22; ver docs/decisiones/motor-copiado-no-enlazado.md para el porqué de copiar en vez
+    de enlazar. Se excluyó Calculo/Coordinacion/ (curvas de disparo, selectividad): es v2, fuera del
+    alcance de "un cuadro de carga como el Excel".
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+</Project>

@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Copiado de dflores296/PowerNode-DesignSuite (repo de escritorio, privado), commit 29f660f,
+    2026-09-22. Se excluyó Domain/Catalogo/ (Square D): sus datos son de Schneider Electric y no
+    viajan a un repo público. Ver docs/decisiones/sin-catalogo-square-d.md.
+  -->
+
+  <ItemGroup>
+    <ProjectReference Include="..\PowerNode.DesignSuite.Calculo\PowerNode.DesignSuite.Calculo.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+</Project>
