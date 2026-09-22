@@ -32,6 +32,9 @@ ID: `<letra>-<número>`. La letra dice el frente (`M` motor, `I` interfaz, `P` p
 | I-16 · Encabezados partidos en dos líneas: el cuadro se leía torcido | P2 | **Cerrado** | `c2bb19c` |
 | I-17 · El cuadro no traía hilos, mm² ni designación del conductor | P2 | **Cerrado** | `c2bb19c` |
 | I-18 · No se dibujaba el interior del tablero ni dónde cae cada circuito | P1 | **Cerrado** | `c2bb19c` |
+| I-19 · Un circuito multipolar pintaba sus barras en negro | P2 | **Cerrado** | este commit |
+| I-20 · Unidades en mayúsculas: «MM2», «L (M)», «E (%)» | P2 | **Cerrado** | este commit |
+| I-21 · Sin líneas entre columnas, el cuadro se veía amontonado | P2 | **Cerrado** | este commit |
 
 ---
 
@@ -250,3 +253,31 @@ Tres cosas, todas de la misma raíz: **el cuadro enseñaba resultados pero no se
    versión de escritorio y aquí no existía: no había dónde ver **en qué espacio cae cada circuito**
    ni qué barra muerde. Se portó con la misma regla de allá — **una celda por interruptor, tan alta
    como polos tiene**, no una por espacio.
+
+### I-19 — Un multipolar pintaba sus barras en negro · este commit
+
+La celda de barras salía con `class="fase-@c.Fases.ToLowerInvariant()"`, así que un circuito de una
+fase daba `fase-a` —que existe— y uno de tres daba **`fase-abc`, que no existe**: el navegador no
+encontraba la regla y caía al color por omisión. **Se veía como una decisión de diseño y era un
+error de composición.** Ahora cada letra se pinta sola, con el color de su barra: la A vino, la B
+azul, la C verde, también dentro de «ABC».
+
+### I-20 — Las unidades se pasaban a mayúsculas con el rótulo · este commit
+
+`text-transform: uppercase` no distingue entre una palabra y un símbolo, así que el encabezado
+imprimía **`MM2`**, **`L (M)`**, **`E (%)`** e **`IN (A)`**. Un símbolo de unidad con la caja
+cambiada no es un detalle tipográfico: `M` es mega y `m` es metro, y en un documento que se firma
+eso es un error. El rótulo se queda en mayúsculas —es lo que pidió David— y la unidad va dentro de
+un `.simbolo` que apaga la transformación: **`mm²`, `L (m)`, `In (A)`, `e (%)`, `AWG/kcmil`**.
+
+### I-21 — El cuadro se veía amontonado y con divisiones a medias · este commit
+
+Solo los grupos (Fase, Neutro, Puesta a tierra) llevaban línea vertical, así que las tres columnas
+de adentro —hilos, mm², AWG/kcmil— quedaban como un bloque suelto y el encabezado parecía
+incompleto, sobre todo en la frontera con la caída de tensión. Ahora **todas** las columnas llevan
+su línea, en dos pesos: fina entre hermanas, marcada donde empieza un grupo. Y más aire: el
+relleno de las celdas subió, y el lienzo pasó de 1400 a 1720 px porque con 23 columnas el cuadro
+no cabía y había que recorrerlo de lado para ver la caída de tensión.
+
+**Y la protección dejó de ir en negritas.** Una columna entera en negritas no dice «esto importa
+más», dice que el cuadro tiene un favorito; las negritas se quedan para los renglones de total.

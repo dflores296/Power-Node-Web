@@ -30,7 +30,11 @@ body {
     font-size: 13px;
 }
 
-.lienzo { max-width: 1400px; margin: 0 auto; padding: 24px 20px 48px; }
+/* El cuadro de carga lleva 23 columnas: con 1400 px no cabía y había que recorrerlo de lado para
+   ver la caída de tensión, que es de lo primero que se mira. En un monitor de escritorio -- que es
+   donde se captura un tablero -- el lienzo se ensancha; en uno angosto sigue funcionando el
+   overflow-x del cuadro. */
+.lienzo { max-width: 1720px; margin: 0 auto; padding: 24px 20px 48px; }
 
 .encabezado {
     display: flex; justify-content: space-between; align-items: flex-end;
@@ -63,12 +67,26 @@ select, input { font: inherit; padding: 5px 8px; border: 1px solid var(--linea);
           font-variant-numeric: tabular-nums; }
 .cuadro th { background: #eef2f7; font-size: 10px; text-transform: uppercase;
              letter-spacing: .03em; color: var(--tenue); font-weight: 600;
-             padding: 6px 4px; border-bottom: 1px solid var(--linea); text-align: center;
+             padding: 7px 6px; border-bottom: 1px solid var(--linea); text-align: center;
              vertical-align: middle; white-space: nowrap; }
-/* Las cabeceras de grupo (Carga, Balanceo, Fase, Neutro, Puesta a tierra) se separan con una línea
-   vertical para que se vea dónde empieza y dónde acaba cada grupo. */
-.cuadro thead tr:first-child th[colspan] { border-left: 1px solid var(--linea);
-                                           border-right: 1px solid var(--linea); }
+
+/*
+   TODAS las columnas llevan su línea, no solo los grupos. Con la línea únicamente en el borde de
+   un grupo, «Hilos | mm² | AWG/kcmil» quedaba como un bloque suelto y el encabezado parecía
+   incompleto: unas divisiones sí y otras no.
+
+   Dos pesos: la fina separa columnas hermanas, la del grupo (Carga, Balanceo, Fase, Neutro, Puesta
+   a tierra, e) marca dónde empieza uno nuevo. La última columna no lleva borde derecho porque ya
+   está el de la tabla.
+*/
+.cuadro th, .cuadro td { border-right: 1px solid #edf1f5; }
+.cuadro th:last-child, .cuadro td:last-child { border-right: 0; }
+.cuadro th.grupo, .cuadro td.grupo { border-left: 1px solid var(--linea); }
+
+/* Los símbolos NO se pasan a mayúsculas: «mm2», «L (M)» y «E (%)» no son unidades, son erratas.
+   El rótulo va en mayúsculas, la unidad va como la escribe el SI. */
+.cuadro th .simbolo, .doc-cuadro th .simbolo, .datos th .simbolo, .doc-resumen th .simbolo,
+.datos td .simbolo, .doc-resumen td .simbolo { text-transform: none; letter-spacing: 0; }
 
 /* Un rótulo que esconde su explicación: subrayado punteado y cursor de ayuda, para que se note que
    hay algo que leer. El texto va en el title, no en una segunda línea del encabezado. */
@@ -76,8 +94,8 @@ select, input { font: inherit; padding: 5px 8px; border: 1px solid var(--linea);
 
 /* La descripción se queda con lo que sobra: las demás columnas son de ancho de contenido, así que
    sin esto el navegador le daba lo mínimo y "Alumbrado oficinas" salía cortado. */
-.cuadro th.descripcion { width: 16%; min-width: 170px; }
-.cuadro td { padding: 2px 4px; border-bottom: 1px solid #eef1f5; text-align: center; }
+.cuadro th.descripcion { width: 17%; min-width: 180px; }
+.cuadro td { padding: 3px 6px; border-bottom: 1px solid #eef1f5; text-align: center; }
 .cuadro tbody tr:hover { background: #f8fafc; }
 .cuadro tr.vacio { color: #b9c2cc; }
 .cuadro td.tenue { color: var(--tenue); }
@@ -105,7 +123,7 @@ input.desc:focus, input.va:focus {
     box-shadow: 0 0 0 3px rgb(11 110 153 / .12);
 }
 
-.fase { font-weight: 600; }
+.fase { font-weight: 600; letter-spacing: .06em; }
 .fase-a { color: #8a1d1d; }
 .fase-b { color: #1d3f8a; }
 .fase-c { color: #1d6b3a; }
@@ -244,9 +262,9 @@ label.suelto input { width: 90px; }
 
 .doc-cuadro { width: 100%; border-collapse: collapse; font-size: 10px;
               font-variant-numeric: tabular-nums; }
-.doc-cuadro th { border: 1px solid var(--linea); background: #eef2f7; padding: 3px 4px;
+.doc-cuadro th { border: 1px solid var(--linea); background: #eef2f7; padding: 4px 6px;
                  font-weight: 600; font-size: 9px; text-transform: uppercase; letter-spacing: .02em; }
-.doc-cuadro td { border: 1px solid #e6eaef; padding: 2px 4px; text-align: center; }
+.doc-cuadro td { border: 1px solid #e6eaef; padding: 3px 6px; text-align: center; }
 .doc-cuadro tr.libre td { color: #b9c2cc; }
 .doc-cuadro .tenue { color: var(--tenue); font-style: italic; }
 

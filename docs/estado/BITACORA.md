@@ -49,6 +49,14 @@ fórmulas que un circuito**.
 **Verificado corriendo**, con Playwright contra `dotnet run`: captura, cuadro impreso y memoria, sin
 un solo error de consola; y el PDF de impresión revisado con `media: print` emulado.
 
+**Tercera pasada, también con el cuadro enfrente** (I-19 a I-21): un multipolar pintaba sus barras
+en negro —`fase-abc` no existe como clase y el navegador caía al color por omisión—, las unidades
+salían en mayúsculas junto con el rótulo (`MM2`, `L (M)`, `E (%)`), y las líneas entre columnas
+estaban a medias: solo los grupos las tenían. Se corrigió cada letra con el color de su barra, un
+`.simbolo` que apaga el `text-transform` para las unidades, líneas en todas las columnas en dos
+pesos, más relleno en las celdas y el lienzo a 1720 px para que las 23 columnas quepan sin
+recorrerlo de lado. La protección dejó de ir en negritas.
+
 **Segunda corrección del mismo día, con el cuadro ya corriendo enfrente** (I-16 a I-18): los
 encabezados partidos en dos líneas (`IN` sobre `A`) desalineaban el cuadro, `FASE N T` no decía
 nada, y faltaban los hilos/mm²/AWG de cada conductor. Ahora la unidad va entre paréntesis en el
