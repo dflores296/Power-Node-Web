@@ -49,6 +49,17 @@ fórmulas que un circuito**.
 **Verificado corriendo**, con Playwright contra `dotnet run`: captura, cuadro impreso y memoria, sin
 un solo error de consola; y el PDF de impresión revisado con `media: print` emulado.
 
+**Fuera el piso práctico de calibre**, por orden de David con el caso enfrente: *«me recomiendas
+calibre 10 para contactos pero 12 para aire acondicionado con la misma carga por fase»*. Esa
+diferencia no la pedía ningún artículo — la producía el piso de 10 AWG que la web traía fijo para
+contactos. Ahora el conductor sale sólo del cálculo. **Deshace el I-03 de la sesión pasada**, que
+justamente lo había agregado para empatar con el escritorio: la consecuencia es que los dos
+programas ya no dan el mismo calibre, y queda dicho en
+[`../decisiones/sin-piso-practico-de-calibre.md`](../decisiones/sin-piso-practico-de-calibre.md) con
+los números medidos. Lo que **sigue** separando a contactos con cargas chicas es el piso de
+protección de 20 A, que vive en el motor copiado y viene del `MAX(20, …)` del Excel; ése no se toca
+desde aquí.
+
 **Y el remate** (I-24): al bloque combinado le faltaba la línea que separa el número de la
 descripción. La regla que apaga el borde de la última columna usaba `:last-child`, y en el renglón
 de continuación la única celda que hay ES la del número. Se marcó la última columna con una clase;

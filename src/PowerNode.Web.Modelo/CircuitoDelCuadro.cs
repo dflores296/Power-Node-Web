@@ -1,6 +1,5 @@
 using PowerNode.DesignSuite.Calculo.Casos;
 using PowerNode.DesignSuite.Calculo.Unidades;
-using PowerNode.DesignSuite.Domain.Proyectos;
 
 namespace PowerNode.Web.Modelo;
 
@@ -56,19 +55,6 @@ public sealed class CircuitoDelCuadro
     /// del Excel (columnas BB, BC, BD): la carga entre el número de fases que toca.
     /// </summary>
     public decimal CargaPorFaseVA => Fases.Length == 0 ? 0m : CargaInstaladaVA / Fases.Length;
-
-    /// <summary>
-    /// El piso de calibre por criterio de diseño, <b>no por norma</b> —la NOM permite 14 AWG en un
-    /// derivado de 15 A, 210-19(a)(4)—. Son los mismos valores por omisión que trae
-    /// <c>ConfiguracionProyecto</c> en la versión de escritorio: 12 AWG en alumbrado, 10 en
-    /// contactos. Equipo nace sin piso a propósito: un aparato se dimensiona por su consumo de placa.
-    /// </summary>
-    public static decimal? PisoPracticoDe(TipoCarga tipo) => tipo switch
-    {
-        TipoCarga.Alumbrado => CalibresDePractica.DoceAwgMm2,
-        TipoCarga.Contactos => CalibresDePractica.DiezAwgMm2,
-        _ => null,
-    };
 
     internal void Limpiar()
     {

@@ -130,7 +130,7 @@ public class CuadroDeCargaTests
     // ---- El cálculo de un renglón --------------------------------------------------------------
 
     [Fact]
-    public void UnCircuitoDeAlumbradoDaLosMismosNumerosQueElEscritorio()
+    public void UnCircuitoDeAlumbradoDaLaCorrienteYLaProteccionDelEscritorio()
     {
         var cuadro = Nuevo();
         var circuito = Espacio(cuadro, 1);
@@ -142,8 +142,64 @@ public class CuadroDeCargaTests
         Assert.NotNull(r);
         Assert.Equal(5.67m, r!.CorrienteDisenoA, 2);
         Assert.Equal(15m, r.ProteccionA);
-        Assert.Equal("12", r.CalibreFase.Designacion);
         Assert.Null(circuito.Error);
+
+        // 14 AWG, no 12. El escritorio da 12 porque trae ENCENDIDO el piso práctico de calibre;
+        // aquí no hay piso — lo quitó David el 2026-09-22. Ver
+        // docs/decisiones/sin-piso-practico-de-calibre.md. 14 AWG es lo que permite la norma para
+        // un derivado de 15 A (210-19(a)(4)) y lo que cumple la caída de tensión en este tramo.
+        Assert.Equal("14", r.CalibreFase.Designacion);
+    }
+
+    [Fact]
+    public void ConLaMismaCargaLosTresTiposDanElMismoCalibre()
+    {
+        // Era lo que el piso práctico rompía: contactos salía en 10 AWG y un equipo con la misma
+        // carga por fase en 12, sin que ningún artículo de la norma lo pidiera.
+        var cuadro = Nuevo();
+        foreach (var (espacio, tipo) in new[] { (1, TipoCarga.Alumbrado), (3, TipoCarga.Contactos), (5, TipoCarga.Equipo) })
+        {
+            var c = Espacio(cuadro, espacio);
+            c.Tipo = tipo;
+            c.NoContinuaVA = 1500m;
+            c.LongitudM = 20m;
+        }
+        cuadro.Recalcular();
+
+        var calibres = cuadro.Circuitos
+            .Where(c => c.Resultado is not null)
+            .Select(c => c.Resultado!.CalibreFase.Designacion)
+            .Distinct()
+            .ToList();
+
+        Assert.Equal(["12"], calibres);
+    }
+
+    [Fact]
+    public void LoQueSIGUE_SeparandoAContactosEsElPisoDeProteccionDelMotor()
+    {
+        // Con cargas chicas, contactos todavía sale con más cobre que alumbrado: no es el piso de
+        // calibre (que ya no existe) sino el piso de PROTECCIÓN de 20 A que aplica la calculadora
+        // copiada -- el mismo MAX(20, ...) que traía el Excel. Vive en el motor, así que si se
+        // quisiera cambiar, se cambia allá primero. Esta prueba existe para que el día que eso
+        // pase, se note aquí.
+        var cuadro = Nuevo();
+        var alumbrado = Espacio(cuadro, 1);
+        alumbrado.NoContinuaVA = 500m;
+        alumbrado.LongitudM = 10m;
+
+        var contactos = Espacio(cuadro, 3);
+        contactos.Tipo = TipoCarga.Contactos;
+        contactos.NoContinuaVA = 500m;
+        contactos.LongitudM = 10m;
+
+        cuadro.Recalcular();
+
+        Assert.Equal(15m, alumbrado.Resultado!.ProteccionA);
+        Assert.Equal("14", alumbrado.Resultado.CalibreFase.Designacion);
+
+        Assert.Equal(20m, contactos.Resultado!.ProteccionA);
+        Assert.Equal("12", contactos.Resultado.CalibreFase.Designacion);
     }
 
     [Fact]

@@ -197,7 +197,13 @@ public sealed class CuadroDeCarga
                     MaterialCanalizacion: Datos.MaterialCanalizacion,
                     FactorPotencia: Datos.FactorPotencia,
                     CaidaTensionMaxPct: Datos.CaidaMaxDerivadoPct,
-                    PisoPracticoCalibreMm2: CircuitoDelCuadro.PisoPracticoDe(c.Tipo)));
+                    // SIN PISO PRÁCTICO DE CALIBRE -- va null a propósito, y es una diferencia
+                    // deliberada con la versión de escritorio, que lo trae encendido por omisión
+                    // (12 AWG en alumbrado, 10 en contactos). Lo quitó David el 2026-09-22 con un
+                    // caso concreto: contactos salía en 10 AWG y un equipo con la misma carga por
+                    // fase en 12, y esa diferencia no la produce ningún artículo de la norma, la
+                    // producía el piso. Ver docs/decisiones/sin-piso-practico-de-calibre.md.
+                    PisoPracticoCalibreMm2: null));
             }
             catch (Exception ex)
             {

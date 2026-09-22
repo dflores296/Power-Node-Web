@@ -14,7 +14,7 @@ ID: `<letra>-<número>`. La letra dice el frente (`M` motor, `I` interfaz, `P` p
 | I-01 · No existe ninguna pantalla todavía | P0 | **Cerrado** | este commit |
 | P-01 · No hay workflow de despliegue a GitHub Pages | P1 | **Cerrado** (sin ejecutar) | este commit |
 | I-02 · `NumeroFases` se pasaba del tablero, no del circuito | P0 | **Cerrado** | este commit |
-| I-03 · El piso práctico de calibre no se aplicaba | P1 | **Cerrado** | este commit |
+| I-03 · El piso práctico de calibre no se aplicaba | P1 | **Revertido por decisión de David** | ver nota |
 | P-02 · Pages quedó en «Deploy from a branch», sirve el README y no la app | P1 | **Cerrado** | David lo cambió a GitHub Actions |
 | I-06 · Pantalla de carga: una bola negra, y el favicon de Blazor | P2 | **Cerrado** | este commit |
 | P-03 · El navegador se quedaba con el CSS y los iconos viejos | P1 | **Cerrado** | este commit |
@@ -81,6 +81,14 @@ Con el bug anterior corregido, la web daba **14 AWG / 2.07 %** donde el escritor
 Es criterio de diseño, no norma, y por eso vive en la configuración y no en el motor. Ahora la
 pantalla lo aplica según el tipo de carga, con los mismos valores por omisión. **Equipo se queda sin
 piso a propósito**: un aparato se dimensiona por su consumo de placa.
+
+> ### ⛔ REVERTIDO el 2026-09-22 por decisión de David
+>
+> Este arreglo **se deshizo el mismo día**, y no por estar mal implementado: David vio el efecto
+> —contactos en 10 AWG y un equipo con la misma carga por fase en 12— y ordenó quitar el piso.
+> **La web ya no aplica ninguno.** No volver a agregarlo sin que él lo pida: está razonado, con los
+> números medidos, en
+> [`../decisiones/sin-piso-practico-de-calibre.md`](../decisiones/sin-piso-practico-de-calibre.md).
 
 ### M-01 — Las tablas de la norma, sin base de datos · este commit
 
@@ -201,8 +209,8 @@ su tipo MIME correcto desde el subdirectorio `/Power-Node-Web/`.
 
 A 92 px de ancho, el navegador cortaba «Alumbrado» en **«Alumbrac»** y «Contactos» en
 «Contacto». **Un campo que miente sobre su propio valor es peor que uno estrecho** — sobre todo
-cuando el valor decide el piso práctico de calibre (ver I-03), así que leer mal el tipo es leer mal
-el resultado. Subido a 108 px, que es lo que pide la palabra completa más la flecha.
+cuando el valor decide el piso de protección de 15/20 A, así que leer mal el tipo es leer mal el
+resultado. Subido a 108 px, que es lo que pide la palabra completa más la flecha.
 
 Salió al revisar la captura de la pantalla ya redondeada, no de una prueba: es la clase de defecto
 que ninguna aserción atrapa porque el valor del `<select>` era correcto todo el tiempo — lo que
