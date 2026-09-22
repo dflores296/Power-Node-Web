@@ -35,6 +35,7 @@ ID: `<letra>-<número>`. La letra dice el frente (`M` motor, `I` interfaz, `P` p
 | I-19 · Un circuito multipolar pintaba sus barras en negro | P2 | **Cerrado** | `4730182` |
 | I-20 · Unidades en mayúsculas: «MM2», «L (M)», «E (%)» | P2 | **Cerrado** | `4730182` |
 | I-21 · Sin líneas entre columnas, el cuadro se veía amontonado | P2 | **Cerrado** | `4730182` |
+| I-22 · La clase `grupo` del cuadro chocaba con la de las tarjetas: cada celda se dibujó como tarjeta | P1 | **Cerrado** | este commit |
 
 ---
 
@@ -281,3 +282,23 @@ no cabía y había que recorrerlo de lado para ver la caída de tensión.
 
 **Y la protección dejó de ir en negritas.** Una columna entera en negritas no dice «esto importa
 más», dice que el cuadro tiene un favorito; las negritas se quedan para los renglones de total.
+
+### I-22 — `grupo` era el nombre de dos cosas distintas · este commit
+
+Para marcar dónde abría cada grupo de columnas se reusó `class="grupo"` — **que ya era la clase de
+las cuatro tarjetas de la ficha del tablero** (`background`, `border`, `border-radius: 14px`,
+`padding: 12px 14px` y `width: 118px` para sus campos). Resultado: cada celda que abría grupo se
+dibujó **como una tarjeta**, con su borde redondeado y su relleno, y los campos de captura se
+estiraron a 118 px. El cuadro quedó irreconocible.
+
+**Dos arreglos, y el segundo es el que evita la reincidencia:**
+
+1. Las reglas de la ficha se acotaron a `.ficha .grupo`, así que ya no pueden alcanzar nada fuera
+   de ella.
+2. La marca de grupo en el cuadro **se eliminó**: ahora *todas* las celdas llevan la misma línea,
+   que es lo que se había pedido —una rejilla pareja, como una hoja de cálculo— y de paso deja de
+   existir la clase que causó el choque.
+
+**Lo que esto enseña:** el CSS de este repo no tiene ámbito. Una clase con nombre genérico
+(`grupo`, `fila`, `celda`) alcanza cualquier elemento de cualquier pantalla. Los nombres nuevos van
+acotados a su bloque.

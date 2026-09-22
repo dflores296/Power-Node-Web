@@ -49,6 +49,13 @@ fórmulas que un circuito**.
 **Verificado corriendo**, con Playwright contra `dotnet run`: captura, cuadro impreso y memoria, sin
 un solo error de consola; y el PDF de impresión revisado con `media: print` emulado.
 
+**Y un destrozo propio, corregido en caliente** (I-22): para marcar los grupos de columnas se reusó
+`class="grupo"`, que **ya era la clase de las tarjetas de la ficha** — cada celda que abría grupo se
+dibujó como tarjeta, con borde redondeado, relleno y campos de 118 px. Se acotó la regla de la ficha
+a `.ficha .grupo` y se quitó la marca de grupo del cuadro: todas las celdas llevan la misma línea,
+que era lo que se había pedido. El CSS de este repo no tiene ámbito y un nombre genérico alcanza
+cualquier pantalla.
+
 **Tercera pasada, también con el cuadro enfrente** (I-19 a I-21): un multipolar pintaba sus barras
 en negro —`fase-abc` no existe como clase y el navegador caía al color por omisión—, las unidades
 salían en mayúsculas junto con el rótulo (`MM2`, `L (M)`, `E (%)`), y las líneas entre columnas

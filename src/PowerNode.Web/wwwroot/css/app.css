@@ -71,17 +71,16 @@ select, input { font: inherit; padding: 5px 8px; border: 1px solid var(--linea);
              vertical-align: middle; white-space: nowrap; }
 
 /*
-   TODAS las columnas llevan su línea, no solo los grupos. Con la línea únicamente en el borde de
-   un grupo, «Hilos | mm² | AWG/kcmil» quedaba como un bloque suelto y el encabezado parecía
-   incompleto: unas divisiones sí y otras no.
+   REJILLA PAREJA, como una hoja de cálculo: el mismo trazo entre dos columnas hermanas que entre
+   dos grupos. Antes solo los grupos llevaban línea y «Hilos | mm² | AWG/kcmil» quedaba como un
+   bloque suelto, con el encabezado a medias.
 
-   Dos pesos: la fina separa columnas hermanas, la del grupo (Carga, Balanceo, Fase, Neutro, Puesta
-   a tierra, e) marca dónde empieza uno nuevo. La última columna no lleva borde derecho porque ya
-   está el de la tabla.
+   Se dibuja con el borde derecho de cada celda, no con uno completo: con border-collapse: separate
+   —que la tabla necesita para que el border-radius no se ignore— un borde por los cuatro lados se
+   vería doble en cada línea interior. La última columna no lleva el suyo: ya está el de la tabla.
 */
-.cuadro th, .cuadro td { border-right: 1px solid #edf1f5; }
+.cuadro th, .cuadro td { border-right: 1px solid var(--linea); }
 .cuadro th:last-child, .cuadro td:last-child { border-right: 0; }
-.cuadro th.grupo, .cuadro td.grupo { border-left: 1px solid var(--linea); }
 
 /* Los símbolos NO se pasan a mayúsculas: «mm2», «L (M)» y «E (%)» no son unidades, son erratas.
    El rótulo va en mayúsculas, la unidad va como la escribe el SI. */
@@ -95,7 +94,7 @@ select, input { font: inherit; padding: 5px 8px; border: 1px solid var(--linea);
 /* La descripción se queda con lo que sobra: las demás columnas son de ancho de contenido, así que
    sin esto el navegador le daba lo mínimo y "Alumbrado oficinas" salía cortado. */
 .cuadro th.descripcion { width: 17%; min-width: 180px; }
-.cuadro td { padding: 3px 6px; border-bottom: 1px solid #eef1f5; text-align: center; }
+.cuadro td { padding: 3px 6px; border-bottom: 1px solid var(--linea); text-align: center; }
 .cuadro tbody tr:hover { background: #f8fafc; }
 .cuadro tr.vacio { color: #b9c2cc; }
 .cuadro td.tenue { color: var(--tenue); }
@@ -182,12 +181,12 @@ select.tipo { width: 108px; padding: 2px 4px 2px 6px; border-radius: var(--radio
 @media (max-width: 1100px) { .ficha { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 640px) { .ficha { grid-template-columns: 1fr; } }
 
-.grupo { background: var(--papel); border: 1px solid var(--linea);
-         border-radius: var(--radio-md); padding: 12px 14px 14px; }
-.grupo label { display: flex; align-items: center; justify-content: space-between; gap: 8px;
-               font-size: 11px; color: var(--tenue); margin-top: 6px; }
-.grupo input, .grupo select { width: 118px; flex: none; }
-.grupo input[type="text"], .grupo label > input:not([type]) { width: 150px; }
+.ficha .grupo { background: var(--papel); border: 1px solid var(--linea);
+                border-radius: var(--radio-md); padding: 12px 14px 14px; }
+.ficha .grupo label { display: flex; align-items: center; justify-content: space-between; gap: 8px;
+                      font-size: 11px; color: var(--tenue); margin-top: 6px; }
+.ficha .grupo input, .ficha .grupo select { width: 118px; flex: none; }
+.ficha .grupo input[type="text"], .ficha .grupo label > input:not([type]) { width: 150px; }
 .derivado { margin: 10px 0 0; font-size: 11px; color: var(--tenue); line-height: 1.5; }
 
 .acciones { display: flex; gap: 8px; align-items: center; }

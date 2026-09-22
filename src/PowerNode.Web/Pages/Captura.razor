@@ -96,28 +96,28 @@
                 <th rowspan="2"><span class="ayuda" title="Número de circuito: es el espacio que ocupa en la barra. Nones arriba, pares abajo.">N.º</span></th>
                 <th rowspan="2" class="izq descripcion">Descripción</th>
                 <th rowspan="2"><span class="ayuda" title="Alumbrado, Contactos o Equipo. Decide el piso práctico de calibre (12 AWG en alumbrado, 10 en contactos) y el mínimo de protección.">Tipo</span></th>
-                <th colspan="2" class="grupo"><span class="ayuda" title="Carga continua es la que opera 3 horas o más (210-20(a)); la no continua entra al 100 %.">Carga <span class="simbolo">(VA)</span></span></th>
-                <th colspan="@Datos.Barras.Count" class="grupo"><span class="ayuda" title="La carga del circuito repartida entre las barras que toca, igual que las columnas de balanceo del Excel.">Balanceo de fases <span class="simbolo">(VA)</span></span></th>
-                <th rowspan="2" class="grupo"><span class="ayuda" title="Longitud del circuito. Es la que decide la caída de tensión."><span class="simbolo">L (m)</span></span></th>
+                <th colspan="2"><span class="ayuda" title="Carga continua es la que opera 3 horas o más (210-20(a)); la no continua entra al 100 %.">Carga <span class="simbolo">(VA)</span></span></th>
+                <th colspan="@Datos.Barras.Count"><span class="ayuda" title="La carga del circuito repartida entre las barras que toca, igual que las columnas de balanceo del Excel.">Balanceo de fases <span class="simbolo">(VA)</span></span></th>
+                <th rowspan="2"><span class="ayuda" title="Longitud del circuito. Es la que decide la caída de tensión."><span class="simbolo">L (m)</span></span></th>
                 <th rowspan="2"><span class="ayuda" title="Polos del interruptor. Un multipolar ocupa espacios de dos en dos del mismo lado.">P</span></th>
                 <th rowspan="2"><span class="ayuda" title="Barras que toca el interruptor. Las fija el espacio donde está montado, no se eligen.">Barras</span></th>
                 <th rowspan="2"><span class="ayuda" title="Corriente nominal de diseño del circuito, la que resulta de la carga capturada — 210-19(a)(1)."><span class="simbolo">In (A)</span></span></th>
-                <th rowspan="2" class="grupo"><span class="ayuda" title="Protección contra sobrecorriente: el valor normalizado que le toca — 240-6(a).">Protec. <span class="simbolo">(A)</span></span></th>
-                <th colspan="3" class="grupo"><span class="ayuda" title="Conductor de fase: cuántos hilos por fase, su sección en mm² y su designación AWG/kcmil.">Fase</span></th>
-                <th colspan="3" class="grupo"><span class="ayuda" title="Conductor de neutro.">Neutro</span></th>
-                <th colspan="3" class="grupo"><span class="ayuda" title="Conductor de puesta a tierra de equipos — Tabla 250-122, con el ajuste proporcional de 250-122(b).">Puesta a tierra</span></th>
-                <th rowspan="2" class="grupo"><span class="ayuda" title="Caída de tensión del circuito. La recomendada es 3 % en el derivado y 5 % combinada — 310-15, NOTA 4."><span class="simbolo">e (%)</span></span></th>
+                <th rowspan="2"><span class="ayuda" title="Protección contra sobrecorriente: el valor normalizado que le toca — 240-6(a).">Protec. <span class="simbolo">(A)</span></span></th>
+                <th colspan="3"><span class="ayuda" title="Conductor de fase: cuántos hilos por fase, su sección en mm² y su designación AWG/kcmil.">Fase</span></th>
+                <th colspan="3"><span class="ayuda" title="Conductor de neutro.">Neutro</span></th>
+                <th colspan="3"><span class="ayuda" title="Conductor de puesta a tierra de equipos — Tabla 250-122, con el ajuste proporcional de 250-122(b).">Puesta a tierra</span></th>
+                <th rowspan="2"><span class="ayuda" title="Caída de tensión del circuito. La recomendada es 3 % en el derivado y 5 % combinada — 310-15, NOTA 4."><span class="simbolo">e (%)</span></span></th>
             </tr>
             <tr>
-                <th class="grupo"><span class="ayuda" title="Carga que opera 3 horas o más. Entra al 125 % — 210-20(a).">Continua</span></th>
+                <th><span class="ayuda" title="Carga que opera 3 horas o más. Entra al 125 % — 210-20(a).">Continua</span></th>
                 <th><span class="ayuda" title="Carga que no opera 3 horas seguidas. Entra al 100 %.">No continua</span></th>
-                @foreach (var (barra, indice) in Datos.Barras.Select((b, i) => (b, i)))
+                @foreach (var barra in Datos.Barras)
                 {
-                    <th class="@(indice == 0 ? "grupo" : null)"><span class="ayuda" title="Carga que este circuito le cuelga a la barra @barra.">@barra</span></th>
+                    <th><span class="ayuda" title="Carga que este circuito le cuelga a la barra @barra.">@barra</span></th>
                 }
                 @foreach (var _ in new[] { "fase", "neutro", "tierra" })
                 {
-                    <th class="grupo"><span class="ayuda" title="Conductores en paralelo por fase.">Hilos</span></th>
+                    <th><span class="ayuda" title="Conductores en paralelo por fase.">Hilos</span></th>
                     <th><span class="ayuda" title="Sección transversal del conductor — Tabla 8."><span class="simbolo">mm²</span></span></th>
                     <th><span class="ayuda" title="Designación del calibre en AWG o kcmil."><span class="simbolo">AWG/kcmil</span></span></th>
                 }
@@ -161,13 +161,13 @@
                                     <option value="@TipoCarga.Equipo">Equipo</option>
                                 </select>
                             </td>
-                            <td class="grupo"><input class="va" type="number" min="0" @bind="c.ContinuaVA" @bind:after="Recalcular" /></td>
+                            <td><input class="va" type="number" min="0" @bind="c.ContinuaVA" @bind:after="Recalcular" /></td>
                             <td><input class="va" type="number" min="0" @bind="c.NoContinuaVA" @bind:after="Recalcular" /></td>
-                            @foreach (var (barra, columna) in Datos.Barras.Select((b, i) => (b, i)))
+                            @foreach (var barra in Datos.Barras)
                             {
-                                <td class="num tenue @(columna == 0 ? "grupo" : null)">@(c.TieneCarga && c.Fases.Contains(barra) ? c.CargaPorFaseVA.ToString("N0") : "")</td>
+                                <td class="num tenue">@(c.TieneCarga && c.Fases.Contains(barra) ? c.CargaPorFaseVA.ToString("N0") : "")</td>
                             }
-                            <td class="grupo"><input class="va corto" type="number" min="0" @bind="c.LongitudM" @bind:after="Recalcular" /></td>
+                            <td><input class="va corto" type="number" min="0" @bind="c.LongitudM" @bind:after="Recalcular" /></td>
                             <td>
                                 <select class="polos" value="@c.Polos"
                                         @onchange="e => CambiarPolos(c, e.Value?.ToString())">
@@ -181,11 +181,11 @@
                                 }
                             </td>
                             <td class="num">@c.Resultado?.CorrienteDisenoA.ToString("N2")</td>
-                            <td class="num grupo">@c.Resultado?.ProteccionA.ToString("N0")</td>
+                            <td class="num">@c.Resultado?.ProteccionA.ToString("N0")</td>
                             @Conductor(c.Resultado?.CalibreFase, c.Resultado?.NumeroConductoresParalelo ?? 0)
                             @Conductor(c.Resultado?.CalibreNeutro, c.Resultado is null ? 0 : 1)
                             @Conductor(c.Resultado?.CalibreTierra, c.Resultado is null ? 0 : 1)
-                            <td class="num grupo @(Excede(c) ? "excede" : null)">@c.Resultado?.CaidaTensionPct.ToString("N2")</td>
+                            <td class="num @(Excede(c) ? "excede" : null)">@c.Resultado?.CaidaTensionPct.ToString("N2")</td>
                         </tr>
                         @if (c.Error is not null || _motivo.TryGetValue(c.Espacio, out _))
                         {
@@ -386,11 +386,11 @@
             ? ["", "", ""]
             : new[] { hilos.ToString(), calibre.AreaMm2.ToString("N2"), calibre.Designacion };
 
-        for (var i = 0; i < textos.Length; i++)
+        foreach (var texto in textos)
         {
             builder.OpenElement(0, "td");
-            builder.AddAttribute(1, "class", i == 0 ? "num grupo" : "num");
-            builder.AddContent(2, textos[i]);
+            builder.AddAttribute(1, "class", "num");
+            builder.AddContent(2, texto);
             builder.CloseElement();
         }
     };
