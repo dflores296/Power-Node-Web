@@ -1,6 +1,6 @@
 # Tablero — cómo vamos
 
-**Actualizado:** 2026-09-22, sesión de arranque.
+**Actualizado:** 2026-09-22, segunda sesión: primera pantalla viva.
 
 > **Cómo se leen los porcentajes.** No son una encuesta: cada uno dice qué queda, y ese "qué queda"
 > está enlazado. Un número sin su lista es una opinión — regla de `AbaSuite`.
@@ -22,8 +22,8 @@ proyecto se guarda abriendo/descargando un archivo, no en una base con la que ha
 | Frente | Avance | Qué decide |
 |---|---|---|
 | **Motor** | **✅ 100%** | Si el cálculo de un circuito da el número correcto |
-| **Interfaz** | **⬜ 0%** | Si se puede capturar y ver el cuadro de carga |
-| **Publicación** | **⬜ 0%** | Si se puede abrir desde una pestaña, sin instalar nada |
+| **Interfaz** | **🟨 ~35%** | Si se puede capturar y ver el cuadro de carga |
+| **Publicación** | **🟨 ~80%** | Si se puede abrir desde una pestaña, sin instalar nada |
 
 ### Motor — 100%
 
@@ -32,28 +32,35 @@ al alcance de un solo tablero. **Compila solo, sin `Data`, sin EF Core, sin SQL 
 completo de qué se trajo y qué se dejó fuera en
 [`../conocimiento/motor-copiado.md`](../conocimiento/motor-copiado.md).
 
-**Lo que falta para que el motor *funcione*, no sólo compile:** las tablas de la norma
-(`ITablaAmpacidad`, `ICatalogoCalibres`, etc.) hoy son interfaces sin implementación — en escritorio
-las resuelve EF Core contra SQL Server. Aquí hace falta una implementación ligera que lea el JSON de
-`NOM-001-SEDE-2012` directo en memoria, sin base de datos. **No empezado.**
+**Las tablas ya funcionan sin base de datos (M-01 cerrado).** `PowerNode.DesignSuite.Normativa`
+implementa las trece interfaces leyendo 39 KB de JSON extraído de `NOM-001-SEDE-2012`. Las
+implementaciones son las mismas de escritorio con un solo cambio (`IFuenteTablas` en vez de
+`DbContext`); la lógica de interpretación de cada tabla no se tocó. **6/6 pruebas verdes** contra
+los mismos valores que ya se verificaron a mano contra el PDF del DOF.
 
-### Interfaz — 0%
+### Interfaz — ~35%
 
-Las pantallas de captura y el cuadro de carga en sí (columnas B→CA del Excel, ver
-`docs/referencia/cuadro-de-carga.md` en el repo de escritorio). Mirando `TableroCircuitosView.xaml`
-y `GabineteView.xaml` de la app de escritorio como referencia de forma — no se copia código WPF, se
-reconstruye en Blazor.
+**La primera pantalla existe y calcula de verdad** (`Pages/CuadroDeCarga.razor`): dos bloques
+—nones izquierda, pares derecha, como el Excel—, captura de descripción/tipo/VA/longitud/polos,
+fase derivada por la convención NEMA de pares, y la memoria con las citas de norma de cada paso.
+Verificada en el navegador con Playwright: los tres circuitos de prueba dan **exactamente** los
+mismos números que la app de escritorio (5.67 A → 15 A → 12 AWG → 1.34 %).
 
-**No empezado.**
+**Lo que falta:** el resumen de carga por fase y el balanceo · circuitos de Fuerza (Art. 430, el
+motor ya está copiado pero la pantalla no lo ofrece) · guardar y abrir el proyecto como archivo ·
+los datos de identificación (tablero, clave, ubicación, proyecto) que el Excel lleva arriba del
+cuadro · exportar.
 
-### Publicación — 0%
+### Publicación — ~80%
 
-`.github/workflows/deploy.yml`, calcado del de `NOM-001-SEDE-2012`, con el `.nojekyll` que Blazor
-necesita (GitHub Pages ignora `_framework/` sin él — trampa conocida, ver
-`msa-toolkit/docs/despliegue.md` para el patrón hermano).
+`.github/workflows/deploy.yml` escrito, con las tres trampas de Blazor en Pages ya cubiertas:
+`.nojekyll`, `base href` al subdirectorio del repo, y `404.html` para que recargar una ruta no
+devuelva 404. CI corre `--check` sobre las tablas y las pruebas antes de publicar.
 
-**No empezado.**
+**Lo que falta:** que David active Pages en la configuración del repo (Settings → Pages → Source:
+GitHub Actions) y que el workflow corra una vez de verdad. **Escrito, nunca ejecutado.**
 
 ## Decisiones que están esperando
 
-Ninguna pendiente ahora mismo. Todo lo de hoy quedó `CONFIRMADA` — ver `../decisiones/`.
+**Activar GitHub Pages en el repo** (Settings → Pages → Source: GitHub Actions). Es lo único que
+separa el sitio de estar en línea, y no lo puede hacer una sesión de Claude.

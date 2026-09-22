@@ -1,0 +1,74 @@
+name: Publicar en GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # El repo público de la norma es la FUENTE de las tablas. Se clona en cada publicación para
+      # que el sitio nunca se despegue de ella: si una tabla cambió allá, --check rompe el build
+      # aquí en vez de publicar números viejos.
+      - name: Clonar NOM-001-SEDE-2012
+        run: git clone --depth 1 https://github.com/dflores296/NOM-001-SEDE-2012.git /tmp/nom
+
+      - name: Verificar que las tablas siguen al día
+        run: |
+          python3 tools/extraer_tablas.py /tmp/nom/data src/PowerNode.Web/wwwroot/datos/tablas-nom.json --check
+          python3 tools/extraer_tablas.py /tmp/nom/data tests/PowerNode.Normativa.Tests/datos/tablas-nom.json --check
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - run: dotnet workload install wasm-tools
+
+      # Verde antes de publicar: las pruebas son las que comprueban que las tablas leídas del JSON
+      # dan los MISMOS valores que ya se verificaron a mano contra el PDF del DOF.
+      - name: Pruebas
+        run: dotnet test tests/PowerNode.Normativa.Tests --configuration Release
+
+      # El base href tiene que apuntar al subdirectorio del repo, o los archivos de _framework/
+      # se piden a la raíz del dominio y no cargan nada.
+      - name: Publicar
+        run: |
+          dotnet publish src/PowerNode.Web --configuration Release --output publicado
+          sed -i 's|<base href="/" />|<base href="/Power-Node-Web/" />|g' publicado/wwwroot/index.html
+
+      # Sin .nojekyll, GitHub Pages ignora _framework/ por empezar con guion bajo, y la página
+      # publica "bien" pero no arranca, sin error visible. Es la trampa clásica de Blazor en Pages.
+      - name: Asegurar .nojekyll
+        run: touch publicado/wwwroot/.nojekyll
+
+      # Recarga en una ruta que no sea la raíz: Pages devolvería 404 porque el archivo no existe.
+      # Servir index.html como 404 deja que el enrutador de Blazor la resuelva del lado del cliente.
+      - name: 404 que devuelve al enrutador
+        run: cp publicado/wwwroot/index.html publicado/wwwroot/404.html
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: publicado/wwwroot
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

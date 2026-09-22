@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Las tablas de la NOM-001-SEDE-2012, leídas de un JSON en vez de SQL Server.
+    Las trece implementaciones vienen de Data/TablasNom del repo de escritorio, copiadas con un
+    solo cambio: el constructor recibe IFuenteTablas en lugar de DesignSuiteDbContext, y la
+    lectura de la rejilla va por FuenteTablas.FilasDatos. La lógica de interpretación de cada
+    tabla NO se tocó. Ver docs/conocimiento/tablas-de-la-norma.md.
+  -->
+
+  <ItemGroup>
+    <ProjectReference Include="..\PowerNode.DesignSuite.Calculo\PowerNode.DesignSuite.Calculo.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+</Project>

@@ -4,6 +4,34 @@ Qué se hizo cada sesión. Del 2026-09-22 en adelante (nace el repo).
 
 ---
 
+## 2026-09-22 (segunda parte) — Primera pantalla viva, calculando de verdad
+
+**M-01, I-01 y P-01 cerrados.** El sitio ya calcula un cuadro de carga en el navegador.
+
+- **Las tablas de la norma, sin base de datos.** Proyecto `PowerNode.DesignSuite.Normativa`: las
+  trece implementaciones copiadas de `Data/TablasNom` del escritorio, con un solo cambio mecánico
+  (`IFuenteTablas` en vez de `DbContext`). **La lógica de interpretación no se tocó.** Los datos
+  salen de `tools/extraer_tablas.py`, que extrae 14 tablas y una sección del repo público de la
+  norma: **39 KB** en vez de ~9 MB. Detalle en `../conocimiento/tablas-de-la-norma.md`.
+- **6/6 pruebas verdes**, contra los mismos valores que el escritorio ya verificó a mano contra el
+  PDF del DOF — no contra lo que la implementación devuelve hoy.
+- **Primera pantalla** (`Pages/CuadroDeCarga.razor`): dos bloques nones/pares como el Excel,
+  captura de tipo/VA/longitud/polos, fase por la convención NEMA de pares, y la memoria con las
+  citas de norma de cada paso.
+- **CI y despliegue** escritos, con el `--check` que rompe el build si las tablas se despegan de la
+  norma, y las tres trampas de Blazor en Pages cubiertas (`.nojekyll`, `base href`, `404.html`).
+
+**Dos bugs reales, los dos encontrados CORRIENDO la pantalla en el navegador, no compilándola**
+(I-02 y I-03 en `HALLAZGOS.md`): `NumeroFases` se pasaba del tablero en vez del circuito —un circuito
+de 1 polo daba un tercio de su corriente— y faltaba el piso práctico de calibre. Después de
+corregirlos, los tres circuitos de prueba dan **exactamente** los mismos números que la app de
+escritorio.
+
+**Queda pendiente y no lo puede hacer una sesión de Claude:** activar GitHub Pages en el repo
+(Settings → Pages → Source: GitHub Actions). El workflow está escrito pero **nunca se ha ejecutado**.
+
+---
+
 ## 2026-09-22 — Nace el repo, motor copiado y verificado
 
 **Contexto:** venía de una sesión larga en `PowerNode-DesignSuite` (el escritorio) intentando

@@ -11,12 +11,24 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Clonar NOM-001-SEDE-2012
+        run: git clone --depth 1 https://github.com/dflores296/NOM-001-SEDE-2012.git /tmp/nom
+
+      # El --check no escribe: falla el build si el JSON generado se despegó de la norma publicada.
+      # Mismo mecanismo que build_cifras.py --check en el repo de la NOM.
+      - name: Verificar que las tablas siguen al día
+        run: |
+          python3 tools/extraer_tablas.py /tmp/nom/data src/PowerNode.Web/wwwroot/datos/tablas-nom.json --check
+          python3 tools/extraer_tablas.py /tmp/nom/data tests/PowerNode.Normativa.Tests/datos/tablas-nom.json --check
+
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
 
-      # Domain arrastra Calculo por ProjectReference, así que basta con construirlo a él para
-      # verificar que las dos carpetas del motor siguen compilando solas -- sin Data, sin EF Core,
-      # sin SQL Server. Cuando exista el proyecto Blazor, se agrega su propio build aquí.
-      - name: Construir el motor (Calculo + Domain)
-        run: dotnet build src/PowerNode.DesignSuite.Domain/PowerNode.DesignSuite.Domain.csproj --configuration Release
+      - run: dotnet workload install wasm-tools
+
+      - name: Construir todo
+        run: dotnet build src/PowerNode.Web --configuration Release
+
+      - name: Pruebas
+        run: dotnet test tests/PowerNode.Normativa.Tests --configuration Release
