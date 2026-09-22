@@ -3,8 +3,13 @@
 Calculadora de cuadros de carga según la **NOM-001-SEDE-2012**.
 
 Un tablero de hasta 42 espacios, con la geometría real: nones a la izquierda, pares a la derecha, y
-la fase de cada circuito derivada de su espacio y sus polos. Por cada circuito resuelve la
-protección, los conductores de fase, neutro y tierra, y la caída de tensión.
+la fase de cada circuito derivada de su espacio y sus polos — un interruptor de 3 polos ocupa tres
+espacios de su columna y toca las tres barras. Por cada circuito resuelve la protección, los
+conductores de fase, neutro y tierra, y la caída de tensión; y por el tablero completo, el balanceo
+entre fases, el alimentador y el interruptor principal.
+
+**Y emite el entregable:** el cuadro de carga con las mismas columnas de siempre, y la memoria de
+cálculo con sus nueve secciones y las fórmulas sustituidas, listos para imprimir o guardar en PDF.
 
 **Cada resultado cita el artículo de la norma del que sale.** No es un número suelto: la memoria
 dice *«240-6(a) · Capacidad mínima 7.09 A → protección estándar 15 A»*, de modo que quien revisa
@@ -22,6 +27,9 @@ Corre completo en el navegador. Sin instalar nada, sin cuenta, sin servidor.
 | Temperatura de terminal y crédito de aislamiento | 110-14(c), 310-104(a) |
 | Caída de tensión por impedancia completa, no por fórmula aproximada | Tabla 9 |
 | Conductor de puesta a tierra, con ajuste proporcional | 250-122, 250-122(b) |
+| Alimentador e interruptor principal del tablero | 215-2, 215-3 |
+| Factor de demanda sobre la carga acumulada, no sobre el derivado | 220-40, 220-42 |
+| Que la protección no supere la capacidad de la barra | 408-36 |
 
 ## De dónde salen los números
 

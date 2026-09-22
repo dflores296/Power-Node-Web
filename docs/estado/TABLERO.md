@@ -1,6 +1,6 @@
 # Tablero — cómo vamos
 
-**Actualizado:** 2026-09-22, segunda sesión: primera pantalla viva.
+**Actualizado:** 2026-09-22, tercera sesión: el tablero completo y el entregable que se imprime.
 
 > **Cómo se leen los porcentajes.** No son una encuesta: cada uno dice qué queda, y ese "qué queda"
 > está enlazado. Un número sin su lista es una opinión — regla de `AbaSuite`.
@@ -22,7 +22,7 @@ proyecto se guarda abriendo/descargando un archivo, no en una base con la que ha
 | Frente | Avance | Qué decide |
 |---|---|---|
 | **Motor** | **✅ 100%** | Si el cálculo de un circuito da el número correcto |
-| **Interfaz** | **🟨 ~35%** | Si se puede capturar y ver el cuadro de carga |
+| **Interfaz** | **🟨 ~75%** | Si se puede capturar y ver el cuadro de carga |
 | **Publicación** | **🟨 ~80%** | Si se puede abrir desde una pestaña, sin instalar nada |
 
 ### Motor — 100%
@@ -38,18 +38,33 @@ implementaciones son las mismas de escritorio con un solo cambio (`IFuenteTablas
 `DbContext`); la lógica de interpretación de cada tabla no se tocó. **6/6 pruebas verdes** contra
 los mismos valores que ya se verificaron a mano contra el PDF del DOF.
 
-### Interfaz — ~35%
+### Interfaz — ~75%
 
-**La primera pantalla existe y calcula de verdad** (`Pages/CuadroDeCarga.razor`): dos bloques
-—nones izquierda, pares derecha, como el Excel—, captura de descripción/tipo/VA/longitud/polos,
-fase derivada por la convención NEMA de pares, y la memoria con las citas de norma de cada paso.
-Verificada en el navegador con Playwright: los tres circuitos de prueba dan **exactamente** los
-mismos números que la app de escritorio (5.67 A → 15 A → 12 AWG → 1.34 %).
+**El tablero está completo y el entregable se imprime.** Tres pantallas de trabajo en dos rutas:
 
-**Lo que falta:** el resumen de carga por fase y el balanceo · circuitos de Fuerza (Art. 430, el
-motor ya está copiado pero la pantalla no lo ofrece) · guardar y abrir el proyecto como archivo ·
-los datos de identificación (tablero, clave, ubicación, proyecto) que el Excel lleva arriba del
-cuadro · exportar.
+- **`/` — captura.** La ficha del tablero con los campos del Excel (identificación, sistema,
+  gabinete, condiciones de cálculo), los dos bloques de espacios —nones izquierda, pares derecha—,
+  el resumen de carga con su factor de demanda, el balanceo por fase con el desbalanceo, y el
+  alimentador con el interruptor principal.
+- **`/documento` — el cuadro de carga impreso**, con las mismas 24 columnas que emite el exportador
+  de escritorio, más el renglón del alimentador y el resumen.
+- **`/documento` → memoria** — las **nueve secciones** del Excel original por circuito y por
+  alimentador, con las fórmulas sustituidas y las citas del cálculo.
+
+**Las reglas del tablero ya no viven en el `.razor`.** `PowerNode.Web.Modelo` (sin Blazor) tiene la
+geometría de las barras, la ocupación de un multipolar, el balanceo, el alimentador y la memoria —
+**23 pruebas verdes**, y ahí es donde el compilador impide que una regla se escape a una pantalla.
+
+**Qué llegó del escritorio esta sesión, sin reescribirse:** `DistribucionBarras` y
+`SistemaDelTablero` (qué barra toca cada espacio, y cuántas barras hay de verdad),
+`AcomodoEnGabinete` (si el interruptor cabe), `CalculadoraAlimentador` y
+`CalculadoraProteccionAlimentador` (el alimentador y el principal), `CalculadoraDesbalanceo`,
+`Verificacion408_36`, y la plantilla de nueve secciones de `Exportacion.Word.SeccionesDeMemoria`.
+
+**Lo que falta:** guardar y abrir el proyecto como archivo (I-05) · circuitos de **Fuerza** (Art.
+430: el motor está copiado, la pantalla no los ofrece) · condiciones de cálculo por circuito (hoy
+son del tablero entero, como en el Excel) · que David confirme los dos criterios del Excel para el
+principal (ver `../decisiones/interruptor-principal-criterios-del-excel.md`).
 
 ### Publicación — ~80%
 

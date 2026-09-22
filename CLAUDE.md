@@ -38,8 +38,14 @@ estado vive en `docs/estado/`, con tope de 4 archivos.
 ## Antes de dar algo por terminado
 
 ```bash
-dotnet build src/PowerNode.DesignSuite.Domain/PowerNode.DesignSuite.Domain.csproj
+dotnet build src/PowerNode.Web
+dotnet test tests/PowerNode.Normativa.Tests
+dotnet test tests/PowerNode.Web.Tests
 ```
 
-Sin advertencias. Cuando exista el proyecto Blazor, se agrega `dotnet test` y `dotnet publish` a esta
-lista — no antes de que haya algo que probar.
+**Sin advertencias, y las pruebas en verde.** `dotnet build src/PowerNode.Web` arrastra los cinco
+proyectos; no hace falta construirlos uno por uno.
+
+**Y si se tocó una pantalla, se abre en el navegador antes de darla por buena.** Los dos únicos bugs
+de cálculo que ha tenido este repo (I-02 e I-03) compilaban y pasaban las pruebas: se vieron
+corriendo. `dotnet run --project src/PowerNode.Web` y Playwright contra `http://127.0.0.1:5199`.

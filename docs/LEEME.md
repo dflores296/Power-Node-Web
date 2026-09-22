@@ -39,6 +39,8 @@ confirma a Claude que lo escriba.
 | [`decisiones/sin-catalogo-square-d.md`](decisiones/sin-catalogo-square-d.md) | CONFIRMADA · David |
 | [`decisiones/blazor-webassembly-sin-backend.md`](decisiones/blazor-webassembly-sin-backend.md) | CONFIRMADA · David |
 | [`decisiones/hallazgos-en-markdown.md`](decisiones/hallazgos-en-markdown.md) | CONFIRMADA · David |
+| [`decisiones/interruptor-principal-criterios-del-excel.md`](decisiones/interruptor-principal-criterios-del-excel.md) | **PROPUESTA · Claude · 2026-09-22** |
+| [`decisiones/documento-imprimible-en-vez-de-archivo.md`](decisiones/documento-imprimible-en-vez-de-archivo.md) | **PROPUESTA · Claude · 2026-09-22** |
 
 ## 📘 `conocimiento/` — lo que se aprendió, no cambia cada sesión
 
@@ -46,6 +48,7 @@ confirma a Claude que lo escriba.
 |---|---|
 | [`conocimiento/motor-copiado.md`](conocimiento/motor-copiado.md) | Exactamente qué se trajo de `PowerNode-DesignSuite`, qué se dejó fuera, y los cinco ajustes que hizo falta hacer para que compilara solo. |
 | [`conocimiento/marca.md`](conocimiento/marca.md) | El logo, los colores reales, la escala de redondeo, y en qué se aparta del escritorio. |
+| [`conocimiento/cuadro-de-carga-excel.md`](conocimiento/cuadro-de-carga-excel.md) | El Excel original leído celda por celda: los 42 espacios, el encabezado, cómo reparte las fases, la fila del alimentador y las 24 columnas del entregable. |
 | [`conocimiento/tablas-de-la-norma.md`](conocimiento/tablas-de-la-norma.md) | Cómo el motor lee la NOM sin base de datos: la costura (`FilaTabla`), los 39 KB de JSON, el `--check` que rompe el build, y cómo agregar una tabla. |
 
 ## ⚪ `historico/` — lo cerrado. Nunca se borra, se mueve aquí.

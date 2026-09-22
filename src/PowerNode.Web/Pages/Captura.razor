@@ -1,0 +1,293 @@
+@page "/"
+@inject ProyectoActual Proyecto
+@inject MotorNom Motor
+@inject NavigationManager Navegacion
+
+<PageTitle>Cuadro de carga — Power Node</PageTitle>
+
+<header class="encabezado">
+    <div class="titulo">
+        <img src="marca/powernode-icono.svg" alt="Power Node" width="38" height="38" />
+        <div>
+            <h1>Cuadro de carga</h1>
+            <p class="meta">NOM-001-SEDE-2012 · Art. 210, 215, 220, 240, 250, 310, 408</p>
+        </div>
+    </div>
+    <div class="acciones">
+        <button class="boton" @onclick="@(() => Navegacion.NavigateTo("documento"))">Documento y memoria</button>
+    </div>
+</header>
+
+<section class="ficha">
+    <div class="grupo">
+        <h2>Identificación</h2>
+        <label>Tablero <input @bind="Datos.Tablero" @bind:event="oninput" /></label>
+        <label>Clave <input @bind="Datos.Clave" @bind:event="oninput" /></label>
+        <label>Ubicación <input @bind="Datos.Ubicacion" @bind:event="oninput" /></label>
+        <label>Proyecto <input @bind="Datos.Proyecto" @bind:event="oninput" /></label>
+        <label>Cliente <input @bind="Datos.Cliente" @bind:event="oninput" /></label>
+    </div>
+
+    <div class="grupo">
+        <h2>Sistema</h2>
+        <label>Tensión F-F (V) <input type="number" min="100" step="1" @bind="Datos.TensionFaseFaseV" @bind:after="Recalcular" /></label>
+        <label>Fases <select @bind="Datos.Fases" @bind:after="Recalcular">@foreach (var f in new[] { 1, 2, 3 }) { <option value="@f">@f</option> }</select></label>
+        <label>Hilos <select @bind="Datos.Hilos" @bind:after="Recalcular">@foreach (var h in new[] { 2, 3, 4 }) { <option value="@h">@h</option> }</select></label>
+        <label>Frecuencia (Hz) <input type="number" min="50" step="10" @bind="Datos.FrecuenciaHz" /></label>
+        <p class="derivado">
+            @Datos.EtiquetaSistema ·
+            Tensión F-N <strong>@Datos.TensionFaseNeutroV.ToString("N1") V</strong> ·
+            barras <strong>@string.Join(" ", Datos.Barras)</strong>
+        </p>
+    </div>
+
+    <div class="grupo">
+        <h2>Gabinete</h2>
+        <label>Espacios <select @bind="Datos.NumeroEspacios" @bind:after="Recalcular">
+            @foreach (var e in new[] { 6, 12, 18, 24, 30, 36, 42 }) { <option value="@e">@e</option> }
+        </select></label>
+        <label>Acometida <select @bind="Datos.TipoAcometida" @bind:after="Recalcular">
+            <option value="@TipoAcometidaTablero.InterruptorPrincipal">Interruptor principal</option>
+            <option value="@TipoAcometidaTablero.ZapatasPrincipales">Zapatas principales</option>
+        </select></label>
+        <label>Montaje <select @bind="Datos.Montaje">
+            <option value="Sobreponer">Sobreponer</option>
+            <option value="Empotrar">Empotrar</option>
+        </select></label>
+        <label>Barras <select @bind="Datos.MaterialBarras">
+            <option value="@MaterialConductor.Cobre">Cobre</option>
+            <option value="@MaterialConductor.Aluminio">Aluminio</option>
+        </select></label>
+        <label>Gabinete NEMA <select @bind="Datos.GabineteNema">
+            @foreach (var n in new[] { "1", "3R", "4X", "12" }) { <option value="@n">@n</option> }
+        </select></label>
+        <label>Capacidad de barra (A) <input type="number" min="0" step="1" placeholder="—"
+                                             @bind="Datos.CapacidadBarraA" @bind:after="Recalcular" /></label>
+    </div>
+
+    <div class="grupo">
+        <h2>Condiciones de cálculo</h2>
+        <label>Conductor <select @bind="Datos.MaterialConductor" @bind:after="Recalcular">
+            <option value="@MaterialConductor.Cobre">Cobre</option>
+            <option value="@MaterialConductor.Aluminio">Aluminio</option>
+        </select></label>
+        <label>Canalización <select @bind="Datos.MaterialCanalizacion" @bind:after="Recalcular">
+            <option value="@MaterialCanalizacion.Pvc">PVC</option>
+            <option value="@MaterialCanalizacion.Aluminio">Aluminio</option>
+            <option value="@MaterialCanalizacion.Acero">Acero</option>
+        </select></label>
+        <label>T. ambiente (°C) <input type="number" min="10" max="80" step="1" @bind="Datos.TemperaturaAmbienteC" @bind:after="Recalcular" /></label>
+        <label>Agrupados <input type="number" min="1" max="40" step="1" @bind="Datos.ConductoresAgrupados" @bind:after="Recalcular" /></label>
+        <label>F.P. <input type="number" min="0.1" max="1" step="0.05" @bind="Datos.FactorPotencia" @bind:after="Recalcular" /></label>
+        <label>e% máx. derivado <input type="number" min="0.5" max="10" step="0.5" @bind="Datos.CaidaMaxDerivadoPct" @bind:after="Recalcular" /></label>
+    </div>
+</section>
+
+<div class="lados">
+    @foreach (var (titulo, circuitos) in new[]
+              {
+                  ("Lado izquierdo (nones)", Cuadro.Nones.ToList()),
+                  ("Lado derecho (pares)", Cuadro.Pares.ToList()),
+              })
+    {
+        <section class="lado">
+            <h2>@titulo</h2>
+            <table class="cuadro">
+                <thead>
+                    <tr>
+                        <th>N.º</th>
+                        <th class="izq">Descripción</th>
+                        <th>Tipo</th>
+                        <th>Continua<br /><small>VA</small></th>
+                        <th>No continua<br /><small>VA</small></th>
+                        <th>L<br /><small>m</small></th>
+                        <th>P</th>
+                        <th>Fase</th>
+                        <th>In<br /><small>A</small></th>
+                        <th>Protec.</th>
+                        <th>Fase</th>
+                        <th>N</th>
+                        <th>T</th>
+                        <th>e %</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var c in circuitos)
+                    {
+                        @if (c.EsContinuacion)
+                        {
+                            <tr class="continuacion">
+                                <td class="num">@c.Espacio</td>
+                                <td colspan="13" class="izq">↳ ocupado por el circuito @c.ContinuacionDe</td>
+                            </tr>
+                        }
+                        else
+                        {
+                            <tr class="@(c.Resultado is null ? "vacio" : null)">
+                                <td class="num">@c.Espacio</td>
+                                <td><input class="desc" @bind="c.Descripcion" @bind:event="oninput" placeholder="—" /></td>
+                                <td>
+                                    <select class="tipo" @bind="c.Tipo" @bind:after="Recalcular">
+                                        <option value="@TipoCarga.Alumbrado">Alumbrado</option>
+                                        <option value="@TipoCarga.Contactos">Contactos</option>
+                                        <option value="@TipoCarga.Equipo">Equipo</option>
+                                    </select>
+                                </td>
+                                <td><input class="va" type="number" min="0" @bind="c.ContinuaVA" @bind:after="Recalcular" /></td>
+                                <td><input class="va" type="number" min="0" @bind="c.NoContinuaVA" @bind:after="Recalcular" /></td>
+                                <td><input class="va" type="number" min="0" @bind="c.LongitudM" @bind:after="Recalcular" /></td>
+                                <td>
+                                    <select class="polos" value="@c.Polos"
+                                            @onchange="e => CambiarPolos(c, e.Value?.ToString())">
+                                        @foreach (var p in Enumerable.Range(1, Datos.MaximoPolos)) { <option value="@p">@p</option> }
+                                    </select>
+                                </td>
+                                <td class="fase fase-@c.Fases.ToLowerInvariant()">@c.Fases</td>
+                                <td class="num">@c.Resultado?.CorrienteDisenoA.ToString("N2")</td>
+                                <td class="num fuerte">@(c.Resultado is null ? "" : $"{c.Resultado.ProteccionA:N0} A")</td>
+                                <td class="num">@c.Resultado?.CalibreFase.Designacion</td>
+                                <td class="num">@c.Resultado?.CalibreNeutro.Designacion</td>
+                                <td class="num">@c.Resultado?.CalibreTierra.Designacion</td>
+                                <td class="num @(Excede(c) ? "excede" : null)">@c.Resultado?.CaidaTensionPct.ToString("N2")</td>
+                            </tr>
+                            @if (c.Error is not null || _motivo.TryGetValue(c.Espacio, out _))
+                            {
+                                <tr class="fila-error">
+                                    <td></td>
+                                    <td colspan="13">@(c.Error ?? _motivo[c.Espacio])</td>
+                                </tr>
+                            }
+                        }
+                    }
+                </tbody>
+            </table>
+        </section>
+    }
+</div>
+
+<div class="cierre">
+    <section class="tarjeta">
+        <h2>Resumen de carga</h2>
+        <table class="datos">
+            <tr>
+                <th></th><th>Instalada (kVA)</th><th>F.D.</th><th>Demandada (kVA)</th>
+            </tr>
+            <tr>
+                <td class="izq">Carga continua</td>
+                <td class="num">@((Cuadro.Resumen.ContinuaVA / 1000m).ToString("N2"))</td>
+                <td class="num"><input class="va chico" type="number" min="0" max="1" step="0.05"
+                                       @bind="Datos.FactorDemandaContinua" @bind:after="Recalcular" /></td>
+                <td class="num">@((Cuadro.Resumen.ContinuaDemandadaVA / 1000m).ToString("N2"))</td>
+            </tr>
+            <tr>
+                <td class="izq">Carga no continua</td>
+                <td class="num">@((Cuadro.Resumen.NoContinuaVA / 1000m).ToString("N2"))</td>
+                <td class="num"><input class="va chico" type="number" min="0" max="1" step="0.05"
+                                       @bind="Datos.FactorDemandaNoContinua" @bind:after="Recalcular" /></td>
+                <td class="num">@((Cuadro.Resumen.NoContinuaDemandadaVA / 1000m).ToString("N2"))</td>
+            </tr>
+            <tr class="total">
+                <td class="izq">Total (kVA)</td>
+                <td class="num">@((Cuadro.Resumen.InstaladaVA / 1000m).ToString("N2"))</td>
+                <td></td>
+                <td class="num">@((Cuadro.Resumen.DemandadaVA / 1000m).ToString("N2"))</td>
+            </tr>
+            <tr class="total">
+                <td class="izq">Total (kW)</td>
+                <td class="num">@((Cuadro.Resumen.InstaladaVA / 1000m * Datos.FactorPotencia).ToString("N2"))</td>
+                <td></td>
+                <td class="num">@((Cuadro.Resumen.DemandadaVA / 1000m * Datos.FactorPotencia).ToString("N2"))</td>
+            </tr>
+        </table>
+
+        <h2 class="separado">Balanceo de fases</h2>
+        <table class="datos">
+            <tr>
+                @foreach (var barra in Datos.Barras) { <th>@barra (VA)</th> }
+                <th>Desbalanceo</th>
+            </tr>
+            <tr>
+                @foreach (var barra in Datos.Barras)
+                {
+                    <td class="num">@Cuadro.Resumen.CargaPorFaseVA[barra].ToString("N0")</td>
+                }
+                <td class="num fuerte">@Cuadro.Resumen.DesbalanceoPct.ToString("N1") %</td>
+            </tr>
+        </table>
+    </section>
+
+    <section class="tarjeta">
+        <h2>Alimentador y protección principal</h2>
+        <label class="suelto">Longitud del alimentador (m)
+            <input type="number" min="0" step="1" @bind="Datos.LongitudAlimentadorM" @bind:after="Recalcular" />
+        </label>
+
+        @if (Cuadro.Alimentador.Resultado is { } a)
+        {
+            <table class="datos">
+                <tr><td class="izq">Corriente de diseño</td><td class="num">@a.CorrienteDisenoA.ToString("N2") A</td></tr>
+                <tr class="total">
+                    <td class="izq">@(Datos.UsaInterruptorPrincipal ? "Interruptor principal" : "Protección del lado de alimentación")</td>
+                    <td class="num fuerte">@a.ProteccionA.ToString("N0") A · @Cuadro.Alimentador.Polos polos</td>
+                </tr>
+                <tr><td class="izq">Conductor de fase</td><td class="num">@a.CalibreFase.Designacion AWG/kcmil</td></tr>
+                <tr><td class="izq">Conductor de neutro</td><td class="num">@a.CalibreNeutro.Designacion AWG/kcmil</td></tr>
+                <tr><td class="izq">Puesta a tierra</td><td class="num">@a.CalibreTierra.Designacion AWG/kcmil</td></tr>
+                <tr>
+                    <td class="izq">Caída de tensión</td>
+                    <td class="num @(a.CaidaTensionPct > Datos.CaidaMaxAlimentadorPct ? "excede" : null)">@a.CaidaTensionPct.ToString("N2") %</td>
+                </tr>
+            </table>
+
+            @foreach (var aviso in Cuadro.Alimentador.Avisos)
+            {
+                <p class="aviso">@aviso</p>
+            }
+        }
+        else if (Cuadro.Alimentador.Error is { } error)
+        {
+            <p class="aviso error">@error</p>
+        }
+        else
+        {
+            <p class="derivado">Captura la carga de algún circuito y aquí sale el alimentador.</p>
+        }
+    </section>
+</div>
+
+<footer class="pie">
+    Tablas leídas de
+    <a href="https://github.com/dflores296/NOM-001-SEDE-2012">NOM-001-SEDE-2012</a>,
+    verificadas celda por celda contra el PDF del DOF.
+    Tabla 8 verificada el @Motor.Fuente.VerificadaEl("8").
+    <strong>Los resultados no sustituyen el criterio del ingeniero responsable.</strong>
+</footer>
+
+@code {
+    /// <summary>Por circuito, el motivo por el que no se pudo cambiar de polos. Se borra al siguiente intento.</summary>
+    private readonly Dictionary<int, string> _motivo = [];
+
+    private CuadroDeCarga Cuadro => Proyecto.Cuadro;
+    private DatosDelTablero Datos => Cuadro.Datos;
+
+    private void Recalcular() => Cuadro.Recalcular();
+
+    private bool Excede(CircuitoDelCuadro c) =>
+        c.Resultado is not null && c.Resultado.CaidaTensionPct > Datos.CaidaMaxDerivadoPct;
+
+    /// <summary>
+    /// Cambiar los polos puede no poderse —el espacio de al lado está ocupado, o el interruptor no
+    /// cabe—, así que no se enlaza directo: se pregunta al cuadro y, si dice que no, se enseña el
+    /// motivo en vez de dejar que el selector mienta.
+    /// </summary>
+    private void CambiarPolos(CircuitoDelCuadro circuito, string? valor)
+    {
+        _motivo.Remove(circuito.Espacio);
+
+        if (!int.TryParse(valor, out var polos))
+            return;
+
+        if (Cuadro.CambiarPolos(circuito, polos) is { } motivo)
+            _motivo[circuito.Espacio] = motivo;
+    }
+}

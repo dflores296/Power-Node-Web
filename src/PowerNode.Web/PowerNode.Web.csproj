@@ -12,8 +12,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\PowerNode.DesignSuite.Normativa\PowerNode.DesignSuite.Normativa.csproj" />
-    <ProjectReference Include="..\PowerNode.DesignSuite.Domain\PowerNode.DesignSuite.Domain.csproj" />
+    <!--
+      El cuadro de carga vive en PowerNode.Web.Modelo, sin Blazor, y de ahí arrastra Domain,
+      Calculo y Normativa. Esta pantalla solo captura y pinta.
+    -->
+    <ProjectReference Include="..\PowerNode.Web.Modelo\PowerNode.Web.Modelo.csproj" />
   </ItemGroup>
 
 </Project>

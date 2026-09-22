@@ -1,0 +1,295 @@
+@page "/documento"
+@inject ProyectoActual Proyecto
+@inject NavigationManager Navegacion
+@inject IJSRuntime Js
+
+<PageTitle>Cuadro de carga y memoria — Power Node</PageTitle>
+
+<div class="barra no-imprime">
+    <button class="boton" @onclick="@(() => Navegacion.NavigateTo(""))">← Volver a la captura</button>
+    <div class="pestanas">
+        <button class="boton @(_hoja == Hoja.Cuadro ? "activo" : null)" @onclick="() => _hoja = Hoja.Cuadro">Cuadro de carga</button>
+        <button class="boton @(_hoja == Hoja.Memoria ? "activo" : null)" @onclick="() => _hoja = Hoja.Memoria">Memoria de cálculo</button>
+    </div>
+    <button class="boton primario" @onclick="@(async () => await Imprimir())">Imprimir / PDF</button>
+</div>
+
+@if (_hoja == Hoja.Cuadro)
+{
+    <article class="documento">
+        <header class="doc-encabezado">
+            <div class="doc-marca">
+                <img src="marca/powernode-firma.svg" alt="Power Node" height="26" />
+                <p class="doc-norma">Cuadro de carga · NOM-001-SEDE-2012</p>
+            </div>
+            <dl class="doc-datos">
+                <div><dt>Tablero</dt><dd>@Texto(Datos.Tablero)</dd></div>
+                <div><dt>Clave</dt><dd>@Texto(Datos.Clave)</dd></div>
+                <div><dt>Ubicación</dt><dd>@Texto(Datos.Ubicacion)</dd></div>
+                <div><dt>Montaje</dt><dd>@Datos.Montaje · NEMA @Datos.GabineteNema</dd></div>
+                <div><dt>Barras</dt><dd>@MemoriaDeCalculo.Etiqueta(Datos.MaterialBarras)@(Datos.CapacidadBarraA is { } cap ? $" · {cap:N0} A" : "")</dd></div>
+                <div><dt>Espacios</dt><dd>@Datos.NumeroEspacios</dd></div>
+            </dl>
+            <dl class="doc-datos">
+                <div><dt>Proyecto</dt><dd>@Texto(Datos.Proyecto)</dd></div>
+                <div><dt>Cliente</dt><dd>@Texto(Datos.Cliente)</dd></div>
+                <div><dt>Sistema</dt><dd>@Datos.EtiquetaSistema</dd></div>
+                <div><dt>Tensión</dt><dd>@Datos.TensionFaseFaseV.ToString("N0") V F-F · @Datos.TensionFaseNeutroV.ToString("N1") V F-N · @Datos.FrecuenciaHz Hz</dd></div>
+                <div><dt>Int. ppal.</dt><dd>@(Cuadro.InterruptorPrincipalA > 0m ? $"{Cuadro.InterruptorPrincipalA:N0} A" : "—")</dd></div>
+                <div><dt>Acometida</dt><dd>@(Datos.UsaInterruptorPrincipal ? "Interruptor principal" : "Zapatas principales")</dd></div>
+            </dl>
+        </header>
+
+        @foreach (var (titulo, circuitos) in new[]
+                  {
+                      ("Lado izquierdo (nones)", Cuadro.Nones.ToList()),
+                      ("Lado derecho (pares)", Cuadro.Pares.ToList()),
+                  })
+        {
+            <h3 class="doc-lado">@titulo</h3>
+            <table class="doc-cuadro">
+                <thead>
+                    <tr>
+                        <th rowspan="2">N.º</th>
+                        <th rowspan="2" class="izq">Descripción</th>
+                        <th colspan="5">Carga (VA)</th>
+                        <th colspan="@Datos.Barras.Count">Balanceo de fases (VA)</th>
+                        <th colspan="2">Protección</th>
+                        <th colspan="3">Fase</th>
+                        <th colspan="3">Neutro</th>
+                        <th colspan="3">Puesta a tierra</th>
+                        <th rowspan="2">In<br /><small>A</small></th>
+                        <th rowspan="2">L<br /><small>m</small></th>
+                        <th rowspan="2">e<br /><small>%</small></th>
+                    </tr>
+                    <tr>
+                        <th>Continua</th><th>F.D.</th><th>No cont.</th><th>F.D.</th><th>Instalada</th>
+                        @foreach (var barra in Datos.Barras) { <th>@barra</th> }
+                        <th>P</th><th>A</th>
+                        <th>Hilos</th><th>mm²</th><th>AWG</th>
+                        <th>Hilos</th><th>mm²</th><th>AWG</th>
+                        <th>Hilos</th><th>mm²</th><th>AWG</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var c in circuitos)
+                    {
+                        <tr class="@(c.TieneCarga ? null : "libre")">
+                            <td class="num">@c.Espacio</td>
+                            @if (c.EsContinuacion)
+                            {
+                                <td colspan="@(17 + Datos.Barras.Count)" class="izq tenue">↳ circuito @c.ContinuacionDe</td>
+                            }
+                            else
+                            {
+                                <td class="izq">@(string.IsNullOrWhiteSpace(c.Descripcion) ? (c.TieneCarga ? MemoriaDeCalculo.Etiqueta(c.Tipo) : "LIBRE") : c.Descripcion)</td>
+                                <td class="num">@Cifra(c.ContinuaVA)</td>
+                                <td class="num">@(c.TieneCarga ? "1.00" : "")</td>
+                                <td class="num">@Cifra(c.NoContinuaVA)</td>
+                                <td class="num">@(c.TieneCarga ? "1.00" : "")</td>
+                                <td class="num">@Cifra(c.CargaInstaladaVA)</td>
+                                @foreach (var barra in Datos.Barras)
+                                {
+                                    <td class="num">@(c.TieneCarga && c.Fases.Contains(barra) ? c.CargaPorFaseVA.ToString("N0") : "")</td>
+                                }
+                                <td class="num">@(c.Resultado is null ? "" : c.Polos.ToString())</td>
+                                <td class="num fuerte">@(c.Resultado is null ? "" : c.Resultado.ProteccionA.ToString("N0"))</td>
+                                @Conductor(c.Resultado?.CalibreFase, c.Resultado?.NumeroConductoresParalelo ?? 0)
+                                @Conductor(c.Resultado?.CalibreNeutro, c.Resultado is null ? 0 : 1)
+                                @Conductor(c.Resultado?.CalibreTierra, c.Resultado is null ? 0 : 1)
+                                <td class="num">@(c.Resultado?.CorrienteDisenoA.ToString("N2"))</td>
+                                <td class="num">@(c.Resultado is null ? "" : c.LongitudM.ToString("N0"))</td>
+                                <td class="num">@(c.Resultado?.CaidaTensionPct.ToString("N2"))</td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+
+        <section class="doc-pie">
+            <div>
+                <h3>Resumen de carga</h3>
+                <table class="doc-resumen">
+                    <tr><th></th><th>Instalada (kVA)</th><th>F.D.</th><th>Demandada (kVA)</th></tr>
+                    <tr>
+                        <td class="izq">Carga continua</td>
+                        <td class="num">@((Cuadro.Resumen.ContinuaVA / 1000m).ToString("N2"))</td>
+                        <td class="num">@Datos.FactorDemandaContinua.ToString("N2")</td>
+                        <td class="num">@((Cuadro.Resumen.ContinuaDemandadaVA / 1000m).ToString("N2"))</td>
+                    </tr>
+                    <tr>
+                        <td class="izq">Carga no continua</td>
+                        <td class="num">@((Cuadro.Resumen.NoContinuaVA / 1000m).ToString("N2"))</td>
+                        <td class="num">@Datos.FactorDemandaNoContinua.ToString("N2")</td>
+                        <td class="num">@((Cuadro.Resumen.NoContinuaDemandadaVA / 1000m).ToString("N2"))</td>
+                    </tr>
+                    <tr class="total">
+                        <td class="izq">Total (kVA)</td>
+                        <td class="num">@((Cuadro.Resumen.InstaladaVA / 1000m).ToString("N2"))</td>
+                        <td></td>
+                        <td class="num">@((Cuadro.Resumen.DemandadaVA / 1000m).ToString("N2"))</td>
+                    </tr>
+                    <tr class="total">
+                        <td class="izq">Total (kW)</td>
+                        <td class="num">@((Cuadro.Resumen.InstaladaVA / 1000m * Datos.FactorPotencia).ToString("N2"))</td>
+                        <td></td>
+                        <td class="num">@((Cuadro.Resumen.DemandadaVA / 1000m * Datos.FactorPotencia).ToString("N2"))</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div>
+                <h3>Alimentador y protección principal</h3>
+                @if (Cuadro.Alimentador.Resultado is { } a)
+                {
+                    <table class="doc-resumen">
+                        <tr>
+                            <th>P × A</th><th>Fase</th><th>Neutro</th><th>Tierra</th><th>In (A)</th><th>L (m)</th><th>e (%)</th>
+                        </tr>
+                        <tr>
+                            <td class="num fuerte">@Cuadro.Alimentador.Polos × @a.ProteccionA.ToString("N0")</td>
+                            <td class="num">@a.NumeroConductoresParalelo–@a.CalibreFase.Designacion</td>
+                            <td class="num">1–@a.CalibreNeutro.Designacion</td>
+                            <td class="num">1–@a.CalibreTierra.Designacion</td>
+                            <td class="num">@a.CorrienteDisenoA.ToString("N2")</td>
+                            <td class="num">@Datos.LongitudAlimentadorM.ToString("N0")</td>
+                            <td class="num">@a.CaidaTensionPct.ToString("N2")</td>
+                        </tr>
+                    </table>
+                }
+                <table class="doc-resumen separado">
+                    <tr>
+                        @foreach (var barra in Datos.Barras) { <th>Fase @barra (VA)</th> }
+                        <th>Desbalanceo</th>
+                    </tr>
+                    <tr>
+                        @foreach (var barra in Datos.Barras)
+                        {
+                            <td class="num">@Cuadro.Resumen.CargaPorFaseVA[barra].ToString("N0")</td>
+                        }
+                        <td class="num fuerte">@Cuadro.Resumen.DesbalanceoPct.ToString("N1") %</td>
+                    </tr>
+                </table>
+            </div>
+        </section>
+
+        @foreach (var aviso in Cuadro.Alimentador.Avisos)
+        {
+            <p class="aviso">@aviso</p>
+        }
+
+        <p class="doc-nota">
+            Calculado con las tablas de la NOM-001-SEDE-2012 verificadas contra el PDF del DOF.
+            <strong>Los resultados no sustituyen el criterio del ingeniero responsable.</strong>
+        </p>
+    </article>
+}
+else
+{
+    <article class="documento memoria-doc">
+        <header class="doc-encabezado">
+            <div class="doc-marca">
+                <img src="marca/powernode-firma.svg" alt="Power Node" height="26" />
+                <p class="doc-norma">Memoria de cálculo · NOM-001-SEDE-2012</p>
+            </div>
+            <dl class="doc-datos">
+                <div><dt>Tablero</dt><dd>@Texto(Datos.Tablero)</dd></div>
+                <div><dt>Clave</dt><dd>@Texto(Datos.Clave)</dd></div>
+                <div><dt>Ubicación</dt><dd>@Texto(Datos.Ubicacion)</dd></div>
+                <div><dt>Proyecto</dt><dd>@Texto(Datos.Proyecto)</dd></div>
+            </dl>
+            <dl class="doc-datos">
+                <div><dt>Cliente</dt><dd>@Texto(Datos.Cliente)</dd></div>
+                <div><dt>Diseñó</dt><dd>@Texto(Datos.Diseno)</dd></div>
+                <div><dt>Revisó</dt><dd>@Texto(Datos.Reviso)</dd></div>
+                <div><dt>Aprobó</dt><dd>@Texto(Datos.Aprobo)</dd></div>
+            </dl>
+        </header>
+
+        @if (Hojas.Count == 0)
+        {
+            <p class="derivado">Todavía no hay circuitos calculados: captura la carga de alguno y la memoria se arma sola.</p>
+        }
+
+        @foreach (var hoja in Hojas)
+        {
+            <section class="hoja">
+                <h3>@hoja.Sujeto</h3>
+
+                @foreach (var bloque in MemoriaDeCalculo.Secciones(hoja))
+                {
+                    <h4>@bloque.Titulo</h4>
+
+                    @if (bloque.Introduccion is { } introduccion)
+                    {
+                        <p class="intro">@introduccion</p>
+                    }
+
+                    @if (bloque.Renglones.Count > 0)
+                    {
+                        <table class="doc-resumen">
+                            @foreach (var renglon in bloque.Renglones)
+                            {
+                                <tr>
+                                    <td class="izq rotulo">@renglon.Rotulo</td>
+                                    <td class="izq">@renglon.Valor</td>
+                                </tr>
+                            }
+                        </table>
+                    }
+
+                    @foreach (var formula in bloque.Formulas)
+                    {
+                        <p class="formula">@formula</p>
+                    }
+
+                    @foreach (var nota in bloque.Notas)
+                    {
+                        <p class="nota">@nota</p>
+                    }
+                }
+
+                <h4>CITAS DEL CÁLCULO</h4>
+                <ul class="citas">
+                    @foreach (var cita in hoja.Citas)
+                    {
+                        <li><code>@cita.Referencia</code> @cita.Descripcion</li>
+                    }
+                </ul>
+            </section>
+        }
+    </article>
+}
+
+@code {
+    private enum Hoja { Cuadro, Memoria }
+
+    private Hoja _hoja = Hoja.Cuadro;
+
+    private CuadroDeCarga Cuadro => Proyecto.Cuadro;
+    private DatosDelTablero Datos => Cuadro.Datos;
+    private IReadOnlyList<HojaDeMemoria> Hojas => MemoriaDeCalculo.Hojas(Cuadro);
+
+    private async Task Imprimir() => await Js.InvokeVoidAsync("window.print");
+
+    private static string Texto(string valor) => string.IsNullOrWhiteSpace(valor) ? "—" : valor;
+
+    private static string Cifra(decimal valor) => valor <= 0m ? "" : valor.ToString("N0");
+
+    /// <summary>Las tres celdas de un conductor: hilos, mm² y designación AWG/kcmil.</summary>
+    private static RenderFragment Conductor(Calibre? calibre, int hilos) => builder =>
+    {
+        var textos = calibre is null || hilos <= 0
+            ? ["", "", ""]
+            : new[] { hilos.ToString(), calibre.AreaMm2.ToString("N2"), calibre.Designacion };
+
+        foreach (var texto in textos)
+        {
+            builder.OpenElement(0, "td");
+            builder.AddAttribute(1, "class", "num");
+            builder.AddContent(2, texto);
+            builder.CloseElement();
+        }
+    };
+}

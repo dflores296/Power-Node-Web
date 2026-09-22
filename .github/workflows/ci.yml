@@ -30,5 +30,11 @@ jobs:
       - name: Construir todo
         run: dotnet build src/PowerNode.Web --configuration Release
 
-      - name: Pruebas
+      - name: Pruebas de las tablas de la norma
         run: dotnet test tests/PowerNode.Normativa.Tests --configuration Release
+
+      # El cuadro de carga: geometría del tablero, balanceo, alimentador y las nueve secciones de la
+      # memoria. Lee el MISMO JSON que las pruebas de arriba (enlazado, no copiado), así que el
+      # --check anterior también lo cubre.
+      - name: Pruebas del cuadro de carga
+        run: dotnet test tests/PowerNode.Web.Tests --configuration Release

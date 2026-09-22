@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <!--
+    El cuadro de carga SIN Blazor. Aquí vive todo lo que decide números —qué barra toca cada
+    espacio, cómo se reparte la carga, el alimentador, el interruptor principal, las nueve
+    secciones de la memoria— y por eso es un proyecto aparte y no una carpeta dentro de
+    PowerNode.Web: así se puede probar con `dotnet test` en un runner de Linux sin cargar el
+    runtime de WebAssembly, y así el compilador impide que una regla se escape a un .razor.
+
+    Depende de Domain (que arrastra Calculo) y de Normativa (las trece tablas leídas del JSON).
+    Ni una regla de la NOM se escribe aquí: se arman las piezas del motor copiado.
+  -->
+  <ItemGroup>
+    <ProjectReference Include="..\PowerNode.DesignSuite.Domain\PowerNode.DesignSuite.Domain.csproj" />
+    <ProjectReference Include="..\PowerNode.DesignSuite.Normativa\PowerNode.DesignSuite.Normativa.csproj" />
+  </ItemGroup>
+
+</Project>

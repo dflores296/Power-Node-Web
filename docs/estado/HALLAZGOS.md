@@ -20,8 +20,15 @@ ID: `<letra>-<número>`. La letra dice el frente (`M` motor, `I` interfaz, `P` p
 | P-03 · El navegador se quedaba con el CSS y los iconos viejos | P1 | **Cerrado** | este commit |
 | I-07 · Faltaba `favicon.ico`: el navegador seguía con el icono de Blazor | P1 | **Cerrado** | este commit |
 | I-08 · El selector de tipo cortaba el texto: «Alumbrac» | P2 | **Cerrado** | este commit |
-| I-04 · No hay resumen de carga ni balanceo por fase | P2 | Pendiente | — |
+| I-04 · No hay resumen de carga ni balanceo por fase | P2 | **Cerrado** | este commit |
 | I-05 · No se puede guardar ni abrir un proyecto | P1 | Pendiente | — |
+| I-09 · Los datos de identificación del Excel no se capturaban | P2 | **Cerrado** | este commit |
+| I-10 · La fase del espacio se calculaba en la pantalla, no en el motor | P1 | **Cerrado** | este commit |
+| I-11 · Un multipolar no ocupaba los espacios que se come | P1 | **Cerrado** | este commit |
+| I-12 · No había alimentador ni interruptor principal | P1 | **Cerrado** | este commit |
+| I-13 · No había documento imprimible ni memoria por tablero | P1 | **Cerrado** | este commit |
+| I-14 · La tensión F-N salía siempre de dividir entre √3 | P1 | **Cerrado** | este commit |
+| I-15 · Los circuitos de Fuerza (Art. 430) no se pueden capturar | P2 | Pendiente | — |
 
 ---
 
@@ -191,3 +198,35 @@ el resultado. Subido a 108 px, que es lo que pide la palabra completa más la fl
 Salió al revisar la captura de la pantalla ya redondeada, no de una prueba: es la clase de defecto
 que ninguna aserción atrapa porque el valor del `<select>` era correcto todo el tiempo — lo que
 fallaba era que el usuario no podía leerlo.
+
+---
+
+### I-10 — La fase de cada espacio se calculaba en la pantalla · este commit
+
+`Pages/CuadroDeCarga.razor` traía su propia copia de la convención NEMA
+(`"ABC"[((numero - 1) / 2) % 3]`) y su propia noción de cuántos polos caben (`_tensionFF <= 127 ? [1]
+: [1,2,3]`). Las dos eran correctas para el caso trifásico y **las dos estaban mal para un 1F-3H**:
+un tablero de dos barras admite interruptores de 2 polos, y con la regla de la tensión no los
+ofrecía.
+
+**Corregido** delegando en `DistribucionBarras.FasesQueOcupa` y `SistemaDelTablero.MaximoPolos`, que
+son donde el motor guarda esa regla — el mismo arreglo que el escritorio hizo el 2026-08-21.
+
+### I-11 — Un interruptor de 2 o 3 polos no ocupaba nada · este commit
+
+El selector de polos cambiaba la fase que se mostraba, pero los espacios `N+2` y `N+4` **seguían
+capturando carga propia**: se podían capturar dos circuitos encima del mismo interruptor, y los dos
+sumaban al total.
+
+**Corregido** con `AcomodoEnGabinete.MotivoNoCabe` —el mismo validador del editor de gabinete de
+escritorio— y marcando los renglones ocupados como continuación. Un cambio de polos que no cabe
+**no se aplica y dice por qué**, en vez de dejar que el selector mienta.
+
+### I-14 — La tensión fase-neutro salía siempre de dividir entre √3 · este commit
+
+Venía del Excel (`=ROUND(T22/SQRT(3),1)`), y es correcto **solo en una estrella**. En un centro de
+carga de 240 V (1F-3H, derivación central) daba **138.6 V** en vez de 120 — y con esa tensión, la
+corriente de cada circuito sale 13 % baja.
+
+**Corregido** llamando a `SistemaDelTablero.TensionFaseNeutro`, que distingue los tres casos. Lo
+cubre `LaTensionFaseNeutroNoEsSiempreEntreRaizDeTres`.
