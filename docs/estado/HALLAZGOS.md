@@ -18,6 +18,7 @@ ID: `<letra>-<número>`. La letra dice el frente (`M` motor, `I` interfaz, `P` p
 | P-02 · Pages quedó en «Deploy from a branch», sirve el README y no la app | P1 | **Cerrado** | David lo cambió a GitHub Actions |
 | I-06 · Pantalla de carga: una bola negra, y el favicon de Blazor | P2 | **Cerrado** | este commit |
 | P-03 · El navegador se quedaba con el CSS y los iconos viejos | P1 | **Cerrado** | este commit |
+| I-07 · Faltaba `favicon.ico`: el navegador seguía con el icono de Blazor | P1 | **Cerrado** | este commit |
 | I-04 · No hay resumen de carga ni balanceo por fase | P2 | Pendiente | — |
 | I-05 · No se puede guardar ni abrir un proyecto | P1 | Pendiente | — |
 
@@ -139,3 +140,42 @@ para el navegador que no sirva SVG como icono, y uno de 180 para iOS.
 
 **Verificado sirviendo el publicado desde `/Power-Node-Web/` con caché vacía:** `.arranque` computa
 `display=flex` centrado, los tres iconos llevan su `?v=`, cero errores y cero 404.
+
+### I-07 — El icono de Blazor sobrevivió a borrar el archivo, al `?v=` y a limpiar la caché
+
+Tres intentos fallaron antes de dar con la causa, y vale la pena registrarlos porque el diagnóstico
+equivocado costó dos rondas:
+
+1. Se borró `wwwroot/favicon.png` (el de Blazor) y se declaró un SVG. **No bastó.**
+2. Se agregó `?v=<commit>` al icono. **No bastó** — y de hecho fue contraproducente: las query
+   strings en favicons se comportan distinto en cada navegador, y hay casos documentados en que
+   hacen que el icono se ignore.
+3. El usuario limpió la caché. **Tampoco bastó.**
+
+**La causa: la plantilla de Blazor nunca trajo un `favicon.ico`, sólo un `favicon.png`.** Al borrar
+ese PNG sin poner un `.ico` en su lugar, el navegador se quedó **sin nada que pedir implícitamente**
+— y `favicon.ico` en la raíz del sitio es justo lo que Chromium y Edge piden solos, sin que ningún
+`<link>` se lo diga. Sin esa petición, Edge siguió pintando lo que tenía en su base de favicons, que
+es un almacén aparte y muy pegajoso.
+
+**Corregido cubriendo los cuatro caminos por los que un navegador puede llegar al icono:**
+
+| Archivo | Para qué |
+|---|---|
+| `favicon.ico` (raíz) | El que el navegador pide solo. Tres tamaños reales adentro: 16, 32 y 48. |
+| `favicon.png` (raíz) | La URL exacta que usaba la plantilla. Si algo la sigue pidiendo, ahora recibe Power Node y no un 404. |
+| `marca/powernode-favicon.svg` | El bueno donde se soporte, con `prefers-color-scheme`. |
+| `marca/powernode-180.png` | iOS, al guardar en la pantalla de inicio. |
+
+El `.ico` se construyó a mano (encabezado ICONDIR + PNG embebido por tamaño) porque el contenedor no
+tiene PIL ni ImageMagick, y se verificó su estructura byte a byte. Los tamaños chicos llevan **fondo
+blanco**: un icono transparente con la tinta casi negra de la marca desaparece en una pestaña
+oscura, y un `.ico` no admite media queries.
+
+**Verificado observando qué pide el navegador de verdad**, no suponiéndolo: con caché vacía,
+Chromium pide `marca/powernode-favicon.svg` y lo recibe con 200, y los cuatro archivos se sirven con
+su tipo MIME correcto desde el subdirectorio `/Power-Node-Web/`.
+
+> **Para distinguir "no se publicó" de "el navegador no lo suelta"**, abre el archivo directo:
+> `https://dflores296.github.io/Power-Node-Web/favicon.ico`. Si ahí se ve el logo, el sitio está
+> bien y lo que queda es caché del navegador.

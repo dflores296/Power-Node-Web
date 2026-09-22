@@ -10,18 +10,26 @@
     <link rel="stylesheet" href="css/app.css" />
 
     <!--
-      Tres iconos, no uno, y no es redundancia:
-      - El SVG es el bueno: nítido a cualquier tamaño y con prefers-color-scheme adentro, para que
-        la tinta casi negra de la marca no se pierda en una barra de pestañas oscura.
-      - El PNG de 32 es el respaldo para el navegador que no sirva SVG como icono.
+      LOS ICONOS, EN ESTE ORDEN Y CON ESTOS CUATRO ARCHIVOS. No es redundancia: cada uno cubre un
+      camino distinto por el que un navegador puede pedir el icono, y el que faltaba costó una
+      sesión entera de "sigue saliendo el logo morado de Blazor".
+
+      - favicon.ico EN LA RAÍZ es el que el navegador pide SOLO, sin que nadie se lo diga, y el que
+        Chromium/Edge prefieren. La plantilla de Blazor no traía uno: traía favicon.png. Al borrar
+        ese PNG sin poner un .ico, el navegador se quedó sin nada que pedir implícitamente y siguió
+        mostrando lo que tenía guardado en su base de favicons -- que ni borrar la caché limpia.
+      - favicon.png EN LA RAÍZ existe por lo mismo: es la URL exacta que la plantilla usaba. Si algo
+        todavía la pide, ahora recibe Power Node en vez de un 404 o del icono viejo.
+      - El SVG es el bueno donde se soporte: nítido a cualquier tamaño y con prefers-color-scheme
+        adentro, para que la tinta casi negra de la marca no se pierda en una pestaña oscura.
       - El de 180 es el que usa iOS al guardar la página en la pantalla de inicio.
 
-      Ojo con el ?v= de más abajo: sin él, el navegador que ya visitó el sitio se queda con el icono
-      viejo para siempre -- los favicons son de lo más agresivamente cacheado que hay, y ni Ctrl+F5
-      los refresca. El workflow le pone el hash del commit al publicar.
+      SIN ?v= A PROPÓSITO, aunque el CSS sí lo lleve: las query strings en favicons se comportan
+      distinto en cada navegador y hay casos en que directamente lo hacen ignorar el icono. Un icono
+      se versiona cambiándole el nombre al archivo, o no se versiona.
     -->
+    <link rel="icon" href="favicon.ico" sizes="any" />
     <link rel="icon" type="image/svg+xml" href="marca/powernode-favicon.svg" />
-    <link rel="icon" type="image/png" sizes="32x32" href="marca/powernode-32.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="marca/powernode-180.png" />
 </head>
 
