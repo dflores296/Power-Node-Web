@@ -37,6 +37,7 @@ ID: `<letra>-<número>`. La letra dice el frente (`M` motor, `I` interfaz, `P` p
 | I-21 · Sin líneas entre columnas, el cuadro se veía amontonado | P2 | **Cerrado** | `4730182` |
 | I-22 · La clase `grupo` del cuadro chocaba con la de las tarjetas: cada celda se dibujó como tarjeta | P1 | **Cerrado** | `228478d` |
 | I-23 · Un multipolar decía «ocupado por el circuito N» en vez de verse ocupando | P2 | **Cerrado** | `acdcf42` |
+| I-24 · Al bloque combinado le faltaba la línea del número: `:last-child` se la comía | P2 | **Cerrado** | este commit |
 
 ---
 
@@ -319,3 +320,24 @@ cualquier directorio de tablero—, **menos la columna del número, que no se co
 
 Va en la captura y en el documento impreso. Y sigue sin repetir la carga en los renglones
 ocupados: repetirla haría que sumar la columna la contara dos o tres veces.
+
+### I-24 — `:last-child` le quitaba el borde al renglón de continuación · este commit
+
+La regla que apaga el borde derecho de la última columna estaba escrita como
+`.cuadro td:last-child { border-right: 0 }`. **En el renglón de continuación de un multipolar la
+única celda que existe es la del número** —las demás vienen combinadas desde arriba—, así que
+`:last-child` la alcanzaba y le quitaba su línea derecha: justo la que separa el número de la
+descripción. El bloque combinado se veía sin borde por ese lado, que fue lo que David señaló
+(marcado en rojo sobre el sitio publicado, en el teléfono).
+
+**Arreglado marcando la última columna con una clase** (`.ultima`) en vez de deducirla de la
+posición: la posición cambia con `rowspan`, el rótulo no.
+
+De paso, cada espacio ocupa ahora el mismo alto (`.cuadro tbody tr { height: 30px }`). Antes el
+navegador repartía el alto del contenido combinado y un interruptor de 3 polos salía **más corto**
+que los tres espacios que abarca; ahora mide exactamente tres renglones, como en un directorio de
+tablero.
+
+**Lo que enseña, que es lo mismo que I-22:** los selectores por posición (`:last-child`,
+`:nth-child`) mienten en cuanto la tabla deja de ser una rejilla pareja. Con celdas combinadas, lo
+que hay que marcar es el papel de la celda, no dónde cayó.

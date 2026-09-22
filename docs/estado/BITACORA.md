@@ -49,6 +49,12 @@ fórmulas que un circuito**.
 **Verificado corriendo**, con Playwright contra `dotnet run`: captura, cuadro impreso y memoria, sin
 un solo error de consola; y el PDF de impresión revisado con `media: print` emulado.
 
+**Y el remate** (I-24): al bloque combinado le faltaba la línea que separa el número de la
+descripción. La regla que apaga el borde de la última columna usaba `:last-child`, y en el renglón
+de continuación la única celda que hay ES la del número. Se marcó la última columna con una clase;
+los selectores por posición mienten en cuanto hay celdas combinadas. De paso, cada espacio mide
+ahora lo mismo: un 3 polos ocupa exactamente tres renglones.
+
 **Un multipolar ya se ve ocupando, no lo cuenta** (I-23): decía «↳ ocupado por el circuito 1» en
 cada espacio que se comía, que es la primera versión del exportador de escritorio y la queja que
 David hizo allá. Se reprodujo la decisión que ya estaba tomada: celdas combinadas hacia abajo menos

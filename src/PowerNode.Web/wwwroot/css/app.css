@@ -80,7 +80,22 @@ select, input { font: inherit; padding: 5px 8px; border: 1px solid var(--linea);
    vería doble en cada línea interior. La última columna no lleva el suyo: ya está el de la tabla.
 */
 .cuadro th, .cuadro td { border-right: 1px solid var(--linea); }
-.cuadro th:last-child, .cuadro td:last-child { border-right: 0; }
+
+/*
+   La última columna no lleva borde derecho —ya está el de la tabla—, pero se marca con una CLASE y
+   no con :last-child. En el renglón de continuación de un multipolar la única celda que existe es
+   la del número (las demás vienen combinadas desde arriba), así que :last-child la alcanzaba y le
+   quitaba su línea derecha: la que separa el número de la descripción. Se veía como si al bloque
+   combinado le faltara el borde.
+*/
+.cuadro th.ultima, .cuadro td.ultima { border-right: 0; }
+.cuadro tr.separador td, .cuadro tr.fila-error td + td { border-right: 0; }
+
+/* Cada espacio ocupa el mismo alto, tenga interruptor propio o venga combinado desde arriba: un
+   multipolar de 3 polos mide exactamente lo que miden 3 renglones, como en un directorio de
+   tablero. Sin esto, el navegador repartía el alto del contenido combinado y el bloque salía más
+   corto que los espacios que abarca. */
+.cuadro tbody tr { height: 30px; }
 
 /* Los símbolos NO se pasan a mayúsculas: «mm2», «L (M)» y «E (%)» no son unidades, son erratas.
    El rótulo va en mayúsculas, la unidad va como la escribe el SI. */

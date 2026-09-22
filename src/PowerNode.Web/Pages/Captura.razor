@@ -106,7 +106,7 @@
                 <th colspan="3"><span class="ayuda" title="Conductor de fase: cuántos hilos por fase, su sección en mm² y su designación AWG/kcmil.">Fase</span></th>
                 <th colspan="3"><span class="ayuda" title="Conductor de neutro.">Neutro</span></th>
                 <th colspan="3"><span class="ayuda" title="Conductor de puesta a tierra de equipos — Tabla 250-122, con el ajuste proporcional de 250-122(b).">Puesta a tierra</span></th>
-                <th rowspan="2"><span class="ayuda" title="Caída de tensión del circuito. La recomendada es 3 % en el derivado y 5 % combinada — 310-15, NOTA 4."><span class="simbolo">e (%)</span></span></th>
+                <th rowspan="2" class="ultima"><span class="ayuda" title="Caída de tensión del circuito. La recomendada es 3 % en el derivado y 5 % combinada — 310-15, NOTA 4."><span class="simbolo">e (%)</span></span></th>
             </tr>
             <tr>
                 <th><span class="ayuda" title="Carga que opera 3 horas o más. Entra al 125 % — 210-20(a).">Continua</span></th>
@@ -182,7 +182,7 @@
                         @Conductor(c.Resultado?.CalibreFase, c.Resultado?.NumeroConductoresParalelo ?? 0, c.Polos)
                         @Conductor(c.Resultado?.CalibreNeutro, c.Resultado is null ? 0 : 1, c.Polos)
                         @Conductor(c.Resultado?.CalibreTierra, c.Resultado is null ? 0 : 1, c.Polos)
-                        <td rowspan="@c.Polos" class="num @(Excede(c) ? "excede" : null)">@c.Resultado?.CaidaTensionPct.ToString("N2")</td>
+                        <td rowspan="@c.Polos" class="num ultima @(Excede(c) ? "excede" : null)">@c.Resultado?.CaidaTensionPct.ToString("N2")</td>
                     </tr>
 
                     @foreach (var seguido in lado.Where(x => x.ContinuacionDe == c.Espacio))
