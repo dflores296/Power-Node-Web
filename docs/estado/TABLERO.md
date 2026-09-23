@@ -55,7 +55,7 @@ los mismos valores que ya se verificaron a mano contra el PDF del DOF.
 
 **Las reglas del tablero ya no viven en el `.razor`.** `PowerNode.Web.Modelo` (sin Blazor) tiene la
 geometría de las barras, la ocupación de un multipolar, el balanceo, el alimentador y la memoria —
-**59 pruebas verdes**, y ahí es donde el compilador impide que una regla se escape a una pantalla.
+**61 pruebas verdes**, y ahí es donde el compilador impide que una regla se escape a una pantalla.
 
 **Qué llegó del escritorio esta sesión, sin reescribirse:** `DistribucionBarras` y
 `SistemaDelTablero` (qué barra toca cada espacio, y cuántas barras hay de verdad),
@@ -96,7 +96,7 @@ separa el sitio de estar en línea, y no lo puede hacer una sesión de Claude.
 
 **Selección de conductor y protección:** propuestas 2 a 6 de
 [`../conocimiento/seleccion-conductor-y-proteccion.md`](../conocimiento/seleccion-conductor-y-proteccion.md),
-aprobadas para hacerse una por una (la 1, aislamiento, ya está).
+aprobadas para hacerse una por una (la 1, aislamiento, y la 2, el porqué a la vista, ya están).
 
 **Reportar en `PowerNode-DesignSuite`** M-02, los dos cambios al motor copiado (ver
 `../conocimiento/motor-copiado.md`) y M-04. El texto de M-02 está listo en `HALLAZGOS.md`; la sesión

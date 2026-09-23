@@ -151,6 +151,55 @@ public sealed class CuadroDeCarga
     }
 
     /// <summary>
+    /// Por qué salieron la protección y el calibre de este circuito, paso por paso. <c>null</c> si el
+    /// renglón no calculó.
+    /// </summary>
+    public DesgloseDeSeleccion? Desglose(CircuitoDelCuadro c)
+    {
+        if (c.Resultado is not { Detalle: { } detalle } r)
+            return null;
+
+        var divisor = TensionDeCalculo.Divisor(c.Polos, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV);
+        var factor = CargaContinua100Pct.Para(Datos.ConjuntoAprobado100Pct, null, "210-20(a)", "210-19(a)(1)").Factor;
+
+        return DesgloseDeSeleccion.De(
+            _motor.Ampacidad, Datos,
+            iContinuaA: c.ContinuaVA / divisor,
+            iNoContinuaA: c.NoContinuaVA / divisor,
+            factorContinua: factor,
+            articuloProteccion: "210-20(a)",
+            proteccionA: r.ProteccionA,
+            proteccionSinMinimo: TamanoEstandar(detalle.CapacidadMinimaA),
+            calibre: r.CalibreFase,
+            conductoresPorFase: r.NumeroConductoresParalelo,
+            d: detalle,
+            citas: r.Citas);
+    }
+
+    /// <summary>El desglose del alimentador, con la corriente de la fase que gobierna. <c>null</c> sin cálculo.</summary>
+    public DesgloseDeSeleccion? DesgloseDelAlimentador()
+    {
+        if (Alimentador is not { Resultado: { Detalle: { } detalle } r, Gobierna: { } g })
+            return null;
+
+        return DesgloseDeSeleccion.De(
+            _motor.Ampacidad, Datos,
+            iContinuaA: g.ContinuaA,
+            iNoContinuaA: g.NoContinuaA,
+            factorContinua: g.FactorContinua,
+            articuloProteccion: "215-3",
+            proteccionA: r.ProteccionA,
+            proteccionSinMinimo: TamanoEstandar(detalle.CapacidadMinimaA),
+            calibre: r.CalibreFase,
+            conductoresPorFase: r.NumeroConductoresParalelo,
+            d: detalle,
+            citas: r.Citas);
+    }
+
+    private decimal TamanoEstandar(decimal amperes) =>
+        new ProteccionEstandarDeLaSerie(_motor.ProteccionEstandar, Datos.SerieInterruptores).SiguienteEstandar(amperes);
+
+    /// <summary>
     /// Cambia los polos de un interruptor. Devuelve <b>el motivo por el que no se pudo</b>, ya
     /// redactado, o <c>null</c> si se aplicó — mismo criterio que el editor de gabinete de
     /// escritorio: soltar sin explicación se lee como que el programa se trabó.

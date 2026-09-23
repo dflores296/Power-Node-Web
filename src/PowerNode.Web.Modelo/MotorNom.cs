@@ -55,6 +55,7 @@ public sealed class MotorNom
         }
 
         ProteccionEstandar = proteccion;
+        Ampacidad = ampacidad;
     }
 
     private readonly Dictionary<SerieDeInterruptores, CalculadoraCircuitoDerivadoNoMotor> _noMotor = [];
@@ -63,6 +64,9 @@ public sealed class MotorNom
     public FuenteTablasJson Fuente { get; }
     public ICatalogoCalibres Calibres { get; }
     public ITablaProteccionEstandar ProteccionEstandar { get; }
+
+    /// <summary>La Tabla 310-15(b)(16). La consulta el desglose para enseñar la ampacidad de tabla de cada columna.</summary>
+    public ITablaAmpacidad Ampacidad { get; }
 
     /// <summary>Cada renglón del cuadro: circuito derivado de Alumbrado, Contactos o Equipo (Art. 210).</summary>
     public CalculadoraCircuitoDerivadoNoMotor NoMotor(SerieDeInterruptores serie) => _noMotor[serie];

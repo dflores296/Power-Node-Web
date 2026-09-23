@@ -66,7 +66,8 @@ public static class MemoriaDeCalculo
             Detalle: r.Detalle,
             Citas: r.Citas,
             SerieDeInterruptores: cuadro.Datos.SerieInterruptores.Explicacion(),
-            Aislamiento: Aislamiento(cuadro.Datos));
+            Aislamiento: Aislamiento(cuadro.Datos),
+            DesgloseConductor: cuadro.Desglose(circuito)?.Conductor);
     }
 
     public static HojaDeMemoria? DelAlimentador(CuadroDeCarga cuadro)
@@ -101,7 +102,8 @@ public static class MemoriaDeCalculo
             Citas: r.Citas,
             FaseQueGobierna: FaseQueGobierna(cuadro),
             SerieDeInterruptores: cuadro.Datos.SerieInterruptores.Explicacion(),
-            Aislamiento: Aislamiento(cuadro.Datos));
+            Aislamiento: Aislamiento(cuadro.Datos),
+            DesgloseConductor: cuadro.DesgloseDelAlimentador()?.Conductor);
     }
 
     /// <summary>
@@ -158,30 +160,20 @@ public static class MemoriaDeCalculo
             ("Protección seleccionada — 240-6(a)", Amperes(hoja.ProteccionA, "N0")),
             ("Tamaños de interruptor", hoja.SerieDeInterruptores)]));
 
-        // ---- 4: la fórmula con sus números sustituidos
-        var formulas4 = new List<string> { "Icm = In / [ (FT) × (FA) × (hilos por fase) ]" };
-        var notas4 = new List<string>
-        {
-            "Donde FT es el factor de corrección por temperatura ambiente (Tabla 310-15(b)(2)(a)) y FA el factor " +
-            "de ajuste por agrupamiento (Tabla 310-15(b)(3)(a)).",
-        };
-        if (d is not null)
-        {
-            formulas4.Add(
-                $"Icm = {d.CapacidadMinimaA:N2} A / [ {d.FactorTemperatura:N2} × {d.FactorAgrupamiento:N2} × " +
-                $"{hoja.ConductoresPorFase} ] = {d.CapacidadMinimaCorregidaA:N2} A");
-
-            if (hoja.TablaAmpacidadId is { } tabla)
-                notas4.Add(
-                    $"De la Tabla {tabla} de la NOM-001-SEDE-2012, con una temperatura nominal del conductor de " +
-                    $"{d.TemperaturaTerminalesC} °C.");
-        }
+        // ---- 4: cómo se llegó a la ampacidad del conductor, paso por paso. Hasta el 2026-09-23 aquí
+        // decía «Icm = In / (FT × FA)» y sustituía la CAPACIDAD MÍNIMA, no In; con 6 agrupados
+        // imprimía «= 50 A» y luego un conductor de 40 A, sin decir que esos 50 son de la columna
+        // del aislamiento y los 40 el tope de la terminal. Ahora se enseñan las dos columnas.
         bloques.Add(new BloqueMemoria(
             "4. CÁLCULO POR CAPACIDAD",
             [],
-            formulas4,
-            notas4,
-            Introduccion: "Capacidad mínima de conducción para cada hilo de fase:"));
+            hoja.DesgloseConductor ?? [],
+            [
+                "FT es el factor de corrección por temperatura ambiente (Tabla 310-15(b)(2)(a)) y FA el factor de " +
+                "ajuste por agrupamiento (Tabla 310-15(b)(3)(a)). Se aplican en la columna del aislamiento; la " +
+                "ampacidad que se usa no pasa de la de la terminal — 110-14(c).",
+            ],
+            Introduccion: "Ampacidad del conductor elegido:"));
 
         // ---- 5
         bloques.Add(Seccion("5. CONDUCTOR DE FASE SELECCIONADO", [

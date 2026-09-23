@@ -48,6 +48,7 @@ ID: `<letra>-<número>`. La letra dice el frente (`M` motor, `I` interfaz, `P` p
 | I-30 · El tooltip de «Tipo» describía un piso de calibre que ya no existe | P3 | **Cerrado** | `b37de00` |
 | M-04 · La excepción 240-4(b) solo se concede en Alumbrado, no en Equipo | P3 | Pendiente — es del motor de escritorio | — |
 | I-32 · El aislamiento estaba fijo en THHN: con factores podía salir un calibre de menos | P0 | **Cerrado** | `b1a84d6` |
+| I-33 · La memoria decía «Icm = In / (FT × FA)» y sustituía la capacidad mínima; el porqué no se veía en pantalla | P1 | **Cerrado** | este commit |
 | I-31 · «Acometida» se cortaba en «Interruptor prin» | P3 | **Cerrado** | `b9406ab` |
 
 ---
@@ -536,3 +537,21 @@ THWN-2, XHHW-2, TW) y **Lugar** (seco, o húmedo o mojado), y se pasan al motor 
 el alimentador. THHN en lugar mojado lo rechaza el motor y el renglón lo dice. Queda impreso en el
 documento («Conductor: Cobre · THHN · lugar seco») y en la memoria, sección 2. THW no se ofrece: la
 Tabla 310-104(a), como está leída, lo da solo para lugares mojados.
+
+### I-33 — El porqué de la protección y del calibre no se veía, y la memoria no cuadraba · este commit
+
+Dos cosas de la misma raíz (propuesta 2 de la auditoría):
+
+1. **La sección 4 de la memoria estaba mal rotulada.** Decía «Icm = In / [(FT) × (FA) × hilos]»
+   pero sustituía la **capacidad mínima** (con el 125 %), no In. Con 32 A continuos y 6 agrupados
+   imprimía «= 50 A» y en la sección 5 un conductor de 40 A: los 50 A eran de la columna de 90 °C y
+   los 40 A el tope de la terminal de 60 °C, y la memoria no lo decía. La cita de 310-15(b)(16) del
+   motor llamaba «corriente de diseño» a esa misma capacidad mínima; ahora dice «capacidad mínima».
+2. **En la captura no se veía el porqué**, solo In, protección y calibre.
+
+Ahora `DesgloseDeSeleccion` (en `PowerNode.Web.Modelo`, sin decidir nada: relee lo que calculó el
+motor) arma, paso por paso y con su artículo, la protección (In → capacidad mínima → tamaño estándar
+de la familia elegida) y el conductor (columna del aislamiento × FT × FA, tope de la terminal,
+ampacidad utilizable, y por qué subió si subió: 240-4, 240-4(d), 240-4(b), caída). Se ve en un
+**tooltip sobre la protección y sobre el calibre** de cada renglón y del alimentador —sin columnas
+nuevas— y es la sección 4 de la memoria.

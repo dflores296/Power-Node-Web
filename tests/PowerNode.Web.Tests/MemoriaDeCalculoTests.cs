@@ -63,11 +63,14 @@ public class MemoriaDeCalculoTests
         var cuadro = ConUnCircuito();
         var secciones = MemoriaDeCalculo.Secciones(MemoriaDeCalculo.DeCircuito(cuadro, cuadro.Circuitos[0]));
 
-        // La plantilla y el renglón con los números: quien revisa tiene que poder recalcularla.
+        // Cómo se llegó a la ampacidad, con los números: quien revisa tiene que poder recalcularla.
+        // 720 VA continuos → 7.09 A de capacidad mínima → 15 A → 14 AWG: 25 A a 90 °C, topado a los
+        // 15 A de la terminal de 60 °C.
         var capacidad = secciones[3];
-        Assert.Equal("Icm = In / [ (FT) × (FA) × (hilos por fase) ]", capacidad.Formulas[0]);
-        Assert.Equal(2, capacidad.Formulas.Count);
-        Assert.Contains(" A / [ ", capacidad.Formulas[1]);
+        Assert.Contains(capacidad.Formulas, f => f.StartsWith("14 AWG/kcmil a 90 °C: 25 A × FT 1.00 × FA 1.00 = 25.00 A"));
+        Assert.Contains(capacidad.Formulas, f => f.StartsWith("Tope de la terminal: 15 A a 60 °C"));
+        Assert.Contains("Ampacidad utilizable: 15.00 A", capacidad.Formulas);
+        Assert.DoesNotContain(capacidad.Formulas, f => f.Contains("Icm = In"));
 
         var caida = secciones[5];
         Assert.StartsWith("e = 2 × L × In ×", caida.Formulas[0]); // 1 polo: no lleva √3
@@ -158,5 +161,39 @@ public class MemoriaDeCalculoTests
 
         var renglon = Assert.Single(seccion3.Renglones, r => r.Rotulo == "Tamaños de interruptor");
         Assert.StartsWith("Centro de carga (NEMA): de la lista de 240-6(a) se omiten 16, 32 y 63 A", renglon.Valor);
+    }
+
+    [Fact]
+    public void LaSeccion4CuadraConElConductorElegido()
+    {
+        // 32 A continuos, 6 agrupados. Antes la memoria decía «Icm = 50 A» y luego elegía un 8 AWG
+        // de 40 A. Los 50 A eran de la columna de 90 °C; ahora se ven las dos columnas.
+        var cuadro = new CuadroDeCarga(new MotorNom(Json));
+        cuadro.Datos.NumeroEspacios = 6;
+        cuadro.Datos.ConductoresAgrupados = 6;
+        var c = cuadro.Circuitos[0];
+        c.Tipo = PowerNode.DesignSuite.Calculo.Unidades.TipoCarga.Equipo;
+        c.Unidad = PowerNode.DesignSuite.Calculo.Casos.UnidadConsumo.Amperes;
+        c.Continua = 32m;
+        c.LongitudM = 5m;
+        cuadro.Recalcular();
+
+        var formulas = MemoriaDeCalculo.Secciones(MemoriaDeCalculo.DeCircuito(cuadro, c))[3].Formulas;
+
+        Assert.Contains(formulas, f => f.StartsWith("8 AWG/kcmil a 90 °C: 55 A × FT 1.00 × FA 0.80 = 44.00 A"));
+        Assert.Contains(formulas, f => f.StartsWith("Tope de la terminal: 40 A a 60 °C"));
+        Assert.Contains("Ampacidad utilizable: 40.00 A", formulas);
+        Assert.Contains("Capacidad mínima 40.00 A ≤ 40.00 A ✔", formulas);
+    }
+
+    [Fact]
+    public void ElDesgloseDeLaProteccionDiceDeDondeSaleCadaNumero()
+    {
+        var cuadro = ConUnCircuito();
+        var proteccion = cuadro.Desglose(cuadro.Circuitos[0])!.Proteccion;
+
+        Assert.Equal("In = 5.67 A (continua) + 0.00 A (no continua) = 5.67 A", proteccion[0]);
+        Assert.Equal("Capacidad mínima = 125 % × 5.67 A + 0.00 A = 7.09 A — 210-20(a)", proteccion[1]);
+        Assert.StartsWith("Protección: 15 A, el primer tamaño que alcanza", proteccion[2]);
     }
 }

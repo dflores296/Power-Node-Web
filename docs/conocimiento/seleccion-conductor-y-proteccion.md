@@ -1,7 +1,8 @@
 # Selección de conductor y protección: auditoría del 2026-09-23
 
-> **Estado de las propuestas.** Aprobadas por David el 2026-09-23, una por una. **1 (aislamiento):
-> hecha** — ver I-32 en `../estado/HALLAZGOS.md`. 2 a 6: pendientes.
+> **Estado de las propuestas.** Aprobadas por David el 2026-09-23, una por una. **1 (aislamiento)
+> y 2 (el porqué en tooltip y la memoria corregida): hechas** — ver I-32 e I-33 en
+> `../estado/HALLAZGOS.md`. 3 a 6: pendientes.
 
 ## Contexto
 

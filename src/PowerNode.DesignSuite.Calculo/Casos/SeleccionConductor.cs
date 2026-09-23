@@ -198,7 +198,9 @@ public static class SeleccionConductor
             : $"{(int)tempAislamiento}°C con crédito, topado a {(int)tempTerminales}°C de la terminal";
         var citas = new List<Cita>
         {
-            new("310-15(b)(16)", $"Corriente de diseño {objetivoPorConductor:0.##} A por conductor -> calibre {calibreBase} " +
+            // «Capacidad mínima», no «corriente de diseño»: este número ya trae el 125 % de la carga
+            // continua. Llamarlo corriente de diseño confundía con la In de 210-19(a)(1).
+            new("310-15(b)(16)", $"Capacidad mínima {objetivoPorConductor:0.##} A por conductor -> calibre {calibreBase} " +
                 $"({columnaDescripcion}, {materialConductor})" + (nParalelo > 1 ? $" x {nParalelo} conductores en paralelo por fase" : "")),
         };
         if (citaProteccion is not null)

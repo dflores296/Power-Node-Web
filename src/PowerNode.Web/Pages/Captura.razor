@@ -212,8 +212,9 @@
                             }
                         </td>
                         <td rowspan="@c.Polos" class="num">@c.Resultado?.CorrienteDisenoA.ToString("N2")</td>
-                        <td rowspan="@c.Polos" class="num">@c.Resultado?.ProteccionA.ToString("N0")</td>
-                        @Conductor(c.Resultado?.CalibreFase, c.Resultado?.NumeroConductoresParalelo ?? 0, c.Polos)
+                        @{ var desglose = Cuadro.Desglose(c); }
+                        <td rowspan="@c.Polos" class="num">@Ayuda(c.Resultado?.ProteccionA.ToString("N0"), desglose?.Proteccion)</td>
+                        @Conductor(c.Resultado?.CalibreFase, c.Resultado?.NumeroConductoresParalelo ?? 0, c.Polos, desglose?.Conductor)
                         @Conductor(c.Resultado?.CalibreNeutro, c.Resultado is null ? 0 : 1, c.Polos)
                         @Conductor(c.Resultado?.CalibreTierra, c.Resultado is null ? 0 : 1, c.Polos)
                         <td rowspan="@c.Polos" class="num ultima @(Excede(c) ? "excede" : null)">@c.Resultado?.CaidaTensionPct.ToString("N2")</td>
@@ -383,9 +384,9 @@
                 </tr>
                 <tr class="total">
                     <td class="izq">@(Datos.UsaInterruptorPrincipal ? "Interruptor principal" : "Protección del lado de alimentación")</td>
-                    <td class="num fuerte">@a.ProteccionA.ToString("N0") A · @Cuadro.Alimentador.Polos polos</td>
+                    <td class="num fuerte">@Ayuda($"{a.ProteccionA:N0} A · {Cuadro.Alimentador.Polos} polos", Cuadro.DesgloseDelAlimentador()?.Proteccion)</td>
                 </tr>
-                <tr><td class="izq">Conductor de fase</td><td class="num">@a.CalibreFase.Designacion AWG/kcmil</td></tr>
+                <tr><td class="izq">Conductor de fase</td><td class="num">@Ayuda($"{a.CalibreFase.Designacion} AWG/kcmil", Cuadro.DesgloseDelAlimentador()?.Conductor)</td></tr>
                 <tr><td class="izq">Conductor de neutro</td><td class="num">@a.CalibreNeutro.Designacion AWG/kcmil</td></tr>
                 <tr><td class="izq">Puesta a tierra</td><td class="num">@a.CalibreTierra.Designacion AWG/kcmil</td></tr>
                 <tr>
@@ -454,20 +455,43 @@
     /// Las tres celdas de un conductor: hilos, mm² y designación AWG/kcmil. Se combinan hacia abajo
     /// tantos renglones como polos tenga el interruptor.
     /// </summary>
-    private static RenderFragment Conductor(Calibre? calibre, int hilos, int polos) => builder =>
+    /// <param name="porque">El desglose de la selección: si viene, la designación AWG/kcmil lleva un
+    /// tooltip con cómo se llegó a ese calibre.</param>
+    private static RenderFragment Conductor(Calibre? calibre, int hilos, int polos, IReadOnlyList<string>? porque = null) => builder =>
     {
         var textos = calibre is null || hilos <= 0
             ? ["", "", ""]
             : new[] { hilos.ToString(), calibre.AreaMm2.ToString("N2"), calibre.Designacion };
 
-        foreach (var texto in textos)
+        for (var i = 0; i < textos.Length; i++)
         {
             builder.OpenElement(0, "td");
             builder.AddAttribute(1, "class", "num");
             builder.AddAttribute(2, "rowspan", polos);
-            builder.AddContent(3, texto);
+            if (i == 2 && porque is not null && textos[i] != "")
+                builder.AddContent(3, Ayuda(textos[i], porque));
+            else
+                builder.AddContent(4, textos[i]);
             builder.CloseElement();
         }
+    };
+
+    /// <summary>
+    /// Un valor con su porqué en un tooltip, subrayado punteado como los encabezados que ya lo
+    /// llevan. Sin desglose, el valor tal cual.
+    /// </summary>
+    private static RenderFragment Ayuda(string? valor, IReadOnlyList<string>? porque) => builder =>
+    {
+        if (porque is null || string.IsNullOrEmpty(valor))
+        {
+            builder.AddContent(0, valor);
+            return;
+        }
+        builder.OpenElement(1, "span");
+        builder.AddAttribute(2, "class", "ayuda");
+        builder.AddAttribute(3, "title", DesgloseDeSeleccion.ComoTexto(porque));
+        builder.AddContent(4, valor);
+        builder.CloseElement();
     };
 
     /// <summary>

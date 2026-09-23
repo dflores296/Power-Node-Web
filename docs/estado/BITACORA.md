@@ -68,6 +68,9 @@ factores, calibres pequeños, terminales y la regla de inmediata superior/inferi
 se corrió con casos concretos: queda en `../conocimiento/seleccion-conductor-y-proteccion.md`, con
 seis propuestas por prioridad. **La 1 ya está (I-32):** el aislamiento estaba fijo en THHN y, con
 factores, podía salir un calibre de menos para THW-LS. 59 pruebas; verificado en el navegador.
+**La 2 también (I-33):** el porqué de la protección y del calibre en un tooltip de cada renglón, y la
+sección 4 de la memoria reescrita con las dos columnas (aislamiento y terminal) en vez de la fórmula
+que sustituía la capacidad mínima donde decía In. 61 pruebas.
 
 ---
 

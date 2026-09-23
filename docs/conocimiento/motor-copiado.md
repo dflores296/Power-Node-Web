@@ -86,3 +86,6 @@ lógica de la norma.
   estándar **de la norma**: la web elige el interruptor dentro de una serie (centro de carga, riel
   DIN) y esa verificación no puede hacerse contra la serie recortada. Mismo destino al recopiar:
   sobrevivir, o llegar allá con el reporte.
+- **2026-09-23 · texto de la cita de 310-15(b)(16) en `SeleccionConductor`** (hallazgo I-33): decía
+  «Corriente de diseño X A por conductor» cuando X es la capacidad mínima (ya con el 125 %). Ahora
+  dice «Capacidad mínima». Solo texto; ningún número cambia.
