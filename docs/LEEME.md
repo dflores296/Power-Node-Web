@@ -42,7 +42,7 @@ confirma a Claude que lo escriba.
 | [`decisiones/sin-piso-practico-de-calibre.md`](decisiones/sin-piso-practico-de-calibre.md) | CONFIRMADA · David · 2026-09-22 |
 | [`decisiones/interruptor-principal-criterios-del-excel.md`](decisiones/interruptor-principal-criterios-del-excel.md) | CONFIRMADA · David · 2026-09-23 (los avisos); M-03 aviso-o-bloqueo sigue abierto |
 | [`decisiones/factor-de-potencia-por-circuito.md`](decisiones/factor-de-potencia-por-circuito.md) | CONFIRMADA · David · 2026-09-23 |
-| [`decisiones/serie-de-interruptores-sin-valores-iec.md`](decisiones/serie-de-interruptores-sin-valores-iec.md) | **PROPUESTA · Claude · 2026-09-23** |
+| [`decisiones/serie-de-interruptores.md`](decisiones/serie-de-interruptores.md) | CONFIRMADA · David · 2026-09-23 |
 | [`decisiones/documento-imprimible-en-vez-de-archivo.md`](decisiones/documento-imprimible-en-vez-de-archivo.md) | **PROPUESTA · Claude · 2026-09-22** |
 
 ## 📘 `conocimiento/` — lo que se aprendió, no cambia cada sesión

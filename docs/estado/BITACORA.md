@@ -48,6 +48,14 @@ piso fijo de 30 A se volvió el campo «Mínimo del principal (A)», vacío por 
 el aviso de empate con el derivado mayor se quedó, reescrito. 48 pruebas; verificado en el navegador
 con y sin mínimo capturado.
 
+**Y los tamaños de interruptor (I-29), confirmado por David.** Él corrigió los nombres: la
+distinción real es centro de carga (NEMA) contra riel DIN (IEC), que ya se usa en México. Al
+nombrarla salió que la lista completa de la NOM no es «riel DIN» —trae 15, 30, 35, 45 que ahí no
+existen—, así que quedaron tres opciones, con centro de carga por omisión. Hubo que tocar el motor
+para que la excepción 240-4(b) siga leyéndose contra la norma completa. De paso: M-04 (240-4(b)
+solo en alumbrado, del escritorio) e I-31 («Acometida» cortada). 54 pruebas; verificado en el
+navegador con las tres opciones.
+
 ---
 
 ## 2026-09-22 (tercera parte) — El tablero entero, y el entregable que se imprime

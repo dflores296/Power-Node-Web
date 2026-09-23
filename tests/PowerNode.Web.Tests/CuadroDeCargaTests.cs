@@ -353,12 +353,12 @@ public class CuadroDeCargaTests
     public void NingunAvisoLeHablaAlUsuarioDelExcel()
     {
         // El caso de los tres aparatos dispara el aviso de «igual que el derivado más grande»
-        // (principal y air fryer en 16 A); con mínimo de 30 A dispara también el de mínimo.
+        // (principal y air fryer en 20 A); con mínimo de 30 A dispara también el de mínimo.
         var cuadro = TresAparatos();
         cuadro.Datos.MinimoInterruptorPrincipalA = 30m;
         cuadro.Recalcular();
 
-        Assert.Contains(cuadro.Alimentador.Avisos, a => a.StartsWith("El interruptor principal quedó igual que el derivado más grande (16 A)"));
+        Assert.Contains(cuadro.Alimentador.Avisos, a => a.StartsWith("El interruptor principal quedó igual que el derivado más grande (20 A)"));
         Assert.Contains(cuadro.Alimentador.Avisos, a => a.Contains("mínimo de 30 A"));
         Assert.DoesNotContain(cuadro.Alimentador.Avisos, a => a.Contains("Excel"));
     }
@@ -391,7 +391,10 @@ public class CuadroDeCargaTests
     [Fact]
     public void M02_ElAlimentadorSeDimensionaConLaFaseMasCargada()
     {
+        // Con la lista completa de la NOM, que es con la que se hizo la prueba del 2026-09-22.
         var cuadro = TresAparatos();
+        cuadro.Datos.SerieInterruptores = SerieDeInterruptores.NomCompleta;
+        cuadro.Recalcular();
         var a = cuadro.Alimentador;
 
         // Con la carga total repartida entre √3·220 daba 9.97 A → principal de 15 A y fase de 14 AWG.
@@ -477,7 +480,7 @@ public class CuadroDeCargaTests
     {
         var cuadro = TresAparatos();
 
-        Assert.Equal(16m, cuadro.InterruptorPrincipalA);
+        Assert.Equal(20m, cuadro.InterruptorPrincipalA);
         Assert.DoesNotContain(cuadro.Alimentador.Avisos, a => a.Contains("menor que el derivado más grande"));
     }
 
@@ -628,6 +631,82 @@ public class CuadroDeCargaTests
         Assert.Equal(1m, FactorPotenciaCombinado.De([(1000m, 1m), (500m, 1m)]));
         Assert.Equal(0.9487m, FactorPotenciaCombinado.De([(1000m, 1m), (1000m, 0.8m)]), 4);
         Assert.Equal(1m, FactorPotenciaCombinado.De([])); // sin carga no hay ángulo
+    }
+
+    // ---- Tamaños de interruptor: centro de carga, riel DIN o la NOM completa ---------------------
+
+    [Fact]
+    public void Serie_PorOmisionEsCentroDeCarga_YLaAirFryerQuedaEn20A()
+    {
+        // La air fryer pide 15.25 A. La NOM completa da 16 A, que no existe en un QO/NQ.
+        var cuadro = TresAparatos();
+
+        Assert.Equal(SerieDeInterruptores.CentroDeCargaNema, cuadro.Datos.SerieInterruptores);
+        Assert.Equal(20m, Espacio(cuadro, 5).Resultado!.ProteccionA);
+        Assert.Equal("12", Espacio(cuadro, 5).Resultado!.CalibreFase.Designacion);
+        Assert.Equal(20m, cuadro.InterruptorPrincipalA);
+    }
+
+    [Fact]
+    public void Serie_LaNomCompletaDa16A()
+    {
+        var cuadro = TresAparatos();
+        cuadro.Datos.SerieInterruptores = SerieDeInterruptores.NomCompleta;
+        cuadro.Recalcular();
+
+        Assert.Equal(16m, Espacio(cuadro, 5).Resultado!.ProteccionA);
+        Assert.Equal(16m, cuadro.InterruptorPrincipalA);
+    }
+
+    [Fact]
+    public void Serie_EnRielDinNoHay15A_YElAlumbradoPide12AWG()
+    {
+        // 720 VA de alumbrado: 15 A en centro de carga con 14 AWG. En riel DIN el más chico es 16 A,
+        // y 240-4(d) no deja proteger un 14 AWG con más de 15 A: sube a 12.
+        var cuadro = Nuevo();
+        Espacio(cuadro, 1).Continua = 720m;
+        cuadro.Datos.SerieInterruptores = SerieDeInterruptores.RielDinIec;
+        cuadro.Recalcular();
+
+        Assert.Equal(16m, Espacio(cuadro, 1).Resultado!.ProteccionA);
+        Assert.Equal("12", Espacio(cuadro, 1).Resultado!.CalibreFase.Designacion);
+    }
+
+    [Fact]
+    public void Serie_En240_4bManda_ElSiguienteDeLaNorma_NoElDeLaSerie()
+    {
+        // 53 A: 6 AWG (55 A a 60 °C). La NOM completa da 60 A y 240-4(b) lo permite sobre 55 A. En
+        // riel DIN sale 63 A, y el siguiente estándar de la NOM arriba de 55 es 60, no 63: el 6 AWG
+        // ya no queda protegido y el conductor sube. Es Alumbrado porque la calculadora copiada solo
+        // concede 240-4(b) ahí (en Equipo y Contactos siempre sube el conductor).
+        var cuadro = Nuevo();
+        var c = Espacio(cuadro, 1);
+        c.Tipo = TipoCarga.Alumbrado;
+        c.NoContinua = 53m * cuadro.Datos.TensionFaseNeutroV;
+        c.LongitudM = 5m;
+
+        cuadro.Datos.SerieInterruptores = SerieDeInterruptores.NomCompleta;
+        cuadro.Recalcular();
+        Assert.Equal(60m, c.Resultado!.ProteccionA);
+        Assert.Equal("6", c.Resultado.CalibreFase.Designacion);
+
+        cuadro.Datos.SerieInterruptores = SerieDeInterruptores.RielDinIec;
+        cuadro.Recalcular();
+        Assert.Equal(63m, c.Resultado!.ProteccionA);
+        Assert.Equal("4", c.Resultado.CalibreFase.Designacion);
+    }
+
+    [Fact]
+    public void Serie_ArribaDe125AEnRielDinSeAvisa()
+    {
+        var cuadro = Nuevo();
+        Espacio(cuadro, 2).NoContinua = 60000m; // 157 A trifásicos
+        Assert.Null(cuadro.CambiarPolos(Espacio(cuadro, 2), 3));
+        cuadro.Datos.SerieInterruptores = SerieDeInterruptores.RielDinIec;
+        cuadro.Recalcular();
+
+        Assert.True(Espacio(cuadro, 2).Resultado!.ProteccionA > 125m);
+        Assert.Contains(cuadro.Alimentador.Avisos, a => a.Contains("riel DIN") && a.Contains("circuito 2") && a.Contains("el principal"));
     }
 
     // ---- El interior del gabinete ---------------------------------------------------------------

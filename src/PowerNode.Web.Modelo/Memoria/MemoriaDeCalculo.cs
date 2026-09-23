@@ -64,7 +64,8 @@ public static class MemoriaDeCalculo
             TablaAmpacidadId: r.TablaAmpacidadId,
             ConductoresPorFase: r.NumeroConductoresParalelo,
             Detalle: r.Detalle,
-            Citas: r.Citas);
+            Citas: r.Citas,
+            SerieDeInterruptores: cuadro.Datos.SerieInterruptores.Explicacion());
     }
 
     public static HojaDeMemoria? DelAlimentador(CuadroDeCarga cuadro)
@@ -97,7 +98,8 @@ public static class MemoriaDeCalculo
             ConductoresPorFase: r.NumeroConductoresParalelo,
             Detalle: r.Detalle,
             Citas: r.Citas,
-            FaseQueGobierna: FaseQueGobierna(cuadro));
+            FaseQueGobierna: FaseQueGobierna(cuadro),
+            SerieDeInterruptores: cuadro.Datos.SerieInterruptores.Explicacion());
     }
 
     /// <summary>
@@ -150,7 +152,8 @@ public static class MemoriaDeCalculo
             ("Fase que gobierna", hoja.FaseQueGobierna),
             ("Corriente de diseño (In)", Amperes(hoja.CorrienteDisenoA)),
             ($"Capacidad mínima — {articuloProteccion}", d is null ? null : Amperes(d.CapacidadMinimaA)),
-            ("Protección seleccionada — 240-6(a)", Amperes(hoja.ProteccionA, "N0"))]));
+            ("Protección seleccionada — 240-6(a)", Amperes(hoja.ProteccionA, "N0")),
+            ("Tamaños de interruptor", hoja.SerieDeInterruptores)]));
 
         // ---- 4: la fórmula con sus números sustituidos
         var formulas4 = new List<string> { "Icm = In / [ (FT) × (FA) × (hilos por fase) ]" };

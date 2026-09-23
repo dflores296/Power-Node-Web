@@ -246,7 +246,7 @@ public sealed class CuadroDeCarga
 
             try
             {
-                c.Resultado = _motor.NoMotor.Calcular(new DatosEntradaCircuitoDerivadoNoMotor(
+                c.Resultado = _motor.NoMotor(Datos.SerieInterruptores).Calcular(new DatosEntradaCircuitoDerivadoNoMotor(
                     TipoCarga: c.Tipo,
                     CargaContinuaVA: c.ContinuaVA,
                     CargaNoContinuaVA: c.NoContinuaVA,
@@ -427,7 +427,7 @@ public sealed class CuadroDeCarga
             // el alimentador lleva menos cobre. Por eso se deshace en la corriente de la fase antes
             // de convertirla — el motor lo vuelve a aplicar.
             var divisor = TensionDeCalculo.Divisor(polos, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV);
-            var resultado = _motor.Alimentador.Calcular(new DatosEntradaAlimentador(
+            var resultado = _motor.Alimentador(Datos.SerieInterruptores).Calcular(new DatosEntradaAlimentador(
                 CargaContinuaVA: SinDemanda(gobierna.ContinuaA, Datos.FactorDemandaContinua) * divisor,
                 CargaNoContinuaVA: SinDemanda(gobierna.NoContinuaA, Datos.FactorDemandaNoContinua) * divisor,
                 NumeroFases: polos,
@@ -507,6 +507,22 @@ public sealed class CuadroDeCarga
                 $"El interruptor principal quedó igual que el derivado más grande ({resultado.ProteccionA:N0} A). " +
                 "La NOM lo permite; subirlo un tamaño ayuda a que, ante una falla en ese circuito, se dispare el " +
                 "derivado y no el principal. Criterio del proyectista.");
+
+        // Riel DIN se acaba en 125 A. Arriba de eso la serie no tiene tamaño y se tomó el de la NOM:
+        // se dice, porque ese interruptor ya no es de riel DIN.
+        if (Datos.SerieInterruptores == SerieDeInterruptores.RielDinIec)
+        {
+            var fuera = _circuitos
+                .Where(c => c.Resultado is { ProteccionA: > SeriesDeInterruptores.MaximoRielDinA })
+                .Select(c => $"el circuito {c.Espacio} ({c.Resultado!.ProteccionA:N0} A)")
+                .ToList();
+            if (resultado.ProteccionA > SeriesDeInterruptores.MaximoRielDinA)
+                fuera.Add($"el principal ({resultado.ProteccionA:N0} A)");
+            if (fuera.Count > 0)
+                avisos.Add(
+                    $"En riel DIN no hay interruptores de más de {SeriesDeInterruptores.MaximoRielDinA:N0} A: para " +
+                    string.Join(", ", fuera) + " se tomó el tamaño estándar de la NOM, que ya no es de riel DIN.");
+        }
 
         // El mínimo lo pide el proyectista, tablero por tablero. Vacío = no hay mínimo y no se dice
         // nada. Solo avisa: el principal que se imprime sigue siendo el calculado.

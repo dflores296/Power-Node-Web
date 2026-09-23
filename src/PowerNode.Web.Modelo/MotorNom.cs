@@ -43,21 +43,29 @@ public sealed class MotorNom
         var impedancia = new TablaImpedanciaJson(fuente, Calibres);
         var aislamiento = new TablaAislamientoJson(fuente);
 
-        NoMotor = new CalculadoraCircuitoDerivadoNoMotor(
-            Calibres, ampacidad, proteccion, temperatura, agrupamiento, tierra, impedancia, aislamiento);
-
-        Alimentador = new CalculadoraAlimentador(
-            Calibres, ampacidad, proteccion, temperatura, agrupamiento, tierra, impedancia, aislamiento);
+        // Un juego de calculadoras por serie de interruptores: la misma norma, elegida dentro de la
+        // familia que se instala. Ver SerieDeInterruptores.
+        foreach (var serie in Enum.GetValues<SerieDeInterruptores>())
+        {
+            var deLaSerie = new ProteccionEstandarDeLaSerie(proteccion, serie);
+            _noMotor[serie] = new CalculadoraCircuitoDerivadoNoMotor(
+                Calibres, ampacidad, deLaSerie, temperatura, agrupamiento, tierra, impedancia, aislamiento);
+            _alimentador[serie] = new CalculadoraAlimentador(
+                Calibres, ampacidad, deLaSerie, temperatura, agrupamiento, tierra, impedancia, aislamiento);
+        }
 
         ProteccionEstandar = proteccion;
     }
+
+    private readonly Dictionary<SerieDeInterruptores, CalculadoraCircuitoDerivadoNoMotor> _noMotor = [];
+    private readonly Dictionary<SerieDeInterruptores, CalculadoraAlimentador> _alimentador = [];
 
     public FuenteTablasJson Fuente { get; }
     public ICatalogoCalibres Calibres { get; }
     public ITablaProteccionEstandar ProteccionEstandar { get; }
 
     /// <summary>Cada renglón del cuadro: circuito derivado de Alumbrado, Contactos o Equipo (Art. 210).</summary>
-    public CalculadoraCircuitoDerivadoNoMotor NoMotor { get; }
+    public CalculadoraCircuitoDerivadoNoMotor NoMotor(SerieDeInterruptores serie) => _noMotor[serie];
 
     /// <summary>
     /// El renglón del alimentador (Art. 215). Su <c>ProteccionA</c> <b>es</b> el interruptor
@@ -65,7 +73,7 @@ public sealed class MotorNom
     /// escritorio (<c>CalculoTablero.BreakerPrincipalA</c>) y así lo resuelve el Excel (la celda
     /// «INT. PPAL.» del encabezado es una referencia a la fila del alimentador).
     /// </summary>
-    public CalculadoraAlimentador Alimentador { get; }
+    public CalculadoraAlimentador Alimentador(SerieDeInterruptores serie) => _alimentador[serie];
 
     /// <summary>Descarga el JSON de la norma y arma el motor. Se hace una sola vez, al arrancar.</summary>
     public static async Task<MotorNom> CargarAsync(HttpClient http) =>

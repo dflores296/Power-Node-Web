@@ -80,3 +80,9 @@ lógica de la norma.
   necesita la corriente de la fase más cargada, y una segunda copia de la suma era justo lo que no
   se quería. Al recopiar el motor desde el escritorio, este método tiene que sobrevivir (o llegar
   allá con el reporte de M-02).
+- **2026-09-23 · `ITablaProteccionEstandar.ValoresDeLaNorma` / `SiguienteDeLaNorma`** (hallazgo
+  I-29). Miembros con implementación por omisión —la misma lista—, así que ninguna tabla existente
+  cambia. `SeleccionConductor` los usa en la excepción 240-4(b), que habla del siguiente valor
+  estándar **de la norma**: la web elige el interruptor dentro de una serie (centro de carga, riel
+  DIN) y esa verificación no puede hacerse contra la serie recortada. Mismo destino al recopiar:
+  sobrevivir, o llegar allá con el reporte.

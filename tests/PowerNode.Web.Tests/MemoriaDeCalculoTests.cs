@@ -137,4 +137,14 @@ public class MemoriaDeCalculoTests
 
         Assert.DoesNotContain(seccion3.Renglones, r => r.Rotulo == "Fase que gobierna");
     }
+
+    [Fact]
+    public void LaMemoriaDiceDeQueListaSalioElInterruptor()
+    {
+        var cuadro = ConUnCircuito();
+        var seccion3 = MemoriaDeCalculo.Secciones(MemoriaDeCalculo.DeCircuito(cuadro, cuadro.Circuitos[0]))[2];
+
+        var renglon = Assert.Single(seccion3.Renglones, r => r.Rotulo == "Tamaños de interruptor");
+        Assert.StartsWith("Centro de carga (NEMA): de la lista de 240-6(a) se omiten 16, 32 y 63 A", renglon.Valor);
+    }
 }

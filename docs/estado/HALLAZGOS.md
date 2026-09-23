@@ -44,8 +44,10 @@ ID: `<letra>-<número>`. La letra dice el frente (`M` motor, `I` interfaz, `P` p
 | I-26 · El factor de potencia es uno solo para todo el tablero | P1 | **Cerrado** | `2ebf20f` |
 | I-27 · «Total (kW)» sale de multiplicar los VA por el FP del tablero | P2 | **Cerrado** | `2ebf20f` |
 | I-28 · Los avisos del interruptor principal citan «el Excel original» | P2 | **Cerrado** | `e7fdf0a` |
-| I-29 · La 240-6(a) de la NOM trae 16, 32 y 63 A; un centro de carga QO/NQ no | P2 | PROPUESTA — espera a David | — |
+| I-29 · La 240-6(a) de la NOM trae 16, 32 y 63 A; un centro de carga QO/NQ no | P2 | **Cerrado** | este commit |
 | I-30 · El tooltip de «Tipo» describía un piso de calibre que ya no existe | P3 | **Cerrado** | `b37de00` |
+| M-04 · La excepción 240-4(b) solo se concede en Alumbrado, no en Equipo | P3 | Pendiente — es del motor de escritorio | — |
+| I-31 · «Acometida» se cortaba en «Interruptor prin» | P3 | **Cerrado** | este commit |
 
 ---
 
@@ -462,12 +464,35 @@ todos los tableros chicos—; el **empate con el derivado mayor** conserva su av
 Excel. Detalle en
 [`../decisiones/interruptor-principal-criterios-del-excel.md`](../decisiones/interruptor-principal-criterios-del-excel.md).
 
-### I-29 — Propuesta, sin implementar
+### I-29 — Tamaños de interruptor por familia · este commit
 
-Decisión de diseño; espera a David:
+La 240-6(a) mezcla los tamaños de centro de carga (15, 30, 35, 45…) con los de riel DIN (16, 32, 63).
+David eligió tres opciones —**Centro de carga (NEMA)** por omisión, **Riel DIN (IEC)** y **NOM
+completa**— en el campo «Interruptores» de la ficha. Con centro de carga, la air fryer de la prueba y
+el principal quedan en **20 A**. Detalle en
+[`../decisiones/serie-de-interruptores.md`](../decisiones/serie-de-interruptores.md).
 
-- **I-29** (16, 32 y 63 A son de la NOM pero no existen en un QO/NQ): opción de serie de interruptores
-  en [`../decisiones/serie-de-interruptores-sin-valores-iec.md`](../decisiones/serie-de-interruptores-sin-valores-iec.md).
+**Tocó el motor copiado**, y se tiene que reportar en `PowerNode-DesignSuite` junto con M-02: la
+excepción 240-4(b) («el siguiente valor estándar superior») se lee contra la lista completa de la
+norma, no contra la serie. `ITablaProteccionEstandar` ganó `ValoresDeLaNorma` y `SiguienteDeLaNorma`,
+con implementación por omisión igual a la de antes, y `SeleccionConductor` los usa. Sin eso, en riel
+DIN se aceptaban 63 A sobre un 6 AWG de 55 A (`Serie_En240_4bManda_ElSiguienteDeLaNorma_NoElDeLaSerie`
+falla sin el cambio).
+
+### M-04 — La excepción 240-4(b) solo se concede en Alumbrado
+
+Salió al escribir la prueba de I-29. `CalculadoraCircuitoDerivadoNoMotor` pasa
+`permiteExcepcion2404b: d.TipoCarga == TipoCarga.Alumbrado`. La 240-4(b)(1) solo excluye el circuito
+derivado que alimenta **más de un contacto** para equipo conectado con cordón; un circuito de
+**Equipo** a un solo aparato sí califica. Hoy en Equipo el conductor siempre sube hasta cubrir la
+protección: es conservador (más cobre, nunca menos), no inseguro. Es del motor de escritorio y se
+reporta allá; aquí no se toca.
+
+### I-31 — «Acometida» se cortaba · este commit
+
+El mismo defecto que I-08: el selector de 118 px mostraba «Interruptor prin». Se vio al revisar el
+campo nuevo «Interruptores», que tenía el mismo problema («Centro de carg»). Los dos van ahora en su
+propio renglón, a todo lo ancho de la tarjeta.
 
 La lista de la prueba ponía también **I-30** entre las decisiones; no lo es. Es un tooltip que
 contradecía una decisión **ya confirmada** (`sin-piso-practico-de-calibre.md`), y se corrigió.

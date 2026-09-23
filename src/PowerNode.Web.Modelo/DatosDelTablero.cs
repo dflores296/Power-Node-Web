@@ -74,6 +74,12 @@ public sealed class DatosDelTablero
     /// </summary>
     public decimal? MinimoInterruptorPrincipalA { get; set; }
 
+    /// <summary>
+    /// La familia de interruptores que se instala, que decide de qué tamaños de la 240-6(a) se
+    /// escoge. <b>Centro de carga (NEMA) por omisión</b> — decisión de David del 2026-09-23.
+    /// </summary>
+    public SerieDeInterruptores SerieInterruptores { get; set; } = SerieDeInterruptores.CentroDeCargaNema;
+
     // ---- Sistema (Excel T22:T26) ---------------------------------------------------------------
 
     public decimal TensionFaseFaseV { get; set; } = 220m;

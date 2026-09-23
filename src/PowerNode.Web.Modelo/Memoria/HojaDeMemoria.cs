@@ -32,7 +32,8 @@ public sealed record HojaDeMemoria(
     int ConductoresPorFase,
     DetalleDelCalculo? Detalle,
     IReadOnlyList<Cita> Citas,
-    string? FaseQueGobierna = null);
+    string? FaseQueGobierna = null,
+    string? SerieDeInterruptores = null);
 
 /// <summary>Un renglón «rótulo: valor» de una sección de la memoria.</summary>
 public sealed record RenglonMemoria(string Rotulo, string Valor);
