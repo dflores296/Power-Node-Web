@@ -131,6 +131,7 @@ input.desc, input.va {
 input.desc { width: 100%; }
 input.va { width: 62px; text-align: right; }
 input.va.corto { width: 46px; }
+input.va.fp { width: 52px; }
 input.desc:focus, input.va:focus {
     background: var(--papel);
     border-color: var(--acento);

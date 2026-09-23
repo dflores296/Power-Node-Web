@@ -513,6 +513,92 @@ public class CuadroDeCargaTests
         Assert.Equal(8m, c.Resultado!.CorrienteDisenoA, 2);
     }
 
+    // ---- El factor de potencia es de cada carga, no del tablero ---------------------------------
+
+    [Fact]
+    public void FP_CadaCircuitoNaceCon0_9()
+    {
+        var cuadro = Nuevo();
+
+        Assert.All(cuadro.Circuitos, c => Assert.Equal(0.9m, c.FactorPotencia));
+    }
+
+    [Fact]
+    public void FP_LosWattsSeConviertenConElFPDeSuPropiaCarga()
+    {
+        // El refrigerador de la prueba: 600 W a F.P. 0.8 son 750 VA.
+        var cuadro = Nuevo();
+        var refrigerador = Espacio(cuadro, 1);
+        refrigerador.Unidad = UnidadConsumo.Watts;
+        refrigerador.FactorPotencia = 0.8m;
+        refrigerador.Continua = 600m;
+        cuadro.Recalcular();
+
+        Assert.Equal(750m, refrigerador.ContinuaVA);
+    }
+
+    [Fact]
+    public void FP_LosKWSonLaSumaDeLosWattsDeCadaCarga()
+    {
+        // Antes: 3800 VA × 0.9 del tablero = 3.42 kW. La suma real es 600 + 1500 + 1550 = 3.65 kW,
+        // sea cual sea el F.P. de cada aparato.
+        var cuadro = Nuevo(espacios: 6);
+        foreach (var (espacio, watts, fp) in new[] { (1, 600m, 0.8m), (3, 1500m, 0.95m), (5, 1550m, 1m) })
+        {
+            var c = Espacio(cuadro, espacio);
+            c.Tipo = TipoCarga.Equipo;
+            c.Unidad = UnidadConsumo.Watts;
+            c.FactorPotencia = fp;
+            c.Continua = watts;
+        }
+        cuadro.Recalcular();
+
+        Assert.Equal(3650m, cuadro.Resumen.InstaladaW, 2);
+    }
+
+    [Fact]
+    public void FP_ElFPEntraEnLaCaidaDeTension_NoEnLaProteccion()
+    {
+        // La air fryer es resistiva. Con F.P. 1 la caída SUBE: en calibres chicos manda la R, y
+        // Ze = R·FP + X·senθ crece con el FP (12 AWG: 6.04 Ω/km a 0.9, 6.60 a 1.0). O sea que el 0.9
+        // del tablero subestimaba la caída de una carga resistiva — no era del lado conservador.
+        // La protección no cambia: sale de la corriente.
+        var cuadro = TresAparatos();
+        var freidora = Espacio(cuadro, 5);
+        var caidaCon09 = freidora.Resultado!.CaidaTensionPct;
+        var proteccion = freidora.Resultado.ProteccionA;
+
+        freidora.FactorPotencia = 1m;
+        cuadro.Recalcular();
+
+        Assert.True(freidora.Resultado!.CaidaTensionPct > caidaCon09);
+        Assert.Equal(proteccion, freidora.Resultado.ProteccionA);
+    }
+
+    [Fact]
+    public void FP_ElDelAlimentadorResultaDeLasCargasDeLaFaseQueGobierna()
+    {
+        // Barra A: 1000 VA a F.P. 1 y 1000 VA a F.P. 0.8. P = 1800 W, Q = 600 VAR,
+        // S = √(1800² + 600²) = 1897.4 VA → F.P. 0.9487. No es el promedio (0.9).
+        var cuadro = Nuevo();
+        Espacio(cuadro, 1).Continua = 1000m;
+        Espacio(cuadro, 1).FactorPotencia = 1m;
+        Espacio(cuadro, 2).Continua = 1000m;
+        Espacio(cuadro, 2).FactorPotencia = 0.8m;
+        cuadro.Recalcular();
+
+        Assert.Equal('A', cuadro.Alimentador.Gobierna!.Fase);
+        Assert.Equal(0.9487m, cuadro.Alimentador.FactorPotencia, 4);
+    }
+
+    [Fact]
+    public void FP_ElResultanteDelTableroSumaLosVAComoVectores()
+    {
+        Assert.Equal(1m, FactorPotenciaCombinado.De([(1000m, 1m), (500m, 1m)]));
+        Assert.Equal(0.9487m, FactorPotenciaCombinado.De([(1000m, 1m), (1000m, 0.8m)]), 4);
+        Assert.Equal(1m, FactorPotenciaCombinado.De([])); // sin carga no hay ángulo
+    }
+
     // ---- El interior del gabinete ---------------------------------------------------------------
 
     [Fact]

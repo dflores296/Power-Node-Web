@@ -48,6 +48,22 @@ public sealed class CircuitoDelCuadro
     public decimal NoContinuaVA { get; internal set; }
     public decimal LongitudM { get; set; } = 20m;
 
+    /// <summary>
+    /// El factor de potencia <b>de esta carga</b>. La NOM lo pide por circuito: la nota 2 de la
+    /// Tabla 9 define la impedancia eficaz con «el ángulo del factor de potencia <b>del circuito</b>».
+    ///
+    /// <para>
+    /// <b>0.9 es un valor supuesto, no de la norma</b> —la NOM no fija ninguno—; se cambia con el dato
+    /// de placa: 1.0 en una resistencia, ~0.8 en un compresor. Entra en dos lugares: la conversión de
+    /// W a VA y la caída de tensión. <b>No mueve la protección ni el calibre</b> de una carga
+    /// capturada en VA o en A: la NOM dimensiona con la corriente (220-14(a), 220-18(b)).
+    /// </para>
+    /// </summary>
+    public decimal FactorPotencia { get; set; } = FactorPotenciaSupuesto;
+
+    /// <summary>El F.P. con el que nace cada renglón. Decisión de David del 2026-09-23.</summary>
+    public const decimal FactorPotenciaSupuesto = 0.9m;
+
     /// <summary>Polos del interruptor. Se cambia por <see cref="CuadroDeCarga.CambiarPolos"/>, que verifica que quepa.</summary>
     public int Polos { get; internal set; } = 1;
 
@@ -68,6 +84,12 @@ public sealed class CircuitoDelCuadro
     public bool EsContinuacion => ContinuacionDe is not null;
 
     public decimal CargaInstaladaVA => ContinuaVA + NoContinuaVA;
+
+    /// <summary>
+    /// La potencia activa, en W: los VA por el F.P. del circuito. Para un renglón capturado en W
+    /// regresa exactamente los W de la placa.
+    /// </summary>
+    public decimal PotenciaActivaW => CargaInstaladaVA * FactorPotencia;
 
     public bool TieneCarga => !EsContinuacion && CargaInstaladaVA > 0m;
 

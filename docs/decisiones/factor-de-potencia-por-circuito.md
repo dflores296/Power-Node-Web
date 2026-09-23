@@ -1,46 +1,51 @@
-# Factor de potencia por circuito, heredado del tablero
+# El factor de potencia es de cada carga, no del tablero
 
-**PROPUESTA · Claude · 2026-09-23** — hallazgos I-26 e I-27 (`../estado/HALLAZGOS.md`).
+**CONFIRMADA · David · 2026-09-23** — hallazgos I-26 e I-27 (`../estado/HALLAZGOS.md`).
+Propuesta original: `PROPUESTA · Claude · 2026-09-23`, corregida en la conversación antes de confirmarse.
 
-## La decisión que se propone
+## La decisión
 
-`CircuitoDelCuadro` lleva su propio `FactorPotencia`, **vacío por omisión**. Mientras esté vacío, el
-circuito usa el del tablero (`DatosDelTablero.FactorPotencia`), así que nada de lo ya capturado
-cambia. Cuando se captura uno, ese es el que recibe el motor para ese circuito, en los dos lugares
-donde hoy entra el del tablero:
+- **El tablero ya no tiene factor de potencia.** Se quitó el campo «F.P.» de la ficha.
+- **Cada circuito lleva el suyo**, prellenado en **0.9 para todos** (palabras de David: *«prellenado
+  0.9 para todo»*). Es un valor supuesto; se cambia con el dato de placa.
+- **El del alimentador no se captura: resulta de sus cargas.** Se combinan las de la fase que
+  gobierna (la más cargada), porque es la corriente de esa fase la que entra a su caída de tensión.
+- **El «Total (kW)» es la suma de la potencia activa de cada circuito**, y el resumen enseña el
+  **F.P. resultante** del tablero.
 
-1. **La conversión W → VA** (`ConsumoDePlaca.AVoltAmperes`, ya en uso desde I-25).
-2. **La caída de tensión del derivado** (`DatosEntradaCircuitoDerivadoNoMotor.FactorPotencia`).
+## Por qué: lo que dice la NOM
 
-Y el renglón «Total (kW)» del resumen (I-27) deja de ser `InstaladaVA × FP del tablero`: pasa a ser
-**la suma de la potencia activa de cada circuito** —`VA × FP del circuito`, que para un renglón
-capturado en W regresa exactamente los W de la placa—.
+La pregunta de David fue la correcta: *«un tablero no tiene FP, las cargas sí»*. El texto de la
+NOM-001-SEDE-2012 lo confirma:
 
-## Por qué
+| Dónde | Qué dice | Consecuencia |
+|---|---|---|
+| 220-12 | Las cargas unitarias de alumbrado «se basan en… un factor de potencia del 100 por ciento». | La norma calcula en VA; no supone 0.9. |
+| 220-14(a) | Un aparato «se debe calcular con base en la corriente del aparato». | Protección y calibre salen de A o VA de placa. |
+| 220-18(b) | Alumbrado con balastro o LED: «con base en el valor nominal de corriente… y no en el total de watts». | La norma evita convertir desde W. |
+| 220-14(c), 220-18(a) | Motores y aire acondicionado por los Art. 430 y 440. | Corriente de tablas o de placa; el F.P. no entra. |
+| 220-54, 220-55 | Secadoras y estufas: «los kVA se deben considerar equivalentes a los kW». | Resistivas: F.P. = 1. |
+| Tabla 9, nota 2 | La impedancia eficaz usa «el ángulo del factor de potencia **del circuito**»; para un FP distinto de 0.85, Ze = R × FP + XL × sen(arccos FP). | El F.P. es de cada circuito. |
 
-- **Un refrigerador y una air fryer no tienen el mismo FP.** En la prueba del 2026-09-22 el
-  refrigerador se capturó a 750 VA suponiendo FP 0.8 y la air fryer, que es resistiva (≈ 1), se
-  calculó con 0.9. Con un solo FP, la conversión W → VA que trajo I-25 hereda el mismo error.
-- **La caída de tensión se calcula con cos θ del tablero.** El error es chico y del lado
-  conservador, pero es el mismo problema de fondo.
-- **El «Total (kW)» del caso daba 3.42 kW** (3800 VA × 0.9) cuando la suma real es
-  600 + 1500 + 1550 = **3.65 kW**.
-- **El escritorio ya lo tiene por circuito.** No es una regla nueva del motor: es darle a la web el
-  dato que el motor ya recibe por circuito.
+**La NOM no fija 0.9 en ningún lado.** Es costumbre de diseño; hasta donde se sabe viene de las
+tarifas de CFE (recargo por F.P. menor a 0.9), no de esta norma.
 
-## Qué no cambia
+## Qué mueve y qué no
 
-- **El alimentador sigue con el FP del tablero** para su caída de tensión. Un FP ponderado del
-  alimentador es otra decisión (¿ponderado por VA? ¿por la fase que gobierna?) y no hace falta para
-  cerrar I-26.
-- **El 220-40 y el 215-3 no se tocan**: se dimensiona en VA, no en W.
+- **Mueve:** la conversión de W a VA (`ConsumoDePlaca.AVoltAmperes`) y la caída de tensión.
+- **No mueve la protección ni el calibre por ampacidad** de una carga capturada en VA o en A.
+- **El alimentador se sigue dimensionando con la suma de VA** (la fase más cargada), como la NOM:
+  sumar VA aritméticamente es igual o mayor que la suma vectorial, así que queda del lado seguro.
 
-## Qué hace falta para cerrarla
+## Cómo se combinan
 
-David confirma o descarta. Si se confirma:
+Los W se suman directo y los VAR también; los VA **no**. F.P. = P / √(P² + Q²). No es el promedio
+de los F.P.: 1000 VA a 1.0 más 1000 VA a 0.8 dan **0.9487**, no 0.9
+(`FactorPotenciaCombinado.De`).
 
-- Columna «F.P.» en el cuadro de captura, vacía por omisión, que muestre el heredado en gris.
-- La memoria de cada circuito imprime el FP con el que se calculó (ya lo hace: hoy imprime el del
-  tablero).
-- Prueba de regresión con el caso de los tres aparatos: refrigerador 600 W a FP 0.8 → 750 VA; air
-  fryer 1550 W a FP 1.0 → 1550 VA; «Total (kW)» = 3.65.
+## Lo que salió al probarlo
+
+**Suponer 0.9 en una carga resistiva subestimaba la caída de tensión, no la sobrestimaba.** En
+calibres chicos manda la resistencia: en 12 AWG, Ze = 6.04 Ω/km con F.P. 0.9 y 6.60 con 1.0. La air
+fryer de la prueba pasa de 2.31 % a 2.54 %. El reporte original decía que el error era «del lado
+conservador»; no lo era.

@@ -132,7 +132,9 @@ public sealed class DatosDelTablero
     public MaterialCanalizacion MaterialCanalizacion { get; set; } = MaterialCanalizacion.Pvc;
     public decimal TemperaturaAmbienteC { get; set; } = 30m;
     public int ConductoresAgrupados { get; set; } = 3;
-    public decimal FactorPotencia { get; set; } = 0.9m;
+    // SIN FACTOR DE POTENCIA DEL TABLERO. Un tablero no tiene F.P.: lo tienen sus cargas. Cada
+    // circuito lleva el suyo (CircuitoDelCuadro.FactorPotencia) y el del alimentador resulta de
+    // combinarlos. Decidido por David el 2026-09-23 — docs/decisiones/factor-de-potencia-por-circuito.md.
     public decimal CaidaMaxDerivadoPct { get; set; } = 3m;
     public decimal CaidaMaxAlimentadorPct { get; set; } = 5m;
 

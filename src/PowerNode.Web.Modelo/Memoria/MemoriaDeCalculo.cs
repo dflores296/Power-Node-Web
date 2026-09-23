@@ -52,7 +52,7 @@ public static class MemoriaDeCalculo
             TensionV: circuito.Polos == 1 ? datos.TensionFaseNeutroV : datos.TensionFaseFaseV,
             NumeroFases: circuito.Polos,
             NumeroHilos: circuito.Polos + 1,
-            FactorPotencia: datos.FactorPotencia,
+            FactorPotencia: circuito.FactorPotencia,
             LongitudM: circuito.LongitudM,
             MaterialConductor: Etiqueta(datos.MaterialConductor),
             CorrienteDisenoA: r.CorrienteDisenoA,
@@ -83,7 +83,8 @@ public static class MemoriaDeCalculo
             TensionV: cuadro.Alimentador.Polos == 1 ? datos.TensionFaseNeutroV : datos.TensionFaseFaseV,
             NumeroFases: cuadro.Alimentador.Polos,
             NumeroHilos: datos.Hilos,
-            FactorPotencia: datos.FactorPotencia,
+            // Resulta de las cargas de la fase que gobierna; no se captura.
+            FactorPotencia: cuadro.Alimentador.FactorPotencia,
             LongitudM: datos.LongitudAlimentadorM,
             MaterialConductor: Etiqueta(datos.MaterialConductor),
             CorrienteDisenoA: r.CorrienteDisenoA,
@@ -130,7 +131,9 @@ public static class MemoriaDeCalculo
             ("Carga no continua", $"{hoja.CargaNoContinuaVa:N0} VA"),
             ("Tensión nominal", $"{hoja.TensionV:N1} V"),
             ("Frecuencia", "60 Hz"),
-            ("Factor de potencia", $"{hoja.FactorPotencia:N2}"),
+            ("Factor de potencia", hoja.Articulo == "215"
+                ? $"{hoja.FactorPotencia:N2} — resulta de combinar las cargas de la fase que gobierna"
+                : $"{hoja.FactorPotencia:N2}"),
             ("Fases / hilos", $"{hoja.NumeroFases} / {hoja.NumeroHilos}")]));
 
         // ---- 2

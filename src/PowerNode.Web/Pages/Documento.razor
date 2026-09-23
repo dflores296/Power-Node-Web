@@ -143,9 +143,14 @@
                     </tr>
                     <tr class="total">
                         <td class="izq">Total <span class="simbolo">(kW)</span></td>
-                        <td class="num">@((Cuadro.Resumen.InstaladaVA / 1000m * Datos.FactorPotencia).ToString("N2"))</td>
+                        <td class="num">@((Cuadro.Resumen.InstaladaW / 1000m).ToString("N2"))</td>
                         <td></td>
-                        <td class="num">@((Cuadro.Resumen.DemandadaVA / 1000m * Datos.FactorPotencia).ToString("N2"))</td>
+                        <td class="num">@((Cuadro.Resumen.DemandadaW / 1000m).ToString("N2"))</td>
+                    </tr>
+                    <tr>
+                        <td class="izq">F.P. resultante</td>
+                        <td class="num">@Cuadro.Resumen.FactorPotencia.ToString("N2")</td>
+                        <td></td><td></td>
                     </tr>
                 </table>
             </div>

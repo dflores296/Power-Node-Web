@@ -35,6 +35,14 @@ alimentador, la memoria con su renglón y el cuadro impreso con «(fase C)»; si
 **No se pudo:** reportar M-02 en `PowerNode-DesignSuite` — la sesión no tuvo acceso a ese repo. El
 texto del reporte quedó en `HALLAZGOS.md` §M-02.
 
+**Después, el F.P. (I-26 e I-27), confirmado por David.** Su objeción a la propuesta fue la que
+cambió el diseño: *«un tablero no tiene FP, las cargas sí»*. Se revisó la NOM entera buscando
+«factor de potencia» y le da la razón —la Tabla 9 habla del F.P. «del circuito», el Art. 220 calcula
+en VA y en amperes y en ningún lado fija 0.9—. Quedó: sin F.P. de tablero, uno por circuito
+prellenado en 0.9, el del alimentador combinado de sus cargas y los kW reales en el resumen. Al
+probarlo salió que el 0.9 **subestimaba** la caída de tensión de una carga resistiva en calibre
+chico. 46 pruebas; verificado en el navegador con el caso capturado en W.
+
 ---
 
 ## 2026-09-22 (tercera parte) — El tablero entero, y el entregable que se imprime

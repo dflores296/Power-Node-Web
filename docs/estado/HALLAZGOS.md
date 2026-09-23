@@ -41,8 +41,8 @@ ID: `<letra>-<número>`. La letra dice el frente (`M` motor, `I` interfaz, `P` p
 | M-02 · El alimentador se dimensionaba como si el tablero estuviera balanceado | P0 | **Cerrado** | `b37de00` |
 | M-03 · No se avisaba cuando el principal es menor que el derivado más grande | P1 | **Cerrado** (aviso; bloqueo a decisión de David) | `b37de00` |
 | I-25 · La captura solo aceptaba VA; las placas dicen W o A | P1 | **Cerrado** | `b37de00` |
-| I-26 · El factor de potencia es uno solo para todo el tablero | P1 | PROPUESTA — espera a David | — |
-| I-27 · «Total (kW)» sale de multiplicar los VA por el FP del tablero | P2 | PROPUESTA — espera a David (depende de I-26) | — |
+| I-26 · El factor de potencia es uno solo para todo el tablero | P1 | **Cerrado** | este commit |
+| I-27 · «Total (kW)» sale de multiplicar los VA por el FP del tablero | P2 | **Cerrado** | este commit |
 | I-28 · Los avisos del interruptor principal citan «el Excel original» | P2 | PROPUESTA — espera a David | — |
 | I-29 · La 240-6(a) de la NOM trae 16, 32 y 63 A; un centro de carga QO/NQ no | P2 | PROPUESTA — espera a David | — |
 | I-30 · El tooltip de «Tipo» describía un piso de calibre que ya no existe | P3 | **Cerrado** | `b37de00` |
@@ -441,13 +441,23 @@ usa todo lo demás. **Debajo de cada valor en W o A se ve el VA con el que se ca
 
 Mientras no se decida I-26, los W se convierten con el FP del tablero.
 
-### I-26, I-27, I-28, I-29 — Propuestas, sin implementar
+### I-26 e I-27 — El F.P. es de cada carga, y los kW son reales · este commit
+
+Confirmado por David el 2026-09-23, después de revisar la NOM: **un tablero no tiene F.P., sus cargas
+sí** (la nota 2 de la Tabla 9 habla del «factor de potencia del circuito»). Se quitó el F.P. de la
+ficha; cada renglón lleva el suyo, prellenado en 0.9; el del alimentador resulta de combinar las
+cargas de la fase que gobierna, y el resumen enseña los kW reales (en el caso, **3.65**, no 3.42) y
+el F.P. resultante. Detalle y citas en
+[`../decisiones/factor-de-potencia-por-circuito.md`](../decisiones/factor-de-potencia-por-circuito.md).
+
+**Salió al probarlo:** suponer 0.9 en una carga resistiva **subestimaba** la caída de tensión (en
+12 AWG manda la R: Ze sube de 6.04 a 6.60 Ω/km al pasar de 0.9 a 1.0). La air fryer con F.P. 1 da
+2.54 %, no 2.31 %.
+
+### I-28 e I-29 — Propuestas, sin implementar
 
 Son decisiones de diseño y esperan a David:
 
-- **I-26** (FP por circuito, heredado del tablero) e **I-27** (el «Total (kW)» como suma de la
-  potencia activa de cada circuito — en el caso daba 3.42 kW contra 3.65 reales):
-  [`../decisiones/factor-de-potencia-por-circuito.md`](../decisiones/factor-de-potencia-por-circuito.md).
 - **I-28** (los avisos del principal le hablan al usuario de «el Excel original»): opciones A y B en
   [`../decisiones/interruptor-principal-criterios-del-excel.md`](../decisiones/interruptor-principal-criterios-del-excel.md).
 - **I-29** (16, 32 y 63 A son de la NOM pero no existen en un QO/NQ): opción de serie de interruptores

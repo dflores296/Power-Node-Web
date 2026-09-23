@@ -1,4 +1,5 @@
 using PowerNode.DesignSuite.Calculo.Casos;
+using PowerNode.DesignSuite.Calculo.Magnitudes;
 using PowerNode.DesignSuite.Calculo.Tableros;
 using PowerNode.DesignSuite.Calculo.Validaciones;
 
@@ -13,10 +14,36 @@ public sealed record ResumenDeCarga(
     decimal FactorDemandaNoContinua,
     decimal NoContinuaDemandadaVA,
     IReadOnlyDictionary<char, decimal> CargaPorFaseVA,
-    decimal DesbalanceoPct)
+    decimal DesbalanceoPct,
+    decimal InstaladaW = 0m,
+    decimal DemandadaW = 0m,
+    decimal FactorPotencia = 1m)
 {
     public decimal InstaladaVA => ContinuaVA + NoContinuaVA;
     public decimal DemandadaVA => ContinuaDemandadaVA + NoContinuaDemandadaVA;
+}
+
+/// <summary>
+/// <b>Cómo se combinan los factores de potencia de varias cargas.</b> Los W se suman directo; los
+/// VAR también; los VA <b>no</b>: la aparente del conjunto es √(P² + Q²). El F.P. que resulta es
+/// P / √(P² + Q²) — ni el promedio de los F.P. ni los W entre la suma aritmética de los VA.
+/// </summary>
+public static class FactorPotenciaCombinado
+{
+    /// <param name="cargas">Cada carga con sus VA y su F.P.</param>
+    /// <returns>1 si no hay carga: sin corriente no hay ángulo que reportar.</returns>
+    public static decimal De(IEnumerable<(decimal VA, decimal FactorPotencia)> cargas)
+    {
+        double p = 0, q = 0;
+        foreach (var (va, fp) in cargas)
+        {
+            p += (double)(va * fp);
+            q += (double)(va * TrianguloPotencias.SenoDelAngulo(fp));
+        }
+
+        var s = Math.Sqrt(p * p + q * q);
+        return s <= 0 ? 1m : Math.Round((decimal)(p / s), 4);
+    }
 }
 
 /// <summary>
@@ -37,13 +64,18 @@ public sealed record CorrienteDeFase(char Fase, decimal ContinuaA, decimal NoCon
 /// </summary>
 /// <param name="Fases">La corriente de cada barra, en el orden de las barras.</param>
 /// <param name="Gobierna">La fase más cargada, que es con la que se dimensiona. <c>null</c> sin carga.</param>
+/// <param name="FactorPotencia">
+/// El F.P. <b>de las cargas de la fase que gobierna</b>, combinado. Es el que corresponde a la
+/// corriente con la que se calcula la caída de tensión del alimentador.
+/// </param>
 public sealed record RenglonDelAlimentador(
     ResultadoAlimentador? Resultado,
     string? Error,
     IReadOnlyList<string> Avisos,
     int Polos,
     IReadOnlyList<CorrienteDeFase>? Fases = null,
-    CorrienteDeFase? Gobierna = null);
+    CorrienteDeFase? Gobierna = null,
+    decimal FactorPotencia = 1m);
 
 /// <summary>
 /// <b>El cuadro de carga completo de un tablero</b>: su cabecera, sus espacios y lo que sale de
@@ -198,7 +230,7 @@ public sealed class CuadroDeCarga
 
     private decimal AVoltAmperes(CircuitoDelCuadro c, decimal valor) =>
         ConsumoDePlaca.AVoltAmperes(
-            valor, c.Unidad, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV, c.Polos, Datos.FactorPotencia);
+            valor, c.Unidad, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV, c.Polos, c.FactorPotencia);
 
     private void CalcularCircuitos()
     {
@@ -231,7 +263,9 @@ public sealed class CuadroDeCarga
                     TemperaturaAmbienteC: Datos.TemperaturaAmbienteC,
                     MaterialConductor: Datos.MaterialConductor,
                     MaterialCanalizacion: Datos.MaterialCanalizacion,
-                    FactorPotencia: Datos.FactorPotencia,
+                    // El del circuito: la nota 2 de la Tabla 9 usa «el ángulo del factor de potencia
+                    // del circuito».
+                    FactorPotencia: c.FactorPotencia,
                     CaidaTensionMaxPct: Datos.CaidaMaxDerivadoPct,
                     // SIN PISO PRÁCTICO DE CALIBRE -- va null a propósito, y es una diferencia
                     // deliberada con la versión de escritorio, que lo trae encendido por omisión
@@ -296,6 +330,13 @@ public sealed class CuadroDeCarga
                 .Select(c => new CorrientePorCircuito(c.Fases, c.Resultado!.CorrienteDisenoA))],
             Datos.Barras);
 
+        // Los kW de verdad: la potencia activa de cada circuito, no los VA totales por un F.P. que el
+        // tablero no tiene.
+        var conCarga = _circuitos.Where(c => c.TieneCarga).ToList();
+        var instaladaW = conCarga.Sum(c => c.PotenciaActivaW);
+        var demandadaW = conCarga.Sum(c =>
+            (c.ContinuaVA * Datos.FactorDemandaContinua + c.NoContinuaVA * Datos.FactorDemandaNoContinua) * c.FactorPotencia);
+
         Resumen = new ResumenDeCarga(
             ContinuaVA: continua,
             FactorDemandaContinua: Datos.FactorDemandaContinua,
@@ -304,7 +345,10 @@ public sealed class CuadroDeCarga
             FactorDemandaNoContinua: Datos.FactorDemandaNoContinua,
             NoContinuaDemandadaVA: noContinua * Datos.FactorDemandaNoContinua,
             CargaPorFaseVA: porFase,
-            DesbalanceoPct: desbalanceo);
+            DesbalanceoPct: desbalanceo,
+            InstaladaW: instaladaW,
+            DemandadaW: demandadaW,
+            FactorPotencia: FactorPotenciaCombinado.De(conCarga.Select(c => (c.CargaInstaladaVA, c.FactorPotencia))));
     }
 
     /// <summary>
@@ -361,6 +405,14 @@ public sealed class CuadroDeCarga
         // Empate: gana la primera barra, que es determinista y es como se lee el tablero.
         var gobierna = fases.Aggregate((max, f) => f.CapacidadA > max.CapacidadA ? f : max);
 
+        // EL F.P. DEL ALIMENTADOR NO SE CAPTURA: resulta de las cargas que lleva. Se toman las de la
+        // fase que gobierna, porque es la corriente de esa fase la que entra a la caída de tensión.
+        // Cada circuito aporta lo que le cuelga a esa barra (sus VA entre sus polos).
+        var fpAlimentador = FactorPotenciaCombinado.De(
+            _circuitos
+                .Where(c => c.TieneCarga && c.Fases.Contains(gobierna.Fase))
+                .Select(c => (c.CargaPorFaseVA, c.FactorPotencia)));
+
         try
         {
             // LA FASE MÁS CARGADA, COMO SI LAS DEMÁS LLEVARAN LO MISMO. La calculadora copiada del
@@ -387,7 +439,7 @@ public sealed class CuadroDeCarga
                 TemperaturaAmbienteC: Datos.TemperaturaAmbienteC,
                 MaterialConductor: Datos.MaterialConductor,
                 MaterialCanalizacion: Datos.MaterialCanalizacion,
-                FactorPotencia: Datos.FactorPotencia,
+                FactorPotencia: fpAlimentador,
                 CaidaTensionMaxPct: Datos.CaidaMaxAlimentadorPct,
                 PisoPracticoCalibreMm2: null,
                 FactorDemandaContinua: Datos.FactorDemandaContinua,
@@ -395,11 +447,11 @@ public sealed class CuadroDeCarga
                 ConjuntoAprobado100Pct: Datos.ConjuntoAprobado100Pct));
 
             resultado = resultado with { Citas = [.. resultado.Citas.Select(c => c.Referencia == "220-40" ? Cita220_40(gobierna) : c)] };
-            Alimentador = new RenglonDelAlimentador(resultado, null, Avisos(resultado), polos, fases, gobierna);
+            Alimentador = new RenglonDelAlimentador(resultado, null, Avisos(resultado), polos, fases, gobierna, fpAlimentador);
         }
         catch (Exception ex)
         {
-            Alimentador = new RenglonDelAlimentador(null, ex.Message, [], polos, fases, gobierna);
+            Alimentador = new RenglonDelAlimentador(null, ex.Message, [], polos, fases, gobierna, fpAlimentador);
         }
     }
 
