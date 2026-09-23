@@ -47,6 +47,7 @@ ID: `<letra>-<número>`. La letra dice el frente (`M` motor, `I` interfaz, `P` p
 | I-29 · La 240-6(a) de la NOM trae 16, 32 y 63 A; un centro de carga QO/NQ no | P2 | **Cerrado** | `b9406ab` |
 | I-30 · El tooltip de «Tipo» describía un piso de calibre que ya no existe | P3 | **Cerrado** | `b37de00` |
 | M-04 · La excepción 240-4(b) solo se concede en Alumbrado, no en Equipo | P3 | Pendiente — es del motor de escritorio | — |
+| I-32 · El aislamiento estaba fijo en THHN: con factores podía salir un calibre de menos | P0 | **Cerrado** | `b1a84d6` |
 | I-31 · «Acometida» se cortaba en «Interruptor prin» | P3 | **Cerrado** | `b9406ab` |
 
 ---
@@ -511,3 +512,27 @@ estos dos aparatos no lo son) da lo que el reporte calculó a mano: microondas 1
 por caída, 2.24 %; air fryer 12.20 A, 15 A, 12 AWG por caída, 2.31 %. Y en el alimentador la fase C
 ya no entra al 125 %: 12.20 A → principal de 15 A. Quedó como
 `ElMotorDistingueContinuaDeNoContinua_EnElDerivadoYEnElAlimentador`.
+
+---
+
+## Auditoría de selección de conductor y protección (2026-09-23)
+
+David acotó el alcance a seleccionar conductor y protección con la Tabla 310-15(b)(16) y pidió
+revisar ocho temas contra la NOM. La auditoría completa, con enlaces a cada artículo y los casos
+corridos en el motor, está en
+[`../conocimiento/seleccion-conductor-y-proteccion.md`](../conocimiento/seleccion-conductor-y-proteccion.md).
+Seis propuestas, aprobadas para hacerse una por una.
+
+### I-32 — El aislamiento estaba fijo en THHN · `b1a84d6`
+
+El motor sabe elegir la columna de la Tabla 310-15(b)(16) por aislamiento y lugar (Tabla
+310-104(a), 110-14(c)), pero la web nunca se lo pasaba: siempre THHN, lugar seco. **Del lado
+inseguro**: con 9 conductores agrupados (factor 0.7), 20 A continuos daban 10 AWG en THHN
+(40 × 0.7 = 28 A ≥ 25 A), y en THW-LS ese mismo 10 AWG no alcanza (35 × 0.7 = 24.5 A < 25 A) — pide
+8 AWG. Si en obra se instalaba THW-LS, el calibre impreso no cumplía.
+
+Ahora «Condiciones de cálculo» tiene **Aislamiento** (THHN por omisión, THHW-LS, THW-LS, THWN,
+THWN-2, XHHW-2, TW) y **Lugar** (seco, o húmedo o mojado), y se pasan al motor en los derivados y en
+el alimentador. THHN en lugar mojado lo rechaza el motor y el renglón lo dice. Queda impreso en el
+documento («Conductor: Cobre · THHN · lugar seco») y en la memoria, sección 2. THW no se ofrece: la
+Tabla 310-104(a), como está leída, lo da solo para lugares mojados.

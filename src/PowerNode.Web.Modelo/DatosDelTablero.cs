@@ -143,6 +143,23 @@ public sealed class DatosDelTablero
     // ---- Condiciones de cálculo (Excel columnas DA a DR, iguales en todos los renglones) --------
 
     public MaterialConductor MaterialConductor { get; set; } = MaterialConductor.Cobre;
+
+    /// <summary>
+    /// El aislamiento del conductor, con su designación de la Tabla 310-104(a): decide la columna
+    /// de temperatura de la Tabla 310-15(b)(16) en la que se aplican los factores de corrección
+    /// (110-14(c)). <b>THHN por omisión</b>, que es lo que el programa suponía sin preguntar. Fijo
+    /// en THHN, un circuito instalado con THW-LS podía salir con un calibre de menos: con 9
+    /// conductores agrupados, 20 A continuos piden 10 AWG en THHN y 8 AWG en THW-LS.
+    /// </summary>
+    public string TipoAislamiento { get; set; } = "THHN";
+
+    /// <summary>
+    /// Lugar seco, o húmedo/mojado. Algunos aislamientos cambian de temperatura según el lugar
+    /// (THHW-LS: 90 °C seco, 75 °C mojado) y otros no se permiten fuera de lugar seco (THHN) —
+    /// Tabla 310-104(a).
+    /// </summary>
+    public bool LugarSeco { get; set; } = true;
+
     public MaterialCanalizacion MaterialCanalizacion { get; set; } = MaterialCanalizacion.Pvc;
     public decimal TemperaturaAmbienteC { get; set; } = 30m;
     public int ConductoresAgrupados { get; set; } = 3;

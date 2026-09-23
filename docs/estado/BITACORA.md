@@ -62,6 +62,13 @@ interruptor no, porque salen directo de los VA. Pidió que se dijera en algún l
 va en el tooltip del encabezado «F.P.» y en el de cada casilla, que cambia según la unidad del
 renglón (W, VA o A).
 
+**Auditoría de selección de conductor y protección.** David acotó el alcance a la Tabla 310-15(b)(16)
+y pidió saber, con la NOM en la mano, si el programa cubre corriente de diseño, 125 %, aislamiento,
+factores, calibres pequeños, terminales y la regla de inmediata superior/inferior. Se leyó el motor y
+se corrió con casos concretos: queda en `../conocimiento/seleccion-conductor-y-proteccion.md`, con
+seis propuestas por prioridad. **La 1 ya está (I-32):** el aislamiento estaba fijo en THHN y, con
+factores, podía salir un calibre de menos para THW-LS. 59 pruebas; verificado en el navegador.
+
 ---
 
 ## 2026-09-22 (tercera parte) — El tablero entero, y el entregable que se imprime

@@ -81,6 +81,15 @@
             <option value="@MaterialConductor.Cobre">Cobre</option>
             <option value="@MaterialConductor.Aluminio">Aluminio</option>
         </select></label>
+        <label><span class="ayuda" title="Designación de la Tabla 310-104(a). Decide la columna de temperatura de la Tabla 310-15(b)(16) (60, 75 o 90 °C) en la que se aplican los factores de corrección; el resultado se limita a la temperatura de la terminal — 110-14(c).">Aislamiento</span>
+            <select @bind="Datos.TipoAislamiento" @bind:after="Recalcular">
+                @foreach (var aislamiento in Aislamientos) { <option value="@aislamiento">@aislamiento</option> }
+            </select></label>
+        <label class="apilado"><span class="ayuda" title="Algunos aislamientos cambian de temperatura según el lugar (THHW-LS: 90 °C seco, 75 °C mojado) y otros no se permiten fuera de lugar seco (THHN) — Tabla 310-104(a).">Lugar</span>
+            <select @bind="Lugar" @bind:after="Recalcular">
+                <option value="seco">Seco</option>
+                <option value="mojado">Húmedo o mojado</option>
+            </select></label>
         <label>Canalización <select @bind="Datos.MaterialCanalizacion" @bind:after="Recalcular">
             <option value="@MaterialCanalizacion.Pvc">PVC</option>
             <option value="@MaterialCanalizacion.Aluminio">Aluminio</option>
@@ -417,6 +426,20 @@
     private DatosDelTablero Datos => Cuadro.Datos;
 
     private void Recalcular() => Cuadro.Recalcular();
+
+    /// <summary>
+    /// Los aislamientos de uso común en instalaciones de baja tensión, todos reconocidos por la
+    /// Tabla 310-104(a) que lee el motor. THW no está: la tabla lo da solo para lugares mojados;
+    /// THW-LS cubre secos y mojados.
+    /// </summary>
+    /// <summary>El lugar como texto: un <c>select</c> enlazado directo a un <c>bool</c> no reconoce «true»/«false» y se queda en blanco.</summary>
+    private string Lugar
+    {
+        get => Datos.LugarSeco ? "seco" : "mojado";
+        set => Datos.LugarSeco = value == "seco";
+    }
+
+    private static readonly string[] Aislamientos = ["THHN", "THHW-LS", "THW-LS", "THWN", "THWN-2", "XHHW-2", "TW"];
 
     /// <summary>
     /// Cuántas columnas tiene el cuadro, para los <c>colspan</c> de los renglones que abarcan todo.

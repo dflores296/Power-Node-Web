@@ -709,6 +709,80 @@ public class CuadroDeCargaTests
         Assert.Contains(cuadro.Alimentador.Avisos, a => a.Contains("riel DIN") && a.Contains("circuito 2") && a.Contains("el principal"));
     }
 
+    // ---- El aislamiento decide la columna de la Tabla 310-15(b)(16) ------------------------------
+
+    private static CircuitoDelCuadro VeinteAmperesContinuos(CuadroDeCarga cuadro)
+    {
+        var c = Espacio(cuadro, 1);
+        c.Unidad = UnidadConsumo.Amperes;
+        c.Continua = 20m;
+        c.LongitudM = 5m;
+        return c;
+    }
+
+    [Fact]
+    public void Aislamiento_PorOmisionEsThhnEnLugarSeco()
+    {
+        var cuadro = Nuevo();
+
+        Assert.Equal("THHN", cuadro.Datos.TipoAislamiento);
+        Assert.True(cuadro.Datos.LugarSeco);
+    }
+
+    [Fact]
+    public void Aislamiento_ConFactoresUnThwLsPideMasCobreQueUnThhn()
+    {
+        // 20 A continuos → 25 A de capacidad mínima, 9 conductores agrupados (factor 0.7).
+        // THHN: 10 AWG en la columna de 90 °C, 40 × 0.7 = 28 A ≥ 25 A.
+        // THW-LS: 10 AWG en la de 75 °C, 35 × 0.7 = 24.5 A < 25 A → 8 AWG. Fijo en THHN, el
+        // programa imprimía 10 AWG para una instalación en THW-LS que necesita 8.
+        var cuadro = Nuevo();
+        cuadro.Datos.ConductoresAgrupados = 9;
+        var c = VeinteAmperesContinuos(cuadro);
+
+        cuadro.Recalcular();
+        Assert.Equal("10", c.Resultado!.CalibreFase.Designacion);
+
+        cuadro.Datos.TipoAislamiento = "THW-LS";
+        cuadro.Recalcular();
+        Assert.Equal("8", c.Resultado!.CalibreFase.Designacion);
+
+        cuadro.Datos.TipoAislamiento = "TW";
+        cuadro.Recalcular();
+        Assert.Equal("8", c.Resultado!.CalibreFase.Designacion);
+    }
+
+    [Fact]
+    public void Aislamiento_ThhnNoSePermiteEnLugarMojado_YSeDiceEnElRenglon()
+    {
+        // Tabla 310-104(a): THHN es «lugares secos».
+        var cuadro = Nuevo();
+        var c = VeinteAmperesContinuos(cuadro);
+        cuadro.Datos.LugarSeco = false;
+        cuadro.Recalcular();
+
+        Assert.Null(c.Resultado);
+        Assert.Contains("THHN", c.Error);
+
+        cuadro.Datos.TipoAislamiento = "THW-LS";
+        cuadro.Recalcular();
+        Assert.NotNull(c.Resultado);
+    }
+
+    [Fact]
+    public void Aislamiento_ElCasoBaseNoCambia()
+    {
+        // A 30 °C y 3 agrupados los factores valen 1 y la terminal limita a 60 °C: el aislamiento
+        // no mueve el calibre. Los tres aparatos siguen igual en THW-LS.
+        var cuadro = TresAparatos();
+        var antes = cuadro.Circuitos.Where(c => c.Resultado is not null).Select(c => c.Resultado!.CalibreFase.Designacion).ToList();
+
+        cuadro.Datos.TipoAislamiento = "THW-LS";
+        cuadro.Recalcular();
+
+        Assert.Equal(antes, cuadro.Circuitos.Where(c => c.Resultado is not null).Select(c => c.Resultado!.CalibreFase.Designacion).ToList());
+    }
+
     // ---- El interior del gabinete ---------------------------------------------------------------
 
     [Fact]

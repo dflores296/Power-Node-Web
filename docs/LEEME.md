@@ -17,6 +17,7 @@ Si algún día son más de 4, algo se poda a `historico/` — no se agrega un qu
 | [`estado/TABLERO.md`](estado/TABLERO.md) | **Los frentes con su %, y la lista que lo justifica.** Empezar aquí. |
 | [`estado/HALLAZGOS.md`](estado/HALLAZGOS.md) | Cada defecto encontrado, con ID estable. No se cierra sin commit. |
 | [`estado/BITACORA.md`](estado/BITACORA.md) | Qué se hizo cada sesión. |
+| [`conocimiento/seleccion-conductor-y-proteccion.md`](conocimiento/seleccion-conductor-y-proteccion.md) | Qué cubre el programa de la selección de conductor y protección, contra la NOM. |
 | [`estado/POR-VERIFICAR.md`](estado/POR-VERIFICAR.md) | Lo escrito sin verse corriendo, esperando confirmación. |
 
 ## 🟢 `decisiones/` — una por archivo, con autor y estado
