@@ -48,7 +48,7 @@ ID: `<letra>-<número>`. La letra dice el frente (`M` motor, `I` interfaz, `P` p
 | I-30 · El tooltip de «Tipo» describía un piso de calibre que ya no existe | P3 | **Cerrado** | `b37de00` |
 | M-04 · La excepción 240-4(b) solo se concede en Alumbrado, no en Equipo | P3 | Pendiente — es del motor de escritorio | — |
 | I-32 · El aislamiento estaba fijo en THHN: con factores podía salir un calibre de menos | P0 | **Cerrado** | `b1a84d6` |
-| I-33 · La memoria decía «Icm = In / (FT × FA)» y sustituía la capacidad mínima; el porqué no se veía en pantalla | P1 | **Cerrado** | este commit |
+| I-33 · La memoria decía «Icm = In / (FT × FA)» y sustituía la capacidad mínima; el porqué no se veía en pantalla | P1 | **Cerrado** | `13b3093` |
 | I-31 · «Acometida» se cortaba en «Interruptor prin» | P3 | **Cerrado** | `b9406ab` |
 
 ---
@@ -538,7 +538,7 @@ el alimentador. THHN en lugar mojado lo rechaza el motor y el renglón lo dice. 
 documento («Conductor: Cobre · THHN · lugar seco») y en la memoria, sección 2. THW no se ofrece: la
 Tabla 310-104(a), como está leída, lo da solo para lugares mojados.
 
-### I-33 — El porqué de la protección y del calibre no se veía, y la memoria no cuadraba · este commit
+### I-33 — El porqué de la protección y del calibre no se veía, y la memoria no cuadraba · `13b3093`
 
 Dos cosas de la misma raíz (propuesta 2 de la auditoría):
 
