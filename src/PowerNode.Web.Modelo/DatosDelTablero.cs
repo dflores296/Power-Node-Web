@@ -66,6 +66,14 @@ public sealed class DatosDelTablero
     /// </summary>
     public decimal? CapacidadBarraA { get; set; }
 
+    /// <summary>
+    /// El interruptor principal más chico que el proyectista quiere para este tablero, en amperes.
+    /// <b>No es de la NOM</b> —la 240-6(a) no fija mínimo—: es criterio de diseño, y cambia de
+    /// proyecto a proyecto. <c>null</c> por omisión: sin mínimo no hay aviso. <b>Solo avisa</b>, no
+    /// sube el principal. Ver <c>docs/decisiones/interruptor-principal-criterios-del-excel.md</c>.
+    /// </summary>
+    public decimal? MinimoInterruptorPrincipalA { get; set; }
+
     // ---- Sistema (Excel T22:T26) ---------------------------------------------------------------
 
     public decimal TensionFaseFaseV { get; set; } = 220m;

@@ -55,7 +55,7 @@ los mismos valores que ya se verificaron a mano contra el PDF del DOF.
 
 **Las reglas del tablero ya no viven en el `.razor`.** `PowerNode.Web.Modelo` (sin Blazor) tiene la
 geometría de las barras, la ocupación de un multipolar, el balanceo, el alimentador y la memoria —
-**46 pruebas verdes**, y ahí es donde el compilador impide que una regla se escape a una pantalla.
+**48 pruebas verdes**, y ahí es donde el compilador impide que una regla se escape a una pantalla.
 
 **Qué llegó del escritorio esta sesión, sin reescribirse:** `DistribucionBarras` y
 `SistemaDelTablero` (qué barra toca cada espacio, y cuántas barras hay de verdad),
@@ -87,10 +87,9 @@ GitHub Actions) y que el workflow corra una vez de verdad. **Escrito, nunca ejec
 **Activar GitHub Pages en el repo** (Settings → Pages → Source: GitHub Actions). Es lo único que
 separa el sitio de estar en línea, y no lo puede hacer una sesión de Claude.
 
-**Dos propuestas de la prueba del 2026-09-22**, `PROPUESTA · Claude · 2026-09-23`:
+**Lo que queda de la prueba del 2026-09-22**, `PROPUESTA · Claude · 2026-09-23`:
 
-- **I-28 / M-03** — cómo redactar los avisos del principal sin «el Excel original», y si el principal
-  menor que un derivado es aviso o bloqueo:
+- **M-03** — si el principal menor que un derivado es aviso (hoy) o bloqueo:
   [`../decisiones/interruptor-principal-criterios-del-excel.md`](../decisiones/interruptor-principal-criterios-del-excel.md).
 - **I-29** — opción «sin valores IEC (16, 32, 63 A)»:
   [`../decisiones/serie-de-interruptores-sin-valores-iec.md`](../decisiones/serie-de-interruptores-sin-valores-iec.md).

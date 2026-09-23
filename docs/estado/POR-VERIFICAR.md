@@ -4,7 +4,7 @@ Lo que se escribió sin verse corriendo, y espera que David lo confirme. Ordenad
 
 | Qué | Riesgo si está mal | Estado |
 |---|---|---|
-| **Los dos criterios del Excel para el principal** (piso de 30 A, no empatar con el derivado mayor) se avisan y no se aplican | El número calculado no es el que se compra | PROPUESTA — ver `../decisiones/interruptor-principal-criterios-del-excel.md` |
+| **El mínimo del principal solo avisa**, no sube el principal (decisión de David) | El cuadro impreso dice el calculado aunque se vaya a comprar el mínimo | CONFIRMADA — ver `../decisiones/interruptor-principal-criterios-del-excel.md` |
 | **El alimentador se dimensiona con la fase más cargada** (M-02), entregándole al motor la carga equivalente de esa fase (3 × sus VA en un 3F-4H) | Las citas del motor (215-2, 215-3) hablan de la corriente de la fase, no de la carga total | Verificado en el caso de los tres aparatos; la memoria explica la fase que gobierna en la sección 3, y la cita del 220-40 se reescribe con la carga del tablero |
 | **Cada circuito nace con F.P. 0.9** (decisión de David) | Un aparato resistivo o un motor capturado en W sale con otros VA, y su caída de tensión se mueve, si no se cambia el 0.9 | Es un valor supuesto; la columna F.P. lo dice en su tooltip |
 | **El entregable se imprime desde el navegador**, no se descarga `.xlsx` ni `.docx` | Si David edita la hoja antes de entregar, hoy no puede | PROPUESTA — ver `../decisiones/documento-imprimible-en-vez-de-archivo.md` |

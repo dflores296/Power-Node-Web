@@ -320,16 +320,47 @@ public class CuadroDeCargaTests
     }
 
     [Fact]
-    public void LosCriteriosDelExcelSeReportan_NoSeAplican()
+    public void SinMinimoCapturadoNoHayAvisoDeMinimo()
     {
+        // Antes salía «el Excel nunca bajaba de 30 A» en cualquier tablero chico. Ahora el mínimo
+        // lo pide el proyectista, y si no lo pide no se dice nada.
         var cuadro = Nuevo();
         Espacio(cuadro, 1).Continua = 720m;
         cuadro.Recalcular();
 
-        // El Excel nunca bajaba de 30 A el principal. El motor dice lo que dice la 240-6(a), y el
-        // criterio de diseño se avisa.
-        Assert.True(cuadro.InterruptorPrincipalA < 30m);
-        Assert.Contains(cuadro.Alimentador.Avisos, a => a.Contains("30 A"));
+        Assert.Null(cuadro.Datos.MinimoInterruptorPrincipalA);
+        Assert.DoesNotContain(cuadro.Alimentador.Avisos, a => a.Contains("mínimo"));
+    }
+
+    [Fact]
+    public void ConMinimoCapturadoSoloAvisa_NoSubeElPrincipal()
+    {
+        var cuadro = Nuevo();
+        Espacio(cuadro, 1).Continua = 720m;
+        cuadro.Datos.MinimoInterruptorPrincipalA = 30m;
+        cuadro.Recalcular();
+
+        Assert.Equal(15m, cuadro.InterruptorPrincipalA); // el calculado, no el mínimo
+        Assert.Contains(cuadro.Alimentador.Avisos,
+            a => a == "El interruptor principal calculado es de 15 A, menor que el mínimo de 30 A que pediste para este tablero.");
+
+        cuadro.Datos.MinimoInterruptorPrincipalA = 15m;
+        cuadro.Recalcular();
+        Assert.DoesNotContain(cuadro.Alimentador.Avisos, a => a.Contains("mínimo"));
+    }
+
+    [Fact]
+    public void NingunAvisoLeHablaAlUsuarioDelExcel()
+    {
+        // El caso de los tres aparatos dispara el aviso de «igual que el derivado más grande»
+        // (principal y air fryer en 16 A); con mínimo de 30 A dispara también el de mínimo.
+        var cuadro = TresAparatos();
+        cuadro.Datos.MinimoInterruptorPrincipalA = 30m;
+        cuadro.Recalcular();
+
+        Assert.Contains(cuadro.Alimentador.Avisos, a => a.StartsWith("El interruptor principal quedó igual que el derivado más grande (16 A)"));
+        Assert.Contains(cuadro.Alimentador.Avisos, a => a.Contains("mínimo de 30 A"));
+        Assert.DoesNotContain(cuadro.Alimentador.Avisos, a => a.Contains("Excel"));
     }
 
     // ---- La prueba del 2026-09-22: refrigerador, microondas y air fryer --------------------------

@@ -498,19 +498,22 @@ public sealed class CuadroDeCarga
                 $"({mayorDerivado:N0} A, circuito {mayor.Espacio}). El principal se dispararía con una carga que ese " +
                 "derivado sí admite: revisa la carga capturada o sube el principal.");
 
-        // Los dos criterios del Excel que NO son de la norma. Se REPORTAN, no se aplican: el
-        // número que se imprime sale del motor, y el criterio de diseño lo decide quien firma.
-        // Ver docs/decisiones/interruptor-principal-criterios-del-excel.md.
+        // Los dos criterios de diseño que NO son de la norma (vienen del Excel). Se REPORTAN, no se
+        // aplican: el número que se imprime sale del motor, y el criterio lo decide quien firma. Los
+        // textos no mencionan el Excel —quien usa la página no sabe cuál es—; el origen vive en
+        // docs/decisiones/interruptor-principal-criterios-del-excel.md (CONFIRMADA · David · 2026-09-23).
         if (resultado.ProteccionA > 0m && resultado.ProteccionA == mayorDerivado)
             avisos.Add(
-                $"El interruptor principal quedó en {resultado.ProteccionA:N0} A, igual que el derivado más grande. " +
-                "El Excel original subía el principal al siguiente tamaño estándar en este caso. Es criterio de " +
-                "diseño, no de la NOM: la 240-6(a) no lo pide.");
+                $"El interruptor principal quedó igual que el derivado más grande ({resultado.ProteccionA:N0} A). " +
+                "La NOM lo permite; subirlo un tamaño ayuda a que, ante una falla en ese circuito, se dispare el " +
+                "derivado y no el principal. Criterio del proyectista.");
 
-        if (resultado.ProteccionA is > 0m and < 30m)
+        // El mínimo lo pide el proyectista, tablero por tablero. Vacío = no hay mínimo y no se dice
+        // nada. Solo avisa: el principal que se imprime sigue siendo el calculado.
+        if (Datos.MinimoInterruptorPrincipalA is { } minimo && resultado.ProteccionA > 0m && resultado.ProteccionA < minimo)
             avisos.Add(
-                $"El interruptor principal calculado es de {resultado.ProteccionA:N0} A. El Excel original nunca " +
-                "bajaba de 30 A. Es criterio de diseño, no de la NOM.");
+                $"El interruptor principal calculado es de {resultado.ProteccionA:N0} A, menor que el mínimo de " +
+                $"{minimo:N0} A que pediste para este tablero.");
 
         return avisos;
     }

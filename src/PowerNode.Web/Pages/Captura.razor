@@ -63,6 +63,9 @@
         </select></label>
         <label>Capacidad de barra (A) <input type="number" min="0" step="1" placeholder="—"
                                              @bind="Datos.CapacidadBarraA" @bind:after="Recalcular" /></label>
+        <label><span class="ayuda" title="Criterio del proyectista, no de la NOM. Vacío: sin mínimo. Si el principal calculado queda debajo, solo se avisa; no se sube.">Mínimo del principal (A)</span>
+            <input type="number" min="0" step="5" placeholder="—"
+                   @bind="Datos.MinimoInterruptorPrincipalA" @bind:after="Recalcular" /></label>
     </div>
 
     <div class="grupo">

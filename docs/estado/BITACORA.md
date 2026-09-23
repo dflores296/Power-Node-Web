@@ -43,6 +43,11 @@ prellenado en 0.9, el del alimentador combinado de sus cargas y los kW reales en
 probarlo salió que el 0.9 **subestimaba** la caída de tensión de una carga resistiva en calibre
 chico. 46 pruebas; verificado en el navegador con el caso capturado en W.
 
+**Y los avisos del principal (I-28), confirmado por David.** Ya no mencionan «el Excel original». El
+piso fijo de 30 A se volvió el campo «Mínimo del principal (A)», vacío por omisión, que solo avisa;
+el aviso de empate con el derivado mayor se quedó, reescrito. 48 pruebas; verificado en el navegador
+con y sin mínimo capturado.
+
 ---
 
 ## 2026-09-22 (tercera parte) — El tablero entero, y el entregable que se imprime

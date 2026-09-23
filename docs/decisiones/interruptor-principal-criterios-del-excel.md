@@ -97,3 +97,25 @@ imprime sigue saliendo del motor (215-3 + 240-6(a)), y bloquear obligaría a la 
 qué hacer con él. Si David prefiere que el principal suba solo al derivado mayor, es la misma
 situación que el segundo criterio de arriba y se resuelve igual (en `Calculo`, en los dos repos, o
 como opción de captura).
+
+---
+
+## Lo que se decidió para los avisos
+
+**CONFIRMADA · David · 2026-09-23** — la combinación que propuso Claude, y el mínimo **solo avisa**.
+
+- **Piso de 30 A → opción B.** Ya no hay un 30 A fijo. La ficha del tablero tiene el campo
+  **«Mínimo del principal (A)»**, vacío por omisión (`DatosDelTablero.MinimoInterruptorPrincipalA`).
+  Vacío: no sale ningún aviso de mínimo. Capturado: si el calculado queda debajo, sale
+  «El interruptor principal calculado es de 16 A, menor que el mínimo de 30 A que pediste para este
+  tablero.» **El principal que se imprime sigue siendo el calculado**: no se sube solo.
+- **Empate con el derivado mayor → opción A.** El mismo aviso, sin el Excel: «El interruptor
+  principal quedó igual que el derivado más grande (16 A). La NOM lo permite; subirlo un tamaño ayuda
+  a que, ante una falla en ese circuito, se dispare el derivado y no el principal. Criterio del
+  proyectista.»
+
+Ningún aviso de la pantalla menciona ya el Excel (`NingunAvisoLeHablaAlUsuarioDelExcel`). El origen
+de los dos criterios se queda en este archivo, arriba.
+
+**Sigue abierto:** si el principal menor que un derivado (M-03) debe bloquear en vez de avisar. Hoy
+avisa.
