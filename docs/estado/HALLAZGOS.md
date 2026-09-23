@@ -43,7 +43,7 @@ ID: `<letra>-<número>`. La letra dice el frente (`M` motor, `I` interfaz, `P` p
 | I-25 · La captura solo aceptaba VA; las placas dicen W o A | P1 | **Cerrado** | `b37de00` |
 | I-26 · El factor de potencia es uno solo para todo el tablero | P1 | **Cerrado** | `2ebf20f` |
 | I-27 · «Total (kW)» sale de multiplicar los VA por el FP del tablero | P2 | **Cerrado** | `2ebf20f` |
-| I-28 · Los avisos del interruptor principal citan «el Excel original» | P2 | **Cerrado** | este commit |
+| I-28 · Los avisos del interruptor principal citan «el Excel original» | P2 | **Cerrado** | `e7fdf0a` |
 | I-29 · La 240-6(a) de la NOM trae 16, 32 y 63 A; un centro de carga QO/NQ no | P2 | PROPUESTA — espera a David | — |
 | I-30 · El tooltip de «Tipo» describía un piso de calibre que ya no existe | P3 | **Cerrado** | `b37de00` |
 
@@ -454,7 +454,7 @@ el F.P. resultante. Detalle y citas en
 12 AWG manda la R: Ze sube de 6.04 a 6.60 Ω/km al pasar de 0.9 a 1.0). La air fryer con F.P. 1 da
 2.54 %, no 2.31 %.
 
-### I-28 — Los avisos del principal ya no hablan del Excel · este commit
+### I-28 — Los avisos del principal ya no hablan del Excel · `e7fdf0a`
 
 David eligió la combinación propuesta: el **piso de 30 A** se volvió el campo «Mínimo del principal
 (A)» de la ficha, vacío por omisión, y **solo avisa** cuando el calculado queda debajo —ya no sale en
