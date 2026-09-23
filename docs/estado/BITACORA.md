@@ -30,8 +30,8 @@ Pruebas: 66 en `PowerNode.Web.Tests`, 6 en `PowerNode.Normativa.Tests`.
 
 **Revisión de David** — R-01 a R-13 validados contra la NOM y registrados en [`HALLAZGOS.md`](HALLAZGOS.md).
 
-- Correr `PowerNode.Web.Tests` al publicar — R-03.
-- Agregar las 20 pruebas del documento de pruebas — R-07.
+- Correr `PowerNode.Web.Tests` al publicar — R-03, `986c9d7`.
+- Agregar las 20 pruebas del documento de pruebas — R-07, `986c9d7`.
 
 Pruebas: 86 en `PowerNode.Web.Tests`, 6 en `PowerNode.Normativa.Tests`.
 

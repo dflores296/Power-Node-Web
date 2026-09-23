@@ -55,11 +55,11 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-34 · «Agrupados» sin regla de conteo | P3 | **Cerrado** | `3aa1c3a` |
 | R-01 · Caída del alimentador fija en 5 %, sin verificar la combinada — 215-2(a)(4) NOTA 2 | P1 | Pendiente | — |
 | R-02 · Caída del alimentador sin la caída del neutro | P2 | Pendiente | — |
-| R-03 · La publicación no corre `PowerNode.Web.Tests` | P1 | Pendiente | — |
+| R-03 · La publicación no corre `PowerNode.Web.Tests` | P1 | **Cerrado** | `986c9d7` |
 | R-04 · Cálculo por fase del alimentador resuelto en la web, no en el motor | P2 | Pendiente | — |
 | R-05 · Documento de pruebas, 4.2 con F.P. 0.8: 2.01 % en vez de 2.00 % | P3 | Pendiente | — |
 | R-06 · Aviso de riel DIN > 125 A con la sintaxis rota | P3 | Pendiente | — |
-| R-07 · Sin las pruebas del documento del 2026-09-23 | P1 | Pendiente | — |
+| R-07 · Sin las pruebas del documento del 2026-09-23 | P1 | **Cerrado** | `986c9d7` |
 | R-08 · Principal menor que un derivado: aviso o bloqueo sin decidir | P3 | Pendiente | — |
 | R-09 · 2F-3H: neutro portador sin cita en la memoria ni prueba — 310-15(b)(5)(2) | P2 | Pendiente | — |
 | R-10 · 2F-3H 220Y/127: sin prueba de que no se aplican 220-61(a) excepción ni 310-15(b)(7) | P2 | Pendiente | — |
