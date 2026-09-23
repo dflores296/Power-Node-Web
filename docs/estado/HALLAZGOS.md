@@ -38,14 +38,14 @@ ID: `<letra>-<número>`. La letra dice el frente (`M` motor, `I` interfaz, `P` p
 | I-22 · La clase `grupo` del cuadro chocaba con la de las tarjetas: cada celda se dibujó como tarjeta | P1 | **Cerrado** | `228478d` |
 | I-23 · Un multipolar decía «ocupado por el circuito N» en vez de verse ocupando | P2 | **Cerrado** | `acdcf42` |
 | I-24 · Al bloque combinado le faltaba la línea del número: `:last-child` se la comía | P2 | **Cerrado** | `73cb16b` |
-| M-02 · El alimentador se dimensionaba como si el tablero estuviera balanceado | P0 | **Cerrado** | este commit |
-| M-03 · No se avisaba cuando el principal es menor que el derivado más grande | P1 | **Cerrado** (aviso; bloqueo a decisión de David) | este commit |
-| I-25 · La captura solo aceptaba VA; las placas dicen W o A | P1 | **Cerrado** | este commit |
+| M-02 · El alimentador se dimensionaba como si el tablero estuviera balanceado | P0 | **Cerrado** | `b37de00` |
+| M-03 · No se avisaba cuando el principal es menor que el derivado más grande | P1 | **Cerrado** (aviso; bloqueo a decisión de David) | `b37de00` |
+| I-25 · La captura solo aceptaba VA; las placas dicen W o A | P1 | **Cerrado** | `b37de00` |
 | I-26 · El factor de potencia es uno solo para todo el tablero | P1 | PROPUESTA — espera a David | — |
 | I-27 · «Total (kW)» sale de multiplicar los VA por el FP del tablero | P2 | PROPUESTA — espera a David (depende de I-26) | — |
 | I-28 · Los avisos del interruptor principal citan «el Excel original» | P2 | PROPUESTA — espera a David | — |
 | I-29 · La 240-6(a) de la NOM trae 16, 32 y 63 A; un centro de carga QO/NQ no | P2 | PROPUESTA — espera a David | — |
-| I-30 · El tooltip de «Tipo» describía un piso de calibre que ya no existe | P3 | **Cerrado** | este commit |
+| I-30 · El tooltip de «Tipo» describía un piso de calibre que ya no existe | P3 | **Cerrado** | `b37de00` |
 
 ---
 
@@ -368,7 +368,7 @@ Prueba manual de David con tres cargas en un 3F-4H 220/127 V de 6 espacios —co
 salieron correctos**, verificados a mano. Los hallazgos estaban en el alimentador, en la captura y en
 los textos. Ese caso quedó como prueba de regresión (`CuadroDeCargaTests.TresAparatos`).
 
-### M-02 — El alimentador se dimensionaba como si el tablero estuviera balanceado · este commit
+### M-02 — El alimentador se dimensionaba como si el tablero estuviera balanceado · `b37de00`
 
 **Bug de cálculo, del lado inseguro.** El alimentador tomaba la carga **total** entre √3·V_FF:
 3800 / (√3 × 220) = **9.97 A** → 12.46 A al 125 % → **principal de 15 A y fase de 14 AWG**. Pero
@@ -418,7 +418,7 @@ reporte está abajo, listo para abrirlo como issue.
 > (extraída de `Porcentaje`) da la corriente por barra, y al alimentador se le entrega la carga
 > equivalente de la fase que gobierna. Revisar `CalculoTablero.BreakerPrincipalA` y la cascada.
 
-### M-03 — Principal menor que el derivado más grande, sin aviso · este commit
+### M-03 — Principal menor que el derivado más grande, sin aviso · `b37de00`
 
 En el caso, antes de M-02, el principal quedó en **15 A** con un derivado de **16 A** (la air fryer),
 y la pantalla no dijo nada: solo había aviso cuando eran **iguales**. Ahora hay uno cuando
@@ -429,7 +429,7 @@ corregido el caso ya no lo dispara, así que la prueba usa otro: 500 VA de conta
 **Es aviso, no bloqueo.** Cuál de los dos, lo decide David — propuesta en
 [`../decisiones/interruptor-principal-criterios-del-excel.md`](../decisiones/interruptor-principal-criterios-del-excel.md).
 
-### I-25 — La captura solo aceptaba VA · este commit
+### I-25 — La captura solo aceptaba VA · `b37de00`
 
 El motor ya traía `ConsumoDePlaca.AVoltAmperes` (VA / W / A), y el escritorio lo usa en
 `CircuitoDerivado.VaUnitarioDe`; la web no lo exponía. Ahora cada renglón lleva **unidad** (VA por
@@ -456,7 +456,7 @@ Son decisiones de diseño y esperan a David:
 La lista de la prueba ponía también **I-30** entre las decisiones; no lo es. Es un tooltip que
 contradecía una decisión **ya confirmada** (`sin-piso-practico-de-calibre.md`), y se corrigió.
 
-### I-30 — El tooltip de «Tipo» describía el piso práctico de calibre · este commit
+### I-30 — El tooltip de «Tipo» describía el piso práctico de calibre · `b37de00`
 
 Decía «Decide el piso práctico de calibre (12 AWG en alumbrado, 10 en contactos) y el mínimo de
 protección». El piso se quitó el 2026-09-22. Ahora dice lo que el tipo decide de verdad: el mínimo de
