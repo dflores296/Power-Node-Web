@@ -121,7 +121,7 @@
                 <th><span class="ayuda" title="Unidad de la placa. Los W se convierten con el factor de potencia; los A, con la tensión y los polos del circuito.">Unidad</span></th>
                 <th><span class="ayuda" title="Carga que opera 3 horas o más. Entra al 125 % — 210-20(a).">Continua</span></th>
                 <th><span class="ayuda" title="Carga que no opera 3 horas seguidas. Entra al 100 %.">No continua</span></th>
-                <th><span class="ayuda" title="Factor de potencia de esta carga. 0.9 es un valor supuesto: cámbialo con el dato de placa (1.0 en una resistencia, ~0.8 en un compresor). Convierte W a VA y entra en la caída de tensión (Tabla 9, nota 2); no cambia la protección de una carga capturada en VA o A.">F.P.</span></th>
+                <th><span class="ayuda" title="Factor de potencia de esta carga. 0.9 es un valor supuesto: cámbialo con el dato de placa (1.0 en una resistencia, ~0.8 en un compresor).&#10;&#10;Capturada en W: el F.P. convierte a VA (VA = W ÷ F.P.), así que mueve la corriente, el interruptor y el cable.&#10;&#10;Capturada en VA o A: la corriente sale directo de los VA o los A, sin el F.P. Aquí el F.P. solo mueve la caída de tensión (Tabla 9, nota 2) —y el cable, si la caída pasa del límite— y los kW del resumen.&#10;&#10;En cables delgados (14, 12, 10), a mayor F.P., mayor caída: casi toda su impedancia es resistencia.">F.P.</span></th>
                 @foreach (var barra in Datos.Barras)
                 {
                     <th><span class="ayuda" title="Carga que este circuito le cuelga a la barra @barra.">@barra</span></th>
@@ -184,7 +184,7 @@
                             <input class="va" type="number" min="0" @bind="c.NoContinua" @bind:after="Recalcular" />
                             @EnVA(c, c.NoContinua, c.NoContinuaVA)
                         </td>
-                        <td rowspan="@c.Polos"><input class="va fp" type="number" min="0.1" max="1" step="0.05" @bind="c.FactorPotencia" @bind:after="Recalcular" /></td>
+                        <td rowspan="@c.Polos"><input class="va fp" type="number" min="0.1" max="1" step="0.05" title="@AyudaFactorPotencia(c)" @bind="c.FactorPotencia" @bind:after="Recalcular" /></td>
                         @foreach (var barra in Datos.Barras)
                         {
                             <td rowspan="@c.Polos" class="num tenue">@(c.TieneCarga && c.Fases.Contains(barra) ? c.CargaPorFaseVA.ToString("N0") : "")</td>
@@ -455,6 +455,15 @@
         c.Unidad == UnidadConsumo.VoltAmperes || capturado <= 0m
             ? null
             : @<span class="en-va">= @va.ToString("N0") VA</span>;
+
+    /// <summary>
+    /// Qué hace el F.P. en ESTE renglón, que depende de la unidad: con W convierte a VA y mueve todo;
+    /// con VA o A la corriente no pasa por él, y solo mueve la caída de tensión y los kW.
+    /// </summary>
+    private static string AyudaFactorPotencia(CircuitoDelCuadro c) => c.Unidad == UnidadConsumo.Watts
+        ? "Capturada en W: el F.P. convierte a VA (VA = W ÷ F.P.). Mueve la corriente, el interruptor, el cable, la caída de tensión y los kW."
+        : $"Capturada en {(c.Unidad == UnidadConsumo.Amperes ? "A" : "VA")}: el F.P. no cambia la corriente ni el interruptor. " +
+          "Solo mueve la caída de tensión (y el cable, si la caída pasa del límite) y los kW del resumen.";
 
     private static string Titulo(BloqueDelGabinete bloque) =>
         bloque.Ocupado
