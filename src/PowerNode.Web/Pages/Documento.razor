@@ -37,6 +37,7 @@
                 <div><dt>Tensión</dt><dd>@Datos.TensionFaseFaseV.ToString("N0") V F-F · @Datos.TensionFaseNeutroV.ToString("N1") V F-N · @Datos.FrecuenciaHz Hz</dd></div>
                 <div><dt>Int. ppal.</dt><dd>@(Cuadro.InterruptorPrincipalA > 0m ? $"{Cuadro.InterruptorPrincipalA:N0} A" : "—")</dd></div>
                 <div><dt>Acometida</dt><dd>@(Datos.UsaInterruptorPrincipal ? "Interruptor principal" : "Zapatas principales")</dd></div>
+                <div><dt>Interruptores</dt><dd>@Datos.SerieInterruptores.Nombre()</dd></div>
             </dl>
         </header>
 
@@ -143,9 +144,14 @@
                     </tr>
                     <tr class="total">
                         <td class="izq">Total <span class="simbolo">(kW)</span></td>
-                        <td class="num">@((Cuadro.Resumen.InstaladaVA / 1000m * Datos.FactorPotencia).ToString("N2"))</td>
+                        <td class="num">@((Cuadro.Resumen.InstaladaW / 1000m).ToString("N2"))</td>
                         <td></td>
-                        <td class="num">@((Cuadro.Resumen.DemandadaVA / 1000m * Datos.FactorPotencia).ToString("N2"))</td>
+                        <td class="num">@((Cuadro.Resumen.DemandadaW / 1000m).ToString("N2"))</td>
+                    </tr>
+                    <tr>
+                        <td class="izq">F.P. resultante</td>
+                        <td class="num">@Cuadro.Resumen.FactorPotencia.ToString("N2")</td>
+                        <td></td><td></td>
                     </tr>
                 </table>
             </div>
@@ -163,7 +169,8 @@
                             <td class="num">@a.NumeroConductoresParalelo–@a.CalibreFase.Designacion</td>
                             <td class="num">1–@a.CalibreNeutro.Designacion</td>
                             <td class="num">1–@a.CalibreTierra.Designacion</td>
-                            <td class="num">@a.CorrienteDisenoA.ToString("N2")</td>
+                            @* La corriente de la fase más cargada, que es con la que se dimensiona — M-02. *@
+                            <td class="num">@a.CorrienteDisenoA.ToString("N2")@(Cuadro.Alimentador.Gobierna is { } g && Datos.Barras.Count > 1 ? $" (fase {g.Fase})" : "")</td>
                             <td class="num">@Datos.LongitudAlimentadorM.ToString("N0")</td>
                             <td class="num">@a.CaidaTensionPct.ToString("N2")</td>
                         </tr>

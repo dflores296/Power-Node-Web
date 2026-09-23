@@ -18,7 +18,7 @@ public class MemoriaDeCalculoTests
         cuadro.Datos.NumeroEspacios = 6;
         cuadro.Datos.Tablero = "TA-1";
         cuadro.Circuitos[0].Descripcion = "Alumbrado planta baja";
-        cuadro.Circuitos[0].ContinuaVA = 720m;
+        cuadro.Circuitos[0].Continua = 720m;
         cuadro.Recalcular();
         return cuadro;
     }
@@ -89,7 +89,7 @@ public class MemoriaDeCalculoTests
     public void ElDocumentoTraeUnaHojaPorCircuitoCalculadoYLaDelAlimentadorAlFinal()
     {
         var cuadro = ConUnCircuito();
-        cuadro.Circuitos[1].NoContinuaVA = 1500m;
+        cuadro.Circuitos[1].NoContinua = 1500m;
         cuadro.Recalcular();
 
         var hojas = MemoriaDeCalculo.Hojas(cuadro);
@@ -110,5 +110,41 @@ public class MemoriaDeCalculoTests
 
         Assert.Equal(cuadro.Datos.TensionFaseNeutroV, hoja.TensionV);
         Assert.Equal(1, hoja.NumeroFases);
+    }
+
+    [Fact]
+    public void LaMemoriaDelAlimentadorDiceQueFaseGobierna()
+    {
+        // M-02, con el caso de la prueba del 2026-09-22: la air fryer en la fase C.
+        var cuadro = new CuadroDeCarga(new MotorNom(Json));
+        cuadro.Datos.NumeroEspacios = 6;
+        cuadro.Circuitos[0].Continua = 750m;
+        cuadro.Circuitos[2].Continua = 1500m;
+        cuadro.Circuitos[4].Continua = 1550m;
+        cuadro.Recalcular();
+
+        var seccion3 = MemoriaDeCalculo.Secciones(MemoriaDeCalculo.DelAlimentador(cuadro)!)[2];
+        var gobierna = Assert.Single(seccion3.Renglones, r => r.Rotulo == "Fase que gobierna");
+
+        Assert.StartsWith("Fase C, la más cargada: 125 % × 12.20 A", gobierna.Valor);
+    }
+
+    [Fact]
+    public void UnDerivadoNoLlevaFaseQueGobierna()
+    {
+        var cuadro = ConUnCircuito();
+        var seccion3 = MemoriaDeCalculo.Secciones(MemoriaDeCalculo.DeCircuito(cuadro, cuadro.Circuitos[0]))[2];
+
+        Assert.DoesNotContain(seccion3.Renglones, r => r.Rotulo == "Fase que gobierna");
+    }
+
+    [Fact]
+    public void LaMemoriaDiceDeQueListaSalioElInterruptor()
+    {
+        var cuadro = ConUnCircuito();
+        var seccion3 = MemoriaDeCalculo.Secciones(MemoriaDeCalculo.DeCircuito(cuadro, cuadro.Circuitos[0]))[2];
+
+        var renglon = Assert.Single(seccion3.Renglones, r => r.Rotulo == "Tamaños de interruptor");
+        Assert.StartsWith("Centro de carga (NEMA): de la lista de 240-6(a) se omiten 16, 32 y 63 A", renglon.Valor);
     }
 }

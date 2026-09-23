@@ -8,6 +8,9 @@ namespace PowerNode.Web.Modelo.Memoria;
 /// </summary>
 /// <param name="Sujeto">Cómo se nombra en el encabezado: «Circuito 3 — Contactos».</param>
 /// <param name="Articulo">«210» en un derivado, «215» en un alimentador — decide qué se cita.</param>
+/// <param name="FaseQueGobierna">Solo en el alimentador: cuál barra es la más cargada y con qué
+/// corriente se dimensiona, ya redactado. Sin él, la corriente de diseño no se deduce de la carga
+/// total de la sección 1.</param>
 public sealed record HojaDeMemoria(
     string Sujeto,
     string Articulo,
@@ -28,7 +31,9 @@ public sealed record HojaDeMemoria(
     string? TablaAmpacidadId,
     int ConductoresPorFase,
     DetalleDelCalculo? Detalle,
-    IReadOnlyList<Cita> Citas);
+    IReadOnlyList<Cita> Citas,
+    string? FaseQueGobierna = null,
+    string? SerieDeInterruptores = null);
 
 /// <summary>Un renglón «rótulo: valor» de una sección de la memoria.</summary>
 public sealed record RenglonMemoria(string Rotulo, string Valor);

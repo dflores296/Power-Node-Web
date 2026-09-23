@@ -38,6 +38,16 @@ ID: `<letra>-<número>`. La letra dice el frente (`M` motor, `I` interfaz, `P` p
 | I-22 · La clase `grupo` del cuadro chocaba con la de las tarjetas: cada celda se dibujó como tarjeta | P1 | **Cerrado** | `228478d` |
 | I-23 · Un multipolar decía «ocupado por el circuito N» en vez de verse ocupando | P2 | **Cerrado** | `acdcf42` |
 | I-24 · Al bloque combinado le faltaba la línea del número: `:last-child` se la comía | P2 | **Cerrado** | `73cb16b` |
+| M-02 · El alimentador se dimensionaba como si el tablero estuviera balanceado | P0 | **Cerrado** | `b37de00` |
+| M-03 · No se avisaba cuando el principal es menor que el derivado más grande | P1 | **Cerrado** (aviso; bloqueo a decisión de David) | `b37de00` |
+| I-25 · La captura solo aceptaba VA; las placas dicen W o A | P1 | **Cerrado** | `b37de00` |
+| I-26 · El factor de potencia es uno solo para todo el tablero | P1 | **Cerrado** | `2ebf20f` |
+| I-27 · «Total (kW)» sale de multiplicar los VA por el FP del tablero | P2 | **Cerrado** | `2ebf20f` |
+| I-28 · Los avisos del interruptor principal citan «el Excel original» | P2 | **Cerrado** | `e7fdf0a` |
+| I-29 · La 240-6(a) de la NOM trae 16, 32 y 63 A; un centro de carga QO/NQ no | P2 | **Cerrado** | `b9406ab` |
+| I-30 · El tooltip de «Tipo» describía un piso de calibre que ya no existe | P3 | **Cerrado** | `b37de00` |
+| M-04 · La excepción 240-4(b) solo se concede en Alumbrado, no en Equipo | P3 | Pendiente — es del motor de escritorio | — |
+| I-31 · «Acometida» se cortaba en «Interruptor prin» | P3 | **Cerrado** | `b9406ab` |
 
 ---
 
@@ -349,3 +359,155 @@ tablero.
 **Lo que enseña, que es lo mismo que I-22:** los selectores por posición (`:last-child`,
 `:nth-child`) mienten en cuanto la tabla deja de ser una rejilla pareja. Con celdas combinadas, lo
 que hay que marcar es el papel de la celda, no dónde cayó.
+
+---
+
+## Prueba del 2026-09-22: refrigerador, microondas y air fryer
+
+Prueba manual de David con tres cargas en un 3F-4H 220/127 V de 6 espacios —cobre THHN en PVC a
+30 °C, 3 agrupados, FP 0.9, 20 m, e% máx. 3 %—, las tres de tipo Equipo y continuas: refrigerador
+750 VA en la fase A, microondas 1500 VA en la B, air fryer 1550 VA en la C. **Los tres derivados
+salieron correctos**, verificados a mano. Los hallazgos estaban en el alimentador, en la captura y en
+los textos. Ese caso quedó como prueba de regresión (`CuadroDeCargaTests.TresAparatos`).
+
+### M-02 — El alimentador se dimensionaba como si el tablero estuviera balanceado · `b37de00`
+
+**Bug de cálculo, del lado inseguro.** El alimentador tomaba la carga **total** entre √3·V_FF:
+3800 / (√3 × 220) = **9.97 A** → 12.46 A al 125 % → **principal de 15 A y fase de 14 AWG**. Pero
+cada fase lleva su propia corriente, y la C trae la air fryer: 1550 / 127 = **12.20 A continuos →
+15.25 A al 125 %**, que ya no cabe ni en 15 A ni en un 14 AWG (15 A en la columna de 60 °C). **El
+resultado impreso estaba subdimensionado en un caso real.**
+
+**El Excel sí lo hacía bien** (`CU79`/`CV79`: `MAX(1.25·CO78+CR78, 1.25·CP78+CS78, 1.25·CQ78+CT78)`
+entre la tensión F-N), así que frente a él era una regresión.
+
+**Corregido sin reescribir el motor:**
+
+1. **La corriente de cada barra sale de la regla del desbalanceo**, que ya medía en corriente por
+   fase. Se extrajo como `CalculadoraDesbalanceo.CorrientePorFase` —`Porcentaje` la usa— para que no
+   haya dos copias. Se suma en **corriente, no en VA**: un interruptor de 2 polos a 220 V lleva su
+   corriente completa por cada línea, no la mitad de sus VA entre 127. La corriente de cada circuito
+   sale de su carga (`TensionDeCalculo.Divisor`), no de su resultado, para que un renglón que el motor
+   rechazó siga pesando en el alimentador.
+2. **Gobierna la fase que pide más capacidad**: `max(factor × continua + no continua)`, con el
+   factor de demanda del 220-40 aplicado antes y el mismo 125 % (o 100 % con el ensamble aprobado)
+   de la calculadora.
+3. **Se le entrega al motor la carga que da exactamente esa corriente** —su corriente por el mismo
+   divisor; en un 3F-4H, 3 × los VA de la fase—. Así protección, conductor, tierra **y caída de
+   tensión** salen con la corriente de la fase más cargada, y `CalculadoraAlimentador` queda como se
+   copió.
+4. **La memoria dice qué fase gobierna** (sección 3): «Fase C, la más cargada: 125 % × 12.20 A
+   (continua) + 0.00 A (no continua) = 15.25 A…», y la pantalla y el cuadro impreso lo marcan junto a
+   la corriente de diseño.
+
+**Resultado en el caso:** In = 12.20 A, capacidad mínima 15.25 A → **principal de 16 A** (20 A si se
+confirma I-29) y **fase de 12 AWG**. El reporte decía 15.26 A porque redondeó la tensión a 127 V;
+aquí es 220/√3 = 127.02 V. Un tablero balanceado da lo mismo que antes
+(`M02_UnTableroBalanceadoDaLoMismoQueAntes`).
+
+**Se reporta también en `PowerNode-DesignSuite`** (regla de `CLAUDE.md`: el motor es copia de allá).
+Allá la cascada entrega la carga total al alimentador y `CalculoTablero.BreakerPrincipalA` reusa
+`CalculadoraProteccionAlimentador` con la misma suma, así que el defecto tiene toda la pinta de
+existir igual. **Pendiente: la sesión del 2026-09-23 no tuvo acceso a ese repo**; el texto del
+reporte está abajo, listo para abrirlo como issue.
+
+> **M-02 (desde Power Node Web): el alimentador se dimensiona con la carga total, no con la fase más
+> cargada.** `CalculadoraAlimentador` / `CalculadoraProteccionAlimentador` calculan la corriente
+> como carga total / (√3·V_FF). Con 750 VA en A, 1500 VA en B y 1550 VA en C (continuas, 3F-4H
+> 220/127 V) da 9.97 A → principal de 15 A y 14 AWG, cuando la fase C lleva 12.20 A → 15.25 A al
+> 125 % → 16 A y 12 AWG. El Excel de referencia (`CU79`/`CV79`) usa la fase más cargada entre la
+> tensión F-N. En la web se corrigió sin tocar la calculadora: `CalculadoraDesbalanceo.CorrientePorFase`
+> (extraída de `Porcentaje`) da la corriente por barra, y al alimentador se le entrega la carga
+> equivalente de la fase que gobierna. Revisar `CalculoTablero.BreakerPrincipalA` y la cascada.
+
+### M-03 — Principal menor que el derivado más grande, sin aviso · `b37de00`
+
+En el caso, antes de M-02, el principal quedó en **15 A** con un derivado de **16 A** (la air fryer),
+y la pantalla no dijo nada: solo había aviso cuando eran **iguales**. Ahora hay uno cuando
+`principal < max(derivados)`, que nombra el circuito y no menciona el Excel (ver I-28). Con M-02
+corregido el caso ya no lo dispara, así que la prueba usa otro: 500 VA de contactos → derivado de
+20 A por el mínimo de contactos, principal de 15 A.
+
+**Es aviso, no bloqueo.** Cuál de los dos, lo decide David — propuesta en
+[`../decisiones/interruptor-principal-criterios-del-excel.md`](../decisiones/interruptor-principal-criterios-del-excel.md).
+
+### I-25 — La captura solo aceptaba VA · `b37de00`
+
+El motor ya traía `ConsumoDePlaca.AVoltAmperes` (VA / W / A), y el escritorio lo usa en
+`CircuitoDerivado.VaUnitarioDe`; la web no lo exponía. Ahora cada renglón lleva **unidad** (VA por
+omisión, así que nada de lo ya capturado cambia) y el valor **tal como viene en la placa**
+(`Continua`/`NoContinua`). `CuadroDeCarga` convierte con esa misma función —la tensión y los polos
+del circuito, el FP del tablero— y deja el resultado en `ContinuaVA`/`NoContinuaVA`, que es lo que
+usa todo lo demás. **Debajo de cada valor en W o A se ve el VA con el que se calcula.** Capturar
+«8 A» regresa una corriente de diseño de 8 A (`I25_LosAmperesCapturadosRegresanComoLosMismosAmperes`).
+
+Mientras no se decida I-26, los W se convierten con el FP del tablero.
+
+### I-26 e I-27 — El F.P. es de cada carga, y los kW son reales · `2ebf20f`
+
+Confirmado por David el 2026-09-23, después de revisar la NOM: **un tablero no tiene F.P., sus cargas
+sí** (la nota 2 de la Tabla 9 habla del «factor de potencia del circuito»). Se quitó el F.P. de la
+ficha; cada renglón lleva el suyo, prellenado en 0.9; el del alimentador resulta de combinar las
+cargas de la fase que gobierna, y el resumen enseña los kW reales (en el caso, **3.65**, no 3.42) y
+el F.P. resultante. Detalle y citas en
+[`../decisiones/factor-de-potencia-por-circuito.md`](../decisiones/factor-de-potencia-por-circuito.md).
+
+**Salió al probarlo:** suponer 0.9 en una carga resistiva **subestimaba** la caída de tensión (en
+12 AWG manda la R: Ze sube de 6.04 a 6.60 Ω/km al pasar de 0.9 a 1.0). La air fryer con F.P. 1 da
+2.54 %, no 2.31 %.
+
+### I-28 — Los avisos del principal ya no hablan del Excel · `e7fdf0a`
+
+David eligió la combinación propuesta: el **piso de 30 A** se volvió el campo «Mínimo del principal
+(A)» de la ficha, vacío por omisión, y **solo avisa** cuando el calculado queda debajo —ya no sale en
+todos los tableros chicos—; el **empate con el derivado mayor** conserva su aviso, redactado sin el
+Excel. Detalle en
+[`../decisiones/interruptor-principal-criterios-del-excel.md`](../decisiones/interruptor-principal-criterios-del-excel.md).
+
+### I-29 — Tamaños de interruptor por familia · `b9406ab`
+
+La 240-6(a) mezcla los tamaños de centro de carga (15, 30, 35, 45…) con los de riel DIN (16, 32, 63).
+David eligió tres opciones —**Centro de carga (NEMA)** por omisión, **Riel DIN (IEC)** y **NOM
+completa**— en el campo «Interruptores» de la ficha. Con centro de carga, la air fryer de la prueba y
+el principal quedan en **20 A**. Detalle en
+[`../decisiones/serie-de-interruptores.md`](../decisiones/serie-de-interruptores.md).
+
+**Tocó el motor copiado**, y se tiene que reportar en `PowerNode-DesignSuite` junto con M-02: la
+excepción 240-4(b) («el siguiente valor estándar superior») se lee contra la lista completa de la
+norma, no contra la serie. `ITablaProteccionEstandar` ganó `ValoresDeLaNorma` y `SiguienteDeLaNorma`,
+con implementación por omisión igual a la de antes, y `SeleccionConductor` los usa. Sin eso, en riel
+DIN se aceptaban 63 A sobre un 6 AWG de 55 A (`Serie_En240_4bManda_ElSiguienteDeLaNorma_NoElDeLaSerie`
+falla sin el cambio).
+
+### M-04 — La excepción 240-4(b) solo se concede en Alumbrado
+
+Salió al escribir la prueba de I-29. `CalculadoraCircuitoDerivadoNoMotor` pasa
+`permiteExcepcion2404b: d.TipoCarga == TipoCarga.Alumbrado`. La 240-4(b)(1) solo excluye el circuito
+derivado que alimenta **más de un contacto** para equipo conectado con cordón; un circuito de
+**Equipo** a un solo aparato sí califica. Hoy en Equipo el conductor siempre sube hasta cubrir la
+protección: es conservador (más cobre, nunca menos), no inseguro. Es del motor de escritorio y se
+reporta allá; aquí no se toca.
+
+### I-31 — «Acometida» se cortaba · `b9406ab`
+
+El mismo defecto que I-08: el selector de 118 px mostraba «Interruptor prin». Se vio al revisar el
+campo nuevo «Interruptores», que tenía el mismo problema («Centro de carg»). Los dos van ahora en su
+propio renglón, a todo lo ancho de la tarjeta.
+
+La lista de la prueba ponía también **I-30** entre las decisiones; no lo es. Es un tooltip que
+contradecía una decisión **ya confirmada** (`sin-piso-practico-de-calibre.md`), y se corrigió.
+
+### I-30 — El tooltip de «Tipo» describía el piso práctico de calibre · `b37de00`
+
+Decía «Decide el piso práctico de calibre (12 AWG en alumbrado, 10 en contactos) y el mínimo de
+protección». El piso se quitó el 2026-09-22. Ahora dice lo que el tipo decide de verdad: el mínimo de
+protección —15 A en alumbrado, 20 A en contactos, sin mínimo en equipo— y si aplica la excepción
+240-4(b).
+
+### Prueba pendiente del reporte, ya corrida
+
+El mismo caso con microondas y air fryer como **no continuas** (210-19: continua es de 3 h o más, y
+estos dos aparatos no lo son) da lo que el reporte calculó a mano: microondas 11.81 A, 15 A, 12 AWG
+por caída, 2.24 %; air fryer 12.20 A, 15 A, 12 AWG por caída, 2.31 %. Y en el alimentador la fase C
+ya no entra al 125 %: 12.20 A → principal de 15 A. Quedó como
+`ElMotorDistingueContinuaDeNoContinua_EnElDerivadoYEnElAlimentador`.

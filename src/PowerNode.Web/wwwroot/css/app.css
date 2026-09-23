@@ -131,6 +131,7 @@ input.desc, input.va {
 input.desc { width: 100%; }
 input.va { width: 62px; text-align: right; }
 input.va.corto { width: 46px; }
+input.va.fp { width: 52px; }
 input.desc:focus, input.va:focus {
     background: var(--papel);
     border-color: var(--acento);
@@ -182,6 +183,10 @@ input.desc:focus, input.va:focus {
                    bottom: 0; display: none; left: 0; padding: 10px 16px; position: fixed;
                    width: 100%; z-index: 1000; }
 select.polos { width: 48px; padding: 2px 4px; border-radius: var(--radio-xs); }
+select.unidad { width: 56px; padding: 2px 4px; border-radius: var(--radio-xs); }
+/* El VA con el que se calcula, debajo de lo capturado en W o A (I-25). */
+.cuadro .en-va { display: block; font-size: 10px; color: var(--tenue); text-align: right;
+                 padding-right: 6px; white-space: nowrap; }
 /* Ancho suficiente para "Alumbrado" completo MÁS la flecha del selector. A 92 px el
    navegador lo cortaba en "Alumbrac", que no es una palabra: un campo que miente sobre
    su propio valor es peor que uno estrecho. */
@@ -202,6 +207,10 @@ select.tipo { width: 108px; padding: 2px 4px 2px 6px; border-radius: var(--radio
                       font-size: 11px; color: var(--tenue); margin-top: 6px; }
 .ficha .grupo input, .ficha .grupo select { width: 118px; flex: none; }
 .ficha .grupo input[type="text"], .ficha .grupo label > input:not([type]) { width: 150px; }
+/* Un selector con opciones largas va en su propio renglón, a todo lo ancho: cortado, «Centro de
+   carg» miente sobre su valor (misma lección que «Alumbrac»). */
+.ficha .grupo label.apilado { flex-direction: column; align-items: stretch; gap: 4px; }
+.ficha .grupo label.apilado select { width: 100%; }
 .derivado { margin: 10px 0 0; font-size: 11px; color: var(--tenue); line-height: 1.5; }
 
 .acciones { display: flex; gap: 8px; align-items: center; }

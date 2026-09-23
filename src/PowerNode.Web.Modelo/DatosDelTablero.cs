@@ -66,6 +66,20 @@ public sealed class DatosDelTablero
     /// </summary>
     public decimal? CapacidadBarraA { get; set; }
 
+    /// <summary>
+    /// El interruptor principal más chico que el proyectista quiere para este tablero, en amperes.
+    /// <b>No es de la NOM</b> —la 240-6(a) no fija mínimo—: es criterio de diseño, y cambia de
+    /// proyecto a proyecto. <c>null</c> por omisión: sin mínimo no hay aviso. <b>Solo avisa</b>, no
+    /// sube el principal. Ver <c>docs/decisiones/interruptor-principal-criterios-del-excel.md</c>.
+    /// </summary>
+    public decimal? MinimoInterruptorPrincipalA { get; set; }
+
+    /// <summary>
+    /// La familia de interruptores que se instala, que decide de qué tamaños de la 240-6(a) se
+    /// escoge. <b>Centro de carga (NEMA) por omisión</b> — decisión de David del 2026-09-23.
+    /// </summary>
+    public SerieDeInterruptores SerieInterruptores { get; set; } = SerieDeInterruptores.CentroDeCargaNema;
+
     // ---- Sistema (Excel T22:T26) ---------------------------------------------------------------
 
     public decimal TensionFaseFaseV { get; set; } = 220m;
@@ -132,7 +146,9 @@ public sealed class DatosDelTablero
     public MaterialCanalizacion MaterialCanalizacion { get; set; } = MaterialCanalizacion.Pvc;
     public decimal TemperaturaAmbienteC { get; set; } = 30m;
     public int ConductoresAgrupados { get; set; } = 3;
-    public decimal FactorPotencia { get; set; } = 0.9m;
+    // SIN FACTOR DE POTENCIA DEL TABLERO. Un tablero no tiene F.P.: lo tienen sus cargas. Cada
+    // circuito lleva el suyo (CircuitoDelCuadro.FactorPotencia) y el del alimentador resulta de
+    // combinarlos. Decidido por David el 2026-09-23 — docs/decisiones/factor-de-potencia-por-circuito.md.
     public decimal CaidaMaxDerivadoPct { get; set; } = 3m;
     public decimal CaidaMaxAlimentadorPct { get; set; } = 5m;
 

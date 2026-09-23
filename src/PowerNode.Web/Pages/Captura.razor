@@ -46,7 +46,7 @@
         <label>Espacios <select @bind="Datos.NumeroEspacios" @bind:after="Recalcular">
             @foreach (var e in new[] { 6, 12, 18, 24, 30, 36, 42 }) { <option value="@e">@e</option> }
         </select></label>
-        <label>Acometida <select @bind="Datos.TipoAcometida" @bind:after="Recalcular">
+        <label class="apilado">Acometida <select @bind="Datos.TipoAcometida" @bind:after="Recalcular">
             <option value="@TipoAcometidaTablero.InterruptorPrincipal">Interruptor principal</option>
             <option value="@TipoAcometidaTablero.ZapatasPrincipales">Zapatas principales</option>
         </select></label>
@@ -63,6 +63,16 @@
         </select></label>
         <label>Capacidad de barra (A) <input type="number" min="0" step="1" placeholder="—"
                                              @bind="Datos.CapacidadBarraA" @bind:after="Recalcular" /></label>
+        <label class="apilado"><span class="ayuda" title="Qué familia de interruptores se instala. La 240-6(a) mezcla las dos: centro de carga (15, 30, 35, 45, 60…) y riel DIN (16, 32, 63). Centro de carga: sin 16, 32 ni 63 A. Riel DIN: solo 16, 20, 25, 32, 40, 50, 63, 80, 100 y 125 A. NOM completa: la lista tal cual.">Interruptores</span>
+            <select @bind="Datos.SerieInterruptores" @bind:after="Recalcular">
+                @foreach (var serie in new[] { SerieDeInterruptores.CentroDeCargaNema, SerieDeInterruptores.RielDinIec, SerieDeInterruptores.NomCompleta })
+                {
+                    <option value="@serie">@serie.Nombre()</option>
+                }
+            </select></label>
+        <label><span class="ayuda" title="Criterio del proyectista, no de la NOM. Vacío: sin mínimo. Si el principal calculado queda debajo, solo se avisa; no se sube.">Mínimo del principal (A)</span>
+            <input type="number" min="0" step="5" placeholder="—"
+                   @bind="Datos.MinimoInterruptorPrincipalA" @bind:after="Recalcular" /></label>
     </div>
 
     <div class="grupo">
@@ -78,7 +88,6 @@
         </select></label>
         <label>T. ambiente (°C) <input type="number" min="10" max="80" step="1" @bind="Datos.TemperaturaAmbienteC" @bind:after="Recalcular" /></label>
         <label>Agrupados <input type="number" min="1" max="40" step="1" @bind="Datos.ConductoresAgrupados" @bind:after="Recalcular" /></label>
-        <label>F.P. <input type="number" min="0.1" max="1" step="0.05" @bind="Datos.FactorPotencia" @bind:after="Recalcular" /></label>
         <label>e% máx. derivado <input type="number" min="0.5" max="10" step="0.5" @bind="Datos.CaidaMaxDerivadoPct" @bind:after="Recalcular" /></label>
     </div>
 </section>
@@ -95,8 +104,8 @@
             <tr>
                 <th rowspan="2"><span class="ayuda" title="Número de circuito: es el espacio que ocupa en la barra. Nones arriba, pares abajo.">N.º</span></th>
                 <th rowspan="2" class="izq descripcion">Descripción</th>
-                <th rowspan="2"><span class="ayuda" title="Alumbrado, Contactos o Equipo. Decide el piso práctico de calibre (12 AWG en alumbrado, 10 en contactos) y el mínimo de protección.">Tipo</span></th>
-                <th colspan="2"><span class="ayuda" title="Carga continua es la que opera 3 horas o más (210-20(a)); la no continua entra al 100 %.">Carga <span class="simbolo">(VA)</span></span></th>
+                <th rowspan="2"><span class="ayuda" title="Alumbrado, Contactos o Equipo. Decide el mínimo de protección —15 A en alumbrado, 20 A en contactos, sin mínimo en equipo— y si aplica la excepción 240-4(b). El calibre sale del cálculo, sin piso por tipo.">Tipo</span></th>
+                <th colspan="4"><span class="ayuda" title="Como viene en la placa: VA, W o A, y el factor de potencia de la carga. Carga continua es la que opera 3 horas o más (210-20(a)); la no continua entra al 100 %. Debajo de cada valor en W o A va el VA con el que se calcula.">Carga</span></th>
                 <th colspan="@Datos.Barras.Count"><span class="ayuda" title="La carga del circuito repartida entre las barras que toca, igual que las columnas de balanceo del Excel.">Balanceo de fases <span class="simbolo">(VA)</span></span></th>
                 <th rowspan="2"><span class="ayuda" title="Longitud del circuito. Es la que decide la caída de tensión."><span class="simbolo">L (m)</span></span></th>
                 <th rowspan="2"><span class="ayuda" title="Polos del interruptor. Un multipolar ocupa espacios de dos en dos del mismo lado.">P</span></th>
@@ -109,8 +118,10 @@
                 <th rowspan="2" class="ultima"><span class="ayuda" title="Caída de tensión del circuito. La recomendada es 3 % en el derivado y 5 % combinada — 310-15, NOTA 4."><span class="simbolo">e (%)</span></span></th>
             </tr>
             <tr>
+                <th><span class="ayuda" title="Unidad de la placa. Los W se convierten con el factor de potencia; los A, con la tensión y los polos del circuito.">Unidad</span></th>
                 <th><span class="ayuda" title="Carga que opera 3 horas o más. Entra al 125 % — 210-20(a).">Continua</span></th>
                 <th><span class="ayuda" title="Carga que no opera 3 horas seguidas. Entra al 100 %.">No continua</span></th>
+                <th><span class="ayuda" title="Factor de potencia de esta carga. 0.9 es un valor supuesto: cámbialo con el dato de placa (1.0 en una resistencia, ~0.8 en un compresor). Convierte W a VA y entra en la caída de tensión (Tabla 9, nota 2); no cambia la protección de una carga capturada en VA o A.">F.P.</span></th>
                 @foreach (var barra in Datos.Barras)
                 {
                     <th><span class="ayuda" title="Carga que este circuito le cuelga a la barra @barra.">@barra</span></th>
@@ -158,8 +169,22 @@
                                 <option value="@TipoCarga.Equipo">Equipo</option>
                             </select>
                         </td>
-                        <td rowspan="@c.Polos"><input class="va" type="number" min="0" @bind="c.ContinuaVA" @bind:after="Recalcular" /></td>
-                        <td rowspan="@c.Polos"><input class="va" type="number" min="0" @bind="c.NoContinuaVA" @bind:after="Recalcular" /></td>
+                        <td rowspan="@c.Polos">
+                            <select class="unidad" @bind="c.Unidad" @bind:after="Recalcular">
+                                <option value="@UnidadConsumo.VoltAmperes">VA</option>
+                                <option value="@UnidadConsumo.Watts">W</option>
+                                <option value="@UnidadConsumo.Amperes">A</option>
+                            </select>
+                        </td>
+                        <td rowspan="@c.Polos">
+                            <input class="va" type="number" min="0" @bind="c.Continua" @bind:after="Recalcular" />
+                            @EnVA(c, c.Continua, c.ContinuaVA)
+                        </td>
+                        <td rowspan="@c.Polos">
+                            <input class="va" type="number" min="0" @bind="c.NoContinua" @bind:after="Recalcular" />
+                            @EnVA(c, c.NoContinua, c.NoContinuaVA)
+                        </td>
+                        <td rowspan="@c.Polos"><input class="va fp" type="number" min="0.1" max="1" step="0.05" @bind="c.FactorPotencia" @bind:after="Recalcular" /></td>
                         @foreach (var barra in Datos.Barras)
                         {
                             <td rowspan="@c.Polos" class="num tenue">@(c.TieneCarga && c.Fases.Contains(barra) ? c.CargaPorFaseVA.ToString("N0") : "")</td>
@@ -299,9 +324,14 @@
             </tr>
             <tr class="total">
                 <td class="izq">Total <span class="simbolo">(kW)</span></td>
-                <td class="num">@((Cuadro.Resumen.InstaladaVA / 1000m * Datos.FactorPotencia).ToString("N2"))</td>
+                <td class="num">@((Cuadro.Resumen.InstaladaW / 1000m).ToString("N2"))</td>
                 <td></td>
-                <td class="num">@((Cuadro.Resumen.DemandadaVA / 1000m * Datos.FactorPotencia).ToString("N2"))</td>
+                <td class="num">@((Cuadro.Resumen.DemandadaW / 1000m).ToString("N2"))</td>
+            </tr>
+            <tr>
+                <td class="izq"><span class="ayuda" title="No se captura: resulta de las cargas. kW totales entre la suma vectorial de sus kVA.">F.P. resultante</span></td>
+                <td class="num">@Cuadro.Resumen.FactorPotencia.ToString("N2")</td>
+                <td></td><td></td>
             </tr>
         </table>
 
@@ -330,7 +360,18 @@
         @if (Cuadro.Alimentador.Resultado is { } a)
         {
             <table class="datos">
+                @if (Cuadro.Alimentador.Gobierna is { } g && Datos.Barras.Count > 1)
+                {
+                    <tr>
+                        <td class="izq"><span class="ayuda" title="Cada fase del alimentador lleva su propia corriente: se dimensiona con la que pide más capacidad (125 % de la continua + la no continua), no con la carga total repartida.">Fase que gobierna</span></td>
+                        <td class="num">@g.Fase, la más cargada</td>
+                    </tr>
+                }
                 <tr><td class="izq">Corriente de diseño</td><td class="num">@a.CorrienteDisenoA.ToString("N2") A</td></tr>
+                <tr>
+                    <td class="izq"><span class="ayuda" title="No se captura: resulta de combinar las cargas de la fase que gobierna. Es el que entra a la caída de tensión del alimentador.">Factor de potencia</span></td>
+                    <td class="num">@Cuadro.Alimentador.FactorPotencia.ToString("N2")</td>
+                </tr>
                 <tr class="total">
                     <td class="izq">@(Datos.UsaInterruptorPrincipal ? "Interruptor principal" : "Protección del lado de alimentación")</td>
                     <td class="num fuerte">@a.ProteccionA.ToString("N0") A · @Cuadro.Alimentador.Polos polos</td>
@@ -381,7 +422,7 @@
     /// Cuántas columnas tiene el cuadro, para los <c>colspan</c> de los renglones que abarcan todo.
     /// Depende de las barras: un tablero de dos barras no tiene columna de balanceo para la C.
     /// </summary>
-    private int Columnas => 20 + Datos.Barras.Count;
+    private int Columnas => 22 + Datos.Barras.Count;
 
     /// <summary>Los dos bloques del cuadro, ya materializados: cada uno se recorre más de una vez.</summary>
     private List<CircuitoDelCuadro>[] Lados => [Cuadro.Nones.ToList(), Cuadro.Pares.ToList()];
@@ -405,6 +446,15 @@
             builder.CloseElement();
         }
     };
+
+    /// <summary>
+    /// El VA con el que de verdad se calcula, debajo de lo capturado en W o A — I-25. En VA no se
+    /// repite: sería el mismo número dos veces.
+    /// </summary>
+    private static RenderFragment? EnVA(CircuitoDelCuadro c, decimal capturado, decimal va) =>
+        c.Unidad == UnidadConsumo.VoltAmperes || capturado <= 0m
+            ? null
+            : @<span class="en-va">= @va.ToString("N0") VA</span>;
 
     private static string Titulo(BloqueDelGabinete bloque) =>
         bloque.Ocupado

@@ -315,8 +315,10 @@ public static class SeleccionConductor
 
         var aplicaExcepcion = permiteExcepcion2404b
             && breaker <= 800m
-            && !proteccionEstandar.ValoresEstandar.Contains(ampacidadUtilCarga)
-            && breaker == proteccionEstandar.SiguienteEstandar(ampacidadUtilCarga);
+            // Contra la lista COMPLETA de 240-6(a), no contra la serie en que se eligió la protección:
+            // «el siguiente valor estándar» es el de la norma. Ver ITablaProteccionEstandar.ValoresDeLaNorma.
+            && !proteccionEstandar.ValoresDeLaNorma.Contains(ampacidadUtilCarga)
+            && breaker == proteccionEstandar.SiguienteDeLaNorma(ampacidadUtilCarga);
 
         if (aplicaExcepcion)
             return (calibrePorCarga, new Cita("240-4(b)",

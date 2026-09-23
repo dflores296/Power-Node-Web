@@ -71,3 +71,18 @@ compilación en la frontera. Los cinco, en el orden en que aparecieron:
 
 No se tocó ninguna regla de cálculo. Los cinco ajustes son de **plomería entre archivos**, no de
 lógica de la norma.
+
+## Lo que cambió después de copiar
+
+- **2026-09-23 · `CalculadoraDesbalanceo.CorrientePorFase`** (hallazgo M-02). La suma de corriente por
+  barra vivía dentro de `Porcentaje`; se extrajo a su propio método público, y `Porcentaje` lo usa.
+  **Misma regla, mismo resultado** —el desbalanceo no cambia—: hacía falta porque el alimentador
+  necesita la corriente de la fase más cargada, y una segunda copia de la suma era justo lo que no
+  se quería. Al recopiar el motor desde el escritorio, este método tiene que sobrevivir (o llegar
+  allá con el reporte de M-02).
+- **2026-09-23 · `ITablaProteccionEstandar.ValoresDeLaNorma` / `SiguienteDeLaNorma`** (hallazgo
+  I-29). Miembros con implementación por omisión —la misma lista—, así que ninguna tabla existente
+  cambia. `SeleccionConductor` los usa en la excepción 240-4(b), que habla del siguiente valor
+  estándar **de la norma**: la web elige el interruptor dentro de una serie (centro de carga, riel
+  DIN) y esa verificación no puede hacerse contra la serie recortada. Mismo destino al recopiar:
+  sobrevivir, o llegar allá con el reporte.

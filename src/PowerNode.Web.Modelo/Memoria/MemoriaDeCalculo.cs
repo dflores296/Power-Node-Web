@@ -52,7 +52,7 @@ public static class MemoriaDeCalculo
             TensionV: circuito.Polos == 1 ? datos.TensionFaseNeutroV : datos.TensionFaseFaseV,
             NumeroFases: circuito.Polos,
             NumeroHilos: circuito.Polos + 1,
-            FactorPotencia: datos.FactorPotencia,
+            FactorPotencia: circuito.FactorPotencia,
             LongitudM: circuito.LongitudM,
             MaterialConductor: Etiqueta(datos.MaterialConductor),
             CorrienteDisenoA: r.CorrienteDisenoA,
@@ -64,7 +64,8 @@ public static class MemoriaDeCalculo
             TablaAmpacidadId: r.TablaAmpacidadId,
             ConductoresPorFase: r.NumeroConductoresParalelo,
             Detalle: r.Detalle,
-            Citas: r.Citas);
+            Citas: r.Citas,
+            SerieDeInterruptores: cuadro.Datos.SerieInterruptores.Explicacion());
     }
 
     public static HojaDeMemoria? DelAlimentador(CuadroDeCarga cuadro)
@@ -83,7 +84,8 @@ public static class MemoriaDeCalculo
             TensionV: cuadro.Alimentador.Polos == 1 ? datos.TensionFaseNeutroV : datos.TensionFaseFaseV,
             NumeroFases: cuadro.Alimentador.Polos,
             NumeroHilos: datos.Hilos,
-            FactorPotencia: datos.FactorPotencia,
+            // Resulta de las cargas de la fase que gobierna; no se captura.
+            FactorPotencia: cuadro.Alimentador.FactorPotencia,
             LongitudM: datos.LongitudAlimentadorM,
             MaterialConductor: Etiqueta(datos.MaterialConductor),
             CorrienteDisenoA: r.CorrienteDisenoA,
@@ -95,7 +97,25 @@ public static class MemoriaDeCalculo
             TablaAmpacidadId: r.TablaAmpacidadId,
             ConductoresPorFase: r.NumeroConductoresParalelo,
             Detalle: r.Detalle,
-            Citas: r.Citas);
+            Citas: r.Citas,
+            FaseQueGobierna: FaseQueGobierna(cuadro),
+            SerieDeInterruptores: cuadro.Datos.SerieInterruptores.Explicacion());
+    }
+
+    /// <summary>
+    /// «Fase C, la más cargada: 125 % × 12.20 A + 0.00 A = 15.25 A». Es lo que explica por qué la
+    /// corriente de diseño del alimentador no es la carga total entre √3·V: el alimentador se
+    /// dimensiona con la barra que más lleva — M-02.
+    /// </summary>
+    private static string? FaseQueGobierna(CuadroDeCarga cuadro)
+    {
+        if (cuadro.Alimentador.Gobierna is not { } g || cuadro.Alimentador.Fases is not { Count: > 1 } fases)
+            return null;
+
+        return $"Fase {g.Fase}, la más cargada: {g.FactorContinua * 100m:0} % × {g.ContinuaA:N2} A (continua) + " +
+               $"{g.NoContinuaA:N2} A (no continua) = {g.CapacidadA:N2} A. Las demás: " +
+               string.Join(", ", fases.Where(f => f.Fase != g.Fase).Select(f => $"fase {f.Fase} {f.CapacidadA:N2} A")) +
+               ". El alimentador se dimensiona con la corriente de esta fase, no con la carga total repartida.";
     }
 
     /// <summary>Las nueve secciones de una hoja, en el orden en que se imprimen.</summary>
@@ -113,7 +133,9 @@ public static class MemoriaDeCalculo
             ("Carga no continua", $"{hoja.CargaNoContinuaVa:N0} VA"),
             ("Tensión nominal", $"{hoja.TensionV:N1} V"),
             ("Frecuencia", "60 Hz"),
-            ("Factor de potencia", $"{hoja.FactorPotencia:N2}"),
+            ("Factor de potencia", hoja.Articulo == "215"
+                ? $"{hoja.FactorPotencia:N2} — resulta de combinar las cargas de la fase que gobierna"
+                : $"{hoja.FactorPotencia:N2}"),
             ("Fases / hilos", $"{hoja.NumeroFases} / {hoja.NumeroHilos}")]));
 
         // ---- 2
@@ -127,9 +149,11 @@ public static class MemoriaDeCalculo
         // ---- 3
         var articuloProteccion = hoja.Articulo == "215" ? "215-3" : "210-20(a)";
         bloques.Add(Seccion("3. SELECCIÓN DE LA PROTECCIÓN", [
+            ("Fase que gobierna", hoja.FaseQueGobierna),
             ("Corriente de diseño (In)", Amperes(hoja.CorrienteDisenoA)),
             ($"Capacidad mínima — {articuloProteccion}", d is null ? null : Amperes(d.CapacidadMinimaA)),
-            ("Protección seleccionada — 240-6(a)", Amperes(hoja.ProteccionA, "N0"))]));
+            ("Protección seleccionada — 240-6(a)", Amperes(hoja.ProteccionA, "N0")),
+            ("Tamaños de interruptor", hoja.SerieDeInterruptores)]));
 
         // ---- 4: la fórmula con sus números sustituidos
         var formulas4 = new List<string> { "Icm = In / [ (FT) × (FA) × (hilos por fase) ]" };
