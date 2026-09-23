@@ -56,6 +56,12 @@ para que la excepción 240-4(b) siga leyéndose contra la norma completa. De pas
 solo en alumbrado, del escritorio) e I-31 («Acometida» cortada). 54 pruebas; verificado en el
 navegador con las tres opciones.
 
+**Después del despliegue, una duda de David:** si la carga va en VA y se cambia el F.P., ¿qué se
+mueve? Solo la caída de tensión (y el cable si pasa del límite) y los kW; la corriente y el
+interruptor no, porque salen directo de los VA. Pidió que se dijera en algún lado que no estorbe:
+va en el tooltip del encabezado «F.P.» y en el de cada casilla, que cambia según la unidad del
+renglón (W, VA o A).
+
 ---
 
 ## 2026-09-22 (tercera parte) — El tablero entero, y el entregable que se imprime
