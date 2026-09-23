@@ -95,7 +95,24 @@ public static class MemoriaDeCalculo
             TablaAmpacidadId: r.TablaAmpacidadId,
             ConductoresPorFase: r.NumeroConductoresParalelo,
             Detalle: r.Detalle,
-            Citas: r.Citas);
+            Citas: r.Citas,
+            FaseQueGobierna: FaseQueGobierna(cuadro));
+    }
+
+    /// <summary>
+    /// «Fase C, la más cargada: 125 % × 12.20 A + 0.00 A = 15.25 A». Es lo que explica por qué la
+    /// corriente de diseño del alimentador no es la carga total entre √3·V: el alimentador se
+    /// dimensiona con la barra que más lleva — M-02.
+    /// </summary>
+    private static string? FaseQueGobierna(CuadroDeCarga cuadro)
+    {
+        if (cuadro.Alimentador.Gobierna is not { } g || cuadro.Alimentador.Fases is not { Count: > 1 } fases)
+            return null;
+
+        return $"Fase {g.Fase}, la más cargada: {g.FactorContinua * 100m:0} % × {g.ContinuaA:N2} A (continua) + " +
+               $"{g.NoContinuaA:N2} A (no continua) = {g.CapacidadA:N2} A. Las demás: " +
+               string.Join(", ", fases.Where(f => f.Fase != g.Fase).Select(f => $"fase {f.Fase} {f.CapacidadA:N2} A")) +
+               ". El alimentador se dimensiona con la corriente de esta fase, no con la carga total repartida.";
     }
 
     /// <summary>Las nueve secciones de una hoja, en el orden en que se imprimen.</summary>
@@ -127,6 +144,7 @@ public static class MemoriaDeCalculo
         // ---- 3
         var articuloProteccion = hoja.Articulo == "215" ? "215-3" : "210-20(a)";
         bloques.Add(Seccion("3. SELECCIÓN DE LA PROTECCIÓN", [
+            ("Fase que gobierna", hoja.FaseQueGobierna),
             ("Corriente de diseño (In)", Amperes(hoja.CorrienteDisenoA)),
             ($"Capacidad mínima — {articuloProteccion}", d is null ? null : Amperes(d.CapacidadMinimaA)),
             ("Protección seleccionada — 240-6(a)", Amperes(hoja.ProteccionA, "N0"))]));

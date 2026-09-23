@@ -23,8 +23,29 @@ public sealed class CircuitoDelCuadro
 
     public string Descripcion { get; set; } = string.Empty;
     public TipoCarga Tipo { get; set; } = TipoCarga.Alumbrado;
-    public decimal ContinuaVA { get; set; }
-    public decimal NoContinuaVA { get; set; }
+
+    /// <summary>
+    /// En qué unidad viene lo que se capturó: VA, W o A, como lo diga la placa. <b>VA por omisión</b>,
+    /// que es lo único que la pantalla aceptaba antes — lo ya capturado no cambia.
+    /// </summary>
+    public UnidadConsumo Unidad { get; set; } = UnidadConsumo.VoltAmperes;
+
+    /// <summary>La carga continua <b>tal como viene en la placa</b>, en <see cref="Unidad"/>.</summary>
+    public decimal Continua { get; set; }
+
+    /// <summary>La carga no continua tal como viene en la placa, en <see cref="Unidad"/>.</summary>
+    public decimal NoContinua { get; set; }
+
+    /// <summary>
+    /// La carga continua ya en volt-amperes, que es con lo que calcula el motor. La convierte
+    /// <see cref="CuadroDeCarga"/> con <c>ConsumoDePlaca.AVoltAmperes</c> —la misma regla del
+    /// escritorio (<c>CircuitoDerivado.VaUnitarioDe</c>)—, porque la conversión necesita la tensión
+    /// y el factor de potencia, que son del tablero.
+    /// </summary>
+    public decimal ContinuaVA { get; internal set; }
+
+    /// <summary>La carga no continua en volt-amperes. Ver <see cref="ContinuaVA"/>.</summary>
+    public decimal NoContinuaVA { get; internal set; }
     public decimal LongitudM { get; set; } = 20m;
 
     /// <summary>Polos del interruptor. Se cambia por <see cref="CuadroDeCarga.CambiarPolos"/>, que verifica que quepa.</summary>

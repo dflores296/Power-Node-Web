@@ -4,6 +4,39 @@ Qué se hizo cada sesión. Del 2026-09-22 en adelante (nace el repo).
 
 ---
 
+## 2026-09-23 — La prueba de los tres aparatos
+
+**Lo que pidió David:** implementar los hallazgos de su prueba del 2026-09-22 —refrigerador,
+microondas y air fryer, uno por fase, en un 3F-4H 220/127 V—. Los derivados salieron bien; el
+alimentador no.
+
+**Lo que se corrigió** (detalle en `HALLAZGOS.md`):
+
+- **M-02, P0: el alimentador se dimensionaba con la carga total entre √3·V_FF**, como si el tablero
+  estuviera balanceado. En el caso daba 15 A y 14 AWG cuando la fase C pide 15.25 A. Ahora gobierna
+  la fase más cargada, con la corriente por barra de `CalculadoraDesbalanceo` —extraída como
+  `CorrientePorFase`, sin segunda copia de la regla— y sin reescribir `CalculadoraAlimentador`: se le
+  entrega la carga equivalente de esa fase. La memoria dice qué fase gobierna. Resultado: 16 A, 12 AWG.
+- **M-03: aviso cuando el principal es menor que el derivado más grande.**
+- **I-25: la carga se captura en VA, W o A**, con `ConsumoDePlaca.AVoltAmperes` del motor, y el
+  renglón enseña el VA que resulta.
+- **I-30: el tooltip de «Tipo»** ya no habla del piso de calibre que se quitó ayer.
+
+**Lo que quedó como propuesta**, porque es decisión de diseño: I-26 (FP por circuito), I-27 (kW
+reales), I-28 (avisos sin «el Excel original») e I-29 (serie sin 16/32/63 A). La lista de la prueba
+metía también a I-30 entre las decisiones; no lo era, y se corrigió directo.
+
+**Pruebas:** 40 en `PowerNode.Web.Tests` (eran 28), con el caso de los tres aparatos como regresión
+de M-02 y M-03, y la «prueba pendiente» del reporte —microondas y air fryer no continuas— corrida y
+verde con los valores que se calcularon a mano. **Verificado corriendo** con Playwright contra
+`dotnet run`: el caso capturado en W, el VA debajo del valor, «Fase que gobierna: C» en el
+alimentador, la memoria con su renglón y el cuadro impreso con «(fase C)»; sin errores de consola.
+
+**No se pudo:** reportar M-02 en `PowerNode-DesignSuite` — la sesión no tuvo acceso a ese repo. El
+texto del reporte quedó en `HALLAZGOS.md` §M-02.
+
+---
+
 ## 2026-09-22 (tercera parte) — El tablero entero, y el entregable que se imprime
 
 **Lo que pidió David:** traer del escritorio cómo se arma el tablero, cómo se ocupan las fases, el

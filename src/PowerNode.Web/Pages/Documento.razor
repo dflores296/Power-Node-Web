@@ -163,7 +163,8 @@
                             <td class="num">@a.NumeroConductoresParalelo–@a.CalibreFase.Designacion</td>
                             <td class="num">1–@a.CalibreNeutro.Designacion</td>
                             <td class="num">1–@a.CalibreTierra.Designacion</td>
-                            <td class="num">@a.CorrienteDisenoA.ToString("N2")</td>
+                            @* La corriente de la fase más cargada, que es con la que se dimensiona — M-02. *@
+                            <td class="num">@a.CorrienteDisenoA.ToString("N2")@(Cuadro.Alimentador.Gobierna is { } g && Datos.Barras.Count > 1 ? $" (fase {g.Fase})" : "")</td>
                             <td class="num">@Datos.LongitudAlimentadorM.ToString("N0")</td>
                             <td class="num">@a.CaidaTensionPct.ToString("N2")</td>
                         </tr>

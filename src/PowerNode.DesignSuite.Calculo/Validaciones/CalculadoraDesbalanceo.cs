@@ -14,17 +14,35 @@ public static class CalculadoraDesbalanceo
     {
         if (fasesTablero.Count < 2) return 0m; // un tablero monofásico no tiene noción de desbalance
 
-        var porFase = fasesTablero.ToDictionary(f => f, _ => 0m);
-        foreach (var c in circuitos)
-            foreach (var fase in c.Fases)
-                if (porFase.ContainsKey(fase))
-                    porFase[fase] += c.CorrienteA;
+        var porFase = CorrientePorFase(circuitos, fasesTablero);
 
         var max = porFase.Values.Max();
         if (max == 0m) return 0m; // tablero sin carga todavía, nada que reportar
 
         var min = porFase.Values.Min();
         return (max - min) / max * 100m;
+    }
+
+    /// <summary>
+    /// <b>La corriente que lleva cada barra</b>: la de cada circuito sumada, completa, en cada barra
+    /// que toca. En un interruptor de 3 polos de 20 A circulan 20 A por cada línea, no un tercio por
+    /// cada una — por eso se suma en corriente y no en VA.
+    ///
+    /// <para>
+    /// Estaba dentro de <see cref="Porcentaje"/> y salió el 2026-09-23 (Power Node Web, hallazgo
+    /// M-02), cuando el alimentador necesitó la corriente de la fase más cargada: <b>es la misma
+    /// regla, y vive en un solo lugar</b>.
+    /// </para>
+    /// </summary>
+    public static IReadOnlyDictionary<char, decimal> CorrientePorFase(
+        IReadOnlyList<CorrientePorCircuito> circuitos, IReadOnlyList<char> fasesTablero)
+    {
+        var porFase = fasesTablero.ToDictionary(f => f, _ => 0m);
+        foreach (var c in circuitos)
+            foreach (var fase in c.Fases)
+                if (porFase.ContainsKey(fase))
+                    porFase[fase] += c.CorrienteA;
+        return porFase;
     }
 
     /// <summary>

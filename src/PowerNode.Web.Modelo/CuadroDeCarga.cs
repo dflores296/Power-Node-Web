@@ -20,14 +20,30 @@ public sealed record ResumenDeCarga(
 }
 
 /// <summary>
+/// Lo que lleva una barra del alimentador, en amperes: la parte continua y la no continua ya con su
+/// factor de demanda, y la capacidad que piden juntas (215-2(a)(1): 125 % de la continua + 100 % de
+/// la no continua).
+/// </summary>
+/// <param name="FactorContinua">1.25, o 1.00 con el ensamble aprobado al 100 % — 215-3.</param>
+public sealed record CorrienteDeFase(char Fase, decimal ContinuaA, decimal NoContinuaA, decimal FactorContinua)
+{
+    public decimal TotalA => ContinuaA + NoContinuaA;
+    public decimal CapacidadA => FactorContinua * ContinuaA + NoContinuaA;
+}
+
+/// <summary>
 /// El renglón del alimentador: la fila 79 del Excel, «ALIMENTADOR Y PROTECCIÓN PRINCIPAL».
 /// <see cref="Resultado"/> trae el interruptor principal en <c>ProteccionA</c>.
 /// </summary>
+/// <param name="Fases">La corriente de cada barra, en el orden de las barras.</param>
+/// <param name="Gobierna">La fase más cargada, que es con la que se dimensiona. <c>null</c> sin carga.</param>
 public sealed record RenglonDelAlimentador(
     ResultadoAlimentador? Resultado,
     string? Error,
     IReadOnlyList<string> Avisos,
-    int Polos);
+    int Polos,
+    IReadOnlyList<CorrienteDeFase>? Fases = null,
+    CorrienteDeFase? Gobierna = null);
 
 /// <summary>
 /// <b>El cuadro de carga completo de un tablero</b>: su cabecera, sus espacios y lo que sale de
@@ -95,6 +111,7 @@ public sealed class CuadroDeCarga
     {
         AjustarEspacios();
         ResolverOcupacion();
+        ConvertirCargas();
         CalcularCircuitos();
         DibujarGabinete();
         CalcularResumen();
@@ -163,6 +180,25 @@ public sealed class CuadroDeCarga
                 _circuitos[ocupado - 1].ContinuacionDe = c.Espacio;
         }
     }
+
+    /// <summary>
+    /// De lo que dice la placa (VA, W o A) a volt-amperes — I-25. <b>La regla no se escribe aquí</b>:
+    /// es <see cref="ConsumoDePlaca.AVoltAmperes"/>, la misma que usa el escritorio, con la tensión y
+    /// los polos del circuito para que unos amperes capturados regresen como los mismos amperes
+    /// calculados.
+    /// </summary>
+    private void ConvertirCargas()
+    {
+        foreach (var c in _circuitos)
+        {
+            c.ContinuaVA = AVoltAmperes(c, c.Continua);
+            c.NoContinuaVA = AVoltAmperes(c, c.NoContinua);
+        }
+    }
+
+    private decimal AVoltAmperes(CircuitoDelCuadro c, decimal valor) =>
+        ConsumoDePlaca.AVoltAmperes(
+            valor, c.Unidad, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV, c.Polos, Datos.FactorPotencia);
 
     private void CalcularCircuitos()
     {
@@ -271,6 +307,46 @@ public sealed class CuadroDeCarga
             DesbalanceoPct: desbalanceo);
     }
 
+    /// <summary>
+    /// <b>La corriente de cada barra del alimentador</b> — M-02. Cada fase del alimentador lleva su
+    /// propia corriente, y el conductor y el principal se dimensionan con <b>la más cargada</b>, no
+    /// con la carga total repartida como si el tablero estuviera balanceado. Es lo que hacía el
+    /// Excel (<c>CU79</c>/<c>CV79</c>: <c>MAX(1.25·CO78+CR78, …)</c> entre la tensión F-N).
+    ///
+    /// <para>
+    /// <b>Se suma en corriente, no en VA</b>, con la misma regla del desbalanceo
+    /// (<see cref="CalculadoraDesbalanceo.CorrientePorFase"/>): un interruptor de 2 polos a 220 V
+    /// lleva su corriente completa por cada una de sus dos líneas, no la mitad de sus VA entre 127.
+    /// La corriente de cada circuito sale de su carga, no de su resultado, para que un renglón que el
+    /// motor rechazó —por caída de tensión, por ejemplo— siga pesando en el alimentador.
+    /// </para>
+    /// </summary>
+    private IReadOnlyList<CorrienteDeFase> CorrientesPorFase()
+    {
+        var conCarga = _circuitos.Where(c => c.TieneCarga).ToList();
+
+        IReadOnlyDictionary<char, decimal> Sumar(Func<CircuitoDelCuadro, decimal> va, decimal factorDemanda) =>
+            CalculadoraDesbalanceo.CorrientePorFase(
+                [.. conCarga.Select(c => new CorrientePorCircuito(
+                    c.Fases,
+                    factorDemanda * va(c) / TensionDeCalculo.Divisor(c.Polos, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV)))],
+                Datos.Barras);
+
+        var continua = Sumar(c => c.ContinuaVA, Datos.FactorDemandaContinua);
+        var noContinua = Sumar(c => c.NoContinuaVA, Datos.FactorDemandaNoContinua);
+
+        // El mismo 125 % (o 100 %, con el ensamble aprobado) que aplica la calculadora del
+        // alimentador: la fase que gobierna es la que pide más capacidad, no la de más corriente.
+        var factor = CargaContinua100Pct.Para(
+            Datos.ConjuntoAprobado100Pct, null,
+            ClaseDeTramo.Alimentador.CapacidadMinima(), ClaseDeTramo.Alimentador.Excepcion100Pct()).Factor;
+
+        return
+        [
+            .. Datos.Barras.Select(f => new CorrienteDeFase(f, continua[f], noContinua[f], factor))
+        ];
+    }
+
     private void CalcularAlimentador()
     {
         var polos = Datos.Barras.Count;
@@ -281,14 +357,27 @@ public sealed class CuadroDeCarga
             return;
         }
 
+        var fases = CorrientesPorFase();
+        // Empate: gana la primera barra, que es determinista y es como se lee el tablero.
+        var gobierna = fases.Aggregate((max, f) => f.CapacidadA > max.CapacidadA ? f : max);
+
         try
         {
+            // LA FASE MÁS CARGADA, COMO SI LAS DEMÁS LLEVARAN LO MISMO. La calculadora copiada del
+            // escritorio divide la carga entre √3·V_FF (o la tensión que toque al sistema), así que se
+            // le entrega la carga que da exactamente la corriente de esa fase: su corriente por el
+            // mismo divisor. En un 3F-4H eso es 3 × los VA de la fase. Así la protección, el conductor
+            // y la caída de tensión salen con la corriente real de la barra que más lleva, sin
+            // reescribir el motor. Ver M-02 en docs/estado/HALLAZGOS.md.
+            //
             // El factor de demanda NO se multiplica aquí: la calculadora lo aplica y lo deja escrito
             // en la memoria con su cita del 220-40, que es lo que tiene que ver quien revisa por qué
-            // el alimentador lleva menos cobre.
+            // el alimentador lleva menos cobre. Por eso se deshace en la corriente de la fase antes
+            // de convertirla — el motor lo vuelve a aplicar.
+            var divisor = TensionDeCalculo.Divisor(polos, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV);
             var resultado = _motor.Alimentador.Calcular(new DatosEntradaAlimentador(
-                CargaContinuaVA: Resumen.ContinuaVA,
-                CargaNoContinuaVA: Resumen.NoContinuaVA,
+                CargaContinuaVA: SinDemanda(gobierna.ContinuaA, Datos.FactorDemandaContinua) * divisor,
+                CargaNoContinuaVA: SinDemanda(gobierna.NoContinuaA, Datos.FactorDemandaNoContinua) * divisor,
                 NumeroFases: polos,
                 TensionFaseNeutroV: Datos.TensionFaseNeutroV,
                 TensionFaseFaseV: Datos.TensionFaseFaseV,
@@ -305,13 +394,29 @@ public sealed class CuadroDeCarga
                 FactorDemandaNoContinua: Datos.FactorDemandaNoContinua,
                 ConjuntoAprobado100Pct: Datos.ConjuntoAprobado100Pct));
 
-            Alimentador = new RenglonDelAlimentador(resultado, null, Avisos(resultado), polos);
+            resultado = resultado with { Citas = [.. resultado.Citas.Select(c => c.Referencia == "220-40" ? Cita220_40(gobierna) : c)] };
+            Alimentador = new RenglonDelAlimentador(resultado, null, Avisos(resultado), polos, fases, gobierna);
         }
         catch (Exception ex)
         {
-            Alimentador = new RenglonDelAlimentador(null, ex.Message, [], polos);
+            Alimentador = new RenglonDelAlimentador(null, ex.Message, [], polos, fases, gobierna);
         }
     }
+
+    /// <summary>
+    /// La cita del 220-40 con la carga <b>del tablero</b>. La que escribe la calculadora habla de la
+    /// carga que recibió, que aquí es la equivalente de la fase que gobierna (3 × sus VA en un
+    /// 3F-4H): cierta, pero ilegible para quien revisa la memoria contra el resumen de carga.
+    /// </summary>
+    private Cita Cita220_40(CorrienteDeFase gobierna) => new("220-40",
+        $"Factor de demanda sobre la carga acumulada: continua {Resumen.ContinuaVA:0.##} VA x {Datos.FactorDemandaContinua} = "
+        + $"{Resumen.ContinuaDemandadaVA:0.##} VA; no continua {Resumen.NoContinuaVA:0.##} VA x {Datos.FactorDemandaNoContinua} = "
+        + $"{Resumen.NoContinuaDemandadaVA:0.##} VA. Se aplica antes de elegir la fase más cargada (fase {gobierna.Fase}). "
+        + "Es criterio de diseño del proyectista: el Art. 220 no se automatiza.");
+
+    /// <summary>Deshace un factor de demanda. Un factor de cero deja la carga en cero, que es lo que el motor recibiría de todos modos.</summary>
+    private static decimal SinDemanda(decimal valor, decimal factorDemanda) =>
+        factorDemanda == 0m ? 0m : valor / factorDemanda;
 
     private IReadOnlyList<string> Avisos(ResultadoAlimentador resultado)
     {
@@ -325,11 +430,21 @@ public sealed class CuadroDeCarga
                 Datos.UsaInterruptorPrincipal, tieneAlimentadorEntrante: true).Aviso is { } aviso408)
             avisos.Add(aviso408);
 
-        var mayorDerivado = _circuitos
+        var mayor = _circuitos
             .Where(c => c.Resultado is not null)
-            .Select(c => c.Resultado!.ProteccionA)
-            .DefaultIfEmpty(0m)
-            .Max();
+            .OrderByDescending(c => c.Resultado!.ProteccionA)
+            .ThenBy(c => c.Espacio)
+            .FirstOrDefault();
+        var mayorDerivado = mayor?.Resultado!.ProteccionA ?? 0m;
+
+        // M-03: un principal más chico que un derivado. No es criterio de diseño, es un error de
+        // coordinación básico: el principal se dispara con una carga que el derivado sí admite.
+        // Aviso, no bloqueo, mientras David no decida otra cosa.
+        if (mayor is not null && resultado.ProteccionA < mayorDerivado)
+            avisos.Add(
+                $"El interruptor principal ({resultado.ProteccionA:N0} A) es menor que el derivado más grande " +
+                $"({mayorDerivado:N0} A, circuito {mayor.Espacio}). El principal se dispararía con una carga que ese " +
+                "derivado sí admite: revisa la carga capturada o sube el principal.");
 
         // Los dos criterios del Excel que NO son de la norma. Se REPORTAN, no se aplican: el
         // número que se imprime sale del motor, y el criterio de diseño lo decide quien firma.

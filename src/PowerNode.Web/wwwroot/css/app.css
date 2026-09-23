@@ -182,6 +182,10 @@ input.desc:focus, input.va:focus {
                    bottom: 0; display: none; left: 0; padding: 10px 16px; position: fixed;
                    width: 100%; z-index: 1000; }
 select.polos { width: 48px; padding: 2px 4px; border-radius: var(--radio-xs); }
+select.unidad { width: 56px; padding: 2px 4px; border-radius: var(--radio-xs); }
+/* El VA con el que se calcula, debajo de lo capturado en W o A (I-25). */
+.cuadro .en-va { display: block; font-size: 10px; color: var(--tenue); text-align: right;
+                 padding-right: 6px; white-space: nowrap; }
 /* Ancho suficiente para "Alumbrado" completo MÁS la flecha del selector. A 92 px el
    navegador lo cortaba en "Alumbrac", que no es una palabra: un campo que miente sobre
    su propio valor es peor que uno estrecho. */

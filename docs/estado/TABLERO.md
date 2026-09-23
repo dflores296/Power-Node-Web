@@ -1,6 +1,6 @@
 # Tablero — cómo vamos
 
-**Actualizado:** 2026-09-22, tercera sesión: el tablero completo y el entregable que se imprime.
+**Actualizado:** 2026-09-23: los hallazgos de la prueba de los tres aparatos (M-02, M-03, I-25 a I-30).
 
 > **Cómo se leen los porcentajes.** No son una encuesta: cada uno dice qué queda, y ese "qué queda"
 > está enlazado. Un número sin su lista es una opinión — regla de `AbaSuite`.
@@ -55,7 +55,7 @@ los mismos valores que ya se verificaron a mano contra el PDF del DOF.
 
 **Las reglas del tablero ya no viven en el `.razor`.** `PowerNode.Web.Modelo` (sin Blazor) tiene la
 geometría de las barras, la ocupación de un multipolar, el balanceo, el alimentador y la memoria —
-**23 pruebas verdes**, y ahí es donde el compilador impide que una regla se escape a una pantalla.
+**40 pruebas verdes**, y ahí es donde el compilador impide que una regla se escape a una pantalla.
 
 **Qué llegó del escritorio esta sesión, sin reescribirse:** `DistribucionBarras` y
 `SistemaDelTablero` (qué barra toca cada espacio, y cuántas barras hay de verdad),
@@ -63,10 +63,14 @@ geometría de las barras, la ocupación de un multipolar, el balanceo, el alimen
 `CalculadoraProteccionAlimentador` (el alimentador y el principal), `CalculadoraDesbalanceo`,
 `Verificacion408_36`, y la plantilla de nueve secciones de `Exportacion.Word.SeccionesDeMemoria`.
 
+**Desde el 2026-09-23:** el alimentador se dimensiona con **la fase más cargada** (M-02, era un
+bug del lado inseguro), hay aviso cuando el principal queda **debajo** del derivado mayor (M-03), y
+cada renglón acepta la carga **en VA, W o A** como viene en la placa (I-25).
+
 **Lo que falta:** guardar y abrir el proyecto como archivo (I-05) · circuitos de **Fuerza** (Art.
 430: el motor está copiado, la pantalla no los ofrece) · condiciones de cálculo por circuito (hoy
-son del tablero entero, como en el Excel) · que David confirme los dos criterios del Excel para el
-principal (ver `../decisiones/interruptor-principal-criterios-del-excel.md`).
+son del tablero entero, como en el Excel; el FP por circuito ya está propuesto, I-26) · que David
+decida las cuatro propuestas de abajo.
 
 ### Publicación — ~80%
 
@@ -81,3 +85,16 @@ GitHub Actions) y que el workflow corra una vez de verdad. **Escrito, nunca ejec
 
 **Activar GitHub Pages en el repo** (Settings → Pages → Source: GitHub Actions). Es lo único que
 separa el sitio de estar en línea, y no lo puede hacer una sesión de Claude.
+
+**Cuatro propuestas de la prueba del 2026-09-22**, todas `PROPUESTA · Claude · 2026-09-23`:
+
+- **I-26 / I-27** — FP por circuito heredado del tablero, y el «Total (kW)» como suma de potencia
+  activa: [`../decisiones/factor-de-potencia-por-circuito.md`](../decisiones/factor-de-potencia-por-circuito.md).
+- **I-28 / M-03** — cómo redactar los avisos del principal sin «el Excel original», y si el principal
+  menor que un derivado es aviso o bloqueo:
+  [`../decisiones/interruptor-principal-criterios-del-excel.md`](../decisiones/interruptor-principal-criterios-del-excel.md).
+- **I-29** — opción «sin valores IEC (16, 32, 63 A)»:
+  [`../decisiones/serie-de-interruptores-sin-valores-iec.md`](../decisiones/serie-de-interruptores-sin-valores-iec.md).
+
+**Reportar M-02 en `PowerNode-DesignSuite`.** El texto está listo en `HALLAZGOS.md` §M-02; la sesión
+del 2026-09-23 no tuvo acceso a ese repo.

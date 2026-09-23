@@ -54,3 +54,46 @@ acordarse. Así que la pantalla dice, por ejemplo:
 - **Se aplican solo aquí, como opción de captura** — una casilla «piso de 30 A» en la ficha del
   tablero, apagada por omisión, y la memoria tiene que decir que ese número es criterio de diseño y
   no resultado del 240-6(a).
+
+---
+
+## Actualización — los textos de los avisos, y un tercer aviso que sí es error
+
+**PROPUESTA · Claude · 2026-09-23** — hallazgos I-28 y M-03 (`../estado/HALLAZGOS.md`).
+
+### I-28 · Los avisos citan «el Excel original» en la pantalla
+
+Los textos de arriba se imprimen tal cual en la captura y en el documento. **El usuario de la web no
+sabe qué Excel es**, y el archivo ni siquiera vive en este repo
+(`PowerNode-DesignSuite/docs/referencia/`). Es contexto de desarrollo filtrado a la interfaz: el
+origen del criterio tiene que quedarse **en este archivo**, no en la pantalla.
+
+**No se cambió el texto todavía**: es cómo se le habla al usuario, y lo decide David. Dos opciones:
+
+- **A. Reescribirlos como criterio de diseño, sin mencionar el Excel.**
+  - «El interruptor principal calculado es de 15 A. La NOM no fija un mínimo; es práctica común no
+    bajar de 30 A en el principal para dejar margen de crecimiento. Criterio del proyectista.»
+  - «El interruptor principal quedó igual que el derivado más grande (X A). La 240-6(a) lo permite;
+    subirlo un tamaño mejora la selectividad. Criterio del proyectista.»
+- **B. Convertirlo en un dato del tablero.** Un campo «Mínimo del interruptor principal (A)», vacío
+  por omisión, y un aviso solo cuando el calculado quede debajo de lo que el proyectista pidió.
+
+**Lo que propone Claude: B para el piso de 30 A y A para el empate.** El piso es un número que cada
+proyectista tiene distinto —y con B deja de salir un aviso en *todos* los tableros chicos—; el
+empate no es un número, es una observación, y basta con redactarla sin el Excel.
+
+### M-03 · Principal menor que el derivado más grande
+
+Distinto de los dos de arriba: **esto no es criterio de diseño, es un error de coordinación
+básico** —el principal se dispara con una carga que el derivado sí admite—. Se agregó el
+2026-09-23 como **aviso**, sin mencionar el Excel:
+
+> El interruptor principal (15 A) es menor que el derivado más grande (20 A, circuito 3). El
+> principal se dispararía con una carga que ese derivado sí admite: revisa la carga capturada o sube
+> el principal.
+
+**Queda por decidir si es aviso o bloqueo.** Claude propone que se quede en aviso: el número que se
+imprime sigue saliendo del motor (215-3 + 240-6(a)), y bloquear obligaría a la pantalla a decidir
+qué hacer con él. Si David prefiere que el principal suba solo al derivado mayor, es la misma
+situación que el segundo criterio de arriba y se resuelve igual (en `Calculo`, en los dos repos, o
+como opción de captura).

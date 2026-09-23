@@ -1,3 +1,4 @@
+using PowerNode.DesignSuite.Calculo.Casos;
 using PowerNode.DesignSuite.Calculo.Unidades;
 using PowerNode.Web.Modelo;
 
@@ -134,7 +135,7 @@ public class CuadroDeCargaTests
     {
         var cuadro = Nuevo();
         var circuito = Espacio(cuadro, 1);
-        circuito.ContinuaVA = 720m;
+        circuito.Continua = 720m;
         circuito.LongitudM = 20m;
         cuadro.Recalcular();
 
@@ -161,7 +162,7 @@ public class CuadroDeCargaTests
         {
             var c = Espacio(cuadro, espacio);
             c.Tipo = tipo;
-            c.NoContinuaVA = 1500m;
+            c.NoContinua = 1500m;
             c.LongitudM = 20m;
         }
         cuadro.Recalcular();
@@ -185,12 +186,12 @@ public class CuadroDeCargaTests
         // pase, se note aquí.
         var cuadro = Nuevo();
         var alumbrado = Espacio(cuadro, 1);
-        alumbrado.NoContinuaVA = 500m;
+        alumbrado.NoContinua = 500m;
         alumbrado.LongitudM = 10m;
 
         var contactos = Espacio(cuadro, 3);
         contactos.Tipo = TipoCarga.Contactos;
-        contactos.NoContinuaVA = 500m;
+        contactos.NoContinua = 500m;
         contactos.LongitudM = 10m;
 
         cuadro.Recalcular();
@@ -209,7 +210,7 @@ public class CuadroDeCargaTests
         // de un circuito de 1 polo entre tres fases y daba 1.89 A en vez de 5.67 A.
         var cuadro = Nuevo();
         var circuito = Espacio(cuadro, 1);
-        circuito.ContinuaVA = 720m;
+        circuito.Continua = 720m;
         cuadro.Recalcular();
 
         Assert.Equal(720m / cuadro.Datos.TensionFaseNeutroV, circuito.Resultado!.CorrienteDisenoA, 2);
@@ -219,7 +220,7 @@ public class CuadroDeCargaTests
     public void UnRenglonOcupadoPorUnMultipolarNoAportaCarga()
     {
         var cuadro = Nuevo();
-        Espacio(cuadro, 3).ContinuaVA = 1000m;   // se va a quedar tapado
+        Espacio(cuadro, 3).Continua = 1000m;   // se va a quedar tapado
         Assert.Null(cuadro.CambiarPolos(Espacio(cuadro, 1), 2)); // ocupa 1 y 3
 
         Assert.True(Espacio(cuadro, 3).EsContinuacion);
@@ -233,7 +234,7 @@ public class CuadroDeCargaTests
     public void UnTrifasicoRepartesuCargaEntreLasTresFases()
     {
         var cuadro = Nuevo();
-        Espacio(cuadro, 2).NoContinuaVA = 3000m;
+        Espacio(cuadro, 2).NoContinua = 3000m;
         Assert.Null(cuadro.CambiarPolos(Espacio(cuadro, 2), 3));
 
         foreach (var barra in cuadro.Datos.Barras)
@@ -247,7 +248,7 @@ public class CuadroDeCargaTests
     public void UnMonofasicoSoloEnUnaBarraDesbalancea()
     {
         var cuadro = Nuevo();
-        Espacio(cuadro, 1).NoContinuaVA = 2000m; // barra A
+        Espacio(cuadro, 1).NoContinua = 2000m; // barra A
 
         cuadro.Recalcular();
 
@@ -263,7 +264,7 @@ public class CuadroDeCargaTests
     {
         var cuadro = Nuevo();
         foreach (var numero in new[] { 1, 2, 3, 4, 5, 6 })
-            Espacio(cuadro, numero).ContinuaVA = 1500m;
+            Espacio(cuadro, numero).Continua = 1500m;
         cuadro.Recalcular();
 
         var alimentador = cuadro.Alimentador.Resultado;
@@ -289,7 +290,7 @@ public class CuadroDeCargaTests
     {
         var cuadro = Nuevo();
         foreach (var numero in new[] { 1, 2, 3, 4, 5, 6 })
-            Espacio(cuadro, numero).ContinuaVA = 3000m;
+            Espacio(cuadro, numero).Continua = 3000m;
         cuadro.Recalcular();
         var sinDemanda = cuadro.Alimentador.Resultado!.CorrienteDisenoA;
 
@@ -305,7 +306,7 @@ public class CuadroDeCargaTests
     {
         var cuadro = Nuevo();
         foreach (var numero in new[] { 1, 2, 3, 4, 5, 6 })
-            Espacio(cuadro, numero).ContinuaVA = 5000m;
+            Espacio(cuadro, numero).Continua = 5000m;
         cuadro.Recalcular();
 
         // Sin el dato no se dictamina nada: un campo vacío no es un incumplimiento.
@@ -322,13 +323,194 @@ public class CuadroDeCargaTests
     public void LosCriteriosDelExcelSeReportan_NoSeAplican()
     {
         var cuadro = Nuevo();
-        Espacio(cuadro, 1).ContinuaVA = 720m;
+        Espacio(cuadro, 1).Continua = 720m;
         cuadro.Recalcular();
 
         // El Excel nunca bajaba de 30 A el principal. El motor dice lo que dice la 240-6(a), y el
         // criterio de diseño se avisa.
         Assert.True(cuadro.InterruptorPrincipalA < 30m);
         Assert.Contains(cuadro.Alimentador.Avisos, a => a.Contains("30 A"));
+    }
+
+    // ---- La prueba del 2026-09-22: refrigerador, microondas y air fryer --------------------------
+    //
+    // Tres cargas en un 3F-4H 220/127 V de 6 espacios, cobre THHN en PVC a 30 °C, 3 agrupados,
+    // FP 0.9, 20 m, e% máx. 3 %, las tres de tipo Equipo, una por fase. Los derivados se verificaron
+    // a mano; el alimentador salió subdimensionado (M-02). Es el caso de regresión de M-02 y M-03.
+
+    private static CuadroDeCarga TresAparatos(bool microondasYFreidoraContinuas = true)
+    {
+        var cuadro = Nuevo(espacios: 6);
+        foreach (var (espacio, va, continua) in new[]
+                 {
+                     (1, 750m, true),                            // refrigerador, fase A
+                     (3, 1500m, microondasYFreidoraContinuas),   // microondas, fase B
+                     (5, 1550m, microondasYFreidoraContinuas),   // air fryer, fase C
+                 })
+        {
+            var c = Espacio(cuadro, espacio);
+            c.Tipo = TipoCarga.Equipo;
+            c.LongitudM = 20m;
+            if (continua) c.Continua = va; else c.NoContinua = va;
+        }
+        cuadro.Recalcular();
+        return cuadro;
+    }
+
+    [Fact]
+    public void M02_ElAlimentadorSeDimensionaConLaFaseMasCargada()
+    {
+        var cuadro = TresAparatos();
+        var a = cuadro.Alimentador;
+
+        // Con la carga total repartida entre √3·220 daba 9.97 A → principal de 15 A y fase de 14 AWG.
+        // La fase C lleva la air fryer: 1550 / 127.02 = 12.20 A continuos → 15.25 A al 125 % (el
+        // reporte dice 15.26 porque redondeó la tensión a 127 V; aquí es 220/√3).
+        Assert.Equal('C', a.Gobierna!.Fase);
+        Assert.Equal(12.20m, a.Resultado!.CorrienteDisenoA, 2);
+        Assert.Equal(15.25m, a.Resultado.Detalle!.CapacidadMinimaA, 2);
+
+        // El principal no puede quedar en 15 A: 16 A por la 240-6(a) de la NOM, y 12 AWG.
+        Assert.Equal(16m, cuadro.InterruptorPrincipalA);
+        Assert.Equal("12", a.Resultado.CalibreFase.Designacion);
+    }
+
+    [Fact]
+    public void M02_LaCorrienteDeCadaFaseEsLaDelDesbalanceo_NoLosVAEntreTres()
+    {
+        // Un interruptor de 2 polos a 220 V lleva su corriente completa por cada línea: 2200 / 220 =
+        // 10 A en A y en B. Repartir sus VA (1100 por barra / 127 = 8.66 A) se quedaría corto.
+        var cuadro = Nuevo();
+        Espacio(cuadro, 1).NoContinua = 2200m;
+        Assert.Null(cuadro.CambiarPolos(Espacio(cuadro, 1), 2)); // 1-3, barras A y B
+
+        var fases = cuadro.Alimentador.Fases!;
+        Assert.Equal(10m, fases.Single(f => f.Fase == 'A').TotalA, 2);
+        Assert.Equal(10m, fases.Single(f => f.Fase == 'B').TotalA, 2);
+        Assert.Equal(0m, fases.Single(f => f.Fase == 'C').TotalA);
+        Assert.Equal(10m, cuadro.Alimentador.Resultado!.CorrienteDisenoA, 2);
+    }
+
+    [Fact]
+    public void M02_UnTableroBalanceadoDaLoMismoQueAntes()
+    {
+        // Seis circuitos iguales, dos por fase: la fase más cargada lleva exactamente un tercio, así
+        // que el resultado no cambia respecto a la carga total entre √3·220.
+        var cuadro = Nuevo();
+        foreach (var numero in new[] { 1, 2, 3, 4, 5, 6 })
+            Espacio(cuadro, numero).Continua = 1500m;
+        cuadro.Recalcular();
+
+        Assert.Equal(23.62m, cuadro.Alimentador.Resultado!.CorrienteDisenoA, 2);
+    }
+
+    [Fact]
+    public void M02_ElFactorDeDemandaSeAplicaAntesDeElegirLaFase()
+    {
+        // Fase A: 3000 VA continuos; fase B: 3500 VA no continuos. Sin demanda gobierna A
+        // (1.25 × 23.62 = 29.53 A contra 27.56 A); con 0.5 sobre la continua gobierna B.
+        var cuadro = Nuevo();
+        Espacio(cuadro, 1).Continua = 3000m;
+        Espacio(cuadro, 3).NoContinua = 3500m;
+        cuadro.Recalcular();
+        Assert.Equal('A', cuadro.Alimentador.Gobierna!.Fase);
+
+        cuadro.Datos.FactorDemandaContinua = 0.5m;
+        cuadro.Recalcular();
+        Assert.Equal('B', cuadro.Alimentador.Gobierna!.Fase);
+        Assert.Equal(3500m / cuadro.Datos.TensionFaseNeutroV, cuadro.Alimentador.Resultado!.CorrienteDisenoA, 2);
+
+        // Y la cita del 220-40 habla de la carga del tablero, no de la equivalente de la fase.
+        var cita = Assert.Single(cuadro.Alimentador.Resultado.Citas, c => c.Referencia == "220-40");
+        Assert.Contains("continua 3000 VA x 0.5 = 1500", cita.Descripcion);
+    }
+
+    [Fact]
+    public void M03_SeAvisaCuandoElPrincipalEsMenorQueUnDerivado()
+    {
+        // 500 VA de contactos: el derivado sale en 20 A por el mínimo de contactos, y el
+        // alimentador —3.94 A— en 15 A.
+        var cuadro = Nuevo();
+        var contactos = Espacio(cuadro, 3);
+        contactos.Tipo = TipoCarga.Contactos;
+        contactos.NoContinua = 500m;
+        cuadro.Recalcular();
+
+        Assert.Equal(20m, contactos.Resultado!.ProteccionA);
+        Assert.Equal(15m, cuadro.InterruptorPrincipalA);
+        Assert.Contains(cuadro.Alimentador.Avisos, a => a.Contains("menor que el derivado más grande") && a.Contains("circuito 3"));
+    }
+
+    [Fact]
+    public void M03_NoSeAvisaCuandoElPrincipalAlcanzaAlDerivado()
+    {
+        var cuadro = TresAparatos();
+
+        Assert.Equal(16m, cuadro.InterruptorPrincipalA);
+        Assert.DoesNotContain(cuadro.Alimentador.Avisos, a => a.Contains("menor que el derivado más grande"));
+    }
+
+    [Fact]
+    public void ElMotorDistingueContinuaDeNoContinua_EnElDerivadoYEnElAlimentador()
+    {
+        // La prueba pendiente del 2026-09-22: microondas y air fryer como NO continuas (210-19: no
+        // operan 3 h seguidas). Valores esperados calculados a mano.
+        var cuadro = TresAparatos(microondasYFreidoraContinuas: false);
+
+        var microondas = Espacio(cuadro, 3).Resultado!;
+        Assert.Equal(11.81m, microondas.CorrienteDisenoA, 2);
+        Assert.Equal(15m, microondas.ProteccionA);
+        Assert.Equal("12", microondas.CalibreFase.Designacion); // sube por caída
+        Assert.Equal(2.24m, microondas.CaidaTensionPct, 2);
+
+        var freidora = Espacio(cuadro, 5).Resultado!;
+        Assert.Equal(12.20m, freidora.CorrienteDisenoA, 2);
+        Assert.Equal(15m, freidora.ProteccionA);
+        Assert.Equal("12", freidora.CalibreFase.Designacion);
+        Assert.Equal(2.31m, freidora.CaidaTensionPct, 2);
+
+        // Y en el alimentador la fase C ya no entra al 125 %: 12.20 A → 15 A.
+        Assert.Equal('C', cuadro.Alimentador.Gobierna!.Fase);
+        Assert.Equal(12.20m, cuadro.Alimentador.Resultado!.Detalle!.CapacidadMinimaA, 2);
+        Assert.Equal(15m, cuadro.InterruptorPrincipalA);
+    }
+
+    // ---- I-25: la carga como viene en la placa ------------------------------------------------
+
+    [Fact]
+    public void I25_PorOmisionLaCargaEsEnVA()
+    {
+        var cuadro = Nuevo();
+        var c = Espacio(cuadro, 1);
+        c.Continua = 720m;
+        cuadro.Recalcular();
+
+        Assert.Equal(UnidadConsumo.VoltAmperes, c.Unidad);
+        Assert.Equal(720m, c.ContinuaVA);
+    }
+
+    [Fact]
+    public void I25_LosWattsSeConviertenConElFactorDePotencia()
+    {
+        var cuadro = Nuevo();
+        var c = Espacio(cuadro, 5);
+        c.Unidad = UnidadConsumo.Watts;
+        c.Continua = 1550m;
+        cuadro.Recalcular();
+
+        Assert.Equal(1550m / 0.9m, c.ContinuaVA, 2);
+    }
+
+    [Fact]
+    public void I25_LosAmperesCapturadosRegresanComoLosMismosAmperes()
+    {
+        var cuadro = Nuevo();
+        var c = Espacio(cuadro, 1);
+        c.Unidad = UnidadConsumo.Amperes;
+        c.NoContinua = 8m;
+        cuadro.Recalcular();
+
+        Assert.Equal(8m, c.Resultado!.CorrienteDisenoA, 2);
     }
 
     // ---- El interior del gabinete ---------------------------------------------------------------
@@ -371,7 +553,7 @@ public class CuadroDeCargaTests
         Assert.Equal(0, cuadro.EspaciosOcupados);
         Assert.Equal(12, cuadro.EspaciosLibres);
 
-        Espacio(cuadro, 2).ContinuaVA = 3000m;
+        Espacio(cuadro, 2).Continua = 3000m;
         Assert.Null(cuadro.CambiarPolos(Espacio(cuadro, 2), 3)); // 2-4-6, con carga
 
         Assert.Equal(3, cuadro.EspaciosOcupados);
