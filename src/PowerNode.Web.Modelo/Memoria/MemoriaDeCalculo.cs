@@ -65,7 +65,8 @@ public static class MemoriaDeCalculo
             ConductoresPorFase: r.NumeroConductoresParalelo,
             Detalle: r.Detalle,
             Citas: r.Citas,
-            SerieDeInterruptores: cuadro.Datos.SerieInterruptores.Explicacion());
+            SerieDeInterruptores: cuadro.Datos.SerieInterruptores.Explicacion(),
+            Aislamiento: Aislamiento(cuadro.Datos));
     }
 
     public static HojaDeMemoria? DelAlimentador(CuadroDeCarga cuadro)
@@ -99,7 +100,8 @@ public static class MemoriaDeCalculo
             Detalle: r.Detalle,
             Citas: r.Citas,
             FaseQueGobierna: FaseQueGobierna(cuadro),
-            SerieDeInterruptores: cuadro.Datos.SerieInterruptores.Explicacion());
+            SerieDeInterruptores: cuadro.Datos.SerieInterruptores.Explicacion(),
+            Aislamiento: Aislamiento(cuadro.Datos));
     }
 
     /// <summary>
@@ -141,6 +143,7 @@ public static class MemoriaDeCalculo
         // ---- 2
         bloques.Add(Seccion("2. CONSIDERACIONES", [
             ("Material del conductor", hoja.MaterialConductor),
+            ("Aislamiento — Tabla 310-104(a)", hoja.Aislamiento),
             ("Hilos por fase", hoja.ConductoresPorFase.ToString()),
             ("Longitud del tramo", $"{hoja.LongitudM:N2} m"),
             ("Temperatura del aislamiento", d is null ? null : $"{d.TemperaturaAislamientoC} °C"),
@@ -252,6 +255,10 @@ public static class MemoriaDeCalculo
     /// </summary>
     private static string? Amperes(decimal valor, string formato = "N2") =>
         valor <= 0m ? null : $"{valor.ToString(formato)} A";
+
+    /// <summary>«THHN · lugar seco»: lo que decide la columna de la Tabla 310-15(b)(16).</summary>
+    public static string Aislamiento(DatosDelTablero datos) =>
+        $"{datos.TipoAislamiento} · lugar {(datos.LugarSeco ? "seco" : "húmedo o mojado")}";
 
     public static string Etiqueta(TipoCarga tipo) => tipo switch
     {

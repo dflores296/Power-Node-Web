@@ -29,6 +29,7 @@
                 <div><dt>Montaje</dt><dd>@Datos.Montaje · NEMA @Datos.GabineteNema</dd></div>
                 <div><dt>Barras</dt><dd>@MemoriaDeCalculo.Etiqueta(Datos.MaterialBarras)@(Datos.CapacidadBarraA is { } cap ? $" · {cap:N0} A" : "")</dd></div>
                 <div><dt>Espacios</dt><dd>@Datos.NumeroEspacios</dd></div>
+                <div><dt>Conductor</dt><dd>@MemoriaDeCalculo.Etiqueta(Datos.MaterialConductor) · @MemoriaDeCalculo.Aislamiento(Datos)</dd></div>
             </dl>
             <dl class="doc-datos">
                 <div><dt>Proyecto</dt><dd>@Texto(Datos.Proyecto)</dd></div>

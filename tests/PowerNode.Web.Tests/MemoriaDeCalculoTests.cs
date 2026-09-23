@@ -139,6 +139,18 @@ public class MemoriaDeCalculoTests
     }
 
     [Fact]
+    public void LaMemoriaDiceConQueAislamientoSeCalculo()
+    {
+        var cuadro = ConUnCircuito();
+        cuadro.Datos.TipoAislamiento = "THW-LS";
+        cuadro.Recalcular();
+
+        var seccion2 = MemoriaDeCalculo.Secciones(MemoriaDeCalculo.DeCircuito(cuadro, cuadro.Circuitos[0]))[1];
+        var renglon = Assert.Single(seccion2.Renglones, r => r.Rotulo.StartsWith("Aislamiento"));
+        Assert.Equal("THW-LS · lugar seco", renglon.Valor);
+    }
+
+    [Fact]
     public void LaMemoriaDiceDeQueListaSalioElInterruptor()
     {
         var cuadro = ConUnCircuito();

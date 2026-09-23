@@ -273,7 +273,9 @@ public sealed class CuadroDeCarga
                     // caso concreto: contactos salía en 10 AWG y un equipo con la misma carga por
                     // fase en 12, y esa diferencia no la produce ningún artículo de la norma, la
                     // producía el piso. Ver docs/decisiones/sin-piso-practico-de-calibre.md.
-                    PisoPracticoCalibreMm2: null));
+                    PisoPracticoCalibreMm2: null,
+                    TipoAislamiento: Datos.TipoAislamiento,
+                    LugarInstalacionSeco: Datos.LugarSeco));
             }
             catch (Exception ex)
             {
@@ -444,6 +446,8 @@ public sealed class CuadroDeCarga
                 PisoPracticoCalibreMm2: null,
                 FactorDemandaContinua: Datos.FactorDemandaContinua,
                 FactorDemandaNoContinua: Datos.FactorDemandaNoContinua,
+                TipoAislamiento: Datos.TipoAislamiento,
+                LugarInstalacionSeco: Datos.LugarSeco,
                 ConjuntoAprobado100Pct: Datos.ConjuntoAprobado100Pct));
 
             resultado = resultado with { Citas = [.. resultado.Citas.Select(c => c.Referencia == "220-40" ? Cita220_40(gobierna) : c)] };
