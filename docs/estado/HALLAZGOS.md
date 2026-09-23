@@ -3,7 +3,8 @@
 Registrar cada defecto con ID estable, prioridad y commit de cierre. Ningún hallazgo se cierra sin
 commit.
 
-ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` interfaz. Prioridad: `P0`
+ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` interfaz, `R` revisión de David
+(2026-09-23). Prioridad: `P0`
 (bloquea) a `P3` (cosmético).
 
 | ID | Hallazgo | Prioridad | Estado | Commit |
@@ -52,6 +53,19 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-32 · Aislamiento fijo en THHN | P0 | **Cerrado** | `b1a84d6` |
 | I-33 · Memoria, sección 4, con capacidad mínima rotulada como In; sin desglose en pantalla | P1 | **Cerrado** | `13b3093` |
 | I-34 · «Agrupados» sin regla de conteo | P3 | **Cerrado** | `3aa1c3a` |
+| R-01 · Caída del alimentador fija en 5 %, sin verificar la combinada — 215-2(a)(4) NOTA 2 | P1 | Pendiente | — |
+| R-02 · Caída del alimentador sin la caída del neutro | P2 | Pendiente | — |
+| R-03 · La publicación no corre `PowerNode.Web.Tests` | P1 | Pendiente | — |
+| R-04 · Cálculo por fase del alimentador resuelto en la web, no en el motor | P2 | Pendiente | — |
+| R-05 · Documento de pruebas, 4.2 con F.P. 0.8: 2.01 % en vez de 2.00 % | P3 | Pendiente | — |
+| R-06 · Aviso de riel DIN > 125 A con la sintaxis rota | P3 | Pendiente | — |
+| R-07 · Sin las pruebas del documento del 2026-09-23 | P1 | Pendiente | — |
+| R-08 · Principal menor que un derivado: aviso o bloqueo sin decidir | P3 | Pendiente | — |
+| R-09 · 2F-3H: neutro portador sin cita en la memoria ni prueba — 310-15(b)(5)(2) | P2 | Pendiente | — |
+| R-10 · 2F-3H 220Y/127: sin prueba de que no se aplican 220-61(a) excepción ni 310-15(b)(7) | P2 | Pendiente | — |
+| R-11 · Sin mínimo del principal según 230-79 | P2 | Pendiente | — |
+| R-12 · Sin factores de demanda del Art. 220 por tipo de inmueble | P2 | Pendiente | — |
+| R-13 · «Tabla 310-15(b)(5)(3)» en `CircuitoDerivado.cs`: es numeral | P3 | Pendiente | — |
 
 ## Detalle
 
@@ -140,3 +154,34 @@ Formato: **Hecho** (defecto observado) · **Corrección** · **Referencia** · *
 **I-33** — Hecho: la memoria, sección 4, sustituía la capacidad mínima en «Icm = In / (FT × FA)»; sin desglose en pantalla. Corrección: `DesgloseDeSeleccion` en tooltip y en la sección 4; cita 310-15(b)(16) con «capacidad mínima». Prueba: `LaSeccion4CuadraConElConductorElegido`.
 
 **I-34** — Hecho: «Agrupados» sin regla de conteo. Corrección: tooltip con la Tabla 310-15(b)(3)(a) y 310-15(b)(5), (b)(6).
+
+### Revisión del 2026-09-23
+
+Validada contra el texto de la NOM (`NOM-001-SEDE-2012/data/corpus.json`), el código y el caso base
+de tres aparatos.
+
+**R-01** — Hecho: `DatosDelTablero.CaidaMaxAlimentadorPct = 5`, sin campo en pantalla; sin verificación de la caída combinada. Caso base con alimentador de 80 m: 4.62 % + 2.31 % (circuito 5) = 6.94 %, sin aviso. Referencia: 215-2(a)(4) NOTA 2 (3 % alimentador, 5 % combinada), 210-19(a)(1) NOTA 4.
+
+**R-02** — Hecho: la caída del alimentador usa el equivalente balanceado (√3·I·Z / V_FF). Caso base con 80 m: neutro 6.11 A; fase C 4.62 % calculada contra 6.77 % con el neutro (fasorial). 2F-3H balanceado: `2·I·Z / V_FF` subestima una fase ≈39 %. Va con R-04.
+
+**R-03** — Hecho: `deploy.yml` solo corre `PowerNode.Normativa.Tests`.
+
+**R-04** — Hecho: `CuadroDeCarga.CalcularAlimentador` entrega al motor la corriente de la fase × divisor, deshace la demanda (`SinDemanda`) y reescribe la cita 220-40. Pendiente: llevar al escritorio.
+
+**R-05** — Hecho: el documento de pruebas, 4.2 con F.P. 0.8, dice 2.01 %. Cálculo: 0.04 km × 11.81 A × (6.6 × 0.8 + 0.177 × 0.6) Ω/km = 2.544 V → 2.00 %.
+
+**R-06** — Hecho: con circuito y principal fuera de riel DIN el aviso dice «para el circuito 3 (150 A), el principal (175 A) se tomó…».
+
+**R-07** — Hecho: las 20 pruebas del documento del 2026-09-23 no estaban en el repo. Prueba: `PruebasDelDocumento20260923Tests`.
+
+**R-08** — Hecho: decisión abierta en [`../decisiones/interruptor-principal-criterios-del-excel.md`](../decisiones/interruptor-principal-criterios-del-excel.md). Propuesta de David: aviso.
+
+**R-09** — Hecho: el tooltip de «Agrupados» ya cita (b)(5)(2) y el neutro ya sale del calibre de la fase; la memoria no lo cita y no hay prueba. Referencia: 310-15(b)(5)(2), 220-61(c)(1).
+
+**R-10** — Hecho: ninguno se aplica hoy, sin prueba que lo asegure. 220-61(a) excepción: sistemas bifásicos (90°), no 2 fases de estrella. 310-15(b)(7): solo 120/240 V.
+
+**R-11** — Hecho: sin tipo de inmueble ni indicación de equipo de acometida. Referencia: 230-79(c) vivienda según carga conectada, vivienda popular hasta 60 m² no menor que 30 A; 230-79(d) demás, no menor que 60 A.
+
+**R-12** — Hecho: solo factores de demanda continua y no continua capturados. Contradice la decisión del motor «automatizar el Art. 220 queda fuera de v1» (`Domain/Proyectos/Alimentador.cs`): requiere decisión antes de implementar. Referencia: Tabla 220-42, Tabla 220-44, 220-53, 220-82.
+
+**R-13** — Hecho: `Domain/Proyectos/CircuitoDerivado.cs:117` cita «Tabla 310-15(b)(5)(3)». Es el numeral 310-15(b)(5)(3). Pendiente: reportar en `PowerNode-DesignSuite`.

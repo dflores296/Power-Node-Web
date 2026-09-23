@@ -28,6 +28,13 @@ Registro de acciones por sesión, con hallazgo y commit.
 
 Pruebas: 66 en `PowerNode.Web.Tests`, 6 en `PowerNode.Normativa.Tests`.
 
+**Revisión de David** — R-01 a R-13 validados contra la NOM y registrados en [`HALLAZGOS.md`](HALLAZGOS.md).
+
+- Correr `PowerNode.Web.Tests` al publicar — R-03.
+- Agregar las 20 pruebas del documento de pruebas — R-07.
+
+Pruebas: 86 en `PowerNode.Web.Tests`, 6 en `PowerNode.Normativa.Tests`.
+
 ## 2026-09-22 (tercera parte)
 
 - Levantar el Excel celda por celda — [`../conocimiento/cuadro-de-carga-excel.md`](../conocimiento/cuadro-de-carga-excel.md).

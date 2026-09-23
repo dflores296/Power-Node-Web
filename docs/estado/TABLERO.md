@@ -15,7 +15,7 @@ Ejecutar en el navegador (Blazor WebAssembly), sin servidor, publicado en GitHub
 | Frente | Avance | Pendiente |
 |---|---|---|
 | Motor | 100 % | Llevar al escritorio los cambios listados en [`../conocimiento/motor-copiado.md`](../conocimiento/motor-copiado.md). |
-| Interfaz | ~85 % | Guardar y abrir el proyecto (I-05). Capturar circuitos de Fuerza, Art. 430 (I-15). Modelar centros de carga de una barra por lado. |
+| Interfaz | ~85 % | Revisión del 2026-09-23: R-01 a R-13 en [`HALLAZGOS.md`](HALLAZGOS.md). Guardar y abrir el proyecto (I-05). Capturar circuitos de Fuerza, Art. 430 (I-15). Modelar centros de carga de una barra por lado. |
 | Publicación | 100 % | — |
 
 ## Motor
@@ -31,7 +31,7 @@ Ejecutar en el navegador (Blazor WebAssembly), sin servidor, publicado en GitHub
   interior del gabinete.
 - `/documento`: emitir el cuadro de carga (24 columnas) y la memoria de cálculo (nueve secciones).
 - Consultar en tooltip el desglose de la protección y del conductor de cada renglón.
-- Pruebas: 66 en `PowerNode.Web.Tests`.
+- Pruebas: 86 en `PowerNode.Web.Tests` (20 del documento de pruebas del 2026-09-23).
 
 Requisitos con su referencia NOM y su prueba: [`../../README.md`](../../README.md).
 
@@ -39,6 +39,7 @@ Requisitos con su referencia NOM y su prueba: [`../../README.md`](../../README.m
 
 - Publicar en cada push a `main` con `.github/workflows/deploy.yml`.
 - Verificar las tablas contra el repo de la norma (`--check`) antes de publicar.
+- Correr `PowerNode.Normativa.Tests` y `PowerNode.Web.Tests` antes de publicar.
 
 ## Decisiones abiertas
 
