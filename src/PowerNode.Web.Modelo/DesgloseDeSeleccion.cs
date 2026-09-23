@@ -59,7 +59,7 @@ public sealed record DesgloseDeSeleccion(IReadOnlyList<string> Proteccion, IRead
 
         var conductor = new List<string>
         {
-            $"{datos.TipoAislamiento} {d.TemperaturaAislamientoC} °C · terminal {d.TemperaturaTerminalesC} °C por ser de {(proteccionA <= 100m ? "100 A o menos" : "más de 100 A")} — 110-14(c)(1)",
+            $"{datos.TipoAislamiento} {d.TemperaturaAislamientoC} °C · terminal {d.TemperaturaTerminalesC} °C " + PorQueLaTerminal(proteccionA, datos.TerminalesMarcadas75C, d.TemperaturaTerminalesC),
         };
 
         if (deTablaAislamiento is { } a)
@@ -102,6 +102,12 @@ public sealed record DesgloseDeSeleccion(IReadOnlyList<string> Proteccion, IRead
 
         return new DesgloseDeSeleccion(proteccion, conductor);
     }
+
+    private static string PorQueLaTerminal(decimal proteccionA, bool marcadas75C, int terminalC) =>
+        proteccionA > 100m ? "por ser de más de 100 A — 110-14(c)(1)b."
+        : !marcadas75C ? "por ser de 100 A o menos — 110-14(c)(1)a."
+        : terminalC == 75 ? "por equipo marcado 75 °C — 110-14(c)(1)a.(3)"
+        : "aunque el equipo esté marcado 75 °C: el conductor es de 60 °C — 110-14(c)(1)a.(1)";
 
     /// <summary>El texto de un tooltip: una línea por paso.</summary>
     public static string ComoTexto(IEnumerable<string> lineas) => string.Join("\n", lineas);

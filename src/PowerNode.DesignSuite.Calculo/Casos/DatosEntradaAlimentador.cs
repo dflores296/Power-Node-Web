@@ -86,4 +86,10 @@ public sealed record DatosEntradaAlimentador(
     /// <c>VerificadorDerivacion.AmpacidadMinimaExigidaA</c> con la protección del alimentador padre.
     /// Entra como piso de la capacidad mínima, así que el conductor sube si hace falta.
     /// </summary>
-    decimal? PisoAmpacidadDerivacionA = null);
+    decimal? PisoAmpacidadDerivacionA = null,
+    /// <summary>
+    /// El proyectista declara que las terminales del circuito —interruptor y equipo— están
+    /// aprobadas e identificadas para 75 °C: 110-14(c)(1)a.(3). Solo cambia algo en 100 A o menos.
+    /// Falso por omisión: sin declaración, 60 °C, que es la regla general.
+    /// </summary>
+    bool TerminalesMarcadas75C = false);

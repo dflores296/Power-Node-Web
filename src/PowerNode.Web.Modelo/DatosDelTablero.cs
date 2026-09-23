@@ -160,6 +160,13 @@ public sealed class DatosDelTablero
     /// </summary>
     public bool LugarSeco { get; set; } = true;
 
+    /// <summary>
+    /// Las terminales del circuito —interruptor y equipo— están aprobadas e identificadas para 75 °C:
+    /// 110-14(c)(1)a.(3). Muchos interruptores de centro de carga vienen marcados 60/75 °C. <b>Falso por
+    /// omisión</b>: sin declaración, 60 °C hasta 100 A, que es la regla general y lo que se calculaba.
+    /// </summary>
+    public bool TerminalesMarcadas75C { get; set; }
+
     public MaterialCanalizacion MaterialCanalizacion { get; set; } = MaterialCanalizacion.Pvc;
     public decimal TemperaturaAmbienteC { get; set; } = 30m;
     public int ConductoresAgrupados { get; set; } = 3;

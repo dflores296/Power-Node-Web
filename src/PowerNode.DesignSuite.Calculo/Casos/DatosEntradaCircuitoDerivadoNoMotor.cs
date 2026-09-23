@@ -39,4 +39,10 @@ public sealed record DatosEntradaCircuitoDerivadoNoMotor(
     /// catálogo se agota antes de cumplir la caída de tensión. <b>La norma no fija un máximo</b>: es
     /// criterio de diseño, y sale de <c>ConfiguracionProyecto.MaxConductoresParaleloAutomatico</c>.
     /// </summary>
-    int MaxConductoresParaleloAutomatico = SeleccionConductor.MaxNParaleloAutoResueltoPorOmision);
+    int MaxConductoresParaleloAutomatico = SeleccionConductor.MaxNParaleloAutoResueltoPorOmision,
+    /// <summary>
+    /// El proyectista declara que las terminales del circuito —interruptor y equipo— están
+    /// aprobadas e identificadas para 75 °C: 110-14(c)(1)a.(3). Solo cambia algo en 100 A o menos.
+    /// Falso por omisión: sin declaración, 60 °C, que es la regla general.
+    /// </summary>
+    bool TerminalesMarcadas75C = false);

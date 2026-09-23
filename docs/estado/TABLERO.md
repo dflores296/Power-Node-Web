@@ -55,7 +55,7 @@ los mismos valores que ya se verificaron a mano contra el PDF del DOF.
 
 **Las reglas del tablero ya no viven en el `.razor`.** `PowerNode.Web.Modelo` (sin Blazor) tiene la
 geometría de las barras, la ocupación de un multipolar, el balanceo, el alimentador y la memoria —
-**63 pruebas verdes**, y ahí es donde el compilador impide que una regla se escape a una pantalla.
+**66 pruebas verdes**, y ahí es donde el compilador impide que una regla se escape a una pantalla.
 
 **Qué llegó del escritorio esta sesión, sin reescribirse:** `DistribucionBarras` y
 `SistemaDelTablero` (qué barra toca cada espacio, y cuántas barras hay de verdad),
@@ -94,9 +94,9 @@ separa el sitio de estar en línea, y no lo puede hacer una sesión de Claude.
 - **M-03** — si el principal menor que un derivado es aviso (hoy) o bloqueo:
   [`../decisiones/interruptor-principal-criterios-del-excel.md`](../decisiones/interruptor-principal-criterios-del-excel.md).
 
-**Selección de conductor y protección:** propuestas 2 a 6 de
-[`../conocimiento/seleccion-conductor-y-proteccion.md`](../conocimiento/seleccion-conductor-y-proteccion.md),
-aprobadas para hacerse una por una (la 1, aislamiento; la 2, el porqué a la vista; y la 3, las dos revisiones del 125 %, ya están).
+**Selección de conductor y protección:** las seis propuestas de
+[`../conocimiento/seleccion-conductor-y-proteccion.md`](../conocimiento/seleccion-conductor-y-proteccion.md)
+están hechas.
 
 **Reportar en `PowerNode-DesignSuite`** M-02, los dos cambios al motor copiado (ver
 `../conocimiento/motor-copiado.md`) y M-04. El texto de M-02 está listo en `HALLAZGOS.md`; la sesión

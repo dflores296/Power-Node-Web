@@ -1,8 +1,9 @@
 # Selección de conductor y protección: auditoría del 2026-09-23
 
-> **Estado de las propuestas.** Aprobadas por David el 2026-09-23, una por una. **1 (aislamiento),
-> 2 (el porqué en tooltip y la memoria corregida) y 3 (las dos revisiones del 125 %): hechas** —
-> ver I-32, I-33 y M-05 en `../estado/HALLAZGOS.md`. 4 a 6: pendientes.
+> **Estado de las propuestas.** Aprobadas por David el 2026-09-23, una por una. **Las seis están
+> hechas** (2026-09-23): 1 aislamiento (I-32), 2 el porqué a la vista (I-33), 3 las dos revisiones
+> del 125 % (M-05), 4 terminales marcadas 75 °C (M-06), 5 240-4(b) en Equipo (M-04), 6 ayuda en
+> «Agrupados» (I-34). Ver `../estado/HALLAZGOS.md`.
 >
 > **Corrección al hallazgo A (2026-09-23, al hacer el punto 3).** El ejemplo de abajo (20 A
 > continuos, 9 agrupados) se calculó con la regla vieja del programa, la que multiplicaba el 125 %

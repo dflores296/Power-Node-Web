@@ -65,8 +65,11 @@ public class CalculadoraAlimentador(
                 + $"{noContinuaConDemanda:0.##} VA. Es criterio de diseño del proyectista: el Art. 220 no se automatiza."));
 
         // 4. Temperatura de terminales -- 110-14(c)(1).
-        var tempTerminales = TemperaturaTerminales.Para(breaker);
-        citas.Add(new Cita("110-14(c)(1)", $"Protección {breaker} A -> terminales a {(int)tempTerminales}°C"));
+        // Con equipo marcado 75 °C la columna depende también del aislamiento (un TW de 60 °C se
+        // queda en 60), así que se consulta aquí; si no se reconoce, se rechaza abajo como siempre.
+        var tempTerminales = TemperaturaTerminales.Para(
+            breaker, d.TerminalesMarcadas75C, aislamiento.TemperaturaMaxima(d.TipoAislamiento, d.LugarInstalacionSeco));
+        citas.Add(new Cita("110-14(c)(1)", TemperaturaTerminales.Explicacion(breaker, d.TerminalesMarcadas75C, tempTerminales)));
 
         // 4.5. Aislamiento -- 110-14(c): debe alcanzar o superar la temperatura que exige la terminal.
         var tempAislamiento = aislamiento.TemperaturaMaxima(d.TipoAislamiento, d.LugarInstalacionSeco)

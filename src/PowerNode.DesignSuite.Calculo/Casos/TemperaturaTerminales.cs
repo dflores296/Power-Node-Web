@@ -30,4 +30,35 @@ public static class TemperaturaTerminales
     /// </summary>
     public static TemperaturaAislamiento Para(decimal proteccionA) =>
         proteccionA <= 100m ? TemperaturaAislamiento.T60 : TemperaturaAislamiento.T75;
+
+    /// <summary>
+    /// Con la declaración del proyectista de que el equipo está <b>aprobado e identificado para
+    /// 75 °C</b> — 110-14(c)(1)a.(3). Existe desde el 2026-09-23 (Power Node Web): los interruptores
+    /// de centro de carga suelen venir marcados 60/75 °C, y sin esta declaración el programa
+    /// siempre usaba la columna de 60 °C hasta 100 A.
+    ///
+    /// <list type="bullet">
+    /// <item>Más de 100 A: 75 °C, como siempre — la declaración no cambia nada.</item>
+    /// <item>100 A o menos, marcado 75 °C, con conductor de 75 °C o más: 75 °C.</item>
+    /// <item>100 A o menos, marcado 75 °C, con conductor de 60 °C (TW): 60 °C. 110-14(c)(1)a.(1)
+    /// permite siempre conductores de 60 °C en estas terminales, y la columna que manda es la más
+    /// baja de las dos — 110-14(c). No es un rechazo: el conductor vale, con su ampacidad de 60 °C.</item>
+    /// </list>
+    /// </summary>
+    /// <param name="aislamiento">La temperatura del aislamiento; <c>null</c> si no se reconoció (el llamador lo rechaza aparte).</param>
+    public static TemperaturaAislamiento Para(decimal proteccionA, bool equipoMarcado75C, TemperaturaAislamiento? aislamiento)
+    {
+        if (proteccionA > 100m || !equipoMarcado75C)
+            return Para(proteccionA);
+
+        return aislamiento == TemperaturaAislamiento.T60 ? TemperaturaAislamiento.T60 : TemperaturaAislamiento.T75;
+    }
+
+    /// <summary>La cita de 110-14(c)(1) que dice de dónde salió la temperatura de la terminal.</summary>
+    public static string Explicacion(decimal proteccionA, bool equipoMarcado75C, TemperaturaAislamiento terminal) =>
+        proteccionA > 100m || !equipoMarcado75C
+            ? $"Protección {proteccionA} A -> terminales a {(int)terminal}°C"
+            : terminal == TemperaturaAislamiento.T75
+                ? $"Protección {proteccionA} A, equipo aprobado e identificado para 75°C -> terminales a 75°C (110-14(c)(1)a.(3))"
+                : $"Protección {proteccionA} A, equipo marcado 75°C pero conductor de 60°C -> se usa la columna de 60°C (110-14(c)(1)a.(1))";
 }

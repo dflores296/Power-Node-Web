@@ -326,7 +326,8 @@ public sealed class CuadroDeCarga
                     // producía el piso. Ver docs/decisiones/sin-piso-practico-de-calibre.md.
                     PisoPracticoCalibreMm2: null,
                     TipoAislamiento: Datos.TipoAislamiento,
-                    LugarInstalacionSeco: Datos.LugarSeco));
+                    LugarInstalacionSeco: Datos.LugarSeco,
+                    TerminalesMarcadas75C: Datos.TerminalesMarcadas75C));
             }
             catch (Exception ex)
             {
@@ -499,7 +500,8 @@ public sealed class CuadroDeCarga
                 FactorDemandaNoContinua: Datos.FactorDemandaNoContinua,
                 TipoAislamiento: Datos.TipoAislamiento,
                 LugarInstalacionSeco: Datos.LugarSeco,
-                ConjuntoAprobado100Pct: Datos.ConjuntoAprobado100Pct));
+                ConjuntoAprobado100Pct: Datos.ConjuntoAprobado100Pct,
+                TerminalesMarcadas75C: Datos.TerminalesMarcadas75C));
 
             resultado = resultado with { Citas = [.. resultado.Citas.Select(c => c.Referencia == "220-40" ? Cita220_40(gobierna) : c)] };
             Alimentador = new RenglonDelAlimentador(resultado, null, Avisos(resultado), polos, fases, gobierna, fpAlimentador);

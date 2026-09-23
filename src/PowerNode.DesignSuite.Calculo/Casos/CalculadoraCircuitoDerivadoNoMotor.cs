@@ -69,8 +69,11 @@ public class CalculadoraCircuitoDerivadoNoMotor(
 
         // 4. Temperatura de terminales — 110-14(c)(1): fija la columna de ampacidad a usar (el techo
         // que impone el equipo, sin importar qué tan bueno sea el aislamiento del conductor).
-        var tempTerminales = TemperaturaTerminales.Para(breaker);
-        citas.Add(new Cita("110-14(c)(1)", $"Protección {breaker} A -> terminales a {(int)tempTerminales}°C"));
+        // Con equipo marcado 75 °C la columna depende también del aislamiento (un TW de 60 °C se
+        // queda en 60), así que se consulta aquí; si no se reconoce, se rechaza abajo como siempre.
+        var tempTerminales = TemperaturaTerminales.Para(
+            breaker, d.TerminalesMarcadas75C, aislamiento.TemperaturaMaxima(d.TipoAislamiento, d.LugarInstalacionSeco));
+        citas.Add(new Cita("110-14(c)(1)", TemperaturaTerminales.Explicacion(breaker, d.TerminalesMarcadas75C, tempTerminales)));
 
         // 4.5. Aislamiento — 110-14(c): el aislamiento capturado debe alcanzar (o superar) la
         // temperatura que exige la terminal; si no, el conductor no es válido para este circuito por
@@ -135,7 +138,12 @@ public class CalculadoraCircuitoDerivadoNoMotor(
             // 240-4(b)(1): la excepción no aplica a un circuito derivado que alimenta más de un
             // contacto de uso general -- Contactos normalmente sí (por eso false); Alumbrado no es
             // ese caso (luminarias, no contactos), así que sí califica.
-            permiteExcepcion2404b: d.TipoCarga == TipoCarga.Alumbrado,
+            //
+            // Hasta el 2026-09-23 era `== Alumbrado`, y Equipo no calificaba. Pero 240-4(b)(1) solo
+            // excluye el circuito «que alimenta más de un contacto para cargas portátiles conectadas
+            // con cordón y clavija»: un circuito de Equipo a un aparato sí califica. Contactos se
+            // queda fuera porque aquí no se sabe cuántos contactos lleva (Power Node Web, M-04).
+            permiteExcepcion2404b: d.TipoCarga != TipoCarga.Contactos,
             metodoInstalacion: d.MetodoInstalacion,
             maxNParaleloAutoResuelto: d.MaxConductoresParaleloAutomatico,
             // 210-19(a)(1): el 125 % contra la tabla sin factores, la carga al 100 % contra la

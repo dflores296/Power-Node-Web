@@ -94,3 +94,9 @@ lógica de la norma.
   factores y la carga al 100 % contra la corregida, como dicen 210-19(a)(1) y 215-2(a)(1). Con el
   parámetro en `null` —motores, derivaciones 240-21(b)— el cálculo es el de antes. Hay que llevarlo al
   escritorio.
+- **2026-09-23 · `TemperaturaTerminales.Para(proteccion, equipoMarcado75C, aislamiento)` y el campo
+  `TerminalesMarcadas75C`** en `DatosEntradaCircuitoDerivadoNoMotor` y `DatosEntradaAlimentador`
+  (hallazgo M-06). Falso por omisión: mismo cálculo.
+- **2026-09-23 · `permiteExcepcion2404b: d.TipoCarga != TipoCarga.Contactos`** en
+  `CalculadoraCircuitoDerivadoNoMotor` (hallazgo M-04). **Cambia números** en Equipo: puede bajar un
+  calibre donde 240-4(b) lo permite.

@@ -46,10 +46,12 @@ ID: `<letra>-<número>`. La letra dice el frente (`M` motor, `I` interfaz, `P` p
 | I-28 · Los avisos del interruptor principal citan «el Excel original» | P2 | **Cerrado** | `e7fdf0a` |
 | I-29 · La 240-6(a) de la NOM trae 16, 32 y 63 A; un centro de carga QO/NQ no | P2 | **Cerrado** | `b9406ab` |
 | I-30 · El tooltip de «Tipo» describía un piso de calibre que ya no existe | P3 | **Cerrado** | `b37de00` |
-| M-04 · La excepción 240-4(b) solo se concede en Alumbrado, no en Equipo | P3 | Pendiente — es del motor de escritorio | — |
+| M-04 · La excepción 240-4(b) solo se concede en Alumbrado, no en Equipo | P3 | **Cerrado** | este commit |
 | I-32 · El aislamiento estaba fijo en THHN: con factores podía salir un calibre de menos | P0 | **Cerrado** | `b1a84d6` |
 | I-33 · La memoria decía «Icm = In / (FT × FA)» y sustituía la capacidad mínima; el porqué no se veía en pantalla | P1 | **Cerrado** | `13b3093` |
 | M-05 · El 125 % se comparaba contra la ampacidad corregida, no «antes de factores» (210-19(a)(1)) | P2 | **Cerrado** | `74d6783` |
+| M-06 · No se podía declarar el equipo marcado para 75 °C (110-14(c)(1)a.(3)) | P2 | **Cerrado** | este commit |
+| I-34 · «Agrupados» no decía cómo contar el neutro y la tierra | P3 | **Cerrado** | este commit |
 | I-31 · «Acometida» se cortaba en «Interruptor prin» | P3 | **Cerrado** | `b9406ab` |
 
 ---
@@ -580,3 +582,34 @@ parámetro nuevo `cargaAl100PctA`. Lo pasan el derivado no-motor y el alimentado
 derivación 240-21(b). **Los motores no cambian**: 430-22 pone el 125 % sobre la ampacidad sin el
 «antes de factores». El desglose del tooltip y de la memoria enseña las dos revisiones con sus
 números. Reportar en `PowerNode-DesignSuite`.
+
+### M-06 — Terminales marcadas 75 °C · este commit
+
+110-14(c)(1)a.(3) permite usar la ampacidad de un conductor de mayor temperatura *«si el equipo está
+aprobado e identificado para tales conductores»*; muchos interruptores de centro de carga vienen
+marcados 60/75 °C. El motor siempre usaba 60 °C hasta 100 A. Ahora la ficha tiene **«Terminales»**:
+«60 °C hasta 100 A (regla general)» por omisión, o «Marcadas 75 °C». Con 45 A no continuos: 6 AWG a
+60 °C, 8 AWG con 75 °C (50 A ≥ 45 A).
+
+**Un detalle de la norma que se cuidó:** con equipo marcado 75 °C y conductor de 60 °C (TW), la columna
+es la de 60 °C y **no se rechaza** el conductor: 110-14(c)(1)a.(1) permite siempre conductores de 60 °C
+en terminales de 100 A o menos, y manda la temperatura más baja (110-14(c)). Arriba de 100 A no cambia
+nada: 110-14(c)(1)b. ya es 75 °C, y ahí un TW sigue rechazándose porque b. solo admite 75 °C o más.
+
+En el motor: `TemperaturaTerminales.Para(proteccion, equipoMarcado75C, aislamiento)` y el campo
+`TerminalesMarcadas75C` en los datos de entrada del derivado y del alimentador (falso por omisión:
+mismo cálculo de antes). La declaración vale para todo el tablero y para las dos puntas del circuito
+—interruptor y equipo—; el tooltip lo dice.
+
+### M-04 (cierre) — 240-4(b) en Equipo · este commit
+
+`permiteExcepcion2404b` pasó de `== Alumbrado` a `!= Contactos`: 240-4(b)(1) solo excluye el circuito
+que alimenta más de un contacto para cordón y clavija, y un circuito de Equipo a un aparato califica.
+32 A continuos de Equipo con 9 agrupados: antes 6 AWG, ahora 8 (240-4(b) deja 40 A sobre 38.5 A).
+Contactos se queda sin la excepción porque no se captura cuántos contactos lleva.
+
+### I-34 — «Agrupados» sin ayuda · este commit
+
+El campo ahora tiene tooltip con la Tabla 310-15(b)(3)(a) y cómo se cuentan los conductores (nota 1):
+la tierra no cuenta (310-15(b)(6)); el neutro solo cuenta en 2 fases + neutro de una estrella
+((b)(5)(2)) o con carga mayormente no lineal ((b)(5)(3)).

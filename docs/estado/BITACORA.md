@@ -75,6 +75,10 @@ que sustituía la capacidad mínima donde decía In. 61 pruebas.
 210-19(a)(1). Al hacerla salió que el ejemplo con el que se justificó la 1 (20 A continuos) estaba
 calculado con la regla vieja: se corrigió con un caso que sí se sostiene (26 A no continuos) y se
 dijo así en el hallazgo. 63 pruebas.
+**Y las 4, 5 y 6**, por orden de David de hacerlas juntas: terminales marcadas 75 °C (M-06), 240-4(b) en
+Equipo (M-04) y el tooltip de «Agrupados» (I-34). Al hacer la 4 salió un detalle de 110-14(c)(1): con
+equipo marcado 75 °C un conductor TW no se rechaza, se queda en su columna de 60 °C (a.(1)); arriba de
+100 A sí se rechaza (b.). 66 pruebas; verificado en el navegador.
 
 ---
 

@@ -831,6 +831,75 @@ public class CuadroDeCargaTests
         Assert.Equal("8", c.Resultado!.CalibreFase.Designacion);
     }
 
+    // ---- 110-14(c)(1)a.(3): terminales marcadas 75 °C ----------------------------------------------
+
+    private static CircuitoDelCuadro CuarentaYCincoAmperes(CuadroDeCarga cuadro)
+    {
+        var c = Espacio(cuadro, 1);
+        c.Tipo = TipoCarga.Equipo;
+        c.Unidad = UnidadConsumo.Amperes;
+        c.NoContinua = 45m;
+        c.LongitudM = 5m;
+        return c;
+    }
+
+    [Fact]
+    public void Terminales_Marcadas75CUsanLaColumnaDe75()
+    {
+        // 45 A no continuos, protección de 45 A. A 60 °C el 8 AWG da 40 A < 45 → 6 AWG. Con el
+        // equipo marcado 75 °C el 8 AWG da 50 A ≥ 45 → 8 AWG.
+        var cuadro = Nuevo();
+        var c = CuarentaYCincoAmperes(cuadro);
+        cuadro.Recalcular();
+        Assert.False(cuadro.Datos.TerminalesMarcadas75C);
+        Assert.Equal("6", c.Resultado!.CalibreFase.Designacion);
+
+        cuadro.Datos.TerminalesMarcadas75C = true;
+        cuadro.Recalcular();
+        Assert.Equal("8", c.Resultado!.CalibreFase.Designacion);
+        Assert.Equal(75, c.Resultado.Detalle!.TemperaturaTerminalesC);
+        Assert.Contains(cuadro.Desglose(c)!.Conductor, l => l.Contains("110-14(c)(1)a.(3)"));
+    }
+
+    [Fact]
+    public void Terminales_Marcadas75CConConductorTwSeQuedaEn60_SinRechazarlo()
+    {
+        // 110-14(c)(1)a.(1): un conductor de 60 °C siempre vale en terminales de 100 A o menos; la
+        // columna que manda es la más baja. No debe tronar por «no alcanza los 75 °C».
+        var cuadro = Nuevo();
+        var c = CuarentaYCincoAmperes(cuadro);
+        cuadro.Datos.TerminalesMarcadas75C = true;
+        cuadro.Datos.TipoAislamiento = "TW";
+        cuadro.Recalcular();
+
+        Assert.Null(c.Error);
+        Assert.Equal(60, c.Resultado!.Detalle!.TemperaturaTerminalesC);
+        Assert.Equal("6", c.Resultado.CalibreFase.Designacion);
+    }
+
+    // ---- 240-4(b) en Equipo, no solo en Alumbrado ----------------------------------------------
+
+    [Fact]
+    public void Excepcion240_4b_AplicaEnEquipo_NoEnContactos()
+    {
+        // 32 A continuos, 9 agrupados: el 8 AWG da 38.5 A con factores y la protección es de 40 A.
+        // 240-4(b)(1) solo excluye circuitos de varios contactos: Equipo califica → 8 AWG. Contactos
+        // no se sabe cuántos lleva → sube a 6 AWG.
+        foreach (var (tipo, calibre) in new[] { (TipoCarga.Equipo, "8"), (TipoCarga.Contactos, "6") })
+        {
+            var cuadro = Nuevo();
+            cuadro.Datos.ConductoresAgrupados = 9;
+            var c = Espacio(cuadro, 1);
+            c.Tipo = tipo;
+            c.Unidad = UnidadConsumo.Amperes;
+            c.Continua = 32m;
+            c.LongitudM = 5m;
+            cuadro.Recalcular();
+
+            Assert.Equal(calibre, c.Resultado!.CalibreFase.Designacion);
+        }
+    }
+
     // ---- El interior del gabinete ---------------------------------------------------------------
 
     [Fact]
