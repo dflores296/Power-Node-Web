@@ -47,7 +47,7 @@ ID: `<letra>-<número>`. La letra dice el frente (`M` motor, `I` interfaz, `P` p
 | I-29 · La 240-6(a) de la NOM trae 16, 32 y 63 A; un centro de carga QO/NQ no | P2 | **Cerrado** | `b9406ab` |
 | I-30 · El tooltip de «Tipo» describía un piso de calibre que ya no existe | P3 | **Cerrado** | `b37de00` |
 | M-04 · La excepción 240-4(b) solo se concede en Alumbrado, no en Equipo | P3 | Pendiente — es del motor de escritorio | — |
-| I-32 · El aislamiento estaba fijo en THHN: con factores podía salir un calibre de menos | P0 | **Cerrado** | este commit |
+| I-32 · El aislamiento estaba fijo en THHN: con factores podía salir un calibre de menos | P0 | **Cerrado** | `b1a84d6` |
 | I-31 · «Acometida» se cortaba en «Interruptor prin» | P3 | **Cerrado** | `b9406ab` |
 
 ---
@@ -523,7 +523,7 @@ corridos en el motor, está en
 [`../conocimiento/seleccion-conductor-y-proteccion.md`](../conocimiento/seleccion-conductor-y-proteccion.md).
 Seis propuestas, aprobadas para hacerse una por una.
 
-### I-32 — El aislamiento estaba fijo en THHN · este commit
+### I-32 — El aislamiento estaba fijo en THHN · `b1a84d6`
 
 El motor sabe elegir la columna de la Tabla 310-15(b)(16) por aislamiento y lugar (Tabla
 310-104(a), 110-14(c)), pero la web nunca se lo pasaba: siempre THHN, lugar seco. **Del lado
