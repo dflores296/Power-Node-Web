@@ -41,8 +41,8 @@ ID: `<letra>-<número>`. La letra dice el frente (`M` motor, `I` interfaz, `P` p
 | M-02 · El alimentador se dimensionaba como si el tablero estuviera balanceado | P0 | **Cerrado** | `b37de00` |
 | M-03 · No se avisaba cuando el principal es menor que el derivado más grande | P1 | **Cerrado** (aviso; bloqueo a decisión de David) | `b37de00` |
 | I-25 · La captura solo aceptaba VA; las placas dicen W o A | P1 | **Cerrado** | `b37de00` |
-| I-26 · El factor de potencia es uno solo para todo el tablero | P1 | **Cerrado** | este commit |
-| I-27 · «Total (kW)» sale de multiplicar los VA por el FP del tablero | P2 | **Cerrado** | este commit |
+| I-26 · El factor de potencia es uno solo para todo el tablero | P1 | **Cerrado** | `2ebf20f` |
+| I-27 · «Total (kW)» sale de multiplicar los VA por el FP del tablero | P2 | **Cerrado** | `2ebf20f` |
 | I-28 · Los avisos del interruptor principal citan «el Excel original» | P2 | PROPUESTA — espera a David | — |
 | I-29 · La 240-6(a) de la NOM trae 16, 32 y 63 A; un centro de carga QO/NQ no | P2 | PROPUESTA — espera a David | — |
 | I-30 · El tooltip de «Tipo» describía un piso de calibre que ya no existe | P3 | **Cerrado** | `b37de00` |
@@ -441,7 +441,7 @@ usa todo lo demás. **Debajo de cada valor en W o A se ve el VA con el que se ca
 
 Mientras no se decida I-26, los W se convierten con el FP del tablero.
 
-### I-26 e I-27 — El F.P. es de cada carga, y los kW son reales · este commit
+### I-26 e I-27 — El F.P. es de cada carga, y los kW son reales · `2ebf20f`
 
 Confirmado por David el 2026-09-23, después de revisar la NOM: **un tablero no tiene F.P., sus cargas
 sí** (la nota 2 de la Tabla 9 habla del «factor de potencia del circuito»). Se quitó el F.P. de la
