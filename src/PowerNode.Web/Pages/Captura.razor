@@ -63,14 +63,14 @@
         </select></label>
         <label>Capacidad de barra (A) <input type="number" min="0" step="1" placeholder="—"
                                              @bind="Datos.CapacidadBarraA" @bind:after="Recalcular" /></label>
-        <label class="apilado"><span class="ayuda" title="Qué familia de interruptores se instala. La 240-6(a) mezcla las dos: centro de carga (15, 30, 35, 45, 60…) y riel DIN (16, 32, 63). Centro de carga: sin 16, 32 ni 63 A. Riel DIN: solo 16, 20, 25, 32, 40, 50, 63, 80, 100 y 125 A. NOM completa: la lista tal cual.">Interruptores</span>
+        <label class="apilado"><span class="ayuda" title="Seleccionar la familia de interruptores. Centro de carga (NEMA): 240-6(a) sin 16, 32 ni 63 A. Riel DIN (IEC): 16, 20, 25, 32, 40, 50, 63, 80, 100 y 125 A. NOM completa: 240-6(a) sin exclusiones.">Interruptores</span>
             <select @bind="Datos.SerieInterruptores" @bind:after="Recalcular">
                 @foreach (var serie in new[] { SerieDeInterruptores.CentroDeCargaNema, SerieDeInterruptores.RielDinIec, SerieDeInterruptores.NomCompleta })
                 {
                     <option value="@serie">@serie.Nombre()</option>
                 }
             </select></label>
-        <label><span class="ayuda" title="Criterio del proyectista, no de la NOM. Vacío: sin mínimo. Si el principal calculado queda debajo, solo se avisa; no se sube.">Mínimo del principal (A)</span>
+        <label><span class="ayuda" title="Capturar el mínimo del interruptor principal (criterio del proyectista). Vacío: sin verificación. Principal calculado menor al mínimo: aviso, sin cambio del valor calculado.">Mínimo del principal (A)</span>
             <input type="number" min="0" step="5" placeholder="—"
                    @bind="Datos.MinimoInterruptorPrincipalA" @bind:after="Recalcular" /></label>
     </div>
@@ -81,16 +81,16 @@
             <option value="@MaterialConductor.Cobre">Cobre</option>
             <option value="@MaterialConductor.Aluminio">Aluminio</option>
         </select></label>
-        <label><span class="ayuda" title="Designación de la Tabla 310-104(a). Decide la columna de temperatura de la Tabla 310-15(b)(16) (60, 75 o 90 °C) en la que se aplican los factores de corrección; el resultado se limita a la temperatura de la terminal — 110-14(c).">Aislamiento</span>
+        <label><span class="ayuda" title="Seleccionar el aislamiento — Tabla 310-104(a). Determina la columna de temperatura de la Tabla 310-15(b)(16) para aplicar FT y FA. Ampacidad limitada a la temperatura de la terminal — 110-14(c).">Aislamiento</span>
             <select @bind="Datos.TipoAislamiento" @bind:after="Recalcular">
                 @foreach (var aislamiento in Aislamientos) { <option value="@aislamiento">@aislamiento</option> }
             </select></label>
-        <label class="apilado"><span class="ayuda" title="110-14(c)(1): hasta 100 A la ampacidad se toma de la columna de 60 °C, salvo que el equipo esté aprobado e identificado para 75 °C (a.(3)) — muchos interruptores vienen marcados 60/75 °C. Declara 75 °C solo si lo están el interruptor Y el equipo de la otra punta: manda la terminal más baja. Con conductor de 60 °C (TW) se queda en 60 °C. Arriba de 100 A siempre es 75 °C.">Terminales</span>
+        <label class="apilado"><span class="ayuda" title="Declarar la temperatura de las terminales del interruptor y del equipo — 110-14(c)(1). Regla general: 60 °C hasta 100 A; 75 °C arriba de 100 A. Marcadas 75 °C: aplicar solo si ambas terminales lo indican — a.(3). Conductor de 60 °C: usar 60 °C — a.(1).">Terminales</span>
             <select @bind="Terminales" @bind:after="Recalcular">
                 <option value="60">60 °C hasta 100 A (regla general)</option>
                 <option value="75">Marcadas 75 °C</option>
             </select></label>
-        <label class="apilado"><span class="ayuda" title="Algunos aislamientos cambian de temperatura según el lugar (THHW-LS: 90 °C seco, 75 °C mojado) y otros no se permiten fuera de lugar seco (THHN) — Tabla 310-104(a).">Lugar</span>
+        <label class="apilado"><span class="ayuda" title="Seleccionar el lugar de instalación — Tabla 310-104(a). Determina la temperatura del aislamiento (THHW-LS: 90 °C seco, 75 °C mojado) y su validez (THHN: solo lugar seco).">Lugar</span>
             <select @bind="Lugar" @bind:after="Recalcular">
                 <option value="seco">Seco</option>
                 <option value="mojado">Húmedo o mojado</option>
@@ -101,7 +101,7 @@
             <option value="@MaterialCanalizacion.Acero">Acero</option>
         </select></label>
         <label>T. ambiente (°C) <input type="number" min="10" max="80" step="1" @bind="Datos.TemperaturaAmbienteC" @bind:after="Recalcular" /></label>
-        <label><span class="ayuda" title="Conductores portadores de corriente en la misma canalización — Tabla 310-15(b)(3)(a): de 4 a 6, 80 %; de 7 a 9, 70 %; de 10 a 20, 50 %. Cómo se cuentan (nota 1 de la tabla): la tierra no cuenta (310-15(b)(6)); el neutro que solo lleva el desbalance no cuenta (310-15(b)(5)(1)), pero sí cuenta en un circuito de 2 fases + neutro de una estrella (b)(5)(2) y cuando la carga es mayormente no lineal (b)(5)(3). Tres o menos: sin ajuste.">Agrupados</span> <input type="number" min="1" max="40" step="1" @bind="Datos.ConductoresAgrupados" @bind:after="Recalcular" /></label>
+        <label><span class="ayuda" title="Capturar los conductores portadores de corriente en la canalización — Tabla 310-15(b)(3)(a): 4 a 6, 80 %; 7 a 9, 70 %; 10 a 20, 50 %. Excluir la tierra — 310-15(b)(6). Excluir el neutro con solo corriente de desbalance — (b)(5)(1). Contar el neutro en 2 fases + neutro de estrella — (b)(5)(2) y con carga no lineal — (b)(5)(3).">Agrupados</span> <input type="number" min="1" max="40" step="1" @bind="Datos.ConductoresAgrupados" @bind:after="Recalcular" /></label>
         <label>e% máx. derivado <input type="number" min="0.5" max="10" step="0.5" @bind="Datos.CaidaMaxDerivadoPct" @bind:after="Recalcular" /></label>
     </div>
 </section>
@@ -116,35 +116,35 @@
                 va en el tooltip, no en una segunda línea.
             *@
             <tr>
-                <th rowspan="2"><span class="ayuda" title="Número de circuito: es el espacio que ocupa en la barra. Nones arriba, pares abajo.">N.º</span></th>
+                <th rowspan="2"><span class="ayuda" title="Identificar el circuito por su espacio en la barra. Nones arriba, pares abajo.">N.º</span></th>
                 <th rowspan="2" class="izq descripcion">Descripción</th>
-                <th rowspan="2"><span class="ayuda" title="Alumbrado, Contactos o Equipo. Decide el mínimo de protección —15 A en alumbrado, 20 A en contactos, sin mínimo en equipo— y si aplica la excepción 240-4(b). El calibre sale del cálculo, sin piso por tipo.">Tipo</span></th>
-                <th colspan="4"><span class="ayuda" title="Como viene en la placa: VA, W o A, y el factor de potencia de la carga. Carga continua es la que opera 3 horas o más (210-20(a)); la no continua entra al 100 %. Debajo de cada valor en W o A va el VA con el que se calcula.">Carga</span></th>
-                <th colspan="@Datos.Barras.Count"><span class="ayuda" title="La carga del circuito repartida entre las barras que toca, igual que las columnas de balanceo del Excel.">Balanceo de fases <span class="simbolo">(VA)</span></span></th>
-                <th rowspan="2"><span class="ayuda" title="Longitud del circuito. Es la que decide la caída de tensión."><span class="simbolo">L (m)</span></span></th>
-                <th rowspan="2"><span class="ayuda" title="Polos del interruptor. Un multipolar ocupa espacios de dos en dos del mismo lado.">P</span></th>
-                <th rowspan="2"><span class="ayuda" title="Barras que toca el interruptor. Las fija el espacio donde está montado, no se eligen.">Barras</span></th>
-                <th rowspan="2"><span class="ayuda" title="Corriente nominal de diseño del circuito, la que resulta de la carga capturada — 210-19(a)(1)."><span class="simbolo">In (A)</span></span></th>
-                <th rowspan="2"><span class="ayuda" title="Protección contra sobrecorriente: el valor normalizado que le toca — 240-6(a).">Protec. <span class="simbolo">(A)</span></span></th>
-                <th colspan="3"><span class="ayuda" title="Conductor de fase: cuántos hilos por fase, su sección en mm² y su designación AWG/kcmil.">Fase</span></th>
-                <th colspan="3"><span class="ayuda" title="Conductor de neutro.">Neutro</span></th>
-                <th colspan="3"><span class="ayuda" title="Conductor de puesta a tierra de equipos — Tabla 250-122, con el ajuste proporcional de 250-122(b).">Puesta a tierra</span></th>
-                <th rowspan="2" class="ultima"><span class="ayuda" title="Caída de tensión del circuito. La recomendada es 3 % en el derivado y 5 % combinada — 310-15, NOTA 4."><span class="simbolo">e (%)</span></span></th>
+                <th rowspan="2"><span class="ayuda" title="Seleccionar el tipo de carga. Determina el mínimo de protección (alumbrado 15 A, contactos 20 A, equipo sin mínimo) y la aplicación de 240-4(b) (excluida en contactos).">Tipo</span></th>
+                <th colspan="4"><span class="ayuda" title="Capturar la carga de placa en VA, W o A y su factor de potencia. Continua (3 h o más): 125 % — 210-19(a)(1), 210-20(a). No continua: 100 %. En W o A, consultar abajo el VA de cálculo.">Carga</span></th>
+                <th colspan="@Datos.Barras.Count"><span class="ayuda" title="Consultar la carga del circuito repartida entre las barras que toca.">Balanceo de fases <span class="simbolo">(VA)</span></span></th>
+                <th rowspan="2"><span class="ayuda" title="Capturar la longitud del circuito. Determina la caída de tensión — Tabla 9."><span class="simbolo">L (m)</span></span></th>
+                <th rowspan="2"><span class="ayuda" title="Seleccionar los polos del interruptor. Un multipolar ocupa los espacios N, N+2 y N+4 del mismo lado.">P</span></th>
+                <th rowspan="2"><span class="ayuda" title="Consultar las barras que toca el interruptor. Las determina el espacio de montaje.">Barras</span></th>
+                <th rowspan="2"><span class="ayuda" title="Consultar la corriente de diseño de la carga capturada — 210-19(a)(1)."><span class="simbolo">In (A)</span></span></th>
+                <th rowspan="2"><span class="ayuda" title="Consultar la protección: primer tamaño normalizado mayor o igual a la capacidad mínima — 240-6(a), 210-20(a). Pasar el cursor sobre el valor para consultar el desglose.">Protec. <span class="simbolo">(A)</span></span></th>
+                <th colspan="3"><span class="ayuda" title="Consultar el conductor de fase: hilos por fase, sección (mm²) y designación AWG/kcmil. Pasar el cursor sobre el calibre para consultar el desglose.">Fase</span></th>
+                <th colspan="3"><span class="ayuda" title="Consultar el conductor de neutro.">Neutro</span></th>
+                <th colspan="3"><span class="ayuda" title="Consultar el conductor de puesta a tierra de equipos — Tabla 250-122 y 250-122(b).">Puesta a tierra</span></th>
+                <th rowspan="2" class="ultima"><span class="ayuda" title="Consultar la caída de tensión del circuito. Límite recomendado: 3 % en el derivado y 5 % combinada — 210-19(a)(1), nota 4."><span class="simbolo">e (%)</span></span></th>
             </tr>
             <tr>
-                <th><span class="ayuda" title="Unidad de la placa. Los W se convierten con el factor de potencia; los A, con la tensión y los polos del circuito.">Unidad</span></th>
-                <th><span class="ayuda" title="Carga que opera 3 horas o más. Entra al 125 % — 210-20(a).">Continua</span></th>
-                <th><span class="ayuda" title="Carga que no opera 3 horas seguidas. Entra al 100 %.">No continua</span></th>
-                <th><span class="ayuda" title="Factor de potencia de esta carga. 0.9 es un valor supuesto: cámbialo con el dato de placa (1.0 en una resistencia, ~0.8 en un compresor).&#10;&#10;Capturada en W: el F.P. convierte a VA (VA = W ÷ F.P.), así que mueve la corriente, el interruptor y el cable.&#10;&#10;Capturada en VA o A: la corriente sale directo de los VA o los A, sin el F.P. Aquí el F.P. solo mueve la caída de tensión (Tabla 9, nota 2) —y el cable, si la caída pasa del límite— y los kW del resumen.&#10;&#10;En cables delgados (14, 12, 10), a mayor F.P., mayor caída: casi toda su impedancia es resistencia.">F.P.</span></th>
+                <th><span class="ayuda" title="Seleccionar la unidad de placa. W: convertir con el factor de potencia. A: convertir con la tensión y los polos del circuito.">Unidad</span></th>
+                <th><span class="ayuda" title="Capturar la carga que opera 3 h o más. Aplicar 125 % — 210-19(a)(1), 210-20(a).">Continua</span></th>
+                <th><span class="ayuda" title="Capturar la carga que opera menos de 3 h. Aplicar 100 %.">No continua</span></th>
+                <th><span class="ayuda" title="Capturar el factor de potencia de la carga. Valor inicial: 0.9.&#10;&#10;Capturada en W: VA = W ÷ F.P. Modifica corriente, protección, conductor, caída de tensión y kW.&#10;&#10;Capturada en VA o A: modifica solo la caída de tensión (y el conductor, si excede el límite) y los kW — Tabla 9, nota 2.">F.P.</span></th>
                 @foreach (var barra in Datos.Barras)
                 {
-                    <th><span class="ayuda" title="Carga que este circuito le cuelga a la barra @barra.">@barra</span></th>
+                    <th><span class="ayuda" title="Consultar la carga que el circuito asigna a la barra @barra.">@barra</span></th>
                 }
                 @foreach (var _ in new[] { "fase", "neutro", "tierra" })
                 {
-                    <th><span class="ayuda" title="Conductores en paralelo por fase.">Hilos</span></th>
-                    <th><span class="ayuda" title="Sección transversal del conductor — Tabla 8."><span class="simbolo">mm²</span></span></th>
-                    <th><span class="ayuda" title="Designación del calibre en AWG o kcmil."><span class="simbolo">AWG/kcmil</span></span></th>
+                    <th><span class="ayuda" title="Consultar los conductores en paralelo por fase.">Hilos</span></th>
+                    <th><span class="ayuda" title="Consultar la sección transversal del conductor — Tabla 8."><span class="simbolo">mm²</span></span></th>
+                    <th><span class="ayuda" title="Consultar la designación AWG o kcmil."><span class="simbolo">AWG/kcmil</span></span></th>
                 }
             </tr>
         </thead>
@@ -344,7 +344,7 @@
                 <td class="num">@((Cuadro.Resumen.DemandadaW / 1000m).ToString("N2"))</td>
             </tr>
             <tr>
-                <td class="izq"><span class="ayuda" title="No se captura: resulta de las cargas. kW totales entre la suma vectorial de sus kVA.">F.P. resultante</span></td>
+                <td class="izq"><span class="ayuda" title="Consultar el factor de potencia del tablero: kW totales ÷ suma vectorial de kVA.">F.P. resultante</span></td>
                 <td class="num">@Cuadro.Resumen.FactorPotencia.ToString("N2")</td>
                 <td></td><td></td>
             </tr>
@@ -378,13 +378,13 @@
                 @if (Cuadro.Alimentador.Gobierna is { } g && Datos.Barras.Count > 1)
                 {
                     <tr>
-                        <td class="izq"><span class="ayuda" title="Cada fase del alimentador lleva su propia corriente: se dimensiona con la que pide más capacidad (125 % de la continua + la no continua), no con la carga total repartida.">Fase que gobierna</span></td>
+                        <td class="izq"><span class="ayuda" title="Consultar la fase de mayor capacidad requerida (125 % continua + no continua). Dimensiona el alimentador — 215-2(a)(1), 215-3.">Fase que gobierna</span></td>
                         <td class="num">@g.Fase, la más cargada</td>
                     </tr>
                 }
                 <tr><td class="izq">Corriente de diseño</td><td class="num">@a.CorrienteDisenoA.ToString("N2") A</td></tr>
                 <tr>
-                    <td class="izq"><span class="ayuda" title="No se captura: resulta de combinar las cargas de la fase que gobierna. Es el que entra a la caída de tensión del alimentador.">Factor de potencia</span></td>
+                    <td class="izq"><span class="ayuda" title="Consultar el factor de potencia de las cargas de la fase que gobierna. Aplica a la caída de tensión del alimentador.">Factor de potencia</span></td>
                     <td class="num">@Cuadro.Alimentador.FactorPotencia.ToString("N2")</td>
                 </tr>
                 <tr class="total">
@@ -519,9 +519,9 @@
     /// con VA o A la corriente no pasa por él, y solo mueve la caída de tensión y los kW.
     /// </summary>
     private static string AyudaFactorPotencia(CircuitoDelCuadro c) => c.Unidad == UnidadConsumo.Watts
-        ? "Capturada en W: el F.P. convierte a VA (VA = W ÷ F.P.). Mueve la corriente, el interruptor, el cable, la caída de tensión y los kW."
-        : $"Capturada en {(c.Unidad == UnidadConsumo.Amperes ? "A" : "VA")}: el F.P. no cambia la corriente ni el interruptor. " +
-          "Solo mueve la caída de tensión (y el cable, si la caída pasa del límite) y los kW del resumen.";
+        ? "Capturada en W: VA = W ÷ F.P. Modifica corriente, protección, conductor, caída de tensión y kW."
+        : $"Capturada en {(c.Unidad == UnidadConsumo.Amperes ? "A" : "VA")}: el F.P. no modifica la corriente ni la protección. " +
+          "Modifica la caída de tensión (y el conductor, si excede el límite) y los kW.";
 
     private static string Titulo(BloqueDelGabinete bloque) =>
         bloque.Ocupado

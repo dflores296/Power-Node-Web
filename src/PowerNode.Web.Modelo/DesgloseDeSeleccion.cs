@@ -46,10 +46,10 @@ public sealed record DesgloseDeSeleccion(IReadOnlyList<string> Proteccion, IRead
         {
             $"In = {iContinuaA:N2} A (continua) + {iNoContinuaA:N2} A (no continua) = {iContinuaA + iNoContinuaA:N2} A",
             $"Capacidad mínima = {factorContinua * 100m:0} % × {iContinuaA:N2} A + {iNoContinuaA:N2} A = {d.CapacidadMinimaA:N2} A — {articuloProteccion}",
-            $"Protección: {proteccionSinMinimo:N0} A, el primer tamaño que alcanza en «{datos.SerieInterruptores.Nombre()}» — 240-6(a)",
+            $"Protección: {proteccionSinMinimo:N0} A, primer tamaño ≥ capacidad mínima en «{datos.SerieInterruptores.Nombre()}» — 240-6(a)",
         };
         if (proteccionA != proteccionSinMinimo)
-            proteccion.Add($"Sube a {proteccionA:N0} A por el mínimo de protección del tipo de carga");
+            proteccion.Add($"Mínimo de protección del tipo de carga: {proteccionA:N0} A");
 
         var tAislamiento = (TemperaturaAislamiento)d.TemperaturaAislamientoC;
         var tTerminal = (TemperaturaAislamiento)d.TemperaturaTerminalesC;
@@ -91,23 +91,23 @@ public sealed record DesgloseDeSeleccion(IReadOnlyList<string> Proteccion, IRead
         foreach (var cita in citas)
         {
             if (cita.Referencia == "240-4(b)")
-                conductor.Add($"Protección {proteccionA:N0} A sobre {d.AmpacidadConductorA:N2} A: permitido, el estándar inmediato superior — 240-4(b)");
+                conductor.Add($"Protección {proteccionA:N0} A > {d.AmpacidadConductorA:N2} A: estándar inmediato superior permitido — 240-4(b)");
             else if (cita.Referencia == "240-4")
-                conductor.Add($"Subió para que la protección de {proteccionA:N0} A proteja al conductor — 240-4");
+                conductor.Add($"Conductor aumentado para quedar protegido por {proteccionA:N0} A — 240-4");
             else if (cita.Referencia == "240-4(d)")
-                conductor.Add($"Subió por el tope de protección de calibres pequeños — 240-4(d)");
+                conductor.Add($"Conductor aumentado por el tope de protección de calibres pequeños — 240-4(d)");
             else if (cita.Referencia == "Tabla 9" && cita.Descripcion.Contains("excedía"))
-                conductor.Add($"Subió por caída de tensión — {cita.Descripcion}");
+                conductor.Add($"Conductor aumentado por caída de tensión — {cita.Descripcion}");
         }
 
         return new DesgloseDeSeleccion(proteccion, conductor);
     }
 
     private static string PorQueLaTerminal(decimal proteccionA, bool marcadas75C, int terminalC) =>
-        proteccionA > 100m ? "por ser de más de 100 A — 110-14(c)(1)b."
-        : !marcadas75C ? "por ser de 100 A o menos — 110-14(c)(1)a."
-        : terminalC == 75 ? "por equipo marcado 75 °C — 110-14(c)(1)a.(3)"
-        : "aunque el equipo esté marcado 75 °C: el conductor es de 60 °C — 110-14(c)(1)a.(1)";
+        proteccionA > 100m ? "(protección > 100 A) — 110-14(c)(1)b."
+        : !marcadas75C ? "(protección ≤ 100 A) — 110-14(c)(1)a."
+        : terminalC == 75 ? "(equipo marcado 75 °C) — 110-14(c)(1)a.(3)"
+        : "(conductor de 60 °C con equipo marcado 75 °C) — 110-14(c)(1)a.(1)";
 
     /// <summary>El texto de un tooltip: una línea por paso.</summary>
     public static string ComoTexto(IEnumerable<string> lineas) => string.Join("\n", lineas);

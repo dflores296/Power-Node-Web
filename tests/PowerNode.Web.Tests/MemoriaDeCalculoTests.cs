@@ -195,6 +195,6 @@ public class MemoriaDeCalculoTests
 
         Assert.Equal("In = 5.67 A (continua) + 0.00 A (no continua) = 5.67 A", proteccion[0]);
         Assert.Equal("Capacidad mínima = 125 % × 5.67 A + 0.00 A = 7.09 A — 210-20(a)", proteccion[1]);
-        Assert.StartsWith("Protección: 15 A, el primer tamaño que alcanza", proteccion[2]);
+        Assert.StartsWith("Protección: 15 A, primer tamaño ≥ capacidad mínima", proteccion[2]);
     }
 }

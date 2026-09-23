@@ -1,49 +1,82 @@
 # Power Node Web
 
-Calculadora de cuadros de carga según la **NOM-001-SEDE-2012**.
+Calcular el cuadro de carga de un tablero según la **NOM-001-SEDE-2012**, en el navegador, sin
+instalación ni servidor.
 
-Un tablero de hasta 42 espacios, con la geometría real: nones a la izquierda, pares a la derecha, y
-la fase de cada circuito derivada de su espacio y sus polos — un interruptor de 3 polos ocupa tres
-espacios de su columna y toca las tres barras. Por cada circuito resuelve la protección, los
-conductores de fase, neutro y tierra, y la caída de tensión; y por el tablero completo, el balanceo
-entre fases, el alimentador y el interruptor principal.
+## Requisitos
 
-**Y emite el entregable:** el cuadro de carga con las mismas columnas de siempre, y la memoria de
-cálculo con sus nueve secciones y las fórmulas sustituidas, listos para imprimir o guardar en PDF.
+Cada requisito se relaciona con su referencia normativa y con su verificación en
+`tests/PowerNode.Web.Tests`.
 
-**Cada resultado cita el artículo de la norma del que sale.** No es un número suelto: la memoria
-dice *«240-6(a) · Capacidad mínima 7.09 A → protección estándar 15 A»*, de modo que quien revisa
-puede tomar la fórmula del artículo citado y llegar al mismo resultado.
+### Tablero
 
-Corre completo en el navegador. Sin instalar nada, sin cuenta, sin servidor.
+| ID | Requisito | Referencia | Verificación |
+|---|---|---|---|
+| T-1 | Distribuir hasta 42 espacios: nones a la izquierda, pares a la derecha, fase por renglón (convención NEMA). | — | `LasBarrasRotanPorPares_…` |
+| T-2 | Asignar a un interruptor de 2 o 3 polos los espacios N, N+2 y N+4 del mismo lado. | — | `UnTrifasicoOcupaTresEspacios…` |
+| T-3 | Calcular la tensión fase-neutro según el sistema: estrella ÷√3, 1F-3H ÷2, 1F-2H igual. | — | `LaTensionFaseNeutroNoEsSiempreEntreRaizDeTres` |
 
-## Lo que calcula
+### Carga
 
-| | Artículos |
-|---|---|
-| Corriente de diseño y carga continua al 125 % | 210-19(a)(1), 210-20(a) |
-| Protección, con los valores normalizados de la NOM | 240-6(a) |
-| Conductor por capacidad, con corrección por temperatura y agrupamiento | 310-15(b)(16)/(17), (b)(2)(a), (b)(3)(a) |
-| Temperatura de terminal y crédito de aislamiento | 110-14(c), 310-104(a) |
-| Caída de tensión por impedancia completa, no por fórmula aproximada | Tabla 9 |
-| Conductor de puesta a tierra, con ajuste proporcional | 250-122, 250-122(b) |
-| Alimentador e interruptor principal del tablero | 215-2, 215-3 |
-| Factor de demanda sobre la carga acumulada, no sobre el derivado | 220-40, 220-42 |
-| Que la protección no supere la capacidad de la barra | 408-36 |
+| ID | Requisito | Referencia | Verificación |
+|---|---|---|---|
+| C-1 | Capturar la carga en VA, W o A y convertirla a VA. | 220-14(a) | `I25_…` |
+| C-2 | Capturar el factor de potencia por carga (valor inicial 0.9). | Tabla 9, nota 2 | `FP_…` |
+| C-3 | Separar la carga continua (3 h o más) de la no continua. | Art. 100 | `ElMotorDistingueContinuaDeNoContinua_…` |
+| C-4 | Calcular la corriente de diseño sin factor de demanda en el derivado. | 210-19(a)(1), 220-42 | `UnCircuitoDeAlumbrado…` |
 
-## De dónde salen los números
+### Protección
 
-De [**NOM-001-SEDE-2012**](https://github.com/dflores296/NOM-001-SEDE-2012): la norma completa,
-estructurada y **verificada celda por celda contra el PDF del DOF**. Cada tabla que esta calculadora
-usa viaja con la fecha en que se cotejó, y hay integración continua que rompe el build si los datos
-publicados aquí se despegan de los de allá.
+| ID | Requisito | Referencia | Verificación |
+|---|---|---|---|
+| P-1 | Calcular la capacidad mínima: 125 % de la continua + 100 % de la no continua. | 210-20(a), 215-3 | `ElDesgloseDeLaProteccion…` |
+| P-2 | Seleccionar el primer tamaño normalizado mayor o igual a la capacidad mínima. | 240-6(a) | `Serie_…` |
+| P-3 | Seleccionar la familia de interruptores: centro de carga (NEMA), riel DIN (IEC) o NOM completa. | 240-6(a) | `Serie_…` |
+| P-4 | Aplicar el mínimo de 15 A en alumbrado y 20 A en contactos. | — | `LoQueSIGUE_SeparandoAContactos…` |
+
+### Conductor
+
+| ID | Requisito | Referencia | Verificación |
+|---|---|---|---|
+| K-1 | Seleccionar la columna de ampacidad por aislamiento y lugar de instalación. | Tabla 310-104(a), Tabla 310-15(b)(16) | `Aislamiento_…` |
+| K-2 | Aplicar los factores por temperatura ambiente y por agrupamiento en la columna del aislamiento. | 310-15(b)(2)(a), 310-15(b)(3)(a) | `DosRevisiones_…` |
+| K-3 | Limitar la ampacidad a la temperatura de la terminal: 60 °C hasta 100 A, 75 °C arriba de 100 A, o 75 °C con equipo marcado. | 110-14(c)(1) | `Terminales_…` |
+| K-4 | Verificar el 125 % contra la ampacidad de tabla sin factores y la carga al 100 % contra la ampacidad corregida. | 210-19(a)(1), 215-2(a)(1) | `DosRevisiones_…` |
+| K-5 | Proteger el conductor según su ampacidad; permitir el estándar inmediato superior salvo en circuitos de contactos. | 240-4, 240-4(b) | `Excepcion240_4b_…` |
+| K-6 | Limitar la protección de 14, 12 y 10 AWG de cobre a 15, 20 y 30 A. | 240-4(d) | `Serie_EnRielDinNoHay15A_…` |
+| K-7 | Verificar la caída de tensión con la impedancia eficaz. | Tabla 9, 210-19(a)(1) nota 4 | `LasFormulasVienenConSusNumerosSustituidos` |
+| K-8 | Seleccionar el conductor de puesta a tierra con ajuste proporcional. | 250-122, 250-122(b) | — |
+
+### Alimentador
+
+| ID | Requisito | Referencia | Verificación |
+|---|---|---|---|
+| A-1 | Dimensionar el alimentador con la fase de mayor capacidad requerida. | 215-2(a)(1), 215-3 | `M02_…` |
+| A-2 | Aplicar el factor de demanda sobre la carga acumulada. | 220-40 | `ElFactorDeDemanda…`, `M02_ElFactorDeDemanda…` |
+| A-3 | Calcular el factor de potencia del alimentador con las cargas de la fase que gobierna. | Tabla 9, nota 2 | `FP_ElDelAlimentador…` |
+| A-4 | Avisar si el principal es menor que el derivado más grande. | — | `M03_…` |
+| A-5 | Avisar si el principal queda debajo del mínimo capturado. | — | `ConMinimoCapturadoSoloAvisa_…` |
+| A-6 | Verificar la protección contra la capacidad de la barra. | 408-36 | `ElAvisoDel408_36…` |
+
+### Entregable
+
+| ID | Requisito | Referencia | Verificación |
+|---|---|---|---|
+| E-1 | Emitir el cuadro de carga con 24 columnas y el resumen de carga. | — | Navegador |
+| E-2 | Emitir la memoria de cálculo con nueve secciones y fórmulas sustituidas. | — | `LasNueveSecciones…` |
+| E-3 | Mostrar el desglose de la protección y del conductor en tooltip y en la memoria, sección 4. | — | `LaSeccion4CuadraConElConductorElegido` |
+
+## Datos
+
+Tablas tomadas de [NOM-001-SEDE-2012](https://github.com/dflores296/NOM-001-SEDE-2012), verificadas
+contra el PDF del DOF. La integración continua compara ambas copias en cada compilación.
 
 > Los resultados no sustituyen el criterio del ingeniero responsable del proyecto.
 
-## Desarrollo
+## Ejecutar
 
 ```bash
 dotnet run --project src/PowerNode.Web
 ```
 
-Blazor WebAssembly sobre .NET 8. Documentación del proyecto en [`docs/LEEME.md`](docs/LEEME.md).
+Blazor WebAssembly sobre .NET 8. Índice de documentación: [`docs/LEEME.md`](docs/LEEME.md).

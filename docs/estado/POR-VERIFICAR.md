@@ -1,16 +1,16 @@
 # Por verificar
 
-Lo que se escribió sin verse corriendo, y espera que David lo confirme. Ordenado por riesgo.
+Supuestos del cálculo pendientes de confirmar en campo o por David. Ordenados por riesgo.
 
-| Qué | Riesgo si está mal | Estado |
+| Supuesto | Riesgo | Estado |
 |---|---|---|
-| **El mínimo del principal solo avisa**, no sube el principal (decisión de David) | El cuadro impreso dice el calculado aunque se vaya a comprar el mínimo | CONFIRMADA — ver `../decisiones/interruptor-principal-criterios-del-excel.md` |
-| **El alimentador se dimensiona con la fase más cargada** (M-02), entregándole al motor la carga equivalente de esa fase (3 × sus VA en un 3F-4H) | Las citas del motor (215-2, 215-3) hablan de la corriente de la fase, no de la carga total | Verificado en el caso de los tres aparatos; la memoria explica la fase que gobierna en la sección 3, y la cita del 220-40 se reescribe con la carga del tablero |
-| **«Terminales marcadas 75 °C» vale para todo el tablero** y para las dos puntas de cada circuito | Un circuito cuyo equipo no está marcado sale con un calibre de menos | Es declaración del proyectista (110-14(c)(1)a.(3)); el tooltip pide declararla solo si interruptor y equipo lo están |
-| **Por omisión los interruptores son de centro de carga (NEMA)** (decisión de David) | Lo que antes salía en 16, 32 o 63 A ahora sale en 20, 35 o 70 | CONFIRMADA — ver `../decisiones/serie-de-interruptores.md` |
-| **En riel DIN, arriba de 125 A se usa el siguiente tamaño de la NOM** | Ese interruptor ya no es de riel DIN | Se avisa junto al alimentador |
-| **Cada circuito nace con F.P. 0.9** (decisión de David) | Un aparato resistivo o un motor capturado en W sale con otros VA, y su caída de tensión se mueve, si no se cambia el 0.9 | Es un valor supuesto; la columna F.P. lo dice en su tooltip |
-| **El entregable se imprime desde el navegador**, no se descarga `.xlsx` ni `.docx` | Si David edita la hoja antes de entregar, hoy no puede | PROPUESTA — ver `../decisiones/documento-imprimible-en-vez-de-archivo.md` |
-| **Las condiciones de cálculo son del tablero entero** (material, canalización, temperatura, agrupamiento, f.p.), no por circuito | Un circuito en condiciones distintas sale con el calibre de los demás | Es lo que hace el Excel, donde esas columnas se llenan iguales en todos los renglones |
-| **El desbalanceo se mide en corriente y el balanceo se imprime en VA** | Los dos números del pie parecen no cuadrar entre sí | Deliberado: el % sale de `CalculadoraDesbalanceo` (motor), las columnas A/B/C son las del Excel |
-| **El cuadro impreso se vio en pantalla y en PDF de Chromium**, no en la impresora de David | Márgenes o cortes de página distintos | Falta imprimirlo de verdad una vez |
+| «Terminales marcadas 75 °C» aplica a todo el tablero y a ambas puntas de cada circuito. | Calibre menor al requerido en un circuito con equipo no marcado. | Declaración del proyectista — 110-14(c)(1)a.(3). |
+| Cada circuito inicia con F.P. 0.9. | VA y caída de tensión distintos si no se captura el F.P. de placa. | Confirmado por David. |
+| Interruptores por omisión: centro de carga (NEMA). | 16, 32 y 63 A pasan a 20, 35 y 70 A. | Confirmado por David. |
+| En riel DIN, arriba de 125 A se usa el tamaño siguiente de la NOM. | Interruptor fuera de la familia riel DIN. | Aviso junto al alimentador. |
+| El mínimo del principal solo avisa. | El documento imprime el principal calculado, no el mínimo. | Confirmado por David. |
+| El alimentador recibe la carga equivalente de la fase que gobierna (3 × VA de fase en 3F-4H). | Las citas 215-2 y 215-3 muestran la corriente de fase, no la carga total. | Memoria, sección 3: fase que gobierna. Cita 220-40 con la carga total. |
+| Las condiciones de cálculo son del tablero, no del circuito (material, canalización, temperatura, agrupamiento, aislamiento, terminales). | Calibre incorrecto en un circuito con condiciones distintas. | Igual que el Excel. |
+| El desbalanceo se calcula en corriente; el balanceo se imprime en VA. | Los dos valores no coinciden entre sí. | Igual que el motor y el Excel. |
+| El entregable se imprime desde el navegador. | No editable antes de entregar. | Propuesta — [`../decisiones/documento-imprimible-en-vez-de-archivo.md`](../decisiones/documento-imprimible-en-vez-de-archivo.md). |
+| Impresión revisada solo en PDF de Chromium. | Márgenes o cortes distintos en impresora. | Imprimir una vez en físico. |

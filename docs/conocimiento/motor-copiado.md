@@ -72,31 +72,15 @@ compilación en la frontera. Los cinco, en el orden en que aparecieron:
 No se tocó ninguna regla de cálculo. Los cinco ajustes son de **plomería entre archivos**, no de
 lógica de la norma.
 
-## Lo que cambió después de copiar
+## Cambios posteriores a la copia
 
-- **2026-09-23 · `CalculadoraDesbalanceo.CorrientePorFase`** (hallazgo M-02). La suma de corriente por
-  barra vivía dentro de `Porcentaje`; se extrajo a su propio método público, y `Porcentaje` lo usa.
-  **Misma regla, mismo resultado** —el desbalanceo no cambia—: hacía falta porque el alimentador
-  necesita la corriente de la fase más cargada, y una segunda copia de la suma era justo lo que no
-  se quería. Al recopiar el motor desde el escritorio, este método tiene que sobrevivir (o llegar
-  allá con el reporte de M-02).
-- **2026-09-23 · `ITablaProteccionEstandar.ValoresDeLaNorma` / `SiguienteDeLaNorma`** (hallazgo
-  I-29). Miembros con implementación por omisión —la misma lista—, así que ninguna tabla existente
-  cambia. `SeleccionConductor` los usa en la excepción 240-4(b), que habla del siguiente valor
-  estándar **de la norma**: la web elige el interruptor dentro de una serie (centro de carga, riel
-  DIN) y esa verificación no puede hacerse contra la serie recortada. Mismo destino al recopiar:
-  sobrevivir, o llegar allá con el reporte.
-- **2026-09-23 · texto de la cita de 310-15(b)(16) en `SeleccionConductor`** (hallazgo I-33): decía
-  «Corriente de diseño X A por conductor» cuando X es la capacidad mínima (ya con el 125 %). Ahora
-  dice «Capacidad mínima». Solo texto; ningún número cambia.
-- **2026-09-23 · `SeleccionConductor.CalibrePorDosRevisiones` y el parámetro `cargaAl100PctA`**
-  (hallazgo M-05). **Sí cambia números**: el 125 % se compara contra la ampacidad de tabla sin
-  factores y la carga al 100 % contra la corregida, como dicen 210-19(a)(1) y 215-2(a)(1). Con el
-  parámetro en `null` —motores, derivaciones 240-21(b)— el cálculo es el de antes. Hay que llevarlo al
-  escritorio.
-- **2026-09-23 · `TemperaturaTerminales.Para(proteccion, equipoMarcado75C, aislamiento)` y el campo
-  `TerminalesMarcadas75C`** en `DatosEntradaCircuitoDerivadoNoMotor` y `DatosEntradaAlimentador`
-  (hallazgo M-06). Falso por omisión: mismo cálculo.
-- **2026-09-23 · `permiteExcepcion2404b: d.TipoCarga != TipoCarga.Contactos`** en
-  `CalculadoraCircuitoDerivadoNoMotor` (hallazgo M-04). **Cambia números** en Equipo: puede bajar un
-  calibre donde 240-4(b) lo permite.
+Llevar estos cambios a `PowerNode-DesignSuite`.
+
+| Fecha | Archivo | Cambio | ¿Cambia resultados? | Hallazgo |
+|---|---|---|---|---|
+| 2026-09-23 | `Validaciones/CalculadoraDesbalanceo.cs` | Extraer `CorrientePorFase` de `Porcentaje`. | No | M-02 |
+| 2026-09-23 | `TablasNom/ITablaProteccionEstandar.cs`, `Casos/SeleccionConductor.cs` | Agregar `ValoresDeLaNorma` y `SiguienteDeLaNorma`; verificar 240-4(b) contra la lista completa de 240-6(a). | No (por omisión) | I-29 |
+| 2026-09-23 | `Casos/SeleccionConductor.cs` | Cambiar el texto de la cita 310-15(b)(16): «capacidad mínima». | No | I-33 |
+| 2026-09-23 | `Casos/SeleccionConductor.cs`, `CalculadoraCircuitoDerivadoNoMotor.cs`, `CalculadoraAlimentador.cs` | Agregar `CalibrePorDosRevisiones` y `cargaAl100PctA`: 125 % contra tabla sin factores, 100 % contra ampacidad corregida. Excluir motores y derivaciones 240-21(b). | Sí, con factores | M-05 |
+| 2026-09-23 | `Casos/TemperaturaTerminales.cs`, `DatosEntradaCircuitoDerivadoNoMotor.cs`, `DatosEntradaAlimentador.cs`, calculadoras | Agregar `TerminalesMarcadas75C` y `Para(protección, marcado75C, aislamiento)`. | No (por omisión) | M-06 |
+| 2026-09-23 | `Casos/CalculadoraCircuitoDerivadoNoMotor.cs` | Cambiar `permiteExcepcion2404b` a `TipoCarga != Contactos`. | Sí, en Equipo | M-04 |
