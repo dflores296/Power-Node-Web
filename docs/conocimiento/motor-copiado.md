@@ -89,3 +89,8 @@ lógica de la norma.
 - **2026-09-23 · texto de la cita de 310-15(b)(16) en `SeleccionConductor`** (hallazgo I-33): decía
   «Corriente de diseño X A por conductor» cuando X es la capacidad mínima (ya con el 125 %). Ahora
   dice «Capacidad mínima». Solo texto; ningún número cambia.
+- **2026-09-23 · `SeleccionConductor.CalibrePorDosRevisiones` y el parámetro `cargaAl100PctA`**
+  (hallazgo M-05). **Sí cambia números**: el 125 % se compara contra la ampacidad de tabla sin
+  factores y la carga al 100 % contra la corregida, como dicen 210-19(a)(1) y 215-2(a)(1). Con el
+  parámetro en `null` —motores, derivaciones 240-21(b)— el cálculo es el de antes. Hay que llevarlo al
+  escritorio.

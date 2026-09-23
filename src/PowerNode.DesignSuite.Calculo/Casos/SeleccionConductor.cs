@@ -126,7 +126,8 @@ public static class SeleccionConductor
         decimal? proteccionA = null,
         bool permiteExcepcion2404b = false,
         MetodoInstalacion metodoInstalacion = MetodoInstalacion.CanalizacionOCable,
-        int maxNParaleloAutoResuelto = MaxNParaleloAutoResueltoPorOmision)
+        int maxNParaleloAutoResuelto = MaxNParaleloAutoResueltoPorOmision,
+        decimal? cargaAl100PctA = null)
     {
         // Un tope por debajo del N capturado dejaría el bucle sin una sola vuelta y tiraría una
         // excepción de caída de tensión donde el problema es el tope. El N capturado manda.
@@ -141,7 +142,7 @@ public static class SeleccionConductor
             var intento = IntentarConN(catalogo, ampacidad, impedancia, capacidadMinConductorA, corrienteParaCaidaA,
                 nParalelo, factorTemp, factorAgrup, materialConductor, materialCanalizacion, tempAislamiento, tempTerminales,
                 longitudM, factorPotencia, senTheta, k, tensionEfectivaV, caidaTensionMaxPct, pisoPracticoCalibreMm2,
-                proteccionEstandar, proteccionA, permiteExcepcion2404b, metodoInstalacion);
+                proteccionEstandar, proteccionA, permiteExcepcion2404b, metodoInstalacion, cargaAl100PctA);
 
             if (intento is null)
                 continue; // catálogo agotado con este N -- prueba con más conductores en paralelo.
@@ -183,14 +184,15 @@ public static class SeleccionConductor
         decimal longitudM, decimal factorPotencia, decimal senTheta, decimal k,
         decimal tensionEfectivaV, decimal caidaTensionMaxPct, decimal? pisoPracticoCalibreMm2,
         ITablaProteccionEstandar? proteccionEstandar, decimal? proteccionA, bool permiteExcepcion2404b,
-        MetodoInstalacion metodoInstalacion)
+        MetodoInstalacion metodoInstalacion, decimal? cargaAl100PctA)
     {
         // Calibre de partida: por ampacidad utilizable de la corriente de diseño (crédito de
         // aislamiento incluido, ver docstring de la clase), y luego 240-4 decide si ese calibre basta
         // para la PROTECCIÓN ya elegida o si hay que subirlo.
         var (calibreBase, citaProteccion) = DeterminarCalibreBase(
             catalogo, ampacidad, proteccionEstandar, capacidadMinConductorA, proteccionA, permiteExcepcion2404b,
-            nParalelo, factorTemp, factorAgrup, materialConductor, tempAislamiento, tempTerminales, metodoInstalacion);
+            nParalelo, factorTemp, factorAgrup, materialConductor, tempAislamiento, tempTerminales, metodoInstalacion,
+            cargaAl100PctA);
 
         var objetivoPorConductor = capacidadMinConductorA / nParalelo;
         var columnaDescripcion = tempAislamiento == tempTerminales
@@ -200,8 +202,13 @@ public static class SeleccionConductor
         {
             // «Capacidad mínima», no «corriente de diseño»: este número ya trae el 125 % de la carga
             // continua. Llamarlo corriente de diseño confundía con la In de 210-19(a)(1).
-            new("310-15(b)(16)", $"Capacidad mínima {objetivoPorConductor:0.##} A por conductor -> calibre {calibreBase} " +
-                $"({columnaDescripcion}, {materialConductor})" + (nParalelo > 1 ? $" x {nParalelo} conductores en paralelo por fase" : "")),
+            cargaAl100PctA is decimal carga
+                ? new("310-15(b)(16)",
+                    $"Capacidad mínima {objetivoPorConductor:0.##} A por conductor contra la ampacidad de tabla a {(int)tempTerminales}°C sin factores, " +
+                    $"y carga {carga / nParalelo:0.##} A contra la ampacidad corregida -> calibre {calibreBase} ({columnaDescripcion}, {materialConductor})" +
+                    (nParalelo > 1 ? $" x {nParalelo} conductores en paralelo por fase" : ""))
+                : new("310-15(b)(16)", $"Capacidad mínima {objetivoPorConductor:0.##} A por conductor -> calibre {calibreBase} " +
+                    $"({columnaDescripcion}, {materialConductor})" + (nParalelo > 1 ? $" x {nParalelo} conductores en paralelo por fase" : "")),
         };
         if (citaProteccion is not null)
             citas.Add(citaProteccion);
@@ -300,11 +307,16 @@ public static class SeleccionConductor
         ICatalogoCalibres catalogo, ITablaAmpacidad ampacidad, ITablaProteccionEstandar? proteccionEstandar,
         decimal capacidadMinConductorA, decimal? proteccionA, bool permiteExcepcion2404b,
         int nParalelo, decimal factorTemp, decimal factorAgrup, MaterialConductor materialConductor,
-        TemperaturaAislamiento tempAislamiento, TemperaturaAislamiento tempTerminales, MetodoInstalacion metodoInstalacion)
+        TemperaturaAislamiento tempAislamiento, TemperaturaAislamiento tempTerminales, MetodoInstalacion metodoInstalacion,
+        decimal? cargaAl100PctA)
     {
         var objetivoPorCarga = capacidadMinConductorA / nParalelo;
-        var calibrePorCarga = CalibrePorAmpacidadUtilizable(
-            catalogo, ampacidad, objetivoPorCarga, materialConductor, tempAislamiento, tempTerminales, factorTemp, factorAgrup, metodoInstalacion);
+        var calibrePorCarga = cargaAl100PctA is decimal carga
+            ? CalibrePorDosRevisiones(
+                catalogo, ampacidad, objetivoPorCarga, carga / nParalelo, materialConductor, tempAislamiento, tempTerminales,
+                factorTemp, factorAgrup, metodoInstalacion)
+            : CalibrePorAmpacidadUtilizable(
+                catalogo, ampacidad, objetivoPorCarga, materialConductor, tempAislamiento, tempTerminales, factorTemp, factorAgrup, metodoInstalacion);
 
         if (proteccionA is not decimal breaker || proteccionEstandar is null)
             return (calibrePorCarga, null); // fuera de alcance de 240-4 (Motor, que se rige por 430-52).
@@ -365,6 +377,38 @@ public static class SeleccionConductor
 
         var topeTerminal = ampacidad.Ampacidad(calibre, material, tempTerminales, metodo);
         return topeTerminal is decimal tope ? Math.Min(corregida, tope) : null;
+    }
+
+    /// <summary>
+    /// <b>Las dos revisiones de 210-19(a)(1) / 215-2(a)(1), por separado.</b> El texto:
+    /// <i>«ampacidad no menor que la correspondiente a la carga máxima […]. El tamaño mínimo del
+    /// conductor, <b>antes de la aplicación de cualquier factor de ajuste o de corrección</b>, deberá
+    /// tener una ampacidad permisible no menor que la carga no-continua más el 125 por ciento de la
+    /// carga continua»</i>. O sea: el 125 % se compara con la ampacidad de TABLA (en la columna de la
+    /// terminal, 110-14(c)), y la carga al 100 % con la ampacidad CORREGIDA. El 125 % y los factores
+    /// no se multiplican.
+    ///
+    /// <para>
+    /// Hasta el 2026-09-23 (Power Node Web, auditoría de selección de conductor) se exigía que la
+    /// ampacidad corregida cubriera el 125 %: sobredimensionaba en cuanto había factores. Con 32 A
+    /// continuos y 9 agrupados daba 6 AWG donde la norma admite 8. Sin factores (30 °C, 3 agrupados)
+    /// las dos formas dan lo mismo.
+    /// </para>
+    /// </summary>
+    private static Calibre CalibrePorDosRevisiones(
+        ICatalogoCalibres catalogo, ITablaAmpacidad ampacidad, decimal capacidadMinimaPorConductorA, decimal cargaPorConductorA,
+        MaterialConductor material, TemperaturaAislamiento tempAislamiento, TemperaturaAislamiento tempTerminales,
+        decimal factorTemp, decimal factorAgrup, MetodoInstalacion metodo)
+    {
+        var calibre = catalogo.Listar()
+            .OrderBy(c => c.AreaMm2)
+            .FirstOrDefault(c =>
+                ampacidad.Ampacidad(c, material, tempTerminales, metodo) is decimal deTabla && deTabla >= capacidadMinimaPorConductorA &&
+                AmpacidadUtilizable(ampacidad, c, material, tempAislamiento, tempTerminales, factorTemp, factorAgrup, metodo) is decimal u && u >= cargaPorConductorA);
+
+        return calibre ?? throw new InvalidOperationException(
+            $"No hay calibre en el catálogo con ampacidad de tabla >= {capacidadMinimaPorConductorA:0.##} A a {(int)tempTerminales}°C y " +
+            $"ampacidad corregida >= {cargaPorConductorA:0.##} A para {material}.");
     }
 
     private static Calibre CalibrePorAmpacidadUtilizable(

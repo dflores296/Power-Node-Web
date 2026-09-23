@@ -49,6 +49,7 @@ ID: `<letra>-<número>`. La letra dice el frente (`M` motor, `I` interfaz, `P` p
 | M-04 · La excepción 240-4(b) solo se concede en Alumbrado, no en Equipo | P3 | Pendiente — es del motor de escritorio | — |
 | I-32 · El aislamiento estaba fijo en THHN: con factores podía salir un calibre de menos | P0 | **Cerrado** | `b1a84d6` |
 | I-33 · La memoria decía «Icm = In / (FT × FA)» y sustituía la capacidad mínima; el porqué no se veía en pantalla | P1 | **Cerrado** | `13b3093` |
+| M-05 · El 125 % se comparaba contra la ampacidad corregida, no «antes de factores» (210-19(a)(1)) | P2 | **Cerrado** | este commit |
 | I-31 · «Acometida» se cortaba en «Interruptor prin» | P3 | **Cerrado** | `b9406ab` |
 
 ---
@@ -538,6 +539,11 @@ el alimentador. THHN en lugar mojado lo rechaza el motor y el renglón lo dice. 
 documento («Conductor: Cobre · THHN · lugar seco») y en la memoria, sección 2. THW no se ofrece: la
 Tabla 310-104(a), como está leída, lo da solo para lugares mojados.
 
+> **Corrección del ejemplo (al cerrar M-05).** Los 20 A continuos de arriba se calcularon con la regla
+> vieja, que multiplicaba el 125 % por los factores. Con las dos revisiones de 210-19(a)(1), ese caso
+> cumple con 10 AWG también en THW-LS. El hallazgo sigue en pie con **26 A no continuos, 9 agrupados**:
+> THHN da 10 AWG (28 A ≥ 26 A) y THW-LS 8 AWG (el 10 AWG da 24.5 A < 26 A). La prueba usa ese caso.
+
 ### I-33 — El porqué de la protección y del calibre no se veía, y la memoria no cuadraba · `13b3093`
 
 Dos cosas de la misma raíz (propuesta 2 de la auditoría):
@@ -555,3 +561,22 @@ de la familia elegida) y el conductor (columna del aislamiento × FT × FA, tope
 ampacidad utilizable, y por qué subió si subió: 240-4, 240-4(d), 240-4(b), caída). Se ve en un
 **tooltip sobre la protección y sobre el calibre** de cada renglón y del alimentador —sin columnas
 nuevas— y es la sección 4 de la memoria.
+
+### M-05 — El 125 % se multiplicaba con los factores · este commit
+
+210-19(a)(1), textual: *«el tamaño mínimo del conductor, **antes de la aplicación de cualquier factor
+de ajuste o de corrección**, deberá tener una ampacidad permisible no menor que la carga no-continua
+más el 125 por ciento de la carga continua»*; y antes: *«ampacidad no menor que la correspondiente a
+la carga máxima»*. Son dos revisiones: el 125 % contra la ampacidad de tabla (columna de la terminal,
+110-14(c)) y la carga al 100 % contra la corregida. 215-2(a)(1) dice lo mismo del alimentador.
+
+El motor exigía que la ampacidad **corregida** cubriera el **125 %**. Sobredimensionaba en cuanto había
+factores: 32 A continuos de alumbrado con 9 agrupados daban **6 AWG**; la norma admite **8 AWG** (40 A
+de tabla ≥ 40 A; 38.5 A ≥ 32 A; 240-4(b) deja 40 A sobre 38.5 A). Sin factores (30 °C, 3 agrupados)
+las dos formas dan lo mismo, y por eso no se había visto.
+
+Corregido en el motor copiado con `SeleccionConductor.CalibrePorDosRevisiones`, que se activa con el
+parámetro nuevo `cargaAl100PctA`. Lo pasan el derivado no-motor y el alimentador sin motores ni
+derivación 240-21(b). **Los motores no cambian**: 430-22 pone el 125 % sobre la ampacidad sin el
+«antes de factores». El desglose del tooltip y de la memoria enseña las dos revisiones con sus
+números. Reportar en `PowerNode-DesignSuite`.

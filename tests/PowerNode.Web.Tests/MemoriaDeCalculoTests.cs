@@ -183,7 +183,8 @@ public class MemoriaDeCalculoTests
         Assert.Contains(formulas, f => f.StartsWith("8 AWG/kcmil a 90 °C: 55 A × FT 1.00 × FA 0.80 = 44.00 A"));
         Assert.Contains(formulas, f => f.StartsWith("Tope de la terminal: 40 A a 60 °C"));
         Assert.Contains("Ampacidad utilizable: 40.00 A", formulas);
-        Assert.Contains("Capacidad mínima 40.00 A ≤ 40.00 A ✔", formulas);
+        Assert.Contains("Antes de factores: 40.00 A a 60 °C ≥ capacidad mínima 40.00 A ✔ — 210-19(a)(1)", formulas);
+        Assert.Contains("Con factores: 40.00 A ≥ carga 32.00 A ✔ — 210-19(a)(1)", formulas);
     }
 
     [Fact]

@@ -34,6 +34,7 @@ public sealed record DesgloseDeSeleccion(IReadOnlyList<string> Proteccion, IRead
         decimal iNoContinuaA,
         decimal factorContinua,
         string articuloProteccion,
+        string articuloConductor,
         decimal proteccionA,
         decimal proteccionSinMinimo,
         Calibre calibre,
@@ -71,7 +72,19 @@ public sealed record DesgloseDeSeleccion(IReadOnlyList<string> Proteccion, IRead
         }
 
         conductor.Add($"Ampacidad utilizable: {d.AmpacidadConductorA:N2} A{porFase}");
-        conductor.Add($"Capacidad mínima {d.CapacidadMinimaA:N2} A ≤ {d.AmpacidadConductorA:N2} A {(d.CapacidadMinimaA <= d.AmpacidadConductorA ? "✔" : "✘")}");
+
+        // Las dos revisiones de 210-19(a)(1) / 215-2(a)(1), por separado: el 125 % contra la tabla
+        // SIN factores (en la columna de la terminal), la carga al 100 % contra la corregida.
+        var carga = iContinuaA + iNoContinuaA;
+        if (deTablaTerminal is { } tabla)
+        {
+            var tablaTotal = tabla * conductoresPorFase;
+            conductor.Add(
+                $"Antes de factores: {tablaTotal:N2} A a {d.TemperaturaTerminalesC} °C ≥ capacidad mínima {d.CapacidadMinimaA:N2} A " +
+                $"{(tablaTotal >= d.CapacidadMinimaA ? "✔" : "✘")} — {articuloConductor}");
+        }
+        conductor.Add(
+            $"Con factores: {d.AmpacidadConductorA:N2} A ≥ carga {carga:N2} A {(d.AmpacidadConductorA >= carga ? "✔" : "✘")} — {articuloConductor}");
 
         // Por qué el conductor terminó más grueso de lo que pedía la capacidad: lo dice el motor en
         // sus citas, y aquí solo se repite en corto.

@@ -131,7 +131,11 @@ public class CalculadoraAlimentador(
             // "Las disposiciones de 240-4(b) no se deben permitir para conductores de derivación".
             permiteExcepcion2404b: !d.EsDerivacion240_21b,
             metodoInstalacion: d.MetodoInstalacion,
-            maxNParaleloAutoResuelto: d.MaxConductoresParaleloAutomatico);
+            maxNParaleloAutoResuelto: d.MaxConductoresParaleloAutomatico,
+            // 215-2(a)(1): mismas dos revisiones que 210-19(a)(1). Solo sin motores y fuera de una
+            // derivación: 430-24 y 240-21(b) son pisos de ampacidad con su propia regla, y se quedan
+            // como estaban (contra la ampacidad corregida).
+            cargaAl100PctA: d.CargaMotores.MayorFlcA is null && d.PisoAmpacidadDerivacionA is null ? in_ : null);
         citas.AddRange(seleccion.Citas);
 
         var calibreFinal = seleccion.CalibreFase;

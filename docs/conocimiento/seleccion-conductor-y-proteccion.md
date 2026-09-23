@@ -1,8 +1,15 @@
 # Selección de conductor y protección: auditoría del 2026-09-23
 
-> **Estado de las propuestas.** Aprobadas por David el 2026-09-23, una por una. **1 (aislamiento)
-> y 2 (el porqué en tooltip y la memoria corregida): hechas** — ver I-32 e I-33 en
-> `../estado/HALLAZGOS.md`. 3 a 6: pendientes.
+> **Estado de las propuestas.** Aprobadas por David el 2026-09-23, una por una. **1 (aislamiento),
+> 2 (el porqué en tooltip y la memoria corregida) y 3 (las dos revisiones del 125 %): hechas** —
+> ver I-32, I-33 y M-05 en `../estado/HALLAZGOS.md`. 4 a 6: pendientes.
+>
+> **Corrección al hallazgo A (2026-09-23, al hacer el punto 3).** El ejemplo de abajo (20 A
+> continuos, 9 agrupados) se calculó con la regla vieja del programa, la que multiplicaba el 125 %
+> por los factores. Con las dos revisiones de 210-19(a)(1), THW-LS **sí** cumple con 10 AWG en ese
+> caso (30 A de tabla ≥ 25 A; 24.5 A ≥ 20 A; 240-4(b) deja 25 A sobre 24.5 A). El hallazgo sigue en
+> pie con otro caso: **26 A no continuos, 9 agrupados** — THHN 10 AWG (28 A ≥ 26 A), THW-LS 8 AWG
+> (el 10 AWG da 24.5 A < 26 A).
 
 ## Contexto
 

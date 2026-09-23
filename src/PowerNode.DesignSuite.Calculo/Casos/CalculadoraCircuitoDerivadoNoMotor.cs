@@ -137,7 +137,10 @@ public class CalculadoraCircuitoDerivadoNoMotor(
             // ese caso (luminarias, no contactos), así que sí califica.
             permiteExcepcion2404b: d.TipoCarga == TipoCarga.Alumbrado,
             metodoInstalacion: d.MetodoInstalacion,
-            maxNParaleloAutoResuelto: d.MaxConductoresParaleloAutomatico);
+            maxNParaleloAutoResuelto: d.MaxConductoresParaleloAutomatico,
+            // 210-19(a)(1): el 125 % contra la tabla sin factores, la carga al 100 % contra la
+            // ampacidad corregida. Ver SeleccionConductor.CalibrePorDosRevisiones.
+            cargaAl100PctA: in_);
         citas.AddRange(seleccion.Citas);
 
         var calibreFinal = seleccion.CalibreFase;

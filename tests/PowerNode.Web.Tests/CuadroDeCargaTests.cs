@@ -732,13 +732,20 @@ public class CuadroDeCargaTests
     [Fact]
     public void Aislamiento_ConFactoresUnThwLsPideMasCobreQueUnThhn()
     {
-        // 20 A continuos → 25 A de capacidad mínima, 9 conductores agrupados (factor 0.7).
-        // THHN: 10 AWG en la columna de 90 °C, 40 × 0.7 = 28 A ≥ 25 A.
-        // THW-LS: 10 AWG en la de 75 °C, 35 × 0.7 = 24.5 A < 25 A → 8 AWG. Fijo en THHN, el
-        // programa imprimía 10 AWG para una instalación en THW-LS que necesita 8.
+        // 26 A no continuos, 9 conductores agrupados (factor 0.7), protección de 30 A.
+        // THHN: 10 AWG, 40 A a 90 °C × 0.7 = 28 A ≥ 26 A; 240-4(b) deja 30 A sobre 28 A.
+        // THW-LS: 10 AWG, 35 A a 75 °C × 0.7 = 24.5 A < 26 A → 8 AWG. Fijo en THHN, el programa
+        // imprimía 10 AWG para una instalación en THW-LS que necesita 8.
+        //
+        // (Hasta el punto 3 de la auditoría el caso era 20 A continuos; con las dos revisiones de
+        // 210-19(a)(1) ese caso ya cumple con 10 AWG en THW-LS —30 A de tabla ≥ 25 A y 24.5 A ≥
+        // 20 A—, así que dejó de demostrar nada.)
         var cuadro = Nuevo();
         cuadro.Datos.ConductoresAgrupados = 9;
-        var c = VeinteAmperesContinuos(cuadro);
+        var c = Espacio(cuadro, 1);
+        c.Unidad = UnidadConsumo.Amperes;
+        c.NoContinua = 26m;
+        c.LongitudM = 5m;
 
         cuadro.Recalcular();
         Assert.Equal("10", c.Resultado!.CalibreFase.Designacion);
@@ -781,6 +788,47 @@ public class CuadroDeCargaTests
         cuadro.Recalcular();
 
         Assert.Equal(antes, cuadro.Circuitos.Where(c => c.Resultado is not null).Select(c => c.Resultado!.CalibreFase.Designacion).ToList());
+    }
+
+    // ---- 210-19(a)(1): el 125 % antes de factores, la carga al 100 % después ---------------------
+
+    [Fact]
+    public void DosRevisiones_El125PorCientoNoSeMultiplicaConLosFactores()
+    {
+        // 32 A continuos de alumbrado, 9 agrupados (0.7), THHN. 8 AWG:
+        //   antes de factores: 40 A de tabla a 60 °C ≥ 40 A (125 % × 32) ✔
+        //   con factores: min(55 × 0.7, 40) = 38.5 A ≥ 32 A ✔
+        //   240-4(b): 38.5 A no es estándar, el inmediato superior es 40 A ✔
+        // Antes el programa exigía 38.5 ≥ 40 y daba 6 AWG.
+        var cuadro = Nuevo();
+        cuadro.Datos.ConductoresAgrupados = 9;
+        var c = Espacio(cuadro, 1);
+        c.Unidad = UnidadConsumo.Amperes;
+        c.Continua = 32m;
+        c.LongitudM = 5m;
+        cuadro.Recalcular();
+
+        Assert.Equal(40m, c.Resultado!.ProteccionA);
+        Assert.Equal("8", c.Resultado.CalibreFase.Designacion);
+        Assert.Contains(c.Resultado.Citas, x => x.Referencia == "240-4(b)");
+
+        var conductor = cuadro.Desglose(c)!.Conductor;
+        Assert.Contains("Antes de factores: 40.00 A a 60 °C ≥ capacidad mínima 40.00 A ✔ — 210-19(a)(1)", conductor);
+        Assert.Contains("Con factores: 38.50 A ≥ carga 32.00 A ✔ — 210-19(a)(1)", conductor);
+    }
+
+    [Fact]
+    public void DosRevisiones_SinFactoresDaLoMismoQueAntes()
+    {
+        // 30 °C y 3 agrupados: los factores valen 1 y las dos formas coinciden. 32 A continuos → 8 AWG.
+        var cuadro = Nuevo();
+        var c = Espacio(cuadro, 1);
+        c.Unidad = UnidadConsumo.Amperes;
+        c.Continua = 32m;
+        c.LongitudM = 5m;
+        cuadro.Recalcular();
+
+        Assert.Equal("8", c.Resultado!.CalibreFase.Designacion);
     }
 
     // ---- El interior del gabinete ---------------------------------------------------------------
