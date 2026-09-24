@@ -109,7 +109,7 @@
                             @Conductor(c.Resultado?.CalibreTierra, c.Resultado is null ? 0 : 1, c.Polos)
                             <td rowspan="@c.Polos" class="num">@(c.Resultado?.CorrienteDisenoA.ToString("N2"))</td>
                             <td rowspan="@c.Polos" class="num">@(c.Resultado is null ? "" : c.LongitudM.ToString("N0"))</td>
-                            <td rowspan="@c.Polos" class="num">@(c.Resultado is not null && c.CanalizacionEfectiva is { } canal ? $"{c.Canalizacion ?? "Propia"} · {canal.TamanoRotulo}" : "")</td>
+                            <td rowspan="@c.Polos" class="num">@(c.Resultado is not null && c.CanalizacionEfectiva is { } canal ? $"{canal.Nombre} · {canal.TamanoRotulo}" : "")</td>
                             <td rowspan="@c.Polos" class="num">@(c.Resultado?.CaidaTensionPct.ToString("N2"))</td>
                         </tr>
 
@@ -226,9 +226,9 @@
                 @foreach (var t in canales)
                 {
                     <tr>
-                        <td>@(t.Id == "Alimentador" ? "Alimentador" : t.Id.StartsWith("Circuito ") ? "Propia" : t.Id)</td>
+                        <td>@(t.EsAlimentador ? "Alimentador" : t.Nombre)</td>
                         <td>@t.Rotulo</td>
-                        <td>@(t.Id == "Alimentador" ? "" : string.Join(", ", t.Circuitos.Select(c => c.Espacio)))</td>
+                        <td>@(t.EsAlimentador ? "" : string.Join(", ", t.Circuitos.Select(c => c.Espacio)))</td>
                         <td class="num">@DePapel(t, PapelConductor.Fase)</td>
                         <td class="num">@DePapel(t, PapelConductor.Neutro)</td>
                         <td class="num">@DePapel(t, PapelConductor.Tierra)</td>

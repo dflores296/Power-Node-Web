@@ -282,12 +282,6 @@ public sealed class DatosDelTablero
     // solo para la Tabla 9). Un solo número se aplicaba igual a cada derivado y al alimentador — I-39.
     // Ahora se captura qué circuitos van juntos y el agrupamiento y el material salen de ahí.
 
-    /// <summary>
-    /// La configuración con la que nace la canalización propia de cada circuito que no se asigna a
-    /// ninguna compartida: PVC cédula 40 por omisión.
-    /// </summary>
-    public CanalizacionDelTablero CanalizacionPorOmision { get; } = new("Por omisión");
-
     /// <summary>Las canalizaciones compartidas: T1, T2…</summary>
     public List<CanalizacionDelTablero> Canalizaciones { get; } = [];
 
@@ -308,13 +302,12 @@ public sealed class DatosDelTablero
 
     public static string ClaveDiametro(string aislamiento, string designacion) => $"{aislamiento}|{designacion}";
 
-    /// <summary>Agrega una canalización compartida con el siguiente número libre y la configuración por omisión.</summary>
+    /// <summary>Agrega una canalización compartida con el siguiente número libre: tubo conduit EMT.</summary>
     public CanalizacionDelTablero NuevaCanalizacion()
     {
         var n = 1;
         while (Canalizaciones.Any(c => c.Id == $"T{n}")) n++;
         var nueva = new CanalizacionDelTablero($"T{n}");
-        nueva.CopiarConfiguracionDe(CanalizacionPorOmision);
         Canalizaciones.Add(nueva);
         return nueva;
     }

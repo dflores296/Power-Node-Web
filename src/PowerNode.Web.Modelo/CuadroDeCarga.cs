@@ -185,11 +185,21 @@ public sealed class CuadroDeCarga
     public IEnumerable<string> AvisosDeCanalizaciones =>
         TodasLasCanalizaciones.SelectMany(t => t.Avisos.Select(a => $"{NombreDe(t)}: {a}"));
 
-    /// <summary>«Canalización T1», «Canalización del circuito 3», «Canalización del alimentador».</summary>
-    public static string NombreDe(CanalizacionDelTablero t) =>
-        t.Id.StartsWith("Circuito ") ? $"Canalización del {t.Id.ToLowerInvariant()}"
-        : t.Id == "Alimentador" ? "Canalización del alimentador"
-        : $"Canalización {t.Id}";
+    /// <summary>
+    /// «Canalización T1», «Canalización del circuito 3», «Canalización del alimentador», con el nombre
+    /// que le haya puesto el ingeniero: «Canalización Tubo pasillo», «Canalización Cocina (circuito 3)».
+    /// </summary>
+    public static string NombreDe(CanalizacionDelTablero t)
+    {
+        if (t.EsAlimentador)
+            return t.TieneNombre ? $"Canalización {t.Nombre} (alimentador)" : "Canalización del alimentador";
+        if (t.EsPropia)
+        {
+            var circuito = t.Id.ToLowerInvariant();
+            return t.TieneNombre ? $"Canalización {t.Nombre} ({circuito})" : $"Canalización del {circuito}";
+        }
+        return $"Canalización {t.Nombre}";
+    }
 
     /// <summary>Quita una canalización compartida; sus circuitos regresan a su canalización propia.</summary>
     public void QuitarCanalizacion(CanalizacionDelTablero canalizacion)
@@ -415,12 +425,10 @@ public sealed class CuadroDeCarga
             if (c.Canalizacion is not null && compartida is null)
                 c.Canalizacion = null; // la quitaron
 
-            var canal = compartida;
-            if (canal is null)
-            {
-                canal = new CanalizacionDelTablero($"Circuito {c.Espacio}");
-                canal.CopiarConfiguracionDe(Datos.CanalizacionPorOmision);
-            }
+            // Sin compartida, la suya: guardada con el circuito, con su propia configuración.
+            var canal = compartida ?? c.CanalizacionPropia;
+            if (compartida is null)
+                canal.Limpiar();
             c.CanalizacionEfectiva = canal;
 
             if (!grupos.TryGetValue(canal, out var lista))
@@ -463,7 +471,7 @@ public sealed class CuadroDeCarga
     private void DimensionarCanalizaciones()
     {
         var recalcular = false;
-        foreach (var canal in TodasLasCanalizaciones.Where(t => t.Id != "Alimentador").ToList())
+        foreach (var canal in TodasLasCanalizaciones.Where(t => !t.EsAlimentador).ToList())
         {
             Dimensionar(canal, [.. canal.Circuitos.Where(c => c.Resultado is not null)
                 .Select(ConductoresDe)]);
@@ -488,7 +496,7 @@ public sealed class CuadroDeCarga
             Contar(canal, [.. canal.Circuitos.Select(c => new CircuitoEnCanalizacion(
                 $"circuito {c.Espacio}", c.Polos, c.LlevaNeutro, c.Fases.ToCharArray()))], canal.Ocupacion!.OcupacionPct);
         CalcularCircuitos();
-        foreach (var canal in TodasLasCanalizaciones.Where(t => t.Id != "Alimentador").ToList())
+        foreach (var canal in TodasLasCanalizaciones.Where(t => !t.EsAlimentador).ToList())
             Dimensionar(canal, [.. canal.Circuitos.Where(c => c.Resultado is not null)
                 .Select(ConductoresDe)]);
     }

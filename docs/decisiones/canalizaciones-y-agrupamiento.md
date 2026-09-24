@@ -27,6 +27,24 @@ capturarse: es un resultado.
 - **El código va en el motor** (`Calculo` y `Normativa`), para llevarlo al escritorio, que no calcula
   canalizaciones. Se registra en `docs/conocimiento/motor-copiado.md`.
 
+## Cambio · David · 2026-09-24 — cada canalización se decide en su renglón
+
+Pedido en la sesión, ya con la tarjeta «Canalizaciones» en pantalla: si las canalizaciones se
+gestionan en sus tablas, no tiene sentido pedir el tipo en «Condiciones de cálculo».
+
+- **Salen «Canalización» y «Tubo» de Condiciones de cálculo.** Toda canalización —compartida, propia
+  o del alimentador— nace como **tubo conduit EMT** y el ingeniero decide en su renglón.
+- **La propia se guarda con el circuito:** tipo, tubo, medidas, tierra desnuda, azotea y tamaño
+  fijado se conservan al recalcular y al pasar el circuito por una compartida y regresarlo. Neutro
+  compartido y tierra común siguen siendo solo de las compartidas: con un circuito no aplican.
+- **Nombres editables** («Tubo pasillo», «Bajada cocina»). La clave interna no cambia (T1…,
+  «Circuito 3», «Alimentador»); el nombre sale en el cuadro, el documento y la memoria. Borrado,
+  regresa a «T1» o «Propia».
+
+Efecto en el cálculo: EMT es acero en la Tabla 9; la reactancia sube respecto a PVC (12 AWG: 0.223
+contra 0.177 Ω/km) y con ella la caída de tensión. Los casos de referencia —el escritorio y el
+documento de pruebas del 2026-09-23— se calcularon en PVC: sus pruebas lo fijan explícitamente.
+
 ## Portadores por circuito — 310-15(b)(3)(a), (b)(5), (b)(6)
 
 | Circuito | Fases | ¿El neutro cuenta? |

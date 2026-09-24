@@ -1,5 +1,6 @@
 using PowerNode.DesignSuite.Calculo.Canalizaciones;
 using PowerNode.DesignSuite.Calculo.Casos;
+using PowerNode.DesignSuite.Calculo.Unidades;
 using PowerNode.Web.Modelo;
 using Xunit;
 
@@ -135,7 +136,7 @@ public class CanalizacionesDelCuadroTests
         cuadro.Recalcular();
         Assert.Equal(0m, c.CanalizacionEfectiva!.SumadorAzoteaC);
 
-        cuadro.Datos.CanalizacionPorOmision.AlturaSobreTechoMm = 50m; // más de 13 hasta 90 → +22 °C
+        c.CanalizacionPropia.AlturaSobreTechoMm = 50m; // más de 13 hasta 90 → +22 °C
         cuadro.Recalcular();
         Assert.Equal(22m, c.CanalizacionEfectiva!.SumadorAzoteaC);
         Assert.Contains(c.Resultado!.Citas, x => x.Referencia == "310-15(b)(2)(a)" && x.Descripcion.Contains("52"));
@@ -158,6 +159,53 @@ public class CanalizacionesDelCuadroTests
         cuadro.Datos.DiametrosFabricante[DatosDelTablero.ClaveDiametro("THW-LS", c.Resultado.CalibreTierra.Designacion)] = 3.9m;
         cuadro.Recalcular();
         Assert.NotNull(c.CanalizacionEfectiva!.Ocupacion!.Tamano);
+    }
+
+    [Fact]
+    public void TodaCanalizacionNaceEmt_YLaPropiaSeGuardaConElCircuito()
+    {
+        // David, 2026-09-24: ya no hay canalización por omisión en Condiciones; cada tubo nace EMT y
+        // el ingeniero decide en cada uno. La propia es del circuito: sobrevive al recálculo y a
+        // pasar por un tubo compartido y regresar.
+        var cuadro = Nuevo();
+        var c = Carga(cuadro, 1, 10m);
+        cuadro.Recalcular();
+        Assert.Same(c.CanalizacionPropia, c.CanalizacionEfectiva);
+        var t1 = cuadro.Datos.NuevaCanalizacion();
+        Assert.Equal(TipoTuboConduit.Emt, c.CanalizacionPropia.Tubo);
+        Assert.Equal(TipoTuboConduit.Emt, t1.Tubo);
+        Assert.Equal(TipoTuboConduit.Emt, cuadro.Datos.CanalizacionAlimentador.Tubo);
+        Assert.Equal(MaterialCanalizacion.Acero, c.CanalizacionPropia.MaterialParaTabla9);
+
+        c.CanalizacionPropia.Nombre = "Bajada cocina";
+        c.CanalizacionPropia.Tubo = TipoTuboConduit.PvcCedula40;
+        c.CanalizacionPropia.TierraDesnuda = true;
+        c.Canalizacion = t1.Id;
+        cuadro.Recalcular();
+        Assert.Same(t1, c.CanalizacionEfectiva);
+
+        c.Canalizacion = null;
+        cuadro.Recalcular();
+        Assert.Same(c.CanalizacionPropia, c.CanalizacionEfectiva);
+        Assert.Equal("Bajada cocina", c.CanalizacionPropia.Nombre);
+        Assert.Equal(TipoTuboConduit.PvcCedula40, c.CanalizacionPropia.Tubo);
+        Assert.True(c.CanalizacionPropia.TierraDesnuda);
+        Assert.Equal(MaterialCanalizacion.Pvc, c.CanalizacionPropia.MaterialParaTabla9);
+    }
+
+    [Fact]
+    public void ElNombreEsEditable_YLaClaveNoCambia()
+    {
+        var cuadro = Nuevo();
+        var t1 = cuadro.Datos.NuevaCanalizacion();
+        t1.Nombre = "Tubo pasillo";
+        var c = Carga(cuadro, 1, 10m, t1.Id);
+        cuadro.Recalcular();
+
+        Assert.Equal("T1", t1.Id);
+        Assert.Same(t1, c.CanalizacionEfectiva);
+        var hojas = PowerNode.Web.Modelo.Memoria.MemoriaDeCalculo.Canalizaciones(cuadro);
+        Assert.Contains(hojas, h => h.Sujeto.StartsWith("Canalización Tubo pasillo"));
     }
 
     [Fact]

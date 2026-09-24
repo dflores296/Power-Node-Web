@@ -63,6 +63,7 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | M-07 · Errata de la Tabla 5: TW 10 AWG con 55.68 mm² | P1 | **Cerrado** | `6e88585` |
 | I-42 · Selector de aislamiento con 7 de 17 tipos | P1 | **Cerrado** | `23da7ce` |
 | M-08 · THW rechazado en lugar seco | P1 | **Cerrado** | `23da7ce` |
+| I-43 · Canalización de los circuitos sin compartida fijada en Condiciones de cálculo | P2 | **Cerrado** | `pendiente` |
 | R-01 · Caída del alimentador fija en 5 %, sin verificar la combinada — 215-2(a)(4) NOTA 2 | P1 | **Cerrado** | `2a973ea` |
 | R-02 · Caída del alimentador sin la caída del neutro | P2 | **Cerrado** | `d6cd1c6` |
 | R-03 · La publicación no corre `PowerNode.Web.Tests` | P1 | **Cerrado** | `986c9d7` |
@@ -190,6 +191,8 @@ Formato: **Hecho** (defecto observado) · **Corrección** · **Referencia** · *
 **I-42** — Hecho (David): el selector de «Aislamiento» era una lista escrita en la pantalla con 7 tipos; el motor reconoce 17 (Tabla 310-104(a)). Faltaban THW, THW-2, THHW, XHH, XHHW, RHH, RHW, RHW-2, USE y USE-2. Corrección: el selector sale de `ITablaAislamiento.DesignacionesReconocidas`; los que no trae la Tabla 5 (THW-LS, THHW-LS, USE, USE-2) dicen «diámetro del fabricante». Prueba: `TodosLosAislamientosDelMotor_…`.
 
 **M-08** — Hecho: THW en lugar seco daba «no es válido para el lugar capturado». El DOF publica THW solo con «75 °C · Lugares mojados» (verificado contra el PDF, pág. 156); `TablaAislamientoJson` buscaba un renglón que dijera «seco». Pero 310-10(a) permite en lugar seco cualquier tipo de la NOM, y 310-10(b) nombra al THW. Corrección: sin renglón para seco, la temperatura que da la tabla (THW: 75 °C). Lo destapó I-42: con la lista corta, THW no se podía elegir. Prueba: `Tabla310_104a_ThwEnLugarSeco_…`.
+
+**I-43** — Hecho (David): el tipo y el tubo de las canalizaciones propias salían de «Condiciones de cálculo», una configuración para todas; para cambiar un solo circuito había que inventarle una compartida. Las propias se rehacían en cada recálculo y las canalizaciones no tenían nombre. Corrección: salen «Canalización» y «Tubo» de Condiciones; toda canalización nace como tubo conduit EMT y se configura en su renglón de la tarjeta «Canalizaciones»; la propia es del circuito (`CircuitoDelCuadro.CanalizacionPropia`) y se conserva; nombre editable en el cuadro, el documento y la memoria. Los casos de referencia en PVC lo fijan (`EnPvc.Todo`). Decisión: [`../decisiones/canalizaciones-y-agrupamiento.md`](../decisiones/canalizaciones-y-agrupamiento.md), «Cambio · David · 2026-09-24». Prueba: `TodaCanalizacionNaceEmt_…`, `ElNombreEsEditable_…`.
 
 ### Revisión del 2026-09-23
 

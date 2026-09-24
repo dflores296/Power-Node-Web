@@ -28,7 +28,7 @@ public class PruebasDelDocumento20260923Tests
         var cuadro = new CuadroDeCarga(new MotorNom(Json));
         cuadro.Datos.NumeroEspacios = 6;
         cuadro.Recalcular();
-        return cuadro;
+        return EnPvc.Todo(cuadro);
     }
 
     private static CircuitoDelCuadro Espacio(CuadroDeCarga cuadro, int numero) =>

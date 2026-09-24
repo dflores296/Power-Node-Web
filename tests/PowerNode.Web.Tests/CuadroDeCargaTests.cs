@@ -26,8 +26,7 @@ public class CuadroDeCargaTests
         cuadro.Datos.Fases = fases;
         cuadro.Datos.Hilos = hilos;
         cuadro.Datos.TensionFaseFaseV = tension;
-        cuadro.Recalcular();
-        return cuadro;
+        return EnPvc.Todo(cuadro);
     }
 
     private static CircuitoDelCuadro Espacio(CuadroDeCarga cuadro, int numero) =>

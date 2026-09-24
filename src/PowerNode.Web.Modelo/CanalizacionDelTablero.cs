@@ -10,20 +10,48 @@ namespace PowerNode.Web.Modelo;
 /// calcula su tamaño.
 ///
 /// <para>
-/// Un circuito que no se asigna a ninguna va en su <b>canalización propia</b>, con la configuración
-/// de <see cref="DatosDelTablero.CanalizacionPorOmision"/>. Si un circuito pasa por varias, se le
-/// asigna la del tramo más desfavorable: manda la ampacidad menor — 310-15(a)(2).
+/// Un circuito que no se asigna a ninguna va en su <b>canalización propia</b>, que se guarda con el
+/// circuito y se configura en su fila, igual que una compartida (David, 2026-09-24). Si un circuito
+/// pasa por varias, se le asigna la del tramo más desfavorable: manda la ampacidad menor —
+/// 310-15(a)(2).
+/// </para>
+///
+/// <para>
+/// <b>Toda canalización nace como tubo conduit EMT</b> y el ingeniero decide en cada una. Ya no hay
+/// una «canalización por omisión» en Condiciones de cálculo (David, 2026-09-24).
 /// </para>
 /// </summary>
-public sealed class CanalizacionDelTablero(string id)
+public sealed class CanalizacionDelTablero(string id, bool esPropia = false)
 {
-    /// <summary>«T1», «T2»… en las compartidas; «Por omisión», «Alimentador» o el número del circuito en las demás.</summary>
+    /// <summary>La clave con la que un circuito la referencia: «T1», «T2»… en las compartidas; «Circuito 3» en una propia; «Alimentador».</summary>
     public string Id { get; } = id;
+
+    /// <summary>La canalización propia de un circuito: se guarda con él y no se comparte.</summary>
+    public bool EsPropia { get; } = esPropia;
+
+    public bool EsAlimentador => Id == "Alimentador";
+
+    /// <summary>
+    /// El nombre que ve el ingeniero, editable: «T1» o «Propia» al nacer; «Tubo pasillo», «Ducto
+    /// azotea»… después. La clave sigue siendo <see cref="Id"/>. Borrado, regresa al de nacimiento.
+    /// </summary>
+    public string Nombre
+    {
+        get => nombre;
+        set => nombre = string.IsNullOrWhiteSpace(value) ? NombreAlNacer : value.Trim();
+    }
+
+    private string nombre = esPropia ? "Propia" : id;
+
+    private string NombreAlNacer => EsPropia ? "Propia" : Id;
+
+    /// <summary>Se le cambió el nombre de nacimiento.</summary>
+    public bool TieneNombre => Nombre != NombreAlNacer;
 
     public TipoCanalizacion Tipo { get; set; } = TipoCanalizacion.TuboConduit;
 
-    /// <summary>El bloque de la Tabla 4. Solo cuenta en tubo y niple.</summary>
-    public TipoTuboConduit Tubo { get; set; } = TipoTuboConduit.PvcCedula40;
+    /// <summary>El bloque de la Tabla 4. Solo cuenta en tubo y niple. EMT al nacer.</summary>
+    public TipoTuboConduit Tubo { get; set; } = TipoTuboConduit.Emt;
 
     /// <summary>Canalización metálica de aluminio en vez de acero: cambia la columna de reactancia de la Tabla 9.</summary>
     public bool MetalAluminio { get; set; }
@@ -112,20 +140,6 @@ public sealed class CanalizacionDelTablero(string id)
 
     /// <summary>La columna de la Tabla 9 con la que se lee la reactancia.</summary>
     public MaterialCanalizacion MaterialParaTabla9 => TiposDeCanalizacion.MaterialParaTabla9(Tipo, Tubo, MetalAluminio);
-
-    /// <summary>Copia la configuración (no los resultados) de otra: así nace la canalización propia de un circuito.</summary>
-    internal void CopiarConfiguracionDe(CanalizacionDelTablero otra)
-    {
-        Tipo = otra.Tipo;
-        Tubo = otra.Tubo;
-        MetalAluminio = otra.MetalAluminio;
-        AnchoMm = otra.AnchoMm;
-        AltoMm = otra.AltoMm;
-        AreaInteriorMm2 = otra.AreaInteriorMm2;
-        MaxConductoresFabricante = otra.MaxConductoresFabricante;
-        TierraDesnuda = otra.TierraDesnuda;
-        AlturaSobreTechoMm = otra.AlturaSobreTechoMm;
-    }
 
     internal void Limpiar()
     {

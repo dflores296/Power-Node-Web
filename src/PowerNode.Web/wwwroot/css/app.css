@@ -514,6 +514,10 @@ label.suelto input { width: 90px; }
 /* Las dos tablas de canalizaciones se ven como el cuadro (.cuadro): fondo, bordes y encabezados
    agrupados. Todo centrado (David, 2026-09-24). */
 .canal-tabla td { padding: 6px 10px; vertical-align: middle; }
+/* El nombre se edita en su celda: «T1» o «Propia» al nacer (David, 2026-09-24). */
+/* Crece con el nombre, sin cortarlo: la tabla se desplaza antes que comprimir (David, 2026-09-24). */
+.canal-tabla td.nombre-canal input { field-sizing: content; min-width: 96px; max-width: 260px;
+                                     font-weight: 600; text-align: center; }
 .canal-tabla .tipo-controles { display: flex; gap: 6px; align-items: center; justify-content: center; }
 .canal-tabla .medidas { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: var(--tenue); }
 .canal-tabla .medidas input { width: 64px; }
