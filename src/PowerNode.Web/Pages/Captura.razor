@@ -89,7 +89,10 @@
         </select></label>
         <label><span class="ayuda" title="Seleccionar el aislamiento — Tabla 310-104(a). Determina la columna de temperatura de la Tabla 310-15(b)(16) para aplicar FT y FA. Ampacidad limitada a la temperatura de la terminal — 110-14(c).">Aislamiento</span>
             <select @bind="Datos.TipoAislamiento" @bind:after="Recalcular">
-                @foreach (var aislamiento in Aislamientos) { <option value="@aislamiento">@aislamiento</option> }
+                @foreach (var aislamiento in Aislamientos)
+                {
+                    <option value="@aislamiento">@aislamiento@(EnTabla5(aislamiento) ? "" : " · diámetro del fabricante")</option>
+                }
             </select></label>
         <label><span class="ayuda" title="Declarar la temperatura de las terminales del interruptor y del equipo — 110-14(c)(1). Regla general: 60 °C hasta 100 A; 75 °C arriba de 100 A. Marcadas 75 °C: aplicar solo si ambas terminales lo indican — a.(3). Conductor de 60 °C: usar 60 °C — a.(1).">Terminales</span>
             <select @bind="Terminales" @bind:after="Recalcular">
@@ -860,7 +863,17 @@
         set => Datos.TerminalesMarcadas75C = value == "75";
     }
 
-    private static readonly string[] Aislamientos = ["THHN", "THHW-LS", "THW-LS", "THWN", "THWN-2", "XHHW-2", "TW"];
+    /// <summary>
+    /// Los aislamientos que reconoce el motor (Tabla 310-104(a)), no una lista aparte: la de antes
+    /// ofrecía 7 de 17 y dejaba fuera THW, THHW, XHHW, RHW y USE, entre otros.
+    /// </summary>
+    private IReadOnlyList<string> Aislamientos => Motor.Aislamiento.DesignacionesReconocidas;
+
+    /// <summary>
+    /// Si la Tabla 5 del Capítulo 10 trae sus dimensiones. Los que no (THW-LS, THHW-LS, USE…) piden el
+    /// diámetro del fabricante para el llenado — Nota 5. Se prueba con 12 AWG, que todos traen.
+    /// </summary>
+    private bool EnTabla5(string aislamiento) => Motor.Dimensiones.Aislado("12", aislamiento) is not null;
 
     /// <summary>
     /// Cuántas columnas tiene el cuadro, para los <c>colspan</c> de los renglones que abarcan todo.

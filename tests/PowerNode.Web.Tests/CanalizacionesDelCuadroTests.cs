@@ -230,4 +230,27 @@ public class CanalizacionesDelCuadroTests
         Assert.Single(t1Hoja.Bloques[2].Formulas, f => f.StartsWith("ERRATA Tabla 5"));
         Assert.Contains(hojas, h => h.Sujeto.StartsWith("Canalización del alimentador"));
     }
+
+    [Fact]
+    public void TodosLosAislamientosDelMotor_CalculanYSeDimensionan()
+    {
+        // El selector ofrece los 17 de la Tabla 310-104(a). Cada uno calcula el circuito, y el
+        // llenado sale de la Tabla 5 o pide el diámetro del fabricante (Nota 5) — nunca revienta.
+        var motor = new MotorNom(Json);
+        Assert.Equal(17, motor.Aislamiento.DesignacionesReconocidas.Count);
+        foreach (var aislamiento in motor.Aislamiento.DesignacionesReconocidas)
+        {
+            var cuadro = new CuadroDeCarga(motor);
+            cuadro.Datos.NumeroEspacios = 6;
+            cuadro.Datos.TipoAislamiento = aislamiento;
+            var c = Carga(cuadro, 1, 10m);
+            cuadro.Recalcular();
+
+            Assert.True(c.Resultado is not null, $"{aislamiento}: {c.Error}");
+            var ocupacion = c.CanalizacionEfectiva!.Ocupacion!;
+            var enTabla5 = motor.Dimensiones.Aislado("12", aislamiento) is not null;
+            if (enTabla5) Assert.NotNull(ocupacion.Tamano);
+            else Assert.NotEmpty(ocupacion.Faltantes);
+        }
+    }
 }

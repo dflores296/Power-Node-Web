@@ -175,6 +175,14 @@ public partial class TablaAislamientoJson(IFuenteTablas fuente) : ITablaAislamie
         // el texto no especifica lugar (celda en blanco, común en los tipos "-2") se trata como
         // válido para ambos.
         var compatibles = entradas.Where(e => EsCompatible(e.Condicion, lugarSeco)).ToList();
+
+        // LUGAR SECO SIN RENGLÓN PROPIO — 310-10(a): «Los conductores y cables aislados usados en
+        // lugares secos, deben ser de cualquiera de los tipos identificados en esta NOM». El DOF
+        // publica THW solo con «75 °C · Lugares mojados» (verificado contra el PDF, pág. 156), y el
+        // 310-10(b) lo nombra también para secos y húmedos. Sin esto, THW en lugar seco se rechazaba
+        // como si no existiera. Se toma la temperatura que la tabla sí le da. (Web, 2026-09-24, M-08.)
+        if (compatibles.Count == 0 && lugarSeco)
+            compatibles = entradas;
         if (compatibles.Count == 0) return null;
 
         var tempMaxima = compatibles.Max(e => e.TempC);

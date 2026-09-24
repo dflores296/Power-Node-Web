@@ -206,4 +206,19 @@ public class TablasDeLaNormaTests
         Assert.Equal(14m, tabla.Sumador(900m));
         Assert.Throws<InvalidOperationException>(() => tabla.Sumador(901m));
     }
+
+    [Fact]
+    public void Tabla310_104a_ThwEnLugarSeco_Por310_10a()
+    {
+        // El DOF publica THW solo como «75 °C · Lugares mojados»; 310-10(a) permite en lugar seco
+        // cualquier tipo de la NOM, y 310-10(b) lo nombra. En seco: los 75 °C que da la tabla.
+        var tabla = new TablaAislamientoJson(Fuente);
+        Assert.Equal(TemperaturaAislamiento.T75, tabla.TemperaturaMaxima("THW", lugarSeco: true));
+        Assert.Equal(TemperaturaAislamiento.T75, tabla.TemperaturaMaxima("THW", lugarSeco: false));
+        // Con renglón propio para seco no cambia nada: THHW, 90 °C seco y 75 °C mojado.
+        Assert.Equal(TemperaturaAislamiento.T90, tabla.TemperaturaMaxima("THHW", lugarSeco: true));
+        Assert.Equal(TemperaturaAislamiento.T75, tabla.TemperaturaMaxima("THHW", lugarSeco: false));
+        // THHN sigue sin valer en mojado.
+        Assert.Null(tabla.TemperaturaMaxima("THHN", lugarSeco: false));
+    }
 }

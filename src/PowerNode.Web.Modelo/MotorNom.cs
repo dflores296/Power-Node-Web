@@ -57,8 +57,9 @@ public sealed class MotorNom
 
         ProteccionEstandar = proteccion;
         Ampacidad = ampacidad;
-        Ocupacion = new CalculadoraOcupacion(
-            new TablaOcupacionJson(fuente), new TablaTuboConduitJson(fuente), new TablaDimensionesConductorJson(fuente));
+        Dimensiones = new TablaDimensionesConductorJson(fuente);
+        Ocupacion = new CalculadoraOcupacion(new TablaOcupacionJson(fuente), new TablaTuboConduitJson(fuente), Dimensiones);
+        Aislamiento = aislamiento;
         Azotea = new TablaTemperaturaAzoteaJson(fuente);
         Agrupamiento = agrupamiento;
     }
@@ -83,6 +84,15 @@ public sealed class MotorNom
     /// «INT. PPAL.» del encabezado es una referencia a la fila del alimentador).
     /// </summary>
     public CalculadoraAlimentador Alimentador(SerieDeInterruptores serie) => _alimentador[serie];
+
+    /// <summary>
+    /// Tabla 310-104(a): los aislamientos que reconoce el motor. El selector de «Aislamiento» sale de
+    /// aquí, no de una lista aparte — antes la pantalla ofrecía 7 de los 17.
+    /// </summary>
+    public ITablaAislamiento Aislamiento { get; }
+
+    /// <summary>Tablas 5 y 8 del Capítulo 10: si un aislamiento trae dimensiones o pide las del fabricante.</summary>
+    public ITablaDimensionesConductor Dimensiones { get; }
 
     /// <summary>El tamaño de cada canalización — Capítulo 10, Tablas 1, 4, 5 y 8.</summary>
     public CalculadoraOcupacion Ocupacion { get; }
