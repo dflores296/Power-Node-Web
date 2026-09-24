@@ -43,7 +43,7 @@ Pruebas: 66 en `PowerNode.Web.Tests`, 6 en `PowerNode.Normativa.Tests`.
 - Casilla «Equipo de acometida» e «Inmueble»: el principal sube al mínimo de 230-79; fuera el «Mínimo del principal (A)» — R-11, `62fc7f9`. Registrar R-16.
 - Justificación del factor de demanda, selección múltiple del Art. 220, en la memoria; aviso si falta — R-12, `eb50462`.
 - Cinco tipos de carga y factor de demanda por tipo; motores, A/C y calefacción fija al 100 %; justificación por tipo — R-17, `8e28f86`.
-- Revisar 240-4(b) en cada calibre, no solo en el de la carga: 60 A en 6 AWG, no 4 AWG — R-16.
+- Revisar 240-4(b) en cada calibre, no solo en el de la carga: 60 A en 6 AWG, no 4 AWG — R-16, `2da832f`.
 
 Pruebas: 134 en `PowerNode.Web.Tests`, 6 en `PowerNode.Normativa.Tests`.
 
