@@ -56,6 +56,7 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-35 · Sin desglose de los aparatos de un circuito | P2 | **Cerrado** | `e429cbb` |
 | I-36 · Carga con decimales cortada en su campo | P2 | **Cerrado** | `8235454` |
 | I-37 · Hilos que no existen para las fases elegidas | P1 | **Cerrado** | `8235454` |
+| I-38 · En móvil la página se aleja y todo se ve a dos tercios | P1 | **Cerrado** | `6d7eb4b` |
 | R-01 · Caída del alimentador fija en 5 %, sin verificar la combinada — 215-2(a)(4) NOTA 2 | P1 | **Cerrado** | `2a973ea` |
 | R-02 · Caída del alimentador sin la caída del neutro | P2 | **Cerrado** | `d6cd1c6` |
 | R-03 · La publicación no corre `PowerNode.Web.Tests` | P1 | **Cerrado** | `986c9d7` |
@@ -169,6 +170,8 @@ Formato: **Hecho** (defecto observado) · **Corrección** · **Referencia** · *
 **I-36** — Hecho (David): el campo de carga medía 62 px; 931.25 VA (745 W ÷ 0.8, desde el desglose) se veía «931.2». Corrección: 80 px.
 
 **I-37** — Hecho (David): «Hilos» ofrecía 2, 3 y 4 con cualquier número de fases; «1 fase, 4 hilos» se calculaba como 1F-3H sin avisar. Corrección: `DatosDelTablero.HilosValidos` (1F: 2 o 3; 2F: 3; 3F: 3 o 4) en el selector, y al cambiar las fases los hilos pasan al sistema más común (1F-2H, 2F-3H, 3F-4H). Prueba: `AlCambiarLasFases_…`.
+
+**I-38** — Hecho (David): en el teléfono la ficha y el cuadro ocupaban dos tercios de la pantalla y las tarjetas del cierre se salían. Causa: columnas `1fr` en `.cierre` y `.ficha`, que no bajan del ancho mínimo de su contenido; con 412 px de pantalla la tabla del resumen hacía la columna de 554 px y el navegador alejaba toda la página. Corrección: `minmax(0, 1fr)`; en pantalla angosta los rótulos del resumen parten en dos líneas. Verificado con Playwright (Pixel 7): la página mide lo que la pantalla.
 
 ### Revisión del 2026-09-23
 
