@@ -73,7 +73,11 @@ public sealed class DatosDelTablero
     /// </summary>
     public bool EsEquipoDeAcometida { get; set; }
 
-    /// <summary>El inmueble que sirve la acometida. Solo cuenta con <see cref="EsEquipoDeAcometida"/>.</summary>
+    /// <summary>
+    /// El inmueble del tablero — R-19. <b>Uno solo para dos criterios</b>: el mínimo del principal de
+    /// 230-79 (si es <see cref="EsEquipoDeAcometida"/>) y las justificaciones del factor de demanda
+    /// (Tabla 220-42, vivienda o no). Ver <see cref="TipoDeInmueble"/>.
+    /// </summary>
     public TipoDeInmueble Inmueble { get; set; } = TipoDeInmueble.Otro;
 
     /// <summary>
@@ -81,14 +85,7 @@ public sealed class DatosDelTablero
     /// acometida o si es vivienda unifamiliar, donde la norma dice «según la carga conectada»: sin
     /// número, manda el cálculo.
     /// </summary>
-    public (decimal Amperes, string Referencia)? Minimo230_79 => !EsEquipoDeAcometida
-        ? null
-        : Inmueble switch
-        {
-            TipoDeInmueble.ViviendaPopular => (30m, "230-79(c)"),
-            TipoDeInmueble.Otro => (60m, "230-79(d)"),
-            _ => null,
-        };
+    public (decimal Amperes, string Referencia)? Minimo230_79 => EsEquipoDeAcometida ? Inmueble.Minimo230_79() : null;
 
     /// <summary>
     /// La familia de interruptores que se instala, que decide de qué tamaños de la 240-6(a) se
@@ -201,11 +198,13 @@ public sealed class DatosDelTablero
         if (!Justificaciones.TryGetValue(categoria, out var escogidas))
             return null;
 
-        var partes = categoria.JustificacionesPosibles()
+        var partes = categoria.JustificacionesPosibles(Inmueble)
             .Where(escogidas.Contains)
             .Select(j => j == JustificacionFactorDemanda.Otra
                 ? (string.IsNullOrWhiteSpace(JustificacionOtra[categoria]) ? null : $"Criterio del proyectista: {JustificacionOtra[categoria].Trim()}")
-                : j.Nombre())
+                : j == JustificacionFactorDemanda.AlumbradoGeneral && Inmueble.FilaTabla220_42() is { } fila
+                    ? $"{j.Nombre()} ({fila})"
+                    : j.Nombre())
             .OfType<string>()
             .ToList();
         return partes.Count == 0 ? null : string.Join("; ", partes);
@@ -282,27 +281,4 @@ public sealed class DatosDelTablero
     /// de marcado, no una opción de diseño.
     /// </summary>
     public bool ConjuntoAprobado100Pct { get; set; }
-}
-
-/// <summary>El inmueble de la acometida, para el mínimo del medio de desconexión — 230-79.</summary>
-public enum TipoDeInmueble
-{
-    /// <summary>230-79(c): según la carga conectada.</summary>
-    ViviendaUnifamiliar,
-
-    /// <summary>230-79(c): vivienda popular de hasta 60 m², no menor que 30 A.</summary>
-    ViviendaPopular,
-
-    /// <summary>230-79(d): comercio, oficina, industria y todo lo demás, no menor que 60 A.</summary>
-    Otro,
-}
-
-public static class TiposDeInmueble
-{
-    public static string Nombre(this TipoDeInmueble inmueble) => inmueble switch
-    {
-        TipoDeInmueble.ViviendaUnifamiliar => "Vivienda unifamiliar",
-        TipoDeInmueble.ViviendaPopular => "Vivienda popular (hasta 60 m²)",
-        _ => "Otro (comercio, oficina, industria)",
-    };
 }

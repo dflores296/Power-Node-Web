@@ -71,8 +71,13 @@ public static class CategoriasDeCarga
         _ => TipoCarga.Equipo,
     };
 
-    /// <summary>Las justificaciones que le aplican a cada tipo.</summary>
-    public static IReadOnlyList<JustificacionFactorDemanda> JustificacionesPosibles(this CategoriaDeCarga c)
+    /// <summary>
+    /// Las justificaciones que le aplican a un tipo en un inmueble — R-19. Solo se ofrece lo que la
+    /// norma permite ahí: la Tabla 220-42 si su renglón reduce (no en «todos los demás»); 220-44 y
+    /// 220-56 fuera de vivienda; 220-53 a 220-55, 220-82 y 220-83 en vivienda; 220-84 en
+    /// multifamiliar, 220-86 en escuelas, 220-88 en restaurantes. 220-60, 220-87 y «Otra», siempre.
+    /// </summary>
+    public static IReadOnlyList<JustificacionFactorDemanda> JustificacionesPosibles(this CategoriaDeCarga c, TipoDeInmueble inmueble)
     {
         // Motores y calefacción: solo con la condición de su propia sección, o si no coinciden.
         if (c == CategoriaDeCarga.MotorOAireAcondicionado)
@@ -80,27 +85,40 @@ public static class CategoriasDeCarga
         if (c == CategoriaDeCarga.CalefaccionFija)
             return [JustificacionFactorDemanda.CalefaccionPorCiclos, JustificacionFactorDemanda.CargasNoCoincidentes, JustificacionFactorDemanda.Otra];
 
-        IEnumerable<JustificacionFactorDemanda> propias = c switch
-        {
-            CategoriaDeCarga.Alumbrado => [JustificacionFactorDemanda.AlumbradoGeneral],
-            // 220-44: los contactos de inmuebles que no son vivienda van «sujetos a los factores de
-            // demanda de la Tabla 220-42 o la Tabla 220-44».
-            CategoriaDeCarga.Contactos => [JustificacionFactorDemanda.AlumbradoGeneral, JustificacionFactorDemanda.ContactosNoVivienda],
-            _ =>
-            [
-                JustificacionFactorDemanda.AparatosFijosVivienda, JustificacionFactorDemanda.SecadorasVivienda,
-                JustificacionFactorDemanda.EstufasVivienda, JustificacionFactorDemanda.CocinaComercial,
-                JustificacionFactorDemanda.CargasNoCoincidentes,
-            ],
-        };
+        var vivienda = inmueble.EsVivienda();
+        var tabla220_42 = inmueble.FilaTabla220_42() is not null;
+        var lista = new List<JustificacionFactorDemanda>();
 
-        return
-        [
-            .. propias,
-            JustificacionFactorDemanda.ViviendaMetodoOpcional, JustificacionFactorDemanda.ViviendaExistente,
-            JustificacionFactorDemanda.ViviendaMultifamiliar, JustificacionFactorDemanda.Escuelas,
-            JustificacionFactorDemanda.DemandaMaximaMedida, JustificacionFactorDemanda.RestauranteNuevo,
-            JustificacionFactorDemanda.Otra,
-        ];
+        switch (c)
+        {
+            case CategoriaDeCarga.Alumbrado:
+                if (tabla220_42) lista.Add(JustificacionFactorDemanda.AlumbradoGeneral);
+                break;
+            case CategoriaDeCarga.Contactos:
+                // Vivienda: 220-52 deja sumar los contactos al alumbrado general con la Tabla 220-42.
+                // Fuera de vivienda: 220-44, «sujetos a la Tabla 220-42 o la Tabla 220-44».
+                if (tabla220_42) lista.Add(JustificacionFactorDemanda.AlumbradoGeneral);
+                if (!vivienda) lista.Add(JustificacionFactorDemanda.ContactosNoVivienda);
+                break;
+            default: // Equipo
+                if (vivienda)
+                    lista.AddRange([JustificacionFactorDemanda.AparatosFijosVivienda, JustificacionFactorDemanda.SecadorasVivienda, JustificacionFactorDemanda.EstufasVivienda]);
+                else
+                    lista.Add(JustificacionFactorDemanda.CocinaComercial);
+                lista.Add(JustificacionFactorDemanda.CargasNoCoincidentes);
+                break;
+        }
+
+        // Parte D: métodos opcionales, cada uno para su inmueble.
+        if (inmueble is TipoDeInmueble.ViviendaUnifamiliar or TipoDeInmueble.ViviendaPopular)
+            lista.AddRange([JustificacionFactorDemanda.ViviendaMetodoOpcional, JustificacionFactorDemanda.ViviendaExistente]);
+        if (inmueble == TipoDeInmueble.ViviendaMultifamiliar)
+            lista.Add(JustificacionFactorDemanda.ViviendaMultifamiliar);
+        if (inmueble == TipoDeInmueble.Escuela)
+            lista.Add(JustificacionFactorDemanda.Escuelas);
+        if (inmueble == TipoDeInmueble.Restaurante)
+            lista.Add(JustificacionFactorDemanda.RestauranteNuevo);
+        lista.AddRange([JustificacionFactorDemanda.DemandaMaximaMedida, JustificacionFactorDemanda.Otra]);
+        return lista;
     }
 }

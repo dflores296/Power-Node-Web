@@ -54,10 +54,10 @@ Cada requisito se relaciona con su referencia normativa y con su verificación e
 | ID | Requisito | Referencia | Verificación |
 |---|---|---|---|
 | A-1 | Dimensionar el alimentador con la fase de mayor capacidad requerida, en el motor. | 215-2(a)(1), 215-3 | `M02_…`, `R04_…` |
-| A-2 | Aplicar el factor de demanda por tipo de carga (alumbrado, contactos, equipo, motores y A/C, calefacción), a criterio del ingeniero y con justificación del Art. 220. Calefacción fija como carga continua. | 220-40, 220-50, 220-51, 430-26, 424-3(b) | `ElFactorDeDemanda…`, `R12_…`, `R17_…`, `R18_…` |
+| A-2 | Aplicar el factor de demanda por tipo de carga (alumbrado, contactos, equipo, motores y A/C, calefacción), a criterio del ingeniero y con justificación del Art. 220. Justificaciones filtradas por inmueble. Calefacción fija como carga continua. | 220-40, 220-50, 220-51, 430-26, 424-3(b) | `ElFactorDeDemanda…`, `R12_…`, `R17_…`, `R18_…`, `R19_…` |
 | A-3 | Calcular el factor de potencia del alimentador con las cargas de la fase que gobierna. | Tabla 9, nota 2 | `FP_ElDelAlimentador…` |
 | A-4 | Avisar si el principal es menor que el derivado más grande. | — | `M03_…` |
-| A-5 | Si el tablero es equipo de acometida, subir el principal al mínimo del inmueble: 60 A (otro), 30 A (vivienda popular). | 230-79(c), 230-79(d) | `R11_…` |
+| A-5 | Si el tablero es equipo de acometida, subir el principal al mínimo del inmueble: 30 A (vivienda popular), 60 A (todos los que no son vivienda unifamiliar). | 230-79(c), 230-79(d) | `R11_…`, `R19_…` |
 | A-6 | Verificar la protección contra la capacidad de la barra. | 408-36 | `ElAvisoDel408_36…` |
 | A-7 | Limitar la caída de tensión del alimentador: 2 % por omisión (con el 3 % del derivado, 5 %), capturable. Avisar si los límites suman más de 5 %. | 215-2(a)(4) NOTA 2, 210-19(a)(1) NOTA 4 | `R01_…`, `R15_…` |
 | A-11 | Calcular la caída del alimentador fase por fase, con la caída del neutro (suma fasorial); limitar con la peor fase. | Tabla 9 | `R02_…` |

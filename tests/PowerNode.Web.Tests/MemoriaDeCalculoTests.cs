@@ -154,6 +154,7 @@ public class MemoriaDeCalculoTests
     public void R12_LaMemoriaDelAlimentadorImprimeLosFactoresYSuJustificacion()
     {
         var cuadro = ConUnCircuito(); // un circuito de alumbrado
+        cuadro.Datos.Inmueble = TipoDeInmueble.ViviendaUnifamiliar; // la Tabla 220-42 reduce en vivienda
         const string Rotulo = "F.D. alumbrado — 220-40";
         Assert.DoesNotContain(MemoriaDeCalculo.Secciones(MemoriaDeCalculo.DelAlimentador(cuadro)!)[0].Renglones,
             r => r.Rotulo.StartsWith("F.D."));
@@ -165,7 +166,7 @@ public class MemoriaDeCalculoTests
         Assert.Equal("0.90 · SIN JUSTIFICACIÓN", Renglon());
 
         cuadro.Datos.Justificaciones[CategoriaDeCarga.Alumbrado].Add(JustificacionFactorDemanda.AlumbradoGeneral);
-        Assert.Equal("0.90 · Tabla 220-42 — alumbrado general", Renglon());
+        Assert.Equal("0.90 · Tabla 220-42 — alumbrado general (unidades de vivienda)", Renglon());
     }
 
     [Fact]

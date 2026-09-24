@@ -461,6 +461,7 @@ public class CuadroDeCargaTests
     public void R12_VariasJustificaciones_EnElOrdenDeLaLista()
     {
         var cuadro = TresAparatos();
+        cuadro.Datos.Inmueble = TipoDeInmueble.ViviendaUnifamiliar; // 220-53 es de vivienda (R-19)
         cuadro.Datos.FactorDemandaEquipo = 0.8m;
         cuadro.Datos.Justificaciones[CategoriaDeCarga.Equipo].Add(JustificacionFactorDemanda.CargasNoCoincidentes);
         cuadro.Datos.Justificaciones[CategoriaDeCarga.Equipo].Add(JustificacionFactorDemanda.AparatosFijosVivienda);
@@ -537,10 +538,10 @@ public class CuadroDeCargaTests
 
         Assert.Equal(
             [JustificacionFactorDemanda.MotoresNoSimultaneos, JustificacionFactorDemanda.CargasNoCoincidentes, JustificacionFactorDemanda.Otra],
-            CategoriaDeCarga.MotorOAireAcondicionado.JustificacionesPosibles());
+            CategoriaDeCarga.MotorOAireAcondicionado.JustificacionesPosibles(TipoDeInmueble.Otro));
         Assert.Equal(
             [JustificacionFactorDemanda.CalefaccionPorCiclos, JustificacionFactorDemanda.CargasNoCoincidentes, JustificacionFactorDemanda.Otra],
-            CategoriaDeCarga.CalefaccionFija.JustificacionesPosibles());
+            CategoriaDeCarga.CalefaccionFija.JustificacionesPosibles(TipoDeInmueble.Otro));
 
         cuadro.Datos.Justificaciones[CategoriaDeCarga.MotorOAireAcondicionado].Add(JustificacionFactorDemanda.MotoresNoSimultaneos);
         cuadro.Datos.Justificaciones[CategoriaDeCarga.CalefaccionFija].Add(JustificacionFactorDemanda.CalefaccionPorCiclos);
@@ -569,6 +570,73 @@ public class CuadroDeCargaTests
     {
         Assert.Contains("inverter frío/calor", CategoriaDeCarga.MotorOAireAcondicionado.Descripcion());
         Assert.Contains("calderas eléctricas", CategoriaDeCarga.CalefaccionFija.Descripcion());
+    }
+
+    // ---- R-19 · Un solo inmueble para 230-79 y para el factor de demanda ------------------------------
+
+    [Theory]
+    [InlineData(TipoDeInmueble.ViviendaUnifamiliar, null, "unidades de vivienda", true)]
+    [InlineData(TipoDeInmueble.ViviendaPopular, 30, "unidades de vivienda", true)]
+    [InlineData(TipoDeInmueble.ViviendaMultifamiliar, 60, "unidades de vivienda", true)]
+    [InlineData(TipoDeInmueble.Hospital, 60, "hospitales", false)]
+    [InlineData(TipoDeInmueble.HotelOMotel, 60, "hoteles y moteles", false)]
+    [InlineData(TipoDeInmueble.Almacen, 60, "almacenes", false)]
+    [InlineData(TipoDeInmueble.Escuela, 60, null, false)]
+    [InlineData(TipoDeInmueble.Restaurante, 60, null, false)]
+    [InlineData(TipoDeInmueble.Otro, 60, null, false)]
+    public void R19_CadaInmuebleTieneUnaSolaRespuestaEnCadaCriterio(TipoDeInmueble inmueble, int? minimo230_79, string? fila220_42, bool vivienda)
+    {
+        Assert.Equal(minimo230_79, (int?)inmueble.Minimo230_79()?.Amperes);
+        Assert.Equal(fila220_42, inmueble.FilaTabla220_42());
+        Assert.Equal(vivienda, inmueble.EsVivienda());
+    }
+
+    [Fact]
+    public void R19_LasJustificacionesSeFiltranPorInmueble()
+    {
+        var enVivienda = CategoriaDeCarga.Equipo.JustificacionesPosibles(TipoDeInmueble.ViviendaUnifamiliar);
+        Assert.Contains(JustificacionFactorDemanda.AparatosFijosVivienda, enVivienda);
+        Assert.DoesNotContain(JustificacionFactorDemanda.CocinaComercial, enVivienda);
+
+        var enRestaurante = CategoriaDeCarga.Equipo.JustificacionesPosibles(TipoDeInmueble.Restaurante);
+        Assert.Contains(JustificacionFactorDemanda.CocinaComercial, enRestaurante);
+        Assert.Contains(JustificacionFactorDemanda.RestauranteNuevo, enRestaurante);
+        Assert.DoesNotContain(JustificacionFactorDemanda.AparatosFijosVivienda, enRestaurante);
+
+        Assert.DoesNotContain(JustificacionFactorDemanda.ContactosNoVivienda, CategoriaDeCarga.Contactos.JustificacionesPosibles(TipoDeInmueble.ViviendaUnifamiliar));
+        Assert.Contains(JustificacionFactorDemanda.ContactosNoVivienda, CategoriaDeCarga.Contactos.JustificacionesPosibles(TipoDeInmueble.Otro));
+
+        // «Todos los demás» va al 100 % en la Tabla 220-42: no justifica reducir el alumbrado.
+        Assert.DoesNotContain(JustificacionFactorDemanda.AlumbradoGeneral, CategoriaDeCarga.Alumbrado.JustificacionesPosibles(TipoDeInmueble.Otro));
+        Assert.Contains(JustificacionFactorDemanda.AlumbradoGeneral, CategoriaDeCarga.Alumbrado.JustificacionesPosibles(TipoDeInmueble.Hospital));
+    }
+
+    [Fact]
+    public void R19_LaTabla220_42DiceSuRenglon_YUnaJustificacionQueYaNoAplicaSeDescarta()
+    {
+        var cuadro = Nuevo();
+        cuadro.Datos.Inmueble = TipoDeInmueble.HotelOMotel;
+        cuadro.Datos.FactorDemandaAlumbrado = 0.5m;
+        cuadro.Datos.Justificaciones[CategoriaDeCarga.Alumbrado].Add(JustificacionFactorDemanda.AlumbradoGeneral);
+        Assert.Equal("Tabla 220-42 — alumbrado general (hoteles y moteles)", cuadro.Datos.JustificacionDe(CategoriaDeCarga.Alumbrado));
+
+        cuadro.Datos.Inmueble = TipoDeInmueble.Otro; // «todos los demás»: la 220-42 ya no justifica
+        Assert.Null(cuadro.Datos.JustificacionDe(CategoriaDeCarga.Alumbrado));
+    }
+
+    [Fact]
+    public void R19_ElInmuebleSeCapturaAunqueNoSeaEquipoDeAcometida()
+    {
+        var cuadro = TresAparatos();
+        cuadro.Datos.Inmueble = TipoDeInmueble.Hospital;
+        cuadro.Recalcular();
+
+        Assert.Null(cuadro.Datos.Minimo230_79);
+        Assert.Equal(20m, cuadro.InterruptorPrincipalA);
+
+        cuadro.Datos.EsEquipoDeAcometida = true;
+        cuadro.Recalcular();
+        Assert.Equal(60m, cuadro.InterruptorPrincipalA);
     }
 
     [Fact]
