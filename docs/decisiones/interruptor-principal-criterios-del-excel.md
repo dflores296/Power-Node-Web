@@ -130,3 +130,12 @@ siendo el calculado (215-3 + 240-6(a)).
 La causa más común del aviso era el mínimo de 20 A en todos los contactos, que se quitó el mismo día
 ([`minimo-de-proteccion-por-uso.md`](minimo-de-proteccion-por-uso.md)). Ahora solo aparece con un
 circuito de vivienda de 20 A (210-11(c)) y poca carga, o con factor de demanda menor que 1.
+
+---
+
+## Se quita el «Mínimo del principal (A)»; entra 230-79
+
+**CONFIRMADA · David · 2026-09-24** — R-11. El campo solo avisaba y no se usaba. Lo sustituye el mínimo
+de la norma: con la casilla «Equipo de acometida», el principal **sube** a 60 A (230-79(d), otros
+inmuebles) o 30 A (230-79(c), vivienda popular de hasta 60 m²). En vivienda unifamiliar la norma no da
+número: manda la carga.

@@ -208,6 +208,7 @@ select.uso { display: block; margin-top: 3px; font-size: 11px; }
 .ficha .grupo label { display: flex; align-items: center; justify-content: space-between; gap: 8px;
                       font-size: 11px; color: var(--tenue); margin-top: 6px; }
 .ficha .grupo input, .ficha .grupo select { width: 118px; flex: none; }
+.ficha .grupo input.casilla { width: auto; }
 .ficha .grupo input[type="text"], .ficha .grupo label > input:not([type]) { width: 150px; }
 /* Un selector con opciones largas va en su propio renglón, a todo lo ancho: cortado, «Centro de
    carg» miente sobre su valor (misma lección que «Alumbrac»). */

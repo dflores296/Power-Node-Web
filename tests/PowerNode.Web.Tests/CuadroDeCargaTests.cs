@@ -405,47 +405,75 @@ public class CuadroDeCargaTests
         Assert.Contains(cuadro.Alimentador.Avisos, a => a.Contains("barra del tablero"));
     }
 
-    [Fact]
-    public void SinMinimoCapturadoNoHayAvisoDeMinimo()
-    {
-        // Antes salía «el Excel nunca bajaba de 30 A» en cualquier tablero chico. Ahora el mínimo
-        // lo pide el proyectista, y si no lo pide no se dice nada.
-        var cuadro = Nuevo();
-        Espacio(cuadro, 1).Continua = 720m;
-        cuadro.Recalcular();
+    // ---- R-11 · Mínimo del principal por 230-79, solo si el tablero es el de la acometida ----------------
 
-        Assert.Null(cuadro.Datos.MinimoInterruptorPrincipalA);
-        Assert.DoesNotContain(cuadro.Alimentador.Avisos, a => a.Contains("mínimo"));
+    private static CuadroDeCarga TresAparatosEnAcometida(TipoDeInmueble inmueble)
+    {
+        var cuadro = TresAparatos();
+        cuadro.Datos.EsEquipoDeAcometida = true;
+        cuadro.Datos.Inmueble = inmueble;
+        cuadro.Recalcular();
+        return cuadro;
     }
 
     [Fact]
-    public void ConMinimoCapturadoSoloAvisa_NoSubeElPrincipal()
+    public void R11_SinSerEquipoDeAcometida_ElPrincipalEsElCalculado()
     {
-        var cuadro = Nuevo();
-        Espacio(cuadro, 1).Continua = 720m;
-        cuadro.Datos.MinimoInterruptorPrincipalA = 30m;
+        var cuadro = TresAparatos();
+
+        Assert.False(cuadro.Datos.EsEquipoDeAcometida);
+        Assert.Null(cuadro.Datos.Minimo230_79);
+        Assert.Equal(20m, cuadro.InterruptorPrincipalA);
+    }
+
+    [Fact]
+    public void R11_OtroInmueble_ElPrincipalSubeA60AYElConductorLoSigue()
+    {
+        var cuadro = TresAparatosEnAcometida(TipoDeInmueble.Otro);
+        var r = cuadro.Alimentador.Resultado!;
+
+        Assert.Equal(60m, r.ProteccionA);
+        Assert.Contains(r.Citas, c => c.Referencia == "230-79(d)" && c.Descripcion.Contains("Por carga salía 20 A -> 60 A"));
+        // 240-4: el conductor se protege con 60 A. Sale 4 AWG (70 A a 60 °C): el motor no revisa 240-4(b)
+        // en los calibres intermedios, y 6 AWG (55 A → 60 A por 240-4(b)) también cumpliría. R-16, pendiente.
+        Assert.Equal("4", r.CalibreFase.Designacion);
+        Assert.Contains("Protección mínima del circuito: 60 A — 230-79(d)", cuadro.DesgloseDelAlimentador()!.Proteccion);
+    }
+
+    [Fact]
+    public void R11_ViviendaPopular_30A()
+    {
+        var r = TresAparatosEnAcometida(TipoDeInmueble.ViviendaPopular).Alimentador.Resultado!;
+
+        Assert.Equal(30m, r.ProteccionA);
+        Assert.Contains(r.Citas, c => c.Referencia == "230-79(c)");
+    }
+
+    [Fact]
+    public void R11_ViviendaUnifamiliar_SinNumeroFijo_ManDaLaCarga() =>
+        Assert.Equal(20m, TresAparatosEnAcometida(TipoDeInmueble.ViviendaUnifamiliar).InterruptorPrincipalA);
+
+    [Fact]
+    public void R11_SiLaCargaYaPasaDelMinimo_NoCambiaNada()
+    {
+        var cuadro = Nuevo(espacios: 6);
+        Assert.Null(cuadro.CambiarPolos(Espacio(cuadro, 1), 3));
+        Espacio(cuadro, 1).NoContinua = 30000m; // 78.7 A → 80 A
+        cuadro.Datos.EsEquipoDeAcometida = true;
         cuadro.Recalcular();
 
-        Assert.Equal(15m, cuadro.InterruptorPrincipalA); // el calculado, no el mínimo
-        Assert.Contains(cuadro.Alimentador.Avisos,
-            a => a == "El interruptor principal calculado es de 15 A, menor que el mínimo de 30 A que pediste para este tablero.");
-
-        cuadro.Datos.MinimoInterruptorPrincipalA = 15m;
-        cuadro.Recalcular();
-        Assert.DoesNotContain(cuadro.Alimentador.Avisos, a => a.Contains("mínimo"));
+        Assert.Equal(80m, cuadro.InterruptorPrincipalA);
+        Assert.DoesNotContain(cuadro.Alimentador.Resultado!.Citas, c => c.Referencia.StartsWith("230-79"));
     }
 
     [Fact]
     public void NingunAvisoLeHablaAlUsuarioDelExcel()
     {
         // El caso de los tres aparatos dispara el aviso de «igual que el derivado más grande»
-        // (principal y air fryer en 20 A); con mínimo de 30 A dispara también el de mínimo.
+        // (principal y air fryer en 20 A).
         var cuadro = TresAparatos();
-        cuadro.Datos.MinimoInterruptorPrincipalA = 30m;
-        cuadro.Recalcular();
 
         Assert.Contains(cuadro.Alimentador.Avisos, a => a.StartsWith("El interruptor principal quedó igual que el derivado más grande (20 A)"));
-        Assert.Contains(cuadro.Alimentador.Avisos, a => a.Contains("mínimo de 30 A"));
         Assert.DoesNotContain(cuadro.Alimentador.Avisos, a => a.Contains("Excel"));
     }
 

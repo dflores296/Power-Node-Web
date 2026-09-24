@@ -70,9 +70,15 @@
                     <option value="@serie">@serie.Nombre()</option>
                 }
             </select></label>
-        <label><span class="ayuda" title="Capturar el mínimo del interruptor principal (criterio del proyectista). Vacío: sin verificación. Principal calculado menor al mínimo: aviso, sin cambio del valor calculado.">Mínimo del principal (A)</span>
-            <input type="number" min="0" step="5" placeholder="—"
-                   @bind="Datos.MinimoInterruptorPrincipalA" @bind:after="Recalcular" /></label>
+        <label><span class="ayuda" title="Marcar si el tablero es el medio de desconexión de la acometida (el primero después del medidor). Aplica el mínimo del principal de 230-79 según el inmueble.">Equipo de acometida</span>
+            <input type="checkbox" class="casilla" @bind="Datos.EsEquipoDeAcometida" @bind:after="Recalcular" /></label>
+        @if (Datos.EsEquipoDeAcometida)
+        {
+            <label class="apilado"><span class="ayuda" title="Seleccionar el inmueble. Vivienda unifamiliar: según la carga conectada — 230-79(c). Vivienda popular hasta 60 m²: no menor que 30 A — 230-79(c). Otro: no menor que 60 A — 230-79(d). El principal sube al mínimo.">Inmueble</span>
+                <select @bind="Datos.Inmueble" @bind:after="Recalcular">
+                    @foreach (var inmueble in Enum.GetValues<TipoDeInmueble>()) { <option value="@inmueble">@inmueble.Nombre()</option> }
+                </select></label>
+        }
     </div>
 
     <div class="grupo">

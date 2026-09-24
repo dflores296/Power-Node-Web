@@ -57,7 +57,7 @@ Cada requisito se relaciona con su referencia normativa y con su verificación e
 | A-2 | Aplicar el factor de demanda sobre la carga acumulada. | 220-40 | `ElFactorDeDemanda…`, `M02_ElFactorDeDemanda…` |
 | A-3 | Calcular el factor de potencia del alimentador con las cargas de la fase que gobierna. | Tabla 9, nota 2 | `FP_ElDelAlimentador…` |
 | A-4 | Avisar si el principal es menor que el derivado más grande. | — | `M03_…` |
-| A-5 | Avisar si el principal queda debajo del mínimo capturado. | — | `ConMinimoCapturadoSoloAvisa_…` |
+| A-5 | Si el tablero es equipo de acometida, subir el principal al mínimo del inmueble: 60 A (otro), 30 A (vivienda popular). | 230-79(c), 230-79(d) | `R11_…` |
 | A-6 | Verificar la protección contra la capacidad de la barra. | 408-36 | `ElAvisoDel408_36…` |
 | A-7 | Limitar la caída de tensión del alimentador: 2 % por omisión (con el 3 % del derivado, 5 %), capturable. Avisar si los límites suman más de 5 %. | 215-2(a)(4) NOTA 2, 210-19(a)(1) NOTA 4 | `R01_…`, `R15_…` |
 | A-11 | Calcular la caída del alimentador fase por fase, con la caída del neutro (suma fasorial); limitar con la peor fase. | Tabla 9 | `R02_…` |

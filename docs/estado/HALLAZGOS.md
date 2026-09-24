@@ -67,6 +67,7 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | R-12 · Sin factores de demanda del Art. 220 por tipo de inmueble | P2 | Pendiente | — |
 | R-14 · Mínimo de 20 A en todos los contactos (criterio del Excel); sin 210-11(c) ni 220-52 | P1 | **Cerrado** | `ab9c785` |
 | R-15 · Límites de caída por omisión 3 % + 3 % = 6 %, contra el 5 % combinado; aviso de caída combinada dentro de la tabla | P2 | **Cerrado** | `6ca60a1` |
+| R-16 · 240-4(b) no se revisa en calibres intermedios: más cobre del necesario | P3 | Pendiente | — |
 | R-13 · «Tabla 310-15(b)(5)(3)» en `CircuitoDerivado.cs`: es numeral | P3 | **Cerrado** | `69a5ed6` |
 
 ## Detalle
@@ -182,7 +183,7 @@ de tres aparatos.
 
 **R-10** — Hecho: ninguno se aplica hoy, sin prueba que lo asegure. 220-61(a) excepción: sistemas bifásicos (90°), no 2 fases de estrella. 310-15(b)(7): solo 120/240 V. Corrección: dos pruebas con alimentador 2F-3H de 99.99 A por fase y terminales 75 °C — 100 A, fase y neutro 3 AWG, Tabla 310-15(b)(16); con × 140 % el neutro sería 1/0 AWG y con (b)(7) la fase sería 4 AWG. Lectura en [`../conocimiento/seleccion-conductor-y-proteccion.md`](../conocimiento/seleccion-conductor-y-proteccion.md). Prueba: `R10_…`.
 
-**R-11** — Hecho: sin tipo de inmueble ni indicación de equipo de acometida. Referencia: 230-79(c) vivienda según carga conectada, vivienda popular hasta 60 m² no menor que 30 A; 230-79(d) demás, no menor que 60 A.
+**R-11** — Hecho: sin tipo de inmueble ni indicación de equipo de acometida. Referencia: 230-79(c) vivienda según carga conectada, vivienda popular hasta 60 m² no menor que 30 A; 230-79(d) demás, no menor que 60 A. Corrección (flujo de David): casilla «Equipo de acometida»; marcada, selector «Inmueble» (vivienda unifamiliar, vivienda popular, otro). El principal **sube** al mínimo (`DatosEntradaAlimentador.ProteccionMinimaA`) y el conductor se protege con él (240-4). Vivienda unifamiliar: sin número fijo, manda la carga. Se quitó «Mínimo del principal (A)», que solo avisaba. Caso base: otro 60 A (4 AWG), vivienda popular 30 A (10 AWG). Prueba: `R11_…`.
 
 **R-12** — Hecho: solo factores de demanda continua y no continua capturados. Contradice la decisión del motor «automatizar el Art. 220 queda fuera de v1» (`Domain/Proyectos/Alimentador.cs`): requiere decisión antes de implementar. Referencia: Tabla 220-42, Tabla 220-44, 220-53, 220-82.
 
@@ -191,3 +192,5 @@ de tres aparatos.
 **R-14** — Hecho: `CalculadoraCircuitoDerivadoNoMotor` aplicaba 15 A mínimo en alumbrado y 20 A en contactos, el `MAX(20, …)` del Excel. La NOM no lo pide (210-3 y 210-21(b)(3) permiten contactos en 15 A); solo 210-11(c) exige 20 A en cocina, lavadora y baño de vivienda, y 220-52 carga 1500 VA por circuito de cocina y de lavadora. 500 VA de contactos salían en 20 A y 12 AWG. Corrección: quitar el mínimo; «Uso» por circuito de contactos (General, Cocina, Lavadora, Baño) con 20 A y su cita; 1500 VA al alimentador (renglón «Mínimo 220-52» en el resumen y en la memoria); aviso con un solo circuito de aparatos pequeños. Referencia: 210-11(c), 220-52(a) y (b). Decisión: [`../decisiones/minimo-de-proteccion-por-uso.md`](../decisiones/minimo-de-proteccion-por-uso.md). Prueba: `SinMinimoPorTipo_…`, `Vivienda_…`. Pendiente: llevar a `PowerNode-DesignSuite`.
 
 **R-15** — Hecho (David, revisando R-01): el alimentador arrancaba en 3 % y el derivado en 3 %: 6 %, arriba del 5 % combinado de la misma nota, sin aviso en los campos. El aviso de caída combinada salía como renglón dentro del cuadro. Corrección: alimentador 2 % por omisión (2 % + 3 % = 5 %); aviso en «Condiciones de cálculo» si los límites suman más de 5 %; los avisos de caída combinada, en su tarjeta debajo del cuadro. Con 2 % + 3 % ningún circuito pasa del 5 %: el aviso por circuito solo sale si se suben los límites. Caso base con 80 m: el alimentador sube a 6 AWG. Referencia: 215-2(a)(4) NOTA 2, 210-19(a)(1) NOTA 4. Prueba: `R15_…`.
+
+**R-16** — Hecho: `SeleccionConductor.DeterminarCalibreBase` revisa 240-4(b) solo en el calibre por carga; si no califica, salta al primer calibre cuya ampacidad cubre toda la protección. Caso base con principal de 60 A (230-79(d)): 12 AWG no alcanza y salta a 4 AWG (70 A); 6 AWG (55 A a 60 °C, 240-4(b) → 60 A) también cumple. Del lado seguro, con más cobre. Viene del motor copiado. Pendiente: decisión de David.

@@ -207,7 +207,8 @@ public sealed class CuadroDeCarga
             calibre: r.CalibreFase,
             conductoresPorFase: r.NumeroConductoresParalelo,
             d: detalle,
-            citas: r.Citas);
+            citas: r.Citas,
+            referenciaMinimo: Datos.Minimo230_79?.Referencia);
     }
 
     private decimal TamanoEstandar(decimal amperes) =>
@@ -581,7 +582,10 @@ public sealed class CuadroDeCarga
                 ConjuntoAprobado100Pct: Datos.ConjuntoAprobado100Pct,
                 TerminalesMarcadas75C: Datos.TerminalesMarcadas75C,
                 CorrientesPorFase: CorrientesParaElMotor(),
-                ConNeutro: SistemaDelTablero.De(Datos.Sistema) != ConfiguracionTablero.TresFasesTresHilos));
+                ConNeutro: SistemaDelTablero.De(Datos.Sistema) != ConfiguracionTablero.TresFasesTresHilos,
+                // 230-79: el principal SUBE al mínimo si el tablero es el de la acometida — R-11.
+                ProteccionMinimaA: Datos.Minimo230_79?.Amperes,
+                ReferenciaProteccionMinima: Datos.Minimo230_79?.Referencia));
 
             // La fase que gobierna la decide el motor; la de aquí es la misma regla, para mostrarla.
             if (resultado.FaseQueGobierna is { } fase)
@@ -694,13 +698,6 @@ public sealed class CuadroDeCarga
                 $"Solo el circuito {aparatos[0].Espacio} es de aparatos pequeños. En vivienda se exigen dos o más circuitos " +
                 "de 20 A para los contactos de cocina, despensa y comedor — 210-11(c)(1). No aplica en vivienda popular de " +
                 "hasta 60 m².");
-
-        // El mínimo lo pide el proyectista, tablero por tablero. Vacío = no hay mínimo y no se dice
-        // nada. Solo avisa: el principal que se imprime sigue siendo el calculado.
-        if (Datos.MinimoInterruptorPrincipalA is { } minimo && resultado.ProteccionA > 0m && resultado.ProteccionA < minimo)
-            avisos.Add(
-                $"El interruptor principal calculado es de {resultado.ProteccionA:N0} A, menor que el mínimo de " +
-                $"{minimo:N0} A que pediste para este tablero.");
 
         return avisos;
     }

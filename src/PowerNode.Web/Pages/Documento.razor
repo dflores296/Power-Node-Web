@@ -38,6 +38,10 @@
                 <div><dt>Tensión</dt><dd>@Datos.TensionFaseFaseV.ToString("N0") V F-F · @Datos.TensionFaseNeutroV.ToString("N1") V F-N · @Datos.FrecuenciaHz Hz</dd></div>
                 <div><dt>Int. ppal.</dt><dd>@(Cuadro.InterruptorPrincipalA > 0m ? $"{Cuadro.InterruptorPrincipalA:N0} A" : "—")</dd></div>
                 <div><dt>Acometida</dt><dd>@(Datos.UsaInterruptorPrincipal ? "Interruptor principal" : "Zapatas principales")</dd></div>
+                @if (Datos.EsEquipoDeAcometida)
+                {
+                    <div><dt>Equipo de acometida</dt><dd>@Datos.Inmueble.Nombre()@(Datos.Minimo230_79 is { } m ? $" · mínimo {m.Amperes:N0} A — {m.Referencia}" : "")</dd></div>
+                }
                 <div><dt>Interruptores</dt><dd>@Datos.SerieInterruptores.Nombre()</dd></div>
             </dl>
         </header>

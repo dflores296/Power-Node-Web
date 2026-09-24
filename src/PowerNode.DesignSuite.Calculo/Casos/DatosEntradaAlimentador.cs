@@ -104,4 +104,12 @@ public sealed record DatosEntradaAlimentador(
     IReadOnlyList<CorrienteDeFaseAlimentador>? CorrientesPorFase = null,
 
     /// <summary>El alimentador lleva neutro. Sin él (3F-3H) la caída se calcula balanceada con la fase que gobierna.</summary>
-    bool ConNeutro = true);
+    bool ConNeutro = true,
+
+    /// <summary>
+    /// Protección mínima que exige la norma a este tramo, con su referencia — p. ej. 60 A por 230-79(d)
+    /// cuando el tablero es el medio de desconexión de la acometida. La protección sube a ese valor y el
+    /// conductor se dimensiona para protegerse con ella (240-4). <c>null</c> = sin mínimo.
+    /// </summary>
+    decimal? ProteccionMinimaA = null,
+    string? ReferenciaProteccionMinima = null);

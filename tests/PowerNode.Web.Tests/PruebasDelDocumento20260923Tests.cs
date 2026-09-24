@@ -208,14 +208,9 @@ public class PruebasDelDocumento20260923Tests
         Assert.Contains(cuadro.Alimentador.Avisos, a => a.StartsWith("El interruptor principal quedó igual que el derivado más grande (20 A)."));
         Assert.DoesNotContain(cuadro.Alimentador.Avisos, a => a.Contains("mínimo"));
 
-        cuadro.Datos.MinimoInterruptorPrincipalA = 30m;
-        cuadro.Recalcular();
-        Assert.Contains(cuadro.Alimentador.Avisos, a => a.Contains("menor que el mínimo de 30 A"));
-        Assert.Equal(20m, cuadro.InterruptorPrincipalA); // se reporta, no se aplica
-
-        cuadro.Datos.MinimoInterruptorPrincipalA = 20m;
-        cuadro.Recalcular();
-        Assert.DoesNotContain(cuadro.Alimentador.Avisos, a => a.Contains("mínimo"));
+        // 7.3 salió el 2026-09-24: el «Mínimo del principal (A)» se quitó; lo sustituye 230-79 (R-11),
+        // que sube el principal en vez de avisar. Ver R11_… en CuadroDeCargaTests.
+        Assert.Equal(20m, cuadro.InterruptorPrincipalA);
         Assert.DoesNotContain(cuadro.Alimentador.Avisos, a => a.Contains("Excel"));
     }
 

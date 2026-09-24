@@ -64,6 +64,16 @@ public class CalculadoraAlimentador(
         var capacidadMin = proteccion.CapacidadMinimaA;
         var breaker = proteccion.ProteccionA;
         var citas = new List<Cita>(proteccion.Citas);
+
+        // Mínimo de norma para este tramo (230-79 en un medio de desconexión de acometida). Sube la
+        // protección; el conductor la sigue abajo por 240-4, igual que con cualquier protección.
+        if (d.ProteccionMinimaA is { } minimo && breaker < minimo)
+        {
+            var porCarga = breaker;
+            breaker = proteccionEstandar.SiguienteEstandar(minimo);
+            citas.Add(new Cita(d.ReferenciaProteccionMinima ?? "Protección mínima",
+                $"Protección mínima: {minimo:0.##} A. Por carga salía {porCarga} A -> {breaker} A."));
+        }
         if (gobierna is not null)
             citas.Insert(0, new Cita("215-2(a)(1)",
                 $"Fase que gobierna: {gobierna.Fase}, la de mayor capacidad requerida. Por fase, sin demanda: " +

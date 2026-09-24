@@ -67,12 +67,28 @@ public sealed class DatosDelTablero
     public decimal? CapacidadBarraA { get; set; }
 
     /// <summary>
-    /// El interruptor principal más chico que el proyectista quiere para este tablero, en amperes.
-    /// <b>No es de la NOM</b> —la 240-6(a) no fija mínimo—: es criterio de diseño, y cambia de
-    /// proyecto a proyecto. <c>null</c> por omisión: sin mínimo no hay aviso. <b>Solo avisa</b>, no
-    /// sube el principal. Ver <c>docs/decisiones/interruptor-principal-criterios-del-excel.md</c>.
+    /// El tablero es el medio de desconexión de la acometida: el primero después del medidor. Solo
+    /// entonces aplica el mínimo de 230-79, que depende de <see cref="Inmueble"/> — R-11. Falso por
+    /// omisión. Sustituye al «Mínimo del principal (A)», que solo avisaba (David, 2026-09-24).
     /// </summary>
-    public decimal? MinimoInterruptorPrincipalA { get; set; }
+    public bool EsEquipoDeAcometida { get; set; }
+
+    /// <summary>El inmueble que sirve la acometida. Solo cuenta con <see cref="EsEquipoDeAcometida"/>.</summary>
+    public TipoDeInmueble Inmueble { get; set; } = TipoDeInmueble.Otro;
+
+    /// <summary>
+    /// El mínimo del principal por 230-79, con su referencia. <c>null</c> si el tablero no es equipo de
+    /// acometida o si es vivienda unifamiliar, donde la norma dice «según la carga conectada»: sin
+    /// número, manda el cálculo.
+    /// </summary>
+    public (decimal Amperes, string Referencia)? Minimo230_79 => !EsEquipoDeAcometida
+        ? null
+        : Inmueble switch
+        {
+            TipoDeInmueble.ViviendaPopular => (30m, "230-79(c)"),
+            TipoDeInmueble.Otro => (60m, "230-79(d)"),
+            _ => null,
+        };
 
     /// <summary>
     /// La familia de interruptores que se instala, que decide de qué tamaños de la 240-6(a) se
@@ -207,4 +223,27 @@ public sealed class DatosDelTablero
     /// de marcado, no una opción de diseño.
     /// </summary>
     public bool ConjuntoAprobado100Pct { get; set; }
+}
+
+/// <summary>El inmueble de la acometida, para el mínimo del medio de desconexión — 230-79.</summary>
+public enum TipoDeInmueble
+{
+    /// <summary>230-79(c): según la carga conectada.</summary>
+    ViviendaUnifamiliar,
+
+    /// <summary>230-79(c): vivienda popular de hasta 60 m², no menor que 30 A.</summary>
+    ViviendaPopular,
+
+    /// <summary>230-79(d): comercio, oficina, industria y todo lo demás, no menor que 60 A.</summary>
+    Otro,
+}
+
+public static class TiposDeInmueble
+{
+    public static string Nombre(this TipoDeInmueble inmueble) => inmueble switch
+    {
+        TipoDeInmueble.ViviendaUnifamiliar => "Vivienda unifamiliar",
+        TipoDeInmueble.ViviendaPopular => "Vivienda popular (hasta 60 m²)",
+        _ => "Otro (comercio, oficina, industria)",
+    };
 }
