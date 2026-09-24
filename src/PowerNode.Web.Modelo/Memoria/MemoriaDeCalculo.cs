@@ -139,7 +139,11 @@ public static class MemoriaDeCalculo
             NeutroPortador: NeutroPortador(cuadro, cuadro.Alimentador.Polos, alimentador: true),
             CaidaPorFase: r.CaidaPorFase,
             CorrienteNeutro: r.CorrienteNeutro,
-            TensionFaseNeutroV: datos.TensionFaseNeutroV);
+            TensionFaseNeutroV: datos.TensionFaseNeutroV,
+            FactorDeDemanda: datos.ReduceCargaPorDemanda
+                ? $"Continua {datos.FactorDemandaContinua:N2}, no continua {datos.FactorDemandaNoContinua:N2}. " +
+                  (datos.JustificacionDelFactorDeDemanda ?? "SIN JUSTIFICACIÓN")
+                : null);
     }
 
     /// <summary>
@@ -175,6 +179,7 @@ public static class MemoriaDeCalculo
                 ? $"{hoja.Minimo220_52VA:N0} VA — aparatos pequeños y lavadora a 1,500 VA por circuito, 220-52(a) y (b)"
                 : null),
             ("Carga calculada", hoja.Minimo220_52VA > 0m ? $"{cargaTotal + hoja.Minimo220_52VA:N0} VA" : null),
+            ("Factor de demanda — 220-40", hoja.FactorDeDemanda),
             ("Tensión nominal", $"{hoja.TensionV:N1} V"),
             ("Frecuencia", "60 Hz"),
             ("Factor de potencia", hoja.Articulo == "215"

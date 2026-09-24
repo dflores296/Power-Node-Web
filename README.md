@@ -54,7 +54,7 @@ Cada requisito se relaciona con su referencia normativa y con su verificación e
 | ID | Requisito | Referencia | Verificación |
 |---|---|---|---|
 | A-1 | Dimensionar el alimentador con la fase de mayor capacidad requerida, en el motor. | 215-2(a)(1), 215-3 | `M02_…`, `R04_…` |
-| A-2 | Aplicar el factor de demanda sobre la carga acumulada. | 220-40 | `ElFactorDeDemanda…`, `M02_ElFactorDeDemanda…` |
+| A-2 | Aplicar el factor de demanda sobre la carga acumulada, a criterio del ingeniero, con justificación del Art. 220 en la memoria. | 220-40 | `ElFactorDeDemanda…`, `M02_ElFactorDeDemanda…`, `R12_…` |
 | A-3 | Calcular el factor de potencia del alimentador con las cargas de la fase que gobierna. | Tabla 9, nota 2 | `FP_ElDelAlimentador…` |
 | A-4 | Avisar si el principal es menor que el derivado más grande. | — | `M03_…` |
 | A-5 | Si el tablero es equipo de acometida, subir el principal al mínimo del inmueble: 60 A (otro), 30 A (vivienda popular). | 230-79(c), 230-79(d) | `R11_…` |

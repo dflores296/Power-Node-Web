@@ -690,6 +690,12 @@ public sealed class CuadroDeCarga
                 avisos.Add(avisoDin);
         }
 
+        // R-12: el factor de demanda lo decide el proyectista, pero no sin sustento.
+        if (Datos.ReduceCargaPorDemanda && Datos.JustificacionDelFactorDeDemanda is null)
+            avisos.Add(
+                "Hay un factor de demanda menor que 1 sin justificación. Escoge en «Resumen de carga» la tabla o sección " +
+                "del Art. 220 que lo sustenta — 220-40.");
+
         // 210-11(c)(1): los circuitos de aparatos pequeños son DOS O MÁS. Con uno solo capturado, se
         // dice; con ninguno, el tablero puede no ser de vivienda y no hay nada que decir.
         var aparatos = _circuitos.Where(c => c.TieneCarga && c.UsoEfectivo == UsoDeContactos.AparatosPequenos).ToList();

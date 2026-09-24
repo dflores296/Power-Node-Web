@@ -156,6 +156,34 @@ public sealed class DatosDelTablero
     /// <summary>Factor de demanda de la carga no continua acumulada. Ver <see cref="FactorDemandaContinua"/>.</summary>
     public decimal FactorDemandaNoContinua { get; set; } = 1m;
 
+    /// <summary>Algún factor de demanda reduce la carga: entonces la memoria pide justificación — R-12.</summary>
+    public bool ReduceCargaPorDemanda => FactorDemandaContinua < 1m || FactorDemandaNoContinua < 1m;
+
+    /// <summary>Con qué se justifica el factor de demanda. Varias a la vez. Solo cuenta con <see cref="ReduceCargaPorDemanda"/>.</summary>
+    public HashSet<JustificacionFactorDemanda> Justificaciones { get; } = [];
+
+    /// <summary>El texto de «Otra — criterio del proyectista».</summary>
+    public string JustificacionOtra { get; set; } = string.Empty;
+
+    /// <summary>
+    /// La justificación como la imprime la memoria, en el orden de la lista. <c>null</c> si falta: sin
+    /// ninguna escogida, o solo «Otra» sin texto.
+    /// </summary>
+    public string? JustificacionDelFactorDeDemanda
+    {
+        get
+        {
+            var partes = Enum.GetValues<JustificacionFactorDemanda>()
+                .Where(Justificaciones.Contains)
+                .Select(j => j == JustificacionFactorDemanda.Otra
+                    ? (string.IsNullOrWhiteSpace(JustificacionOtra) ? null : $"Criterio del proyectista: {JustificacionOtra.Trim()}")
+                    : j.Nombre())
+                .OfType<string>()
+                .ToList();
+            return partes.Count == 0 ? null : string.Join("; ", partes);
+        }
+    }
+
     // ---- Condiciones de cálculo (Excel columnas DA a DR, iguales en todos los renglones) --------
 
     public MaterialConductor MaterialConductor { get; set; } = MaterialConductor.Cobre;

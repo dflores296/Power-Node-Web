@@ -405,6 +405,59 @@ public class CuadroDeCargaTests
         Assert.Contains(cuadro.Alimentador.Avisos, a => a.Contains("barra del tablero"));
     }
 
+    // ---- R-12 · El factor de demanda lo decide el proyectista, con justificación --------------------------
+
+    private const string AvisoSinJustificacion = "Hay un factor de demanda menor que 1 sin justificación.";
+
+    [Fact]
+    public void R12_SinReduccionNoSePideJustificacion()
+    {
+        var cuadro = TresAparatos();
+
+        Assert.False(cuadro.Datos.ReduceCargaPorDemanda);
+        Assert.DoesNotContain(cuadro.Alimentador.Avisos, a => a.StartsWith(AvisoSinJustificacion));
+    }
+
+    [Fact]
+    public void R12_ConReduccionSinJustificacion_SeAvisa()
+    {
+        var cuadro = TresAparatos();
+        cuadro.Datos.FactorDemandaNoContinua = 0.5m;
+        cuadro.Recalcular();
+
+        Assert.Contains(cuadro.Alimentador.Avisos, a => a.StartsWith(AvisoSinJustificacion));
+    }
+
+    [Fact]
+    public void R12_VariasJustificaciones_EnElOrdenDeLaLista()
+    {
+        var cuadro = TresAparatos();
+        cuadro.Datos.FactorDemandaContinua = 0.8m;
+        cuadro.Datos.Justificaciones.Add(JustificacionFactorDemanda.ContactosNoVivienda);
+        cuadro.Datos.Justificaciones.Add(JustificacionFactorDemanda.AlumbradoGeneral);
+        cuadro.Recalcular();
+
+        Assert.Equal(
+            "Tabla 220-42 — alumbrado general; 220-44 — contactos en inmuebles que no son vivienda",
+            cuadro.Datos.JustificacionDelFactorDeDemanda);
+        Assert.DoesNotContain(cuadro.Alimentador.Avisos, a => a.StartsWith(AvisoSinJustificacion));
+    }
+
+    [Fact]
+    public void R12_OtraSinTextoNoJustifica_ConTextoSi()
+    {
+        var cuadro = TresAparatos();
+        cuadro.Datos.FactorDemandaNoContinua = 0.7m;
+        cuadro.Datos.Justificaciones.Add(JustificacionFactorDemanda.Otra);
+        cuadro.Recalcular();
+        Assert.Contains(cuadro.Alimentador.Avisos, a => a.StartsWith(AvisoSinJustificacion));
+
+        cuadro.Datos.JustificacionOtra = "Registro de demanda de la planta existente";
+        cuadro.Recalcular();
+        Assert.Equal("Criterio del proyectista: Registro de demanda de la planta existente", cuadro.Datos.JustificacionDelFactorDeDemanda);
+        Assert.DoesNotContain(cuadro.Alimentador.Avisos, a => a.StartsWith(AvisoSinJustificacion));
+    }
+
     // ---- R-11 · Mínimo del principal por 230-79, solo si el tablero es el de la acometida ----------------
 
     private static CuadroDeCarga TresAparatosEnAcometida(TipoDeInmueble inmueble)

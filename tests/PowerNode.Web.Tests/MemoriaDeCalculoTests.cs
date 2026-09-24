@@ -151,6 +151,23 @@ public class MemoriaDeCalculoTests
     }
 
     [Fact]
+    public void R12_LaMemoriaDelAlimentadorImprimeLosFactoresYSuJustificacion()
+    {
+        var cuadro = ConUnCircuito();
+        Assert.DoesNotContain(MemoriaDeCalculo.Secciones(MemoriaDeCalculo.DelAlimentador(cuadro)!)[0].Renglones,
+            r => r.Rotulo == "Factor de demanda — 220-40");
+
+        cuadro.Datos.FactorDemandaContinua = 0.9m;
+        cuadro.Recalcular();
+        string Renglon() => MemoriaDeCalculo.Secciones(MemoriaDeCalculo.DelAlimentador(cuadro)!)[0].Renglones
+            .Single(r => r.Rotulo == "Factor de demanda — 220-40").Valor;
+        Assert.Equal("Continua 0.90, no continua 1.00. SIN JUSTIFICACIÓN", Renglon());
+
+        cuadro.Datos.Justificaciones.Add(JustificacionFactorDemanda.AlumbradoGeneral);
+        Assert.Equal("Continua 0.90, no continua 1.00. Tabla 220-42 — alumbrado general", Renglon());
+    }
+
+    [Fact]
     public void UnDerivadoCitaEl210YElAlimentadorEl215()
     {
         var cuadro = ConUnCircuito();

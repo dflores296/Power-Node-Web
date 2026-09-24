@@ -381,6 +381,21 @@
             </tr>
         </table>
 
+        @if (Datos.ReduceCargaPorDemanda)
+        {
+            <h2 class="separado"><span class="ayuda" title="Seleccionar la tabla o sección del Art. 220 que sustenta el factor de demanda. Se imprime en la memoria del alimentador — 220-40. Sin reducción: calefacción fija (220-51) y motores (220-50).">Justificación del F.D.</span></h2>
+            <div class="justificaciones">
+                @foreach (var j in Enum.GetValues<JustificacionFactorDemanda>())
+                {
+                    <label><input type="checkbox" checked="@Datos.Justificaciones.Contains(j)" @onchange="e => Justificar(j, e)" /> @j.Nombre()</label>
+                }
+                @if (Datos.Justificaciones.Contains(JustificacionFactorDemanda.Otra))
+                {
+                    <input class="otra" placeholder="Describir el criterio" @bind="Datos.JustificacionOtra" @bind:event="oninput" @bind:after="Recalcular" />
+                }
+            </div>
+        }
+
         <h2 class="separado">Balanceo de fases</h2>
         <table class="datos">
             <tr>
@@ -589,6 +604,15 @@
         a.CaidaPorFase is { Count: > 0 } fases
             ? [.. fases.Select(f => $"Fase {f.Fase}: {f.Corriente.Magnitud:N2} A → {f.CaidaV:N2} V ({f.CaidaPct:N2} %)")]
             : null;
+
+    private void Justificar(JustificacionFactorDemanda j, ChangeEventArgs e)
+    {
+        if (e.Value is true)
+            Datos.Justificaciones.Add(j);
+        else
+            Datos.Justificaciones.Remove(j);
+        Recalcular();
+    }
 
     private bool Excede(CircuitoDelCuadro c) =>
         c.Resultado is not null && c.Resultado.CaidaTensionPct > Datos.CaidaMaxDerivadoPct;
