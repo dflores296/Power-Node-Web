@@ -65,7 +65,7 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | R-10 · 2F-3H 220Y/127: sin prueba de que no se aplican 220-61(a) excepción ni 310-15(b)(7) | P2 | Pendiente | — |
 | R-11 · Sin mínimo del principal según 230-79 | P2 | Pendiente | — |
 | R-12 · Sin factores de demanda del Art. 220 por tipo de inmueble | P2 | Pendiente | — |
-| R-13 · «Tabla 310-15(b)(5)(3)» en `CircuitoDerivado.cs`: es numeral | P3 | Pendiente | — |
+| R-13 · «Tabla 310-15(b)(5)(3)» en `CircuitoDerivado.cs`: es numeral | P3 | **Cerrado** | `69a5ed6` |
 
 ## Detalle
 
@@ -184,4 +184,4 @@ de tres aparatos.
 
 **R-12** — Hecho: solo factores de demanda continua y no continua capturados. Contradice la decisión del motor «automatizar el Art. 220 queda fuera de v1» (`Domain/Proyectos/Alimentador.cs`): requiere decisión antes de implementar. Referencia: Tabla 220-42, Tabla 220-44, 220-53, 220-82.
 
-**R-13** — Hecho: `Domain/Proyectos/CircuitoDerivado.cs:117` cita «Tabla 310-15(b)(5)(3)». Es el numeral 310-15(b)(5)(3). Pendiente: reportar en `PowerNode-DesignSuite`.
+**R-13** — Hecho: `Domain/Proyectos/CircuitoDerivado.cs:117` cita «Tabla 310-15(b)(5)(3)». Es el numeral 310-15(b)(5)(3). Corrección: citar «310-15(b)(5)(3)». Pendiente: llevar a `PowerNode-DesignSuite` ([`../conocimiento/motor-copiado.md`](../conocimiento/motor-copiado.md)).
