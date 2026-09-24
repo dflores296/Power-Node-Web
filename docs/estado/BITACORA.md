@@ -34,7 +34,7 @@ Pruebas: 66 en `PowerNode.Web.Tests`, 6 en `PowerNode.Normativa.Tests`.
 - Agregar las 20 pruebas del documento de pruebas — R-07, `986c9d7`.
 - Limitar la caída del alimentador a 3 % por omisión, capturable; avisar la caída combinada mayor que 5 % por circuito; corregir la cita de la memoria, sección 7 (decía «310-15, NOTA 4») — R-01, `2a973ea`.
 - Corregir la cita de `CargaLineal` en `CircuitoDerivado.cs`: numeral 310-15(b)(5)(3), no tabla — R-13, `69a5ed6`.
-- Redactar el aviso de riel DIN > 125 A en singular o plural, con 240-6(a) — R-06.
+- Redactar el aviso de riel DIN > 125 A en singular o plural, con 240-6(a) — R-06, `de855ee`.
 
 Pruebas: 96 en `PowerNode.Web.Tests`, 6 en `PowerNode.Normativa.Tests`.
 
