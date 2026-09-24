@@ -468,6 +468,68 @@ public sealed class CuadroDeCarga
         ];
     }
 
+    /// <summary>
+    /// <b>Las corrientes de cada fase para el motor</b>, sin factor de demanda — R-04 y R-02. La suma
+    /// aritmética dimensiona (la misma de <see cref="CorrientesPorFase"/>); la fasorial da la caída con
+    /// el neutro. Cada circuito aporta según cómo circula su corriente:
+    /// <list type="bullet">
+    /// <item><b>1 polo</b>: sale por su fase y regresa por el neutro, con el ángulo de V<sub>FN</sub> − θ.</item>
+    /// <item><b>2 polos</b>: sale por una fase y regresa por la otra, con el ángulo de V<sub>FF</sub> − θ.
+    /// No toca el neutro.</item>
+    /// <item><b>3 polos</b>: carga balanceada, cada fase con su V<sub>FN</sub> − θ. Suma cero en el neutro.</item>
+    /// </list>
+    /// Los 1500 VA de 220-52 entran como no continua, con el ángulo del circuito.
+    /// </summary>
+    private IReadOnlyList<CorrienteDeFaseAlimentador> CorrientesParaElMotor()
+    {
+        var barras = Datos.Barras;
+        var angulo = barras.ToDictionary(b => b, b => AnguloDeTension(b));
+        var continuaA = barras.ToDictionary(b => b, _ => 0m);
+        var noContinuaA = barras.ToDictionary(b => b, _ => 0m);
+        var fasorContinua = barras.ToDictionary(b => b, _ => new Fasor(0m, 0m));
+        var fasorNoContinua = barras.ToDictionary(b => b, _ => new Fasor(0m, 0m));
+
+        foreach (var c in _circuitos.Where(c => c.TieneCarga))
+        {
+            var divisor = TensionDeCalculo.Divisor(c.Polos, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV);
+            var iContinua = c.ContinuaVA / divisor;
+            var iNoContinua = (c.NoContinuaVA + c.Ajuste220_52VA) / divisor;
+            var theta = (decimal)(Math.Acos((double)c.FactorPotencia) * 180.0 / Math.PI);
+            var fases = c.Fases.Where(angulo.ContainsKey).ToList();
+
+            // Ángulo y sentido de la corriente en cada fase que toca.
+            IEnumerable<(char Fase, decimal Angulo)> Direcciones()
+            {
+                if (fases.Count == 2)
+                {
+                    var vff = new Fasor(1m, angulo[fases[0]]) - new Fasor(1m, angulo[fases[1]]);
+                    yield return (fases[0], vff.AnguloGrados - theta);
+                    yield return (fases[1], vff.AnguloGrados - theta + 180m);
+                }
+                else
+                    foreach (var f in fases)
+                        yield return (f, angulo[f] - theta);
+            }
+
+            foreach (var (f, anguloCorriente) in Direcciones())
+            {
+                continuaA[f] += iContinua;
+                noContinuaA[f] += iNoContinua;
+                fasorContinua[f] += new Fasor(iContinua, anguloCorriente);
+                fasorNoContinua[f] += new Fasor(iNoContinua, anguloCorriente);
+            }
+        }
+
+        return [.. barras.Select(b => new CorrienteDeFaseAlimentador(
+            b, continuaA[b], noContinuaA[b], angulo[b], fasorContinua[b], fasorNoContinua[b]))];
+    }
+
+    /// <summary>Ángulo de V fase-neutro: A 0°, B −120°, C 120°; en 1F-3H las dos barras están en oposición.</summary>
+    private decimal AnguloDeTension(char barra) =>
+        SistemaDelTablero.De(Datos.Sistema) == ConfiguracionTablero.UnaFaseTresHilos
+            ? (barra == 'A' ? 0m : 180m)
+            : barra switch { 'A' => 0m, 'B' => -120m, _ => 120m };
+
     private void CalcularAlimentador()
     {
         var polos = Datos.Barras.Count;
@@ -492,21 +554,13 @@ public sealed class CuadroDeCarga
 
         try
         {
-            // LA FASE MÁS CARGADA, COMO SI LAS DEMÁS LLEVARAN LO MISMO. La calculadora copiada del
-            // escritorio divide la carga entre √3·V_FF (o la tensión que toque al sistema), así que se
-            // le entrega la carga que da exactamente la corriente de esa fase: su corriente por el
-            // mismo divisor. En un 3F-4H eso es 3 × los VA de la fase. Así la protección, el conductor
-            // y la caída de tensión salen con la corriente real de la barra que más lleva, sin
-            // reescribir el motor. Ver M-02 en docs/estado/HALLAZGOS.md.
-            //
-            // El factor de demanda NO se multiplica aquí: la calculadora lo aplica y lo deja escrito
-            // en la memoria con su cita del 220-40, que es lo que tiene que ver quien revisa por qué
-            // el alimentador lleva menos cobre. Por eso se deshace en la corriente de la fase antes
-            // de convertirla — el motor lo vuelve a aplicar.
-            var divisor = TensionDeCalculo.Divisor(polos, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV);
+            // EL MOTOR RECIBE LA CARGA TOTAL Y LAS CORRIENTES DE CADA FASE — R-04. Con ellas elige la
+            // fase que gobierna, aplica el factor de demanda (220-40, con la carga real en su cita) y
+            // calcula la caída fase por fase con el neutro (R-02). Antes la web le entregaba 3 × los VA
+            // de la fase más cargada y reescribía la cita 220-40: ya no.
             var resultado = _motor.Alimentador(Datos.SerieInterruptores).Calcular(new DatosEntradaAlimentador(
-                CargaContinuaVA: SinDemanda(gobierna.ContinuaA, Datos.FactorDemandaContinua) * divisor,
-                CargaNoContinuaVA: SinDemanda(gobierna.NoContinuaA, Datos.FactorDemandaNoContinua) * divisor,
+                CargaContinuaVA: Resumen.ContinuaVA,
+                CargaNoContinuaVA: Resumen.NoContinuaVA + Resumen.Minimo220_52VA,
                 NumeroFases: polos,
                 TensionFaseNeutroV: Datos.TensionFaseNeutroV,
                 TensionFaseFaseV: Datos.TensionFaseFaseV,
@@ -516,6 +570,7 @@ public sealed class CuadroDeCarga
                 TemperaturaAmbienteC: Datos.TemperaturaAmbienteC,
                 MaterialConductor: Datos.MaterialConductor,
                 MaterialCanalizacion: Datos.MaterialCanalizacion,
+                // Solo para la caída balanceada de un alimentador sin neutro (3F-3H).
                 FactorPotencia: fpAlimentador,
                 CaidaTensionMaxPct: Datos.CaidaMaxAlimentadorPct,
                 PisoPracticoCalibreMm2: null,
@@ -524,9 +579,13 @@ public sealed class CuadroDeCarga
                 TipoAislamiento: Datos.TipoAislamiento,
                 LugarInstalacionSeco: Datos.LugarSeco,
                 ConjuntoAprobado100Pct: Datos.ConjuntoAprobado100Pct,
-                TerminalesMarcadas75C: Datos.TerminalesMarcadas75C));
+                TerminalesMarcadas75C: Datos.TerminalesMarcadas75C,
+                CorrientesPorFase: CorrientesParaElMotor(),
+                ConNeutro: SistemaDelTablero.De(Datos.Sistema) != ConfiguracionTablero.TresFasesTresHilos));
 
-            resultado = resultado with { Citas = [.. resultado.Citas.Select(c => c.Referencia == "220-40" ? Cita220_40(gobierna) : c)] };
+            // La fase que gobierna la decide el motor; la de aquí es la misma regla, para mostrarla.
+            if (resultado.FaseQueGobierna is { } fase)
+                gobierna = fases.Single(f => f.Fase == fase);
             Alimentador = new RenglonDelAlimentador(resultado, null, Avisos(resultado), polos, fases, gobierna, fpAlimentador);
         }
         catch (Exception ex)
@@ -540,8 +599,8 @@ public sealed class CuadroDeCarga
     /// son de <see cref="CaidaTensionAcumulada"/>, del motor; aquí solo se arma la ruta de dos tramos.
     ///
     /// <para>
-    /// La caída del alimentador es la de <b>la fase que gobierna</b>, y se suma a todos los
-    /// circuitos: del lado seguro para los de las otras fases, que llevan menos.
+    /// La caída del alimentador es la de <b>la fase del circuito</b> (R-02): la mayor de las que toca
+    /// si es multipolar. Sin caída por fase (alimentador sin neutro), la del alimentador.
     /// </para>
     /// </summary>
     private void EvaluarCaidaCombinada()
@@ -551,14 +610,20 @@ public sealed class CuadroDeCarga
 
         foreach (var c in _circuitos.Where(c => c.Resultado is not null))
         {
+            var caidaAlimentador = alimentador.CaidaPorFase?
+                .Where(f => c.Fases.Contains(f.Fase))
+                .Select(f => f.CaidaPct)
+                .DefaultIfEmpty(alimentador.CaidaTensionPct)
+                .Max() ?? alimentador.CaidaTensionPct;
             var r = CaidaTensionAcumulada.Evaluar(
-                [new TramoCaida("Alimentador", alimentador.CaidaTensionPct), new TramoCaida($"Circuito {c.Espacio}", c.Resultado!.CaidaTensionPct)],
+                [new TramoCaida("Alimentador", caidaAlimentador), new TramoCaida($"Circuito {c.Espacio}", c.Resultado!.CaidaTensionPct)],
                 DatosDelTablero.CaidaMaxCombinadaPct);
 
             c.CaidaCombinadaPct = r.AcumuladaPct;
+            c.CaidaAlimentadorPct = caidaAlimentador;
             if (r.ExcedeLimite)
                 c.AvisoCaidaCombinada =
-                    $"Caída combinada del circuito {c.Espacio}: alimentador {alimentador.CaidaTensionPct:N2} % + circuito " +
+                    $"Caída combinada del circuito {c.Espacio}: alimentador {caidaAlimentador:N2} % + circuito " +
                     $"{c.Resultado.CaidaTensionPct:N2} % = {r.AcumuladaPct:N2} %, mayor que el " +
                     $"{DatosDelTablero.CaidaMaxCombinadaPct:N0} % recomendado — 215-2(a)(4) NOTA 2, 210-19(a)(1) NOTA 4.";
         }
@@ -567,25 +632,6 @@ public sealed class CuadroDeCarga
     /// <summary>Los circuitos con caída combinada mayor que 5 %, en orden de espacio.</summary>
     public IEnumerable<CircuitoDelCuadro> ConCaidaCombinadaExcedida =>
         _circuitos.Where(c => c.AvisoCaidaCombinada is not null);
-
-    /// <summary>
-    /// La cita del 220-40 con la carga <b>del tablero</b>. La que escribe la calculadora habla de la
-    /// carga que recibió, que aquí es la equivalente de la fase que gobierna (3 × sus VA en un
-    /// 3F-4H): cierta, pero ilegible para quien revisa la memoria contra el resumen de carga.
-    /// </summary>
-    private Cita Cita220_40(CorrienteDeFase gobierna) => new("220-40",
-        $"Factor de demanda sobre la carga acumulada: continua {Resumen.ContinuaVA:0.##} VA x {Datos.FactorDemandaContinua} = "
-        + $"{Resumen.ContinuaDemandadaVA:0.##} VA; no continua {Resumen.NoContinuaVA:0.##} VA x {Datos.FactorDemandaNoContinua} = "
-        + $"{Resumen.NoContinuaDemandadaVA:0.##} VA"
-        + (Resumen.Minimo220_52VA > 0m
-            ? $"; mínimo 220-52 {Resumen.Minimo220_52VA:0.##} VA x {Datos.FactorDemandaNoContinua} = {Resumen.Minimo220_52DemandadoVA:0.##} VA"
-            : "")
-        + ". Se aplica antes de elegir la fase más cargada (fase {gobierna.Fase}). "
-        + "Es criterio de diseño del proyectista: el Art. 220 no se automatiza.");
-
-    /// <summary>Deshace un factor de demanda. Un factor de cero deja la carga en cero, que es lo que el motor recibiría de todos modos.</summary>
-    private static decimal SinDemanda(decimal valor, decimal factorDemanda) =>
-        factorDemanda == 0m ? 0m : valor / factorDemanda;
 
     private IReadOnlyList<string> Avisos(ResultadoAlimentador resultado)
     {

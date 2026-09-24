@@ -127,7 +127,11 @@ public static class SeleccionConductor
         bool permiteExcepcion2404b = false,
         MetodoInstalacion metodoInstalacion = MetodoInstalacion.CanalizacionOCable,
         int maxNParaleloAutoResuelto = MaxNParaleloAutoResueltoPorOmision,
-        decimal? cargaAl100PctA = null)
+        decimal? cargaAl100PctA = null,
+        // La caída en volts para un calibre (R y X en ohm/km, conductores por fase), cuando la
+        // fórmula k·L·I·(R cosθ + X senθ) / N no alcanza: un alimentador con neutro y fases
+        // desbalanceadas — CaidaPorFase, R-02. Null = la fórmula de siempre.
+        Func<decimal, decimal, int, decimal>? caidaVoltsPorImpedancia = null)
     {
         // Un tope por debajo del N capturado dejaría el bucle sin una sola vuelta y tiraría una
         // excepción de caída de tensión donde el problema es el tope. El N capturado manda.
@@ -142,7 +146,8 @@ public static class SeleccionConductor
             var intento = IntentarConN(catalogo, ampacidad, impedancia, capacidadMinConductorA, corrienteParaCaidaA,
                 nParalelo, factorTemp, factorAgrup, materialConductor, materialCanalizacion, tempAislamiento, tempTerminales,
                 longitudM, factorPotencia, senTheta, k, tensionEfectivaV, caidaTensionMaxPct, pisoPracticoCalibreMm2,
-                proteccionEstandar, proteccionA, permiteExcepcion2404b, metodoInstalacion, cargaAl100PctA);
+                proteccionEstandar, proteccionA, permiteExcepcion2404b, metodoInstalacion, cargaAl100PctA,
+                caidaVoltsPorImpedancia);
 
             if (intento is null)
                 continue; // catálogo agotado con este N -- prueba con más conductores en paralelo.
@@ -184,7 +189,8 @@ public static class SeleccionConductor
         decimal longitudM, decimal factorPotencia, decimal senTheta, decimal k,
         decimal tensionEfectivaV, decimal caidaTensionMaxPct, decimal? pisoPracticoCalibreMm2,
         ITablaProteccionEstandar? proteccionEstandar, decimal? proteccionA, bool permiteExcepcion2404b,
-        MetodoInstalacion metodoInstalacion, decimal? cargaAl100PctA)
+        MetodoInstalacion metodoInstalacion, decimal? cargaAl100PctA,
+        Func<decimal, decimal, int, decimal>? caidaVoltsPorImpedancia)
     {
         // Calibre de partida: por ampacidad utilizable de la corriente de diseño (crédito de
         // aislamiento incluido, ver docstring de la clase), y luego 240-4 decide si ese calibre basta
@@ -232,7 +238,8 @@ public static class SeleccionConductor
                 continue;
             }
 
-            var caidaVolts = k * (longitudM / 1000m) * corrienteParaCaidaA * (imp.Value.ROhmKm * factorPotencia + imp.Value.XOhmKm * senTheta) / nParalelo;
+            var caidaVolts = caidaVoltsPorImpedancia?.Invoke(imp.Value.ROhmKm, imp.Value.XOhmKm, nParalelo)
+                ?? k * (longitudM / 1000m) * corrienteParaCaidaA * (imp.Value.ROhmKm * factorPotencia + imp.Value.XOhmKm * senTheta) / nParalelo;
             caidaPct = caidaVolts * 100m / tensionEfectivaV;
 
             var topeChico = proteccionA is decimal p ? TopeProteccion2404d(calibreCandidato, materialConductor) : null;
@@ -286,7 +293,8 @@ public static class SeleccionConductor
         var xFinal = impFinal?.XOhmKm ?? 0m;
         var caidaVoltsFinal = impFinal is null
             ? caidaPct * tensionEfectivaV / 100m
-            : k * (longitudM / 1000m) * corrienteParaCaidaA * (rFinal * factorPotencia + xFinal * senTheta) / nParalelo;
+            : caidaVoltsPorImpedancia?.Invoke(rFinal, xFinal, nParalelo)
+                ?? k * (longitudM / 1000m) * corrienteParaCaidaA * (rFinal * factorPotencia + xFinal * senTheta) / nParalelo;
 
         if (impFinal is not null)
             caidaPct = caidaVoltsFinal * 100m / tensionEfectivaV;

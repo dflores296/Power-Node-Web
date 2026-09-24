@@ -127,6 +127,30 @@ public class MemoriaDeCalculoTests
     }
 
     [Fact]
+    public void R02_LaSeccion6DelAlimentadorEsFaseporFaseConElNeutro()
+    {
+        var cuadro = new CuadroDeCarga(new MotorNom(Json));
+        cuadro.Datos.NumeroEspacios = 6;
+        foreach (var (i, va) in new[] { (0, 750m), (2, 1500m), (4, 1550m) }) // fases A, B, C
+            cuadro.Circuitos[i].Continua = va;
+        cuadro.Datos.LongitudAlimentadorM = 80m;
+        cuadro.Datos.CaidaMaxAlimentadorPct = 10m;
+        cuadro.Recalcular();
+
+        var secciones = MemoriaDeCalculo.Secciones(MemoriaDeCalculo.DelAlimentador(cuadro)!);
+        var seccion6 = secciones[5];
+        Assert.StartsWith("e_f = Re[ Z × (I_f + I_N) × conj(û_f) ]", seccion6.Formulas[0]);
+        Assert.Contains(seccion6.Formulas, f => f.StartsWith("I_N = 6.11 A"));
+        Assert.Contains(seccion6.Formulas, f => f.StartsWith("Fase C: I = 12.20 A") && f.EndsWith("(6.77 %)"));
+        Assert.Contains("Manda la fase C.", seccion6.Notas[1]);
+        Assert.EndsWith("— fase C", secciones[6].Renglones.Single(r => r.Rotulo == "Caída de tensión").Valor);
+
+        // El derivado sigue con su fórmula de ida y vuelta.
+        var derivado = MemoriaDeCalculo.Secciones(MemoriaDeCalculo.DeCircuito(cuadro, cuadro.Circuitos[0]))[5];
+        Assert.StartsWith("e = 2 × L × In", derivado.Formulas[0]);
+    }
+
+    [Fact]
     public void UnDerivadoCitaEl210YElAlimentadorEl215()
     {
         var cuadro = ConUnCircuito();

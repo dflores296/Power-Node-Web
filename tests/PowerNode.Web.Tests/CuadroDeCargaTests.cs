@@ -536,6 +536,136 @@ public class CuadroDeCargaTests
         Assert.DoesNotContain(r.Citas, c => c.Referencia.Contains("310-15(b)(7)"));
     }
 
+    // ---- R-02 · Caída del alimentador fase por fase, con el neutro -----------------------------------
+
+    /// <summary>Límite alto para que el calibre no suba y se lea la caída del conductor que salió por ampacidad.</summary>
+    private static CuadroDeCarga ConLimiteAlto(CuadroDeCarga cuadro, decimal longitudM)
+    {
+        cuadro.Datos.LongitudAlimentadorM = longitudM;
+        cuadro.Datos.CaidaMaxAlimentadorPct = 10m;
+        cuadro.Recalcular();
+        return cuadro;
+    }
+
+    private static decimal CaidaDeLaFase(CuadroDeCarga cuadro, char fase) =>
+        cuadro.Alimentador.Resultado!.CaidaPorFase!.Single(f => f.Fase == fase).CaidaPct;
+
+    [Fact]
+    public void R02_CasoBaseCon80m_LaFaseCCaeConSuNeutro()
+    {
+        // Calculado aparte con fasores: I_N = 6.11 A; A −0.02 %, B 4.59 %, C 6.77 %. El equivalente
+        // balanceado de antes daba 4.62 % en la fase C: subestimaba ≈32 %.
+        var cuadro = ConLimiteAlto(TresAparatos(), 80m);
+        var r = cuadro.Alimentador.Resultado!;
+
+        Assert.Equal("12", r.CalibreFase.Designacion);
+        Assert.Equal(6.11m, r.CorrienteNeutro!.Value.Magnitud, 2);
+        Assert.Equal(-0.02m, CaidaDeLaFase(cuadro, 'A'), 2);
+        Assert.Equal(4.59m, CaidaDeLaFase(cuadro, 'B'), 2);
+        Assert.Equal(6.77m, CaidaDeLaFase(cuadro, 'C'), 2);
+        Assert.Equal(6.77m, r.CaidaTensionPct, 2); // manda la peor fase
+        Assert.Contains(r.Citas, c => c.Referencia == "Tabla 9" && c.Descripcion.Contains("manda la fase C"));
+    }
+
+    [Fact]
+    public void R02_Balanceado3F4H_SinCorrienteEnElNeutro_DaLoMismoQueLaFormulaBalanceada()
+    {
+        var cuadro = Nuevo(espacios: 6);
+        foreach (var espacio in new[] { 1, 3, 5 })
+            Espacio(cuadro, espacio).NoContinua = 1500m;
+        ConLimiteAlto(cuadro, 80m);
+        var r = cuadro.Alimentador.Resultado!;
+
+        // √3 · L · I · (R cosθ + X senθ) / V_FF, con I = 1500 / 127.02 = 11.81 A.
+        var d = r.Detalle!;
+        var sen = (decimal)Math.Sqrt(1 - 0.81);
+        var esperado = (decimal)Math.Sqrt(3) * 0.08m * (1500m / cuadro.Datos.TensionFaseNeutroV)
+                       * (d.ResistenciaOhmKm * 0.9m + d.ReactanciaOhmKm * sen) / 220m * 100m;
+
+        Assert.Equal(0m, r.CorrienteNeutro!.Value.Magnitud, 3);
+        Assert.All(r.CaidaPorFase!, f => Assert.Equal(esperado, f.CaidaPct, 3));
+    }
+
+    [Fact]
+    public void R02_UnaFaseDosHilos_EsLaFormulaDeIdaYVuelta()
+    {
+        var cuadro = Nuevo(espacios: 6, fases: 1, hilos: 2, tension: 127m);
+        Espacio(cuadro, 1).NoContinua = 1270m; // 10 A
+        ConLimiteAlto(cuadro, 20m);
+        var r = cuadro.Alimentador.Resultado!;
+
+        // 2 · L · I · (R cosθ + X senθ) / V_FN: el neutro regresa la misma corriente.
+        var d = r.Detalle!;
+        var sen = (decimal)Math.Sqrt(1 - 0.81);
+        var esperado = 2m * 0.02m * 10m * (d.ResistenciaOhmKm * 0.9m + d.ReactanciaOhmKm * sen) / 127m * 100m;
+
+        Assert.Equal(10m, r.CorrienteNeutro!.Value.Magnitud, 3);
+        Assert.Equal(esperado, r.CaidaTensionPct, 3);
+    }
+
+    [Fact]
+    public void R02_2F3HBalanceado_ElNeutroCargaUnaFaseMasQueLaOtra()
+    {
+        // 10 A por fase a 120°: el neutro lleva 10 A. Calculado aparte: A 4.20 %, B 7.17 %. La fórmula
+        // de antes, 2 · L · I · Z / V_FF, daba 4.38 % en las dos.
+        var cuadro = Nuevo(espacios: 6, fases: 2, hilos: 3);
+        foreach (var espacio in new[] { 1, 3 })
+            Espacio(cuadro, espacio).NoContinua = 1270.17m;
+        ConLimiteAlto(cuadro, 80m);
+
+        Assert.Equal("12", cuadro.Alimentador.Resultado!.CalibreFase.Designacion);
+        Assert.Equal(10.00m, cuadro.Alimentador.Resultado.CorrienteNeutro!.Value.Magnitud, 2);
+        Assert.Equal(4.20m, CaidaDeLaFase(cuadro, 'A'), 2);
+        Assert.Equal(7.17m, CaidaDeLaFase(cuadro, 'B'), 2);
+    }
+
+    [Fact]
+    public void R02_UnDosPolosEntreFasesNoTocaElNeutro()
+    {
+        // 1F-3H 240/120, 2400 VA a 240 V: 10 A que salen por A y regresan por B.
+        var cuadro = Nuevo(espacios: 6, fases: 1, hilos: 3, tension: 240m);
+        Assert.Null(cuadro.CambiarPolos(Espacio(cuadro, 1), 2));
+        Espacio(cuadro, 1).NoContinua = 2400m;
+        ConLimiteAlto(cuadro, 20m);
+        var r = cuadro.Alimentador.Resultado!;
+
+        Assert.Equal(0m, r.CorrienteNeutro!.Value.Magnitud, 3);
+        Assert.Equal(CaidaDeLaFase(cuadro, 'A'), CaidaDeLaFase(cuadro, 'B'), 3);
+    }
+
+    [Fact]
+    public void R02_SinNeutro3F3H_SeQuedaLaCaidaBalanceada()
+    {
+        var cuadro = Nuevo(espacios: 6, hilos: 3);
+        Assert.Null(cuadro.CambiarPolos(Espacio(cuadro, 1), 3));
+        Espacio(cuadro, 1).NoContinua = 3000m;
+        cuadro.Recalcular();
+
+        Assert.Null(cuadro.Alimentador.Resultado!.CaidaPorFase);
+        Assert.Null(cuadro.Alimentador.Resultado.CorrienteNeutro);
+    }
+
+    // ---- R-04 · La fase que gobierna la elige el motor ------------------------------------------------
+
+    [Fact]
+    public void R04_ElMotorEligeLaFaseYCitaLaCargaRealEnEl220_40()
+    {
+        var cuadro = TresAparatos();
+        cuadro.Datos.FactorDemandaContinua = 0.8m;
+        cuadro.Recalcular();
+        var r = cuadro.Alimentador.Resultado!;
+
+        Assert.Equal('C', r.FaseQueGobierna);
+        Assert.Equal('C', cuadro.Alimentador.Gobierna!.Fase);
+        Assert.Contains(r.Citas, c => c.Referencia == "215-2(a)(1)" && c.Descripcion.StartsWith("Fase que gobierna: C"));
+        // La carga del tablero (3800 VA), no 3 × los VA de la fase C.
+        var cita220_40 = Assert.Single(r.Citas, c => c.Referencia == "220-40");
+        Assert.Contains("continua 3800 VA x 0.8 = 3040 VA", cita220_40.Descripcion);
+        Assert.Contains("fase que gobierna (fase C)", cita220_40.Descripcion);
+        // 0.8 × 12.20 A de la fase C.
+        Assert.Equal(9.76m, r.CorrienteDisenoA, 2);
+    }
+
     // ---- R-01 · Caída del alimentador: 3 % por tramo, 5 % combinada — 215-2(a)(4) NOTA 2 ---------------
 
     [Fact]
@@ -543,35 +673,40 @@ public class CuadroDeCargaTests
         Assert.Equal(3m, new DatosDelTablero().CaidaMaxAlimentadorPct);
 
     [Fact]
-    public void R01_CasoBaseCon80m_AvisaLaCaidaCombinadaDeCadaCircuito()
+    public void R01_CasoBaseCon80mY5PorCiento_AvisaElCircuitoDeLaFaseC()
     {
+        // Desde R-02 la caída del alimentador es por fase, con el neutro: con 12 AWG la fase C daría
+        // 6.77 % y pasa del 5 %, así que sube a 10 AWG. A cada circuito se le suma la de SU fase.
         var cuadro = TresAparatos();
         cuadro.Datos.LongitudAlimentadorM = 80m;
-        cuadro.Datos.CaidaMaxAlimentadorPct = 5m; // el límite de antes: el alimentador se queda en 12 AWG
+        cuadro.Datos.CaidaMaxAlimentadorPct = 5m;
         cuadro.Recalcular();
 
-        Assert.Equal(4.62m, cuadro.Alimentador.Resultado!.CaidaTensionPct, 2);
+        var alimentador = cuadro.Alimentador.Resultado!;
+        Assert.Equal("10", alimentador.CalibreFase.Designacion);
+        Assert.Equal(4.01m, alimentador.CaidaTensionPct, 2); // fase C
         var airFryer = Espacio(cuadro, 5);
-        Assert.Equal(6.94m, airFryer.CaidaCombinadaPct!.Value, 2); // 4.62 % + 2.31 %
+        Assert.Equal(6.32m, airFryer.CaidaCombinadaPct!.Value, 2); // 4.01 % + 2.31 %
         Assert.Equal(
-            "Caída combinada del circuito 5: alimentador 4.62 % + circuito 2.31 % = 6.94 %, mayor que el 5 % " +
+            "Caída combinada del circuito 5: alimentador 4.01 % + circuito 2.31 % = 6.32 %, mayor que el 5 % " +
             "recomendado — 215-2(a)(4) NOTA 2, 210-19(a)(1) NOTA 4.",
             airFryer.AvisoCaidaCombinada);
-        Assert.Equal([1, 3, 5], cuadro.ConCaidaCombinadaExcedida.Select(c => c.Espacio));
+        // Fase A: el neutro casi anula la caída (−0.01 %); fase B: 2.75 % + 2.24 % = 4.99 %.
+        Assert.Equal([5], cuadro.ConCaidaCombinadaExcedida.Select(c => c.Espacio));
     }
 
     [Fact]
-    public void R01_CasoBaseCon80m_ConEl3PorCientoElAlimentadorSube()
+    public void R01_CasoBaseCon80m_ConEl3PorCientoElAlimentadorSubeA8AWG()
     {
         var cuadro = TresAparatos();
         cuadro.Datos.LongitudAlimentadorM = 80m;
         cuadro.Recalcular();
 
         var alimentador = cuadro.Alimentador.Resultado!;
-        Assert.Equal("10", alimentador.CalibreFase.Designacion);
-        Assert.Equal(2.75m, alimentador.CaidaTensionPct, 2);
-        // Aun así, el circuito más largo de la fase C pasa del 5 %: 2.75 % + 2.31 %.
-        Assert.Equal([5], cuadro.ConCaidaCombinadaExcedida.Select(c => c.Espacio));
+        Assert.Equal("8", alimentador.CalibreFase.Designacion);
+        Assert.Equal(2.64m, alimentador.CaidaTensionPct, 2); // fase C
+        Assert.Equal(4.95m, Espacio(cuadro, 5).CaidaCombinadaPct!.Value, 2); // 2.64 % + 2.31 %
+        Assert.Empty(cuadro.ConCaidaCombinadaExcedida);
     }
 
     [Fact]
@@ -579,7 +714,7 @@ public class CuadroDeCargaTests
     {
         var cuadro = TresAparatos();
 
-        Assert.Equal(3.47m, Espacio(cuadro, 5).CaidaCombinadaPct!.Value, 2); // 1.16 % + 2.31 %
+        Assert.Equal(4.00m, Espacio(cuadro, 5).CaidaCombinadaPct!.Value, 2); // fase C 1.69 % + 2.31 %
         Assert.Empty(cuadro.ConCaidaCombinadaExcedida);
     }
 

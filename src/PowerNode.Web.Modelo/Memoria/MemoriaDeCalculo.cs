@@ -93,11 +93,11 @@ public static class MemoriaDeCalculo
     /// <summary>«Alimentador 4.62 % + circuito 2.31 % = 6.94 % — mayor que 5 %». <c>null</c> sin alimentador.</summary>
     private static string? CaidaCombinada(CuadroDeCarga cuadro, CircuitoDelCuadro circuito)
     {
-        if (circuito.CaidaCombinadaPct is not { } combinada || cuadro.Alimentador.Resultado is not { } a)
+        if (circuito.CaidaCombinadaPct is not { } combinada || circuito.CaidaAlimentadorPct is not { } alimentador)
             return null;
 
         var limite = DatosDelTablero.CaidaMaxCombinadaPct;
-        return $"Alimentador {a.CaidaTensionPct:N2} % + circuito {circuito.Resultado!.CaidaTensionPct:N2} % = {combinada:N2} % " +
+        return $"Alimentador {alimentador:N2} % + circuito {circuito.Resultado!.CaidaTensionPct:N2} % = {combinada:N2} % " +
                (circuito.AvisoCaidaCombinada is null ? $"≤ {limite:N0} %" : $"— mayor que {limite:N0} %");
     }
 
@@ -136,7 +136,10 @@ public static class MemoriaDeCalculo
             Aislamiento: Aislamiento(cuadro.Datos),
             DesgloseConductor: cuadro.DesgloseDelAlimentador()?.Conductor,
             Minimo220_52VA: cuadro.Resumen.Minimo220_52VA,
-            NeutroPortador: NeutroPortador(cuadro, cuadro.Alimentador.Polos, alimentador: true));
+            NeutroPortador: NeutroPortador(cuadro, cuadro.Alimentador.Polos, alimentador: true),
+            CaidaPorFase: r.CaidaPorFase,
+            CorrienteNeutro: r.CorrienteNeutro,
+            TensionFaseNeutroV: datos.TensionFaseNeutroV);
     }
 
     /// <summary>
@@ -220,30 +223,56 @@ public static class MemoriaDeCalculo
             ("Ampacidad utilizable", d is { AmpacidadConductorA: > 0m } ? $"{d.AmpacidadConductorA:N2} A" : null)]));
 
         // ---- 6
-        var formulas6 = new List<string>
+        if (hoja.CaidaPorFase is { Count: > 0 } porFase && d is not null)
         {
-            hoja.NumeroFases == 3
-                ? "e = √3 × L × In × [ R × cos(θ) + X × sen(θ) ] / N"
-                : "e = 2 × L × In × [ R × cos(θ) + X × sen(θ) ] / N",
-        };
-        var notas6 = new List<string>();
-        if (d is not null)
-        {
-            var k = hoja.NumeroFases == 3 ? "√3" : "2";
-            formulas6.Add(
-                $"e = {k} × {hoja.LongitudM:N2} m × {hoja.CorrienteDisenoA:N2} A × " +
-                $"[ {d.ResistenciaOhmKm:N4} × {hoja.FactorPotencia:N2} + {d.ReactanciaOhmKm:N4} × {senTheta:N2} ] / " +
-                $"{hoja.ConductoresPorFase} = {d.CaidaTensionV:N2} V");
-            notas6.Add(
-                $"R y X en ohm/km, de la Tabla 9 de la NOM-001-SEDE-2012. cos(θ) = {hoja.FactorPotencia:N2}, " +
-                $"sen(θ) = {senTheta:N2}.");
+            // R-02: fase por fase con el neutro. Cada renglón se puede recalcular a mano: Z por la
+            // suma fasorial de la corriente de la fase y la del neutro, proyectada sobre su tensión.
+            var km = hoja.LongitudM / 1000m;
+            var peor = porFase.Aggregate((max, f) => f.CaidaPct > max.CaidaPct ? f : max);
+            var formulasFase = new List<string>
+            {
+                "e_f = Re[ Z × (I_f + I_N) × conj(û_f) ],   I_N = suma fasorial de las corrientes de fase",
+                $"Z = ( {d.ResistenciaOhmKm:N4} + j {d.ReactanciaOhmKm:N4} ) Ω/km × {km:N3} km / {hoja.ConductoresPorFase}",
+            };
+            if (hoja.CorrienteNeutro is { } iN)
+                formulasFase.Add($"I_N = {iN.Magnitud:N2} A ∠ {iN.AnguloGrados:N1}°");
+            formulasFase.AddRange(porFase.Select(f =>
+                $"Fase {f.Fase}: I = {f.Corriente.Magnitud:N2} A ∠ {f.Corriente.AnguloGrados:N1}° → e = {f.CaidaV:N2} V ({f.CaidaPct:N2} %)"));
+            bloques.Add(new BloqueMemoria("6. CÁLCULO DE CAÍDA DE TENSIÓN", [], formulasFase,
+            [
+                "R y X en ohm/km, de la Tabla 9 de la NOM-001-SEDE-2012. El neutro es del mismo calibre que la fase.",
+                $"Ángulos respecto a V_AN = 0°; cada corriente, atrasada según el F.P. de sus circuitos. Porcentaje sobre " +
+                $"V_FN = {hoja.TensionFaseNeutroV:N2} V. Manda la fase {peor.Fase}.",
+            ]));
         }
-        bloques.Add(new BloqueMemoria("6. CÁLCULO DE CAÍDA DE TENSIÓN", [], formulas6, notas6));
+        else
+        {
+            var formulas6 = new List<string>
+            {
+                hoja.NumeroFases == 3
+                    ? "e = √3 × L × In × [ R × cos(θ) + X × sen(θ) ] / N"
+                    : "e = 2 × L × In × [ R × cos(θ) + X × sen(θ) ] / N",
+            };
+            var notas6 = new List<string>();
+            if (d is not null)
+            {
+                var k = hoja.NumeroFases == 3 ? "√3" : "2";
+                formulas6.Add(
+                    $"e = {k} × {hoja.LongitudM:N2} m × {hoja.CorrienteDisenoA:N2} A × " +
+                    $"[ {d.ResistenciaOhmKm:N4} × {hoja.FactorPotencia:N2} + {d.ReactanciaOhmKm:N4} × {senTheta:N2} ] / " +
+                    $"{hoja.ConductoresPorFase} = {d.CaidaTensionV:N2} V");
+                notas6.Add(
+                    $"R y X en ohm/km, de la Tabla 9 de la NOM-001-SEDE-2012. cos(θ) = {hoja.FactorPotencia:N2}, " +
+                    $"sen(θ) = {senTheta:N2}.");
+            }
+            bloques.Add(new BloqueMemoria("6. CÁLCULO DE CAÍDA DE TENSIÓN", [], formulas6, notas6));
+        }
 
         // ---- 7
         var renglones7 = new List<(string, string)>
         {
-            ("Caída de tensión", d is null ? $"{hoja.CaidaTensionPct:N2} %" : $"{d.CaidaTensionV:N2} V  ({hoja.CaidaTensionPct:N2} %)"),
+            ("Caída de tensión", (d is null ? $"{hoja.CaidaTensionPct:N2} %" : $"{d.CaidaTensionV:N2} V  ({hoja.CaidaTensionPct:N2} %)")
+                + (hoja.CaidaPorFase is { Count: > 0 } fs ? $" — fase {fs.Aggregate((m, f) => f.CaidaPct > m.CaidaPct ? f : m).Fase}" : "")),
         };
         if (hoja.CaidaCombinada is { } combinada)
             renglones7.Add(("Caída combinada", combinada));

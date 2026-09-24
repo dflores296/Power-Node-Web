@@ -91,4 +91,17 @@ public sealed record DatosEntradaAlimentador(
     /// aprobadas e identificadas para 75 °C: 110-14(c)(1)a.(3). Solo cambia algo en 100 A o menos.
     /// Falso por omisión: sin declaración, 60 °C, que es la regla general.
     /// </summary>
-    bool TerminalesMarcadas75C = false);
+    bool TerminalesMarcadas75C = false,
+
+    /// <summary>
+    /// <b>La corriente de cada fase</b>, sin factor de demanda — R-04. Con ella el alimentador se
+    /// dimensiona con <b>la fase de mayor capacidad requerida</b> (215-2(a)(1), 215-3), no con la carga
+    /// total repartida como si estuviera balanceado, y la caída de tensión se calcula fase por fase con
+    /// el neutro (<see cref="CaidaPorFase"/>, R-02). <see cref="CargaContinuaVA"/> y
+    /// <see cref="CargaNoContinuaVA"/> siguen siendo la carga total: la cita 220-40 habla de ella.
+    /// <c>null</c> = el cálculo balanceado de siempre.
+    /// </summary>
+    IReadOnlyList<CorrienteDeFaseAlimentador>? CorrientesPorFase = null,
+
+    /// <summary>El alimentador lleva neutro. Sin él (3F-3H) la caída se calcula balanceada con la fase que gobierna.</summary>
+    bool ConNeutro = true);

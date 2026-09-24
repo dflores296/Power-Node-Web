@@ -53,14 +53,15 @@ Cada requisito se relaciona con su referencia normativa y con su verificación e
 
 | ID | Requisito | Referencia | Verificación |
 |---|---|---|---|
-| A-1 | Dimensionar el alimentador con la fase de mayor capacidad requerida. | 215-2(a)(1), 215-3 | `M02_…` |
+| A-1 | Dimensionar el alimentador con la fase de mayor capacidad requerida, en el motor. | 215-2(a)(1), 215-3 | `M02_…`, `R04_…` |
 | A-2 | Aplicar el factor de demanda sobre la carga acumulada. | 220-40 | `ElFactorDeDemanda…`, `M02_ElFactorDeDemanda…` |
 | A-3 | Calcular el factor de potencia del alimentador con las cargas de la fase que gobierna. | Tabla 9, nota 2 | `FP_ElDelAlimentador…` |
 | A-4 | Avisar si el principal es menor que el derivado más grande. | — | `M03_…` |
 | A-5 | Avisar si el principal queda debajo del mínimo capturado. | — | `ConMinimoCapturadoSoloAvisa_…` |
 | A-6 | Verificar la protección contra la capacidad de la barra. | 408-36 | `ElAvisoDel408_36…` |
 | A-7 | Limitar la caída de tensión del alimentador: 3 % por omisión, capturable. | 215-2(a)(4) NOTA 2 | `R01_…` |
-| A-8 | Avisar por circuito si la caída del alimentador más la del derivado excede 5 %. | 215-2(a)(4) NOTA 2, 210-19(a)(1) NOTA 4 | `R01_…` |
+| A-11 | Calcular la caída del alimentador fase por fase, con la caída del neutro (suma fasorial); limitar con la peor fase. | Tabla 9 | `R02_…` |
+| A-8 | Avisar por circuito si la caída del alimentador en su fase más la del derivado excede 5 %. | 215-2(a)(4) NOTA 2, 210-19(a)(1) NOTA 4 | `R01_…` |
 | A-9 | Cargar al alimentador 1500 VA por circuito de aparatos pequeños y de lavadora. | 220-52(a), 220-52(b) | `Vivienda_AparatosPequenosYLavadora…` |
 | A-10 | Avisar si hay un solo circuito de aparatos pequeños. | 210-11(c)(1) | `Vivienda_UnSoloCircuito…` |
 

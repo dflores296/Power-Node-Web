@@ -23,4 +23,10 @@ public sealed record ResultadoAlimentador(
     decimal? TechoProteccion430_62A = null,
     bool ProteccionExcedeTecho430_62 = false,
     IReadOnlyList<string>? AvisosCargaContinua = null,
-    DetalleDelCalculo? Detalle = null);
+    DetalleDelCalculo? Detalle = null,
+    /// <summary>La fase con la que se dimensionó, si se capturaron corrientes por fase — R-04.</summary>
+    char? FaseQueGobierna = null,
+    /// <summary>La caída de cada fase con el neutro — R-02. <see cref="CaidaTensionPct"/> es la mayor.</summary>
+    IReadOnlyList<CaidaDeFase>? CaidaPorFase = null,
+    /// <summary>Corriente del neutro, suma fasorial de las de fase, con demanda.</summary>
+    Magnitudes.Fasor? CorrienteNeutro = null);

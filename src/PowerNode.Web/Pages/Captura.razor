@@ -424,9 +424,13 @@
                 <tr><td class="izq"><span class="ayuda" title="Consultar el conductor de neutro: mismo calibre que la fase. En 2 fases + neutro de estrella lleva ≈ la corriente de fase: contarlo en «Agrupados» — 310-15(b)(5)(2); no reducirlo — 220-61(c)(1).">Conductor de neutro</span></td><td class="num">@a.CalibreNeutro.Designacion AWG/kcmil</td></tr>
                 <tr><td class="izq">Puesta a tierra</td><td class="num">@a.CalibreTierra.Designacion AWG/kcmil</td></tr>
                 <tr>
-                    <td class="izq"><span class="ayuda" title="Consultar la caída de tensión del alimentador, con la corriente de la fase que gobierna. Recomendado: 3 % en el alimentador y 5 % combinada con el derivado — 215-2(a)(4), NOTA 2.">Caída de tensión</span></td>
-                    <td class="num @(a.CaidaTensionPct > Datos.CaidaMaxAlimentadorPct ? "excede" : null)">@a.CaidaTensionPct.ToString("N2") %</td>
+                    <td class="izq"><span class="ayuda" title="Consultar la caída de tensión del alimentador: la de la peor fase, con la caída del neutro — Tabla 9. Pasar el cursor sobre el valor para consultar cada fase. Recomendado: 3 % en el alimentador y 5 % combinada con el derivado — 215-2(a)(4), NOTA 2.">Caída de tensión</span></td>
+                    <td class="num @(a.CaidaTensionPct > Datos.CaidaMaxAlimentadorPct ? "excede" : null)">@Ayuda(CaidaDelAlimentador(a), CaidaPorFase(a))</td>
                 </tr>
+                @if (a.CorrienteNeutro is { } neutro)
+                {
+                    <tr><td class="izq"><span class="ayuda" title="Consultar la corriente del neutro: suma fasorial de las corrientes de fase. Entra a la caída de tensión.">Corriente de neutro</span></td><td class="num">@neutro.Magnitud.ToString("N2") A</td></tr>
+                }
             </table>
 
             @foreach (var aviso in Cuadro.Alimentador.Avisos)
@@ -556,6 +560,17 @@
         bloque.Ocupado
             ? $"Espacio(s) {bloque.Numeros} · barra(s) {bloque.Barras} · {bloque.Espacios} polo(s)"
             : $"Espacio {bloque.Numeros} · barra {bloque.Barras} · libre";
+
+    /// <summary>«6.77 % (fase C)»: la caída del alimentador y la fase que la da.</summary>
+    private static string CaidaDelAlimentador(ResultadoAlimentador a) =>
+        a.CaidaPorFase is { Count: > 0 } fases
+            ? $"{a.CaidaTensionPct:N2} % (fase {fases.Aggregate((m, f) => f.CaidaPct > m.CaidaPct ? f : m).Fase})"
+            : $"{a.CaidaTensionPct:N2} %";
+
+    private static IReadOnlyList<string>? CaidaPorFase(ResultadoAlimentador a) =>
+        a.CaidaPorFase is { Count: > 0 } fases
+            ? [.. fases.Select(f => $"Fase {f.Fase}: {f.Corriente.Magnitud:N2} A → {f.CaidaV:N2} V ({f.CaidaPct:N2} %)")]
+            : null;
 
     private bool Excede(CircuitoDelCuadro c) =>
         c.Resultado is not null && c.Resultado.CaidaTensionPct > Datos.CaidaMaxDerivadoPct;

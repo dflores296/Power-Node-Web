@@ -34,14 +34,40 @@ public class CalculadoraAlimentador(
         var continuaConDemanda = d.FactorDemandaContinua * d.CargaContinuaVA;
         var noContinuaConDemanda = d.FactorDemandaNoContinua * d.CargaNoContinuaVA;
 
+        // 0.5. LA FASE QUE GOBIERNA — R-04 (antes M-02, resuelto en la web). Con corrientes por fase,
+        // la protección y el conductor salen de la fase de mayor capacidad requerida (125 % de su
+        // continua + 100 % de su no continua), no de la carga total entre √3·V_FF. Empate: la primera
+        // fase, que es como se lee el tablero. La corriente de esa fase entra a la protección como la
+        // carga que la produce por el divisor del sistema, para reusar el mismo paso 1-3.
+        var fases = d.CorrientesPorFase is { Count: > 0 } lista ? lista : null;
+        CorrienteDeFaseAlimentador? gobierna = null;
+        var continuaParaProteccion = continuaConDemanda;
+        var noContinuaParaProteccion = noContinuaConDemanda;
+        if (fases is not null)
+        {
+            var factor = CargaContinua100Pct.Para(
+                d.ConjuntoAprobado100Pct, d.ModeloProteccionEsDe100Pct, d.Clase.CapacidadMinima(), d.Clase.Excepcion100Pct()).Factor;
+            decimal Capacidad(CorrienteDeFaseAlimentador f) =>
+                factor * d.FactorDemandaContinua * f.ContinuaA + d.FactorDemandaNoContinua * f.NoContinuaA;
+
+            gobierna = fases.Aggregate((max, f) => Capacidad(f) > Capacidad(max) ? f : max);
+            var divisor = TensionDeCalculo.Divisor(d.NumeroFases, d.TensionFaseNeutroV, d.TensionFaseFaseV);
+            continuaParaProteccion = d.FactorDemandaContinua * gobierna.ContinuaA * divisor;
+            noContinuaParaProteccion = d.FactorDemandaNoContinua * gobierna.NoContinuaA * divisor;
+        }
+
         // 1-3. Corriente de diseño y protección estándar -- compartido con CalculoTablero.BreakerPrincipalA.
         var proteccion = CalculadoraProteccionAlimentador.Calcular(
-            proteccionEstandar, continuaConDemanda, noContinuaConDemanda, d.NumeroFases, d.TensionFaseNeutroV, d.TensionFaseFaseV, d.CargaMotores,
+            proteccionEstandar, continuaParaProteccion, noContinuaParaProteccion, d.NumeroFases, d.TensionFaseNeutroV, d.TensionFaseFaseV, d.CargaMotores,
             d.ConjuntoAprobado100Pct, d.ModeloProteccionEsDe100Pct, d.Clase);
         var in_ = proteccion.CorrienteDisenoA;
         var capacidadMin = proteccion.CapacidadMinimaA;
         var breaker = proteccion.ProteccionA;
         var citas = new List<Cita>(proteccion.Citas);
+        if (gobierna is not null)
+            citas.Insert(0, new Cita("215-2(a)(1)",
+                $"Fase que gobierna: {gobierna.Fase}, la de mayor capacidad requerida. Por fase, sin demanda: " +
+                string.Join("; ", fases!.Select(f => $"{f.Fase} {f.ContinuaA:0.##} A continua + {f.NoContinuaA:0.##} A no continua"))));
 
         // 240-21(b): en una derivación, la ampacidad mínima no la fija solo la carga. Las fracciones
         // del inciso (1/3 de la protección del alimentador padre, 1/10 cuando los conductores salen
@@ -62,7 +88,9 @@ public class CalculadoraAlimentador(
             citas.Add(new Cita("220-40",
                 $"Factor de demanda sobre la carga acumulada: continua {d.CargaContinuaVA:0.##} VA x {d.FactorDemandaContinua} = "
                 + $"{continuaConDemanda:0.##} VA; no continua {d.CargaNoContinuaVA:0.##} VA x {d.FactorDemandaNoContinua} = "
-                + $"{noContinuaConDemanda:0.##} VA. Es criterio de diseño del proyectista: el Art. 220 no se automatiza."));
+                + $"{noContinuaConDemanda:0.##} VA."
+                + (gobierna is not null ? $" Se aplica antes de elegir la fase que gobierna (fase {gobierna.Fase})." : "")
+                + " Es criterio de diseño del proyectista: el Art. 220 no se automatiza."));
 
         // 4. Temperatura de terminales -- 110-14(c)(1).
         // Con equipo marcado 75 °C la columna depende también del aislamiento (un TW de 60 °C se
@@ -106,6 +134,24 @@ public class CalculadoraAlimentador(
         if (factorAgrup != 1m)
             citas.Add(new Cita("310-15(b)(3)(a)", $"Factor de ajuste por agrupamiento ({d.NumeroConductoresAgrupados} conductores): x{factorAgrup}"));
 
+        // 5.5. CAÍDA FASE POR FASE, CON EL NEUTRO — R-02. Solo con corrientes por fase, con neutro y sin
+        // motores (el Art. 430 no llega fasorial hasta aquí). La caída se mide contra la tensión F-N
+        // y manda la peor fase, que no siempre es la que gobierna el dimensionamiento.
+        List<(char Fase, Magnitudes.Fasor Corriente, decimal AnguloTensionGrados)>? corrientesConDemanda = null;
+        Func<decimal, decimal, int, decimal>? caidaVolts = null;
+        var tensionParaCaida = tensionEfectiva;
+        if (fases is not null && d.ConNeutro && d.CargaMotores.MayorFlcA is null)
+        {
+            corrientesConDemanda =
+            [
+                .. fases.Select(f => (f.Fase,
+                    f.FasorContinua * d.FactorDemandaContinua + f.FasorNoContinua * d.FactorDemandaNoContinua,
+                    f.AnguloTensionGrados)),
+            ];
+            caidaVolts = (r, x, n) => CaidaPorFase.Calcular(corrientesConDemanda, r, x, d.LongitudM, n, d.TensionFaseNeutroV).Max(c => c.CaidaV);
+            tensionParaCaida = d.TensionFaseNeutroV;
+        }
+
         // 6-8. Calibre por ampacidad y por caída de tensión, N de conductores en paralelo
         // (bloque 8: auto-resuelve el caso obligado, sugiere el caso conveniente — ver SeleccionConductor).
         var seleccion = SeleccionConductor.Seleccionar(
@@ -122,7 +168,7 @@ public class CalculadoraAlimentador(
             longitudM: d.LongitudM,
             factorPotencia: d.FactorPotencia,
             numeroFases: d.NumeroFases,
-            tensionEfectivaV: tensionEfectiva,
+            tensionEfectivaV: tensionParaCaida,
             caidaTensionMaxPct: d.CaidaTensionMaxPct,
             pisoPracticoCalibreMm2: d.PisoPracticoCalibreMm2,
             proteccionEstandar: proteccionEstandar,
@@ -138,8 +184,23 @@ public class CalculadoraAlimentador(
             // 215-2(a)(1): mismas dos revisiones que 210-19(a)(1). Solo sin motores y fuera de una
             // derivación: 430-24 y 240-21(b) son pisos de ampacidad con su propia regla, y se quedan
             // como estaban (contra la ampacidad corregida).
-            cargaAl100PctA: d.CargaMotores.MayorFlcA is null && d.PisoAmpacidadDerivacionA is null ? in_ : null);
+            cargaAl100PctA: d.CargaMotores.MayorFlcA is null && d.PisoAmpacidadDerivacionA is null ? in_ : null,
+            caidaVoltsPorImpedancia: caidaVolts);
         citas.AddRange(seleccion.Citas);
+
+        IReadOnlyList<CaidaDeFase>? caidaPorFase = null;
+        Magnitudes.Fasor? corrienteNeutro = null;
+        if (corrientesConDemanda is not null)
+        {
+            caidaPorFase = CaidaPorFase.Calcular(
+                corrientesConDemanda, seleccion.ResistenciaOhmKm, seleccion.ReactanciaOhmKm, d.LongitudM,
+                seleccion.NumeroConductoresParalelo, d.TensionFaseNeutroV);
+            corrienteNeutro = CaidaPorFase.CorrienteDeNeutro([.. corrientesConDemanda.Select(c => c.Corriente)]);
+            var peor = caidaPorFase.Aggregate((max, c) => c.CaidaPct > max.CaidaPct ? c : max);
+            citas.Add(new Cita("Tabla 9",
+                $"Caída por fase con el neutro (I_N = {corrienteNeutro.Value.Magnitud:0.##} A, suma fasorial): " +
+                string.Join("; ", caidaPorFase.Select(c => $"{c.Fase} {c.CaidaPct:0.##}%")) + $" -- manda la fase {peor.Fase}."));
+        }
 
         var calibreFinal = seleccion.CalibreFase;
         var caidaPct = seleccion.CaidaTensionPct;
@@ -204,6 +265,9 @@ public class CalculadoraAlimentador(
                 TemperaturaAislamientoC: (int)tempAislamiento,
                 ResistenciaOhmKm: seleccion.ResistenciaOhmKm,
                 ReactanciaOhmKm: seleccion.ReactanciaOhmKm,
-                CaidaTensionV: seleccion.CaidaTensionV));
+                CaidaTensionV: seleccion.CaidaTensionV),
+            FaseQueGobierna: gobierna?.Fase,
+            CaidaPorFase: caidaPorFase,
+            CorrienteNeutro: corrienteNeutro);
     }
 }

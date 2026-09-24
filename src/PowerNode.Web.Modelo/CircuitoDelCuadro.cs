@@ -97,6 +97,9 @@ public sealed class CircuitoDelCuadro
     /// </summary>
     public decimal? CaidaCombinadaPct { get; internal set; }
 
+    /// <summary>La caída del alimentador en la fase de este circuito, la que entra a la combinada. <c>null</c> sin alimentador.</summary>
+    public decimal? CaidaAlimentadorPct { get; internal set; }
+
     /// <summary>El aviso de caída combinada mayor que 5 %, ya redactado. <c>null</c> = cumple o no aplica.</summary>
     public string? AvisoCaidaCombinada { get; internal set; }
 
@@ -131,6 +134,7 @@ public sealed class CircuitoDelCuadro
         Resultado = null;
         Error = null;
         CaidaCombinadaPct = null;
+        CaidaAlimentadorPct = null;
         AvisoCaidaCombinada = null;
     }
 }
