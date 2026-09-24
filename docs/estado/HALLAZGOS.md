@@ -57,7 +57,7 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | R-02 · Caída del alimentador sin la caída del neutro | P2 | Pendiente | — |
 | R-03 · La publicación no corre `PowerNode.Web.Tests` | P1 | **Cerrado** | `986c9d7` |
 | R-04 · Cálculo por fase del alimentador resuelto en la web, no en el motor | P2 | Pendiente | — |
-| R-05 · Documento de pruebas, 4.2 con F.P. 0.8: 2.01 % en vez de 2.00 % | P3 | Pendiente | — |
+| R-05 · Documento de pruebas, 4.2 con F.P. 0.8: 2.01 % en vez de 2.00 % | P3 | **Cerrado** | `986c9d7` |
 | R-06 · Aviso de riel DIN > 125 A con la sintaxis rota | P3 | **Cerrado** | `de855ee` |
 | R-07 · Sin las pruebas del documento del 2026-09-23 | P1 | **Cerrado** | `986c9d7` |
 | R-08 · Principal menor que un derivado: aviso o bloqueo sin decidir | P3 | **Cerrado** (aviso) | `ab9c785` |
@@ -169,7 +169,7 @@ de tres aparatos.
 
 **R-04** — Hecho: `CuadroDeCarga.CalcularAlimentador` entrega al motor la corriente de la fase × divisor, deshace la demanda (`SinDemanda`) y reescribe la cita 220-40. Pendiente: llevar al escritorio.
 
-**R-05** — Hecho: el documento de pruebas, 4.2 con F.P. 0.8, dice 2.01 %. Cálculo: 0.04 km × 11.81 A × (6.6 × 0.8 + 0.177 × 0.6) Ω/km = 2.544 V → 2.00 %.
+**R-05** — Hecho: el documento de pruebas, 4.2 con F.P. 0.8, dice 2.01 %. Cálculo: 0.04 km × 11.81 A × (6.6 × 0.8 + 0.177 × 0.6) Ω/km = 2.544 V → 2.00 %. Corrección: `P4_2_…` espera 2.00 %. El documento de pruebas vive fuera del repo; lo corrige David.
 
 **R-06** — Hecho: con circuito y principal fuera de riel DIN el aviso dice «para el circuito 3 (150 A), el principal (175 A) se tomó…». Corrección: «En riel DIN no hay interruptores de más de 125 A. El circuito 2 (175 A) y el principal (175 A) se calcularon con la lista completa de 240-6(a); esos tamaños ya no son de riel DIN.» Singular con un solo tamaño; «Los circuitos 1 y 2 (175 A y 200 A)» con varios; «la protección del alimentador» con zapatas principales. Prueba: `R06_…`.
 
