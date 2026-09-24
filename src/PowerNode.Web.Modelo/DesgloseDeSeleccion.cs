@@ -26,7 +26,8 @@ public sealed record DesgloseDeSeleccion(IReadOnlyList<string> Proteccion, IRead
     /// <param name="iNoContinuaA">Corriente de la parte no continua.</param>
     /// <param name="articuloProteccion">«210-20(a)» en un derivado, «215-3» en un alimentador.</param>
     /// <param name="proteccionSinMinimo">El tamaño estándar que tocaba por la capacidad mínima, antes
-    /// del mínimo de 15/20 A de alumbrado y contactos: si difiere de la protección, fue el mínimo.</param>
+    /// de la protección mínima del circuito: si difiere de la protección, fue el mínimo.</param>
+    /// <param name="referenciaMinimo">De dónde sale esa protección mínima — «210-11(c)(1)».</param>
     internal static DesgloseDeSeleccion De(
         ITablaAmpacidad ampacidad,
         DatosDelTablero datos,
@@ -40,7 +41,8 @@ public sealed record DesgloseDeSeleccion(IReadOnlyList<string> Proteccion, IRead
         Calibre calibre,
         int conductoresPorFase,
         DetalleDelCalculo d,
-        IReadOnlyList<Cita> citas)
+        IReadOnlyList<Cita> citas,
+        string? referenciaMinimo = null)
     {
         var proteccion = new List<string>
         {
@@ -49,7 +51,7 @@ public sealed record DesgloseDeSeleccion(IReadOnlyList<string> Proteccion, IRead
             $"Protección: {proteccionSinMinimo:N0} A, primer tamaño ≥ capacidad mínima en «{datos.SerieInterruptores.Nombre()}» — 240-6(a)",
         };
         if (proteccionA != proteccionSinMinimo)
-            proteccion.Add($"Mínimo de protección del tipo de carga: {proteccionA:N0} A");
+            proteccion.Add($"Protección mínima del circuito: {proteccionA:N0} A — {referenciaMinimo}");
 
         var tAislamiento = (TemperaturaAislamiento)d.TemperaturaAislamientoC;
         var tTerminal = (TemperaturaAislamiento)d.TemperaturaTerminalesC;

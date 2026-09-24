@@ -6,6 +6,11 @@ using PowerNode.DesignSuite.Calculo.Validaciones;
 namespace PowerNode.Web.Modelo;
 
 /// <summary>El resumen de carga del encabezado del Excel (bloque «RESUMEN DE CARGA», filas 21 a 26).</summary>
+/// <param name="Minimo220_52VA">
+/// Lo que se agrega para que cada circuito de aparatos pequeños o de lavadora cuente 1500 VA —
+/// 220-52. Renglón propio del resumen: no está en <see cref="NoContinuaVA"/>, que es la suma de los
+/// renglones. Lleva el F.D. de la no continua.
+/// </param>
 public sealed record ResumenDeCarga(
     decimal ContinuaVA,
     decimal FactorDemandaContinua,
@@ -17,10 +22,15 @@ public sealed record ResumenDeCarga(
     decimal DesbalanceoPct,
     decimal InstaladaW = 0m,
     decimal DemandadaW = 0m,
-    decimal FactorPotencia = 1m)
+    decimal FactorPotencia = 1m,
+    decimal Minimo220_52VA = 0m)
 {
     public decimal InstaladaVA => ContinuaVA + NoContinuaVA;
-    public decimal DemandadaVA => ContinuaDemandadaVA + NoContinuaDemandadaVA;
+    public decimal Minimo220_52DemandadoVA => Minimo220_52VA * FactorDemandaNoContinua;
+
+    /// <summary>La carga que va al alimentador: la instalada más el mínimo de 220-52.</summary>
+    public decimal CalculadaVA => InstaladaVA + Minimo220_52VA;
+    public decimal DemandadaVA => ContinuaDemandadaVA + NoContinuaDemandadaVA + Minimo220_52DemandadoVA;
 }
 
 /// <summary>
@@ -175,7 +185,8 @@ public sealed class CuadroDeCarga
             calibre: r.CalibreFase,
             conductoresPorFase: r.NumeroConductoresParalelo,
             d: detalle,
-            citas: r.Citas);
+            citas: r.Citas,
+            referenciaMinimo: c.UsoEfectivo.ReferenciaProteccionMinima());
     }
 
     /// <summary>El desglose del alimentador, con la corriente de la fase que gobierna. <c>null</c> sin cálculo.</summary>
@@ -277,6 +288,9 @@ public sealed class CuadroDeCarga
         {
             c.ContinuaVA = AVoltAmperes(c, c.Continua);
             c.NoContinuaVA = AVoltAmperes(c, c.NoContinua);
+            c.Ajuste220_52VA = c.TieneCarga && c.UsoEfectivo.ReferenciaCargaMinima() is not null
+                ? Math.Max(0m, UsosDeContactos.CargaMinimaAlimentadorVA - c.CargaInstaladaVA)
+                : 0m;
         }
     }
 
@@ -328,7 +342,10 @@ public sealed class CuadroDeCarga
                     PisoPracticoCalibreMm2: null,
                     TipoAislamiento: Datos.TipoAislamiento,
                     LugarInstalacionSeco: Datos.LugarSeco,
-                    TerminalesMarcadas75C: Datos.TerminalesMarcadas75C));
+                    TerminalesMarcadas75C: Datos.TerminalesMarcadas75C,
+                    // SIN MÍNIMO POR TIPO DE CARGA: solo el que exige 210-11(c) según el uso.
+                    ProteccionMinimaA: c.UsoEfectivo.ReferenciaProteccionMinima() is null ? null : UsosDeContactos.ProteccionMinimaViviendaA,
+                    ReferenciaProteccionMinima: c.UsoEfectivo.ReferenciaProteccionMinima()));
             }
             catch (Exception ex)
             {
@@ -388,9 +405,12 @@ public sealed class CuadroDeCarga
         // Los kW de verdad: la potencia activa de cada circuito, no los VA totales por un F.P. que el
         // tablero no tiene.
         var conCarga = _circuitos.Where(c => c.TieneCarga).ToList();
-        var instaladaW = conCarga.Sum(c => c.PotenciaActivaW);
+        // Con los 1500 VA de 220-52 a su F.P., igual que el total en kVA: si no, la demandada salía
+        // mayor que la instalada.
+        var instaladaW = conCarga.Sum(c => c.PotenciaActivaW + c.Ajuste220_52VA * c.FactorPotencia);
         var demandadaW = conCarga.Sum(c =>
-            (c.ContinuaVA * Datos.FactorDemandaContinua + c.NoContinuaVA * Datos.FactorDemandaNoContinua) * c.FactorPotencia);
+            (c.ContinuaVA * Datos.FactorDemandaContinua + (c.NoContinuaVA + c.Ajuste220_52VA) * Datos.FactorDemandaNoContinua) * c.FactorPotencia);
+        var minimo220_52 = conCarga.Sum(c => c.Ajuste220_52VA);
 
         Resumen = new ResumenDeCarga(
             ContinuaVA: continua,
@@ -403,7 +423,8 @@ public sealed class CuadroDeCarga
             DesbalanceoPct: desbalanceo,
             InstaladaW: instaladaW,
             DemandadaW: demandadaW,
-            FactorPotencia: FactorPotenciaCombinado.De(conCarga.Select(c => (c.CargaInstaladaVA, c.FactorPotencia))));
+            FactorPotencia: FactorPotenciaCombinado.De(conCarga.Select(c => (c.CargaInstaladaVA, c.FactorPotencia))),
+            Minimo220_52VA: minimo220_52);
     }
 
     /// <summary>
@@ -432,7 +453,8 @@ public sealed class CuadroDeCarga
                 Datos.Barras);
 
         var continua = Sumar(c => c.ContinuaVA, Datos.FactorDemandaContinua);
-        var noContinua = Sumar(c => c.NoContinuaVA, Datos.FactorDemandaNoContinua);
+        // Los 1500 VA de 220-52 son carga de alimentador: entran aquí, no en el derivado.
+        var noContinua = Sumar(c => c.NoContinuaVA + c.Ajuste220_52VA, Datos.FactorDemandaNoContinua);
 
         // El mismo 125 % (o 100 %, con el ensamble aprobado) que aplica la calculadora del
         // alimentador: la fase que gobierna es la que pide más capacidad, no la de más corriente.
@@ -554,7 +576,11 @@ public sealed class CuadroDeCarga
     private Cita Cita220_40(CorrienteDeFase gobierna) => new("220-40",
         $"Factor de demanda sobre la carga acumulada: continua {Resumen.ContinuaVA:0.##} VA x {Datos.FactorDemandaContinua} = "
         + $"{Resumen.ContinuaDemandadaVA:0.##} VA; no continua {Resumen.NoContinuaVA:0.##} VA x {Datos.FactorDemandaNoContinua} = "
-        + $"{Resumen.NoContinuaDemandadaVA:0.##} VA. Se aplica antes de elegir la fase más cargada (fase {gobierna.Fase}). "
+        + $"{Resumen.NoContinuaDemandadaVA:0.##} VA"
+        + (Resumen.Minimo220_52VA > 0m
+            ? $"; mínimo 220-52 {Resumen.Minimo220_52VA:0.##} VA x {Datos.FactorDemandaNoContinua} = {Resumen.Minimo220_52DemandadoVA:0.##} VA"
+            : "")
+        + ". Se aplica antes de elegir la fase más cargada (fase {gobierna.Fase}). "
         + "Es criterio de diseño del proyectista: el Art. 220 no se automatiza.");
 
     /// <summary>Deshace un factor de demanda. Un factor de cero deja la carga en cero, que es lo que el motor recibiría de todos modos.</summary>
@@ -613,6 +639,15 @@ public sealed class CuadroDeCarga
             if (AvisoRielDin(circuitos, principal) is { } avisoDin)
                 avisos.Add(avisoDin);
         }
+
+        // 210-11(c)(1): los circuitos de aparatos pequeños son DOS O MÁS. Con uno solo capturado, se
+        // dice; con ninguno, el tablero puede no ser de vivienda y no hay nada que decir.
+        var aparatos = _circuitos.Where(c => c.TieneCarga && c.UsoEfectivo == UsoDeContactos.AparatosPequenos).ToList();
+        if (aparatos.Count == 1)
+            avisos.Add(
+                $"Solo el circuito {aparatos[0].Espacio} es de aparatos pequeños. En vivienda se exigen dos o más circuitos " +
+                "de 20 A para los contactos de cocina, despensa y comedor — 210-11(c)(1). No aplica en vivienda popular de " +
+                "hasta 60 m².");
 
         // El mínimo lo pide el proyectista, tablero por tablero. Vacío = no hay mínimo y no se dice
         // nada. Solo avisa: el principal que se imprime sigue siendo el calculado.

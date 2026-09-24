@@ -192,6 +192,8 @@ select.unidad { width: 56px; padding: 2px 4px; border-radius: var(--radio-xs); }
    navegador lo cortaba en "Alumbrac", que no es una palabra: un campo que miente sobre
    su propio valor es peor que uno estrecho. */
 select.tipo { width: 108px; padding: 2px 4px 2px 6px; border-radius: var(--radio-xs); }
+select.uso { display: block; margin-top: 3px; font-size: 11px; }
+.cuadro select.uso + .en-va { text-align: left; }
 
 /* ------------------------------------------------------------------------------------------------
    LA FICHA DEL TABLERO — el bloque de identificación que el Excel lleva arriba del cuadro

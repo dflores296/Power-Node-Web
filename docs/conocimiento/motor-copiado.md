@@ -84,4 +84,5 @@ Llevar estos cambios a `PowerNode-DesignSuite`.
 | 2026-09-23 | `Casos/SeleccionConductor.cs`, `CalculadoraCircuitoDerivadoNoMotor.cs`, `CalculadoraAlimentador.cs` | Agregar `CalibrePorDosRevisiones` y `cargaAl100PctA`: 125 % contra tabla sin factores, 100 % contra ampacidad corregida. Excluir motores y derivaciones 240-21(b). | Sí, con factores | M-05 |
 | 2026-09-23 | `Casos/TemperaturaTerminales.cs`, `DatosEntradaCircuitoDerivadoNoMotor.cs`, `DatosEntradaAlimentador.cs`, calculadoras | Agregar `TerminalesMarcadas75C` y `Para(protección, marcado75C, aislamiento)`. | No (por omisión) | M-06 |
 | 2026-09-23 | `Casos/CalculadoraCircuitoDerivadoNoMotor.cs` | Cambiar `permiteExcepcion2404b` a `TipoCarga != Contactos`. | Sí, en Equipo | M-04 |
+| 2026-09-24 | `Casos/CalculadoraCircuitoDerivadoNoMotor.cs`, `DatosEntradaCircuitoDerivadoNoMotor.cs` | Quitar el mínimo de 15 A (alumbrado) y 20 A (contactos). Agregar `ProteccionMinimaA` y `ReferenciaProteccionMinima`, vacíos por omisión. | Sí, en contactos | R-14 |
 | 2026-09-24 | `Domain/Proyectos/CircuitoDerivado.cs` | Corregir la cita de `CargaLineal`: «310-15(b)(5)(3)», no «Tabla 310-15(b)(5)(3)». | No | R-13 |

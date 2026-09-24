@@ -40,7 +40,7 @@ public static class MemoriaDeCalculo
         var datos = cuadro.Datos;
 
         var nombre = string.IsNullOrWhiteSpace(circuito.Descripcion)
-            ? Etiqueta(circuito.Tipo)
+            ? Etiqueta(circuito)
             : circuito.Descripcion.Trim();
 
         return new HojaDeMemoria(
@@ -115,7 +115,8 @@ public static class MemoriaDeCalculo
             FaseQueGobierna: FaseQueGobierna(cuadro),
             SerieDeInterruptores: cuadro.Datos.SerieInterruptores.Explicacion(),
             Aislamiento: Aislamiento(cuadro.Datos),
-            DesgloseConductor: cuadro.DesgloseDelAlimentador()?.Conductor);
+            DesgloseConductor: cuadro.DesgloseDelAlimentador()?.Conductor,
+            Minimo220_52VA: cuadro.Resumen.Minimo220_52VA);
     }
 
     /// <summary>
@@ -147,6 +148,10 @@ public static class MemoriaDeCalculo
             ("Carga total instalada", $"{cargaTotal:N0} VA"),
             ("Carga continua", $"{hoja.CargaContinuaVa:N0} VA"),
             ("Carga no continua", $"{hoja.CargaNoContinuaVa:N0} VA"),
+            ("Mínimo 220-52", hoja.Minimo220_52VA > 0m
+                ? $"{hoja.Minimo220_52VA:N0} VA — aparatos pequeños y lavadora a 1,500 VA por circuito, 220-52(a) y (b)"
+                : null),
+            ("Carga calculada", hoja.Minimo220_52VA > 0m ? $"{cargaTotal + hoja.Minimo220_52VA:N0} VA" : null),
             ("Tensión nominal", $"{hoja.TensionV:N1} V"),
             ("Frecuencia", "60 Hz"),
             ("Factor de potencia", hoja.Articulo == "215"
@@ -271,6 +276,12 @@ public static class MemoriaDeCalculo
     public static string Aislamiento(DatosDelTablero datos) =>
         $"{datos.TipoAislamiento} · lugar {(datos.LugarSeco ? "seco" : "húmedo o mojado")}" +
         (datos.TerminalesMarcadas75C ? " · terminales marcadas 75 °C" : "");
+
+    /// <summary>«Contactos · Aparatos pequeños (cocina)»: el tipo, y el uso si no es general.</summary>
+    public static string Etiqueta(CircuitoDelCuadro circuito) =>
+        circuito.UsoEfectivo == UsoDeContactos.General
+            ? Etiqueta(circuito.Tipo)
+            : $"{Etiqueta(circuito.Tipo)} · {circuito.UsoEfectivo.Nombre()}";
 
     public static string Etiqueta(TipoCarga tipo) => tipo switch
     {

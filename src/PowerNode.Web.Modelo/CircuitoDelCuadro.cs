@@ -25,6 +25,16 @@ public sealed class CircuitoDelCuadro
     public TipoCarga Tipo { get; set; } = TipoCarga.Alumbrado;
 
     /// <summary>
+    /// Para qué es el circuito, si es de contactos: aparatos pequeños, lavadora o baño de vivienda
+    /// piden 20 A — 210-11(c). Se conserva al cambiar de tipo, pero solo cuenta en Contactos
+    /// (<see cref="UsoEfectivo"/>).
+    /// </summary>
+    public UsoDeContactos Uso { get; set; } = UsoDeContactos.General;
+
+    /// <summary>El uso que cuenta: el capturado en Contactos, General en cualquier otro tipo.</summary>
+    public UsoDeContactos UsoEfectivo => Tipo == TipoCarga.Contactos ? Uso : UsoDeContactos.General;
+
+    /// <summary>
     /// En qué unidad viene lo que se capturó: VA, W o A, como lo diga la placa. <b>VA por omisión</b>,
     /// que es lo único que la pantalla aceptaba antes — lo ya capturado no cambia.
     /// </summary>
@@ -93,6 +103,14 @@ public sealed class CircuitoDelCuadro
     public bool EsContinuacion => ContinuacionDe is not null;
 
     public decimal CargaInstaladaVA => ContinuaVA + NoContinuaVA;
+
+    /// <summary>
+    /// Lo que le falta a la carga capturada para llegar a los 1500 VA con los que entra al
+    /// alimentador un circuito de aparatos pequeños o de lavadora — 220-52(a) y (b). Entra como
+    /// carga no continua. Cero en cualquier otro uso o si ya pasa de 1500 VA. No cambia el cálculo del
+    /// propio derivado: 220-52 es carga de alimentador.
+    /// </summary>
+    public decimal Ajuste220_52VA { get; internal set; }
 
     /// <summary>
     /// La potencia activa, en W: los VA por el F.P. del circuito. Para un renglón capturado en W

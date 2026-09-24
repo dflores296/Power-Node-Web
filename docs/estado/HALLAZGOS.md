@@ -65,6 +65,7 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | R-10 · 2F-3H 220Y/127: sin prueba de que no se aplican 220-61(a) excepción ni 310-15(b)(7) | P2 | Pendiente | — |
 | R-11 · Sin mínimo del principal según 230-79 | P2 | Pendiente | — |
 | R-12 · Sin factores de demanda del Art. 220 por tipo de inmueble | P2 | Pendiente | — |
+| R-14 · Mínimo de 20 A en todos los contactos (criterio del Excel); sin 210-11(c) ni 220-52 | P1 | Pendiente | — |
 | R-13 · «Tabla 310-15(b)(5)(3)» en `CircuitoDerivado.cs`: es numeral | P3 | **Cerrado** | `69a5ed6` |
 
 ## Detalle
@@ -87,7 +88,7 @@ Formato: **Hecho** (defecto observado) · **Corrección** · **Referencia** · *
 
 **M-02** — Hecho: el alimentador se calculaba con la carga total ÷ √3·V_FF (tres aparatos: 15 A, 14 AWG). Corrección: dimensionar con la fase de mayor capacidad requerida; `CalculadoraDesbalanceo.CorrientePorFase` da la corriente por barra (tres aparatos: fase C, 12.20 A, 16 A con NOM completa, 12 AWG). Referencia: 215-2(a)(1), 215-3. Prueba: `M02_…`. Pendiente: reportar en `PowerNode-DesignSuite`.
 
-**M-03** — Hecho: sin aviso con principal menor que el derivado más grande. Corrección: aviso con el número de circuito. Prueba: `M03_…`. Abierto: aviso o bloqueo.
+**M-03** — Hecho: sin aviso con principal menor que el derivado más grande. Corrección: aviso con el número de circuito. Prueba: `M03_…`. Aviso, no bloqueo — R-08.
 
 **M-04** — Hecho: 240-4(b) solo en Alumbrado. Corrección: aplicar en Alumbrado y Equipo; excluir Contactos. Referencia: 240-4(b)(1). Prueba: `Excepcion240_4b_AplicaEnEquipo_NoEnContactos` (32 A continuos, 9 agrupados: Equipo 8 AWG, Contactos 6 AWG).
 
@@ -174,7 +175,7 @@ de tres aparatos.
 
 **R-07** — Hecho: las 20 pruebas del documento del 2026-09-23 no estaban en el repo. Prueba: `PruebasDelDocumento20260923Tests`.
 
-**R-08** — Hecho: decisión abierta en [`../decisiones/interruptor-principal-criterios-del-excel.md`](../decisiones/interruptor-principal-criterios-del-excel.md). Propuesta de David: aviso.
+**R-08** — Hecho: decisión abierta en [`../decisiones/interruptor-principal-criterios-del-excel.md`](../decisiones/interruptor-principal-criterios-del-excel.md). Corrección: CONFIRMADA · David · 2026-09-24: aviso, no bloqueo. Prueba: `M03_…`, `P2_1_…`.
 
 **R-09** — Hecho: el tooltip de «Agrupados» ya cita (b)(5)(2) y el neutro ya sale del calibre de la fase; la memoria no lo cita y no hay prueba. Referencia: 310-15(b)(5)(2), 220-61(c)(1).
 
@@ -185,3 +186,5 @@ de tres aparatos.
 **R-12** — Hecho: solo factores de demanda continua y no continua capturados. Contradice la decisión del motor «automatizar el Art. 220 queda fuera de v1» (`Domain/Proyectos/Alimentador.cs`): requiere decisión antes de implementar. Referencia: Tabla 220-42, Tabla 220-44, 220-53, 220-82.
 
 **R-13** — Hecho: `Domain/Proyectos/CircuitoDerivado.cs:117` cita «Tabla 310-15(b)(5)(3)». Es el numeral 310-15(b)(5)(3). Corrección: citar «310-15(b)(5)(3)». Pendiente: llevar a `PowerNode-DesignSuite` ([`../conocimiento/motor-copiado.md`](../conocimiento/motor-copiado.md)).
+
+**R-14** — Hecho: `CalculadoraCircuitoDerivadoNoMotor` aplicaba 15 A mínimo en alumbrado y 20 A en contactos, el `MAX(20, …)` del Excel. La NOM no lo pide (210-3 y 210-21(b)(3) permiten contactos en 15 A); solo 210-11(c) exige 20 A en cocina, lavadora y baño de vivienda, y 220-52 carga 1500 VA por circuito de cocina y de lavadora. 500 VA de contactos salían en 20 A y 12 AWG. Corrección: quitar el mínimo; «Uso» por circuito de contactos (General, Cocina, Lavadora, Baño) con 20 A y su cita; 1500 VA al alimentador (renglón «Mínimo 220-52» en el resumen y en la memoria); aviso con un solo circuito de aparatos pequeños. Referencia: 210-11(c), 220-52(a) y (b). Decisión: [`../decisiones/minimo-de-proteccion-por-uso.md`](../decisiones/minimo-de-proteccion-por-uso.md). Prueba: `SinMinimoPorTipo_…`, `Vivienda_…`. Pendiente: llevar a `PowerNode-DesignSuite`.

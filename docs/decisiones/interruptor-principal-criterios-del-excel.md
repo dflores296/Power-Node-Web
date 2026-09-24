@@ -119,3 +119,14 @@ de los dos criterios se queda en este archivo, arriba.
 
 **Sigue abierto:** si el principal menor que un derivado (M-03) debe bloquear en vez de avisar. Hoy
 avisa.
+
+---
+
+## Principal menor que un derivado: aviso
+
+**CONFIRMADA · David · 2026-09-24** — R-08. **Avisa, no bloquea.** El principal que se imprime sigue
+siendo el calculado (215-3 + 240-6(a)).
+
+La causa más común del aviso era el mínimo de 20 A en todos los contactos, que se quitó el mismo día
+([`minimo-de-proteccion-por-uso.md`](minimo-de-proteccion-por-uso.md)). Ahora solo aparece con un
+circuito de vivienda de 20 A (210-11(c)) y poca carga, o con factor de demanda menor que 1.

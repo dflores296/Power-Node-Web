@@ -6,9 +6,8 @@ namespace PowerNode.DesignSuite.Calculo.Casos;
 /// Todo lo que necesita un Alimentador (Art. 215) para calcularse. Misma forma que
 /// <see cref="DatosEntradaCircuitoDerivadoNoMotor"/> a propósito -- es literalmente "un
 /// circuito grande" -- pero sin TipoCarga: un alimentador no es Alumbrado ni
-/// Contactos ni Fuerza, es la suma de lo que sea que alimenta del otro lado, y por
-/// eso tampoco tiene el piso de 15/20 A de un circuito derivado (210-19/210-23) --
-/// esa regla es de circuito derivado, no de alimentador.
+/// Contactos ni Fuerza, es la suma de lo que sea que alimenta del otro lado. Sin mínimo de
+/// protección: el derivado tampoco tiene ya el piso de 15/20 A por tipo de carga (2026-09-24).
 /// </summary>
 public sealed record DatosEntradaAlimentador(
     decimal CargaContinuaVA,

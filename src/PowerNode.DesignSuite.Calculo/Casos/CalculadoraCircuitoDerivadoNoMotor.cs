@@ -60,12 +60,21 @@ public class CalculadoraCircuitoDerivadoNoMotor(
         citas.Add(new Cita("210-20(a)",
             $"Capacidad mínima de la protección: {iNoContinua:0.##} A (no continua) + {continua.Factor * 100m:0}% x {iContinua:0.##} A (continua) = {capacidadMin:0.##} A"));
 
-        // 3. Protección — Tabla 240-6(a) (vive como texto en la Sección 240-6(a), no como Tabla), con piso por caso.
+        // 3. Protección — 240-6(a) (vive como texto en la Sección 240-6(a), no como Tabla).
+        //
+        // SIN MÍNIMO POR TIPO DE CARGA. Hasta el 2026-09-24 había un piso de 15 A en alumbrado y 20 A
+        // en contactos, el MAX(20, ...) del Excel. La NOM no lo pide: 210-3 permite circuitos de 15 A
+        // con contactos, y el 15 A de alumbrado ya es el primer tamaño de 240-6(a). Lo quitó David.
+        // Lo que sí exige la norma para un circuito concreto (210-11(c): aparatos pequeños, lavadora
+        // y baño de vivienda, 20 A) llega en ProteccionMinimaA, con su referencia.
         var breaker = proteccionEstandar.SiguienteEstandar(capacidadMin);
-        var pisoBreaker = d.TipoCarga == TipoCarga.Alumbrado ? 15m : d.TipoCarga == TipoCarga.Contactos ? 20m : 0m;
-        if (breaker < pisoBreaker) breaker = pisoBreaker;
-        citas.Add(new Cita("240-6(a)", $"Capacidad mínima {capacidadMin:0.##} A -> protección estándar {breaker} A" +
-            (pisoBreaker > 0 ? $" (piso de {pisoBreaker} A para {d.TipoCarga})" : "")));
+        var porCarga = breaker;
+        if (d.ProteccionMinimaA is { } minimo && breaker < minimo)
+            breaker = proteccionEstandar.SiguienteEstandar(minimo);
+        citas.Add(new Cita("240-6(a)", $"Capacidad mínima {capacidadMin:0.##} A -> protección estándar {porCarga} A"));
+        if (breaker != porCarga)
+            citas.Add(new Cita(d.ReferenciaProteccionMinima ?? "Protección mínima",
+                $"Protección mínima del circuito: {d.ProteccionMinimaA:0.##} A -> {breaker} A"));
 
         // 4. Temperatura de terminales — 110-14(c)(1): fija la columna de ampacidad a usar (el techo
         // que impone el equipo, sin importar qué tan bueno sea el aislamiento del conductor).

@@ -45,4 +45,12 @@ public sealed record DatosEntradaCircuitoDerivadoNoMotor(
     /// aprobadas e identificadas para 75 °C: 110-14(c)(1)a.(3). Solo cambia algo en 100 A o menos.
     /// Falso por omisión: sin declaración, 60 °C, que es la regla general.
     /// </summary>
-    bool TerminalesMarcadas75C = false);
+    bool TerminalesMarcadas75C = false,
+    /// <summary>
+    /// Protección mínima que exige la norma para <b>este</b> circuito, con su referencia — p. ej.
+    /// 20 A por 210-11(c)(1) en un circuito de aparatos pequeños de vivienda. <c>null</c> = sin
+    /// mínimo: la protección sale solo de la carga y 240-6(a). Ya no hay mínimo por tipo de carga
+    /// (15 A alumbrado, 20 A contactos): era criterio de diseño, no de la NOM (David, 2026-09-24).
+    /// </summary>
+    decimal? ProteccionMinimaA = null,
+    string? ReferenciaProteccionMinima = null);

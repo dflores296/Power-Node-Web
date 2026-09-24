@@ -108,7 +108,10 @@ public class PruebasDelDocumento20260923Tests
     [Fact]
     public void P2_1_AvisaCuandoElPrincipalEsMenorQueUnDerivado()
     {
+        // Contactos de cocina: 20 A por 210-11(c)(1). Desde el 2026-09-24 no hay mínimo de 20 A en
+        // contactos de uso general; el principal cuenta 1500 VA por 220-52(a) → 11.81 A → 15 A.
         var cuadro = Nuevo();
+        Espacio(cuadro, 3).Uso = UsoDeContactos.AparatosPequenos;
         var c = Capturar(cuadro, 3, TipoCarga.Contactos, UnidadConsumo.VoltAmperes, 0m, 500m);
 
         Assert.Equal(20m, c.Resultado!.ProteccionA);

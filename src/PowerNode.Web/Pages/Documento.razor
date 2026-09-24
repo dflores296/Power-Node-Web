@@ -89,7 +89,7 @@
                     {
                         <tr class="@(c.TieneCarga ? null : "libre")">
                             <td class="num">@c.Espacio</td>
-                            <td rowspan="@c.Polos" class="izq">@(string.IsNullOrWhiteSpace(c.Descripcion) ? (c.TieneCarga ? MemoriaDeCalculo.Etiqueta(c.Tipo) : "LIBRE") : c.Descripcion)</td>
+                            <td rowspan="@c.Polos" class="izq">@(string.IsNullOrWhiteSpace(c.Descripcion) ? (c.TieneCarga ? MemoriaDeCalculo.Etiqueta(c) : "LIBRE") : c.Descripcion)</td>
                             <td rowspan="@c.Polos" class="num">@Cifra(c.ContinuaVA)</td>
                             <td rowspan="@c.Polos" class="num">@(c.TieneCarga ? "1.00" : "")</td>
                             <td rowspan="@c.Polos" class="num">@Cifra(c.NoContinuaVA)</td>
@@ -137,9 +137,18 @@
                         <td class="num">@Datos.FactorDemandaNoContinua.ToString("N2")</td>
                         <td class="num">@((Cuadro.Resumen.NoContinuaDemandadaVA / 1000m).ToString("N2"))</td>
                     </tr>
+                    @if (Cuadro.Resumen.Minimo220_52VA > 0m)
+                    {
+                        <tr>
+                            <td class="izq"><span class="ayuda" title="Completar a 1500 VA cada circuito de aparatos pequeños o de lavadora — 220-52(a) y (b). Carga de alimentador; no cambia el derivado.">Mínimo 220-52</span></td>
+                            <td class="num">@((Cuadro.Resumen.Minimo220_52VA / 1000m).ToString("N2"))</td>
+                            <td class="num">@Datos.FactorDemandaNoContinua.ToString("N2")</td>
+                            <td class="num">@((Cuadro.Resumen.Minimo220_52DemandadoVA / 1000m).ToString("N2"))</td>
+                        </tr>
+                    }
                     <tr class="total">
                         <td class="izq">Total <span class="simbolo">(kVA)</span></td>
-                        <td class="num">@((Cuadro.Resumen.InstaladaVA / 1000m).ToString("N2"))</td>
+                        <td class="num">@((Cuadro.Resumen.CalculadaVA / 1000m).ToString("N2"))</td>
                         <td></td>
                         <td class="num">@((Cuadro.Resumen.DemandadaVA / 1000m).ToString("N2"))</td>
                     </tr>

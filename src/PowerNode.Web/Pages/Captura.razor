@@ -119,7 +119,7 @@
             <tr>
                 <th rowspan="2"><span class="ayuda" title="Identificar el circuito por su espacio en la barra. Nones arriba, pares abajo.">N.º</span></th>
                 <th rowspan="2" class="izq descripcion">Descripción</th>
-                <th rowspan="2"><span class="ayuda" title="Seleccionar el tipo de carga. Determina el mínimo de protección (alumbrado 15 A, contactos 20 A, equipo sin mínimo) y la aplicación de 240-4(b) (excluida en contactos).">Tipo</span></th>
+                <th rowspan="2"><span class="ayuda" title="Seleccionar el tipo de carga. Determina la aplicación de 240-4(b) (excluida en contactos). Protección: primer tamaño de 240-6(a) ≥ capacidad mínima, sin mínimo por tipo. Contactos de vivienda: seleccionar el uso — 210-11(c).">Tipo</span></th>
                 <th colspan="4"><span class="ayuda" title="Capturar la carga de placa en VA, W o A y su factor de potencia. Continua (3 h o más): 125 % — 210-19(a)(1), 210-20(a). No continua: 100 %. En W o A, consultar abajo el VA de cálculo.">Carga</span></th>
                 <th colspan="@Datos.Barras.Count"><span class="ayuda" title="Consultar la carga del circuito repartida entre las barras que toca.">Balanceo de fases <span class="simbolo">(VA)</span></span></th>
                 <th rowspan="2"><span class="ayuda" title="Capturar la longitud del circuito. Determina la caída de tensión — Tabla 9."><span class="simbolo">L (m)</span></span></th>
@@ -183,6 +183,17 @@
                                 <option value="@TipoCarga.Contactos">Contactos</option>
                                 <option value="@TipoCarga.Equipo">Equipo</option>
                             </select>
+                            @if (c.Tipo == TipoCarga.Contactos)
+                            {
+                                <select class="tipo uso" title="Seleccionar el uso del circuito de contactos. Vivienda: cocina = aparatos pequeños (cocina, despensa, comedor, desayunador), lavadora y baño llevan 20 A — 210-11(c) — y solo esas salidas — 210-52(b)(2), 210-11(c)(2) y (3). Aparatos pequeños y lavadora cuentan 1500 VA en el alimentador — 220-52. Excepción: vivienda popular de hasta 60 m²."
+                                        @bind="c.Uso" @bind:after="Recalcular">
+                                    @foreach (var uso in Enum.GetValues<UsoDeContactos>()) { <option value="@uso">@uso.NombreCorto()</option> }
+                                </select>
+                                @if (c.Ajuste220_52VA > 0m)
+                                {
+                                    <span class="en-va">Alimentador: 1,500 VA — @c.UsoEfectivo.ReferenciaCargaMinima()</span>
+                                }
+                            }
                         </td>
                         <td rowspan="@c.Polos">
                             <select class="unidad" @bind="c.Unidad" @bind:after="Recalcular">
@@ -284,7 +295,7 @@
                     <span class="etiqueta">
                         @(bloque.Ocupado
                             ? (string.IsNullOrWhiteSpace(bloque.Circuito.Descripcion)
-                                ? MemoriaDeCalculo.Etiqueta(bloque.Circuito.Tipo)
+                                ? MemoriaDeCalculo.Etiqueta(bloque.Circuito)
                                 : bloque.Circuito.Descripcion)
                             : "libre")
                     </span>
@@ -340,9 +351,18 @@
                                        @bind="Datos.FactorDemandaNoContinua" @bind:after="Recalcular" /></td>
                 <td class="num">@((Cuadro.Resumen.NoContinuaDemandadaVA / 1000m).ToString("N2"))</td>
             </tr>
+            @if (Cuadro.Resumen.Minimo220_52VA > 0m)
+            {
+                <tr>
+                    <td class="izq"><span class="ayuda" title="Completar a 1500 VA cada circuito de aparatos pequeños o de lavadora — 220-52(a) y (b). Carga de alimentador; no cambia el derivado.">Mínimo 220-52</span></td>
+                    <td class="num">@((Cuadro.Resumen.Minimo220_52VA / 1000m).ToString("N2"))</td>
+                    <td class="num">@Datos.FactorDemandaNoContinua.ToString("N2")</td>
+                    <td class="num">@((Cuadro.Resumen.Minimo220_52DemandadoVA / 1000m).ToString("N2"))</td>
+                </tr>
+            }
             <tr class="total">
                 <td class="izq">Total <span class="simbolo">(kVA)</span></td>
-                <td class="num">@((Cuadro.Resumen.InstaladaVA / 1000m).ToString("N2"))</td>
+                <td class="num">@((Cuadro.Resumen.CalculadaVA / 1000m).ToString("N2"))</td>
                 <td></td>
                 <td class="num">@((Cuadro.Resumen.DemandadaVA / 1000m).ToString("N2"))</td>
             </tr>

@@ -32,7 +32,7 @@ Cada requisito se relaciona con su referencia normativa y con su verificación e
 | P-1 | Calcular la capacidad mínima: 125 % de la continua + 100 % de la no continua. | 210-20(a), 215-3 | `ElDesgloseDeLaProteccion…` |
 | P-2 | Seleccionar el primer tamaño normalizado mayor o igual a la capacidad mínima. | 240-6(a) | `Serie_…` |
 | P-3 | Seleccionar la familia de interruptores: centro de carga (NEMA), riel DIN (IEC) o NOM completa. | 240-6(a) | `Serie_…` |
-| P-4 | Aplicar el mínimo de 15 A en alumbrado y 20 A en contactos. | — | `LoQueSIGUE_SeparandoAContactos…` |
+| P-4 | Sin mínimo por tipo de carga. Aplicar 20 A a los contactos de vivienda de cocina (aparatos pequeños), lavadora y baño. | 210-11(c) | `SinMinimoPorTipo_…`, `Vivienda_ElUsoPide20A…` |
 
 ### Conductor
 
@@ -59,6 +59,8 @@ Cada requisito se relaciona con su referencia normativa y con su verificación e
 | A-6 | Verificar la protección contra la capacidad de la barra. | 408-36 | `ElAvisoDel408_36…` |
 | A-7 | Limitar la caída de tensión del alimentador: 3 % por omisión, capturable. | 215-2(a)(4) NOTA 2 | `R01_…` |
 | A-8 | Avisar por circuito si la caída del alimentador más la del derivado excede 5 %. | 215-2(a)(4) NOTA 2, 210-19(a)(1) NOTA 4 | `R01_…` |
+| A-9 | Cargar al alimentador 1500 VA por circuito de aparatos pequeños y de lavadora. | 220-52(a), 220-52(b) | `Vivienda_AparatosPequenosYLavadora…` |
+| A-10 | Avisar si hay un solo circuito de aparatos pequeños. | 210-11(c)(1) | `Vivienda_UnSoloCircuito…` |
 
 ### Entregable
 

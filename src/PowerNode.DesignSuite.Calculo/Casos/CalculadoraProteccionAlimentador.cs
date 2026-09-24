@@ -85,7 +85,7 @@ public static class CalculadoraProteccionAlimentador
         if (cargaMotores.MayorFlcA is decimal mayorFlc)
             citas.Add(new Cita("430-24", $"Varios motores: 125% x {mayorFlc:0.##} A (el mayor) + {cargaMotores.SumaRestoFlcA:0.##} A (resto) = {cargaMotores.CapacidadMinimaA:0.##} A -> capacidad mínima total {capacidadMin:0.##} A"));
 
-        // 3. Protección estándar -- 240-6(a), sin piso (el piso de 15/20 A es de circuito derivado).
+        // 3. Protección estándar -- 240-6(a), sin piso.
         var breaker = proteccionEstandar.SiguienteEstandar(capacidadMin);
         citas.Add(new Cita("240-6(a)", $"Capacidad mínima {capacidadMin:0.##} A -> protección estándar {breaker} A"));
 

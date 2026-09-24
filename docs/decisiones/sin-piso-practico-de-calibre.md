@@ -74,3 +74,10 @@ Si esto estorba, hay dos caminos, y los dos son de David:
 1. **Apagar el piso en el escritorio** (Configuración del proyecto), y entonces los dos coinciden.
 2. **Traerlo a la web como captura** —un campo por proyecto, apagado por omisión— en vez de una
    constante escondida.
+
+---
+
+**Actualización · 2026-09-24:** el piso de **protección** de 15/20 A también se quitó — ver
+[`minimo-de-proteccion-por-uso.md`](minimo-de-proteccion-por-uso.md). Con 500 VA a 10 m, alumbrado y
+contactos salen iguales: 15 A, 14 AWG. Solo los contactos de vivienda de cocina, lavadora y baño
+llevan 20 A, por 210-11(c).

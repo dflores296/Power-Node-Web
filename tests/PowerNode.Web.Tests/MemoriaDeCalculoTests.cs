@@ -61,6 +61,27 @@ public class MemoriaDeCalculoTests
     }
 
     [Fact]
+    public void Vivienda_ElAlimentadorDiceDeDondeSalenLos1500VA()
+    {
+        var cuadro = new CuadroDeCarga(new MotorNom(Json));
+        cuadro.Datos.NumeroEspacios = 6;
+        var cocina = cuadro.Circuitos[0];
+        cocina.Tipo = PowerNode.DesignSuite.Calculo.Unidades.TipoCarga.Contactos;
+        cocina.Uso = UsoDeContactos.AparatosPequenos;
+        cocina.NoContinua = 500m;
+        cuadro.Recalcular();
+
+        var seccion1 = MemoriaDeCalculo.Secciones(MemoriaDeCalculo.DelAlimentador(cuadro)!)[0];
+        Assert.Equal("500 VA", seccion1.Renglones.Single(r => r.Rotulo == "Carga total instalada").Valor);
+        Assert.StartsWith("1,000 VA — aparatos pequeños y lavadora", seccion1.Renglones.Single(r => r.Rotulo == "Mínimo 220-52").Valor);
+        Assert.Equal("1,500 VA", seccion1.Renglones.Single(r => r.Rotulo == "Carga calculada").Valor);
+
+        var derivado = MemoriaDeCalculo.DeCircuito(cuadro, cocina);
+        Assert.Contains("Contactos · Aparatos pequeños (cocina)", derivado.Sujeto);
+        Assert.DoesNotContain(MemoriaDeCalculo.Secciones(derivado)[0].Renglones, r => r.Rotulo == "Mínimo 220-52");
+    }
+
+    [Fact]
     public void UnDerivadoCitaEl210YElAlimentadorEl215()
     {
         var cuadro = ConUnCircuito();

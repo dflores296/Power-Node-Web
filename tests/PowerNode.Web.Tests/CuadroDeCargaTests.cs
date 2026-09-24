@@ -177,13 +177,10 @@ public class CuadroDeCargaTests
     }
 
     [Fact]
-    public void LoQueSIGUE_SeparandoAContactosEsElPisoDeProteccionDelMotor()
+    public void SinMinimoPorTipo_ContactosYAlumbradoConLaMismaCargaSalenIguales()
     {
-        // Con cargas chicas, contactos todavía sale con más cobre que alumbrado: no es el piso de
-        // calibre (que ya no existe) sino el piso de PROTECCIÓN de 20 A que aplica la calculadora
-        // copiada -- el mismo MAX(20, ...) que traía el Excel. Vive en el motor, así que si se
-        // quisiera cambiar, se cambia allá primero. Esta prueba existe para que el día que eso
-        // pase, se note aquí.
+        // Hasta el 2026-09-24 contactos salía en 20 A por un mínimo que la NOM no pide (el MAX(20, ...)
+        // del Excel). Ya no: la protección sale de la carga y 240-6(a).
         var cuadro = Nuevo();
         var alumbrado = Espacio(cuadro, 1);
         alumbrado.NoContinua = 500m;
@@ -196,11 +193,100 @@ public class CuadroDeCargaTests
 
         cuadro.Recalcular();
 
-        Assert.Equal(15m, alumbrado.Resultado!.ProteccionA);
-        Assert.Equal("14", alumbrado.Resultado.CalibreFase.Designacion);
+        foreach (var c in new[] { alumbrado, contactos })
+        {
+            Assert.Equal(15m, c.Resultado!.ProteccionA);
+            Assert.Equal("14", c.Resultado.CalibreFase.Designacion);
+        }
+        Assert.DoesNotContain(contactos.Resultado!.Citas, c => c.Descripcion.Contains("piso"));
+    }
 
-        Assert.Equal(20m, contactos.Resultado!.ProteccionA);
-        Assert.Equal("12", contactos.Resultado.CalibreFase.Designacion);
+    // ---- 210-11(c) y 220-52 · Contactos de vivienda por uso ------------------------------------------
+
+    [Theory]
+    [InlineData(UsoDeContactos.AparatosPequenos, "210-11(c)(1)")]
+    [InlineData(UsoDeContactos.Lavadora, "210-11(c)(2)")]
+    [InlineData(UsoDeContactos.Bano, "210-11(c)(3)")]
+    public void Vivienda_ElUsoPide20AConSuCita(UsoDeContactos uso, string referencia)
+    {
+        var cuadro = Nuevo();
+        var c = Espacio(cuadro, 1);
+        c.Tipo = TipoCarga.Contactos;
+        c.Uso = uso;
+        c.NoContinua = 500m;
+        cuadro.Recalcular();
+
+        Assert.Equal(20m, c.Resultado!.ProteccionA);
+        Assert.Equal("12", c.Resultado.CalibreFase.Designacion); // 240-4(d): 20 A pide 12 AWG
+        Assert.Contains(c.Resultado.Citas, x => x.Referencia == referencia);
+        Assert.Contains($"Protección mínima del circuito: 20 A — {referencia}", cuadro.Desglose(c)!.Proteccion);
+    }
+
+    [Fact]
+    public void Vivienda_ElUsoSoloCuentaEnContactos()
+    {
+        var cuadro = Nuevo();
+        var c = Espacio(cuadro, 1);
+        c.Tipo = TipoCarga.Equipo;
+        c.Uso = UsoDeContactos.AparatosPequenos; // se queda capturado, pero no aplica
+        c.NoContinua = 500m;
+        cuadro.Recalcular();
+
+        Assert.Equal(15m, c.Resultado!.ProteccionA);
+        Assert.Equal(0m, c.Ajuste220_52VA);
+    }
+
+    [Fact]
+    public void Vivienda_AparatosPequenosYLavadoraCuentan1500VAEnElAlimentador()
+    {
+        var cuadro = Nuevo();
+        foreach (var (espacio, uso, va) in new[]
+                 {
+                     (1, UsoDeContactos.AparatosPequenos, 500m),  // + 1000 VA
+                     (3, UsoDeContactos.Lavadora, 1800m),         // ya pasa de 1500: + 0
+                     (5, UsoDeContactos.Bano, 300m),              // baño: sin mínimo de carga
+                 })
+        {
+            var c = Espacio(cuadro, espacio);
+            c.Tipo = TipoCarga.Contactos;
+            c.Uso = uso;
+            c.NoContinua = va;
+        }
+        cuadro.Recalcular();
+
+        Assert.Equal(1000m, Espacio(cuadro, 1).Ajuste220_52VA);
+        Assert.Equal(0m, Espacio(cuadro, 3).Ajuste220_52VA);
+        Assert.Equal(0m, Espacio(cuadro, 5).Ajuste220_52VA);
+        Assert.Equal(2600m, cuadro.Resumen.InstaladaVA);   // lo capturado, renglón por renglón
+        Assert.Equal(1000m, cuadro.Resumen.Minimo220_52VA);
+        Assert.Equal(3600m, cuadro.Resumen.CalculadaVA);
+        // Fase A (espacio 1): 1500 VA / 127 V = 11.81 A. Fase B, la lavadora: 1800 / 127 = 14.17 A.
+        Assert.Equal(11.81m, cuadro.Alimentador.Fases!.Single(f => f.Fase == 'A').TotalA, 2);
+        Assert.Equal('B', cuadro.Alimentador.Gobierna!.Fase);
+        // El derivado NO cambia por 220-52: se calcula con sus 500 VA.
+        Assert.Equal(3.94m, Espacio(cuadro, 1).Resultado!.CorrienteDisenoA, 2);
+    }
+
+    [Fact]
+    public void Vivienda_UnSoloCircuitoDeAparatosPequenosSeAvisa_DosNo()
+    {
+        var cuadro = Nuevo();
+        var cocina = Espacio(cuadro, 1);
+        cocina.Tipo = TipoCarga.Contactos;
+        cocina.Uso = UsoDeContactos.AparatosPequenos;
+        cocina.NoContinua = 800m;
+        cuadro.Recalcular();
+
+        Assert.Contains(cuadro.Alimentador.Avisos, a =>
+            a.StartsWith("Solo el circuito 1 es de aparatos pequeños.") && a.Contains("210-11(c)(1)"));
+
+        var comedor = Espacio(cuadro, 3);
+        comedor.Tipo = TipoCarga.Contactos;
+        comedor.Uso = UsoDeContactos.AparatosPequenos;
+        comedor.NoContinua = 600m;
+        cuadro.Recalcular();
+
+        Assert.DoesNotContain(cuadro.Alimentador.Avisos, a => a.Contains("aparatos pequeños"));
     }
 
     [Fact]
@@ -509,11 +595,12 @@ public class CuadroDeCargaTests
     [Fact]
     public void M03_SeAvisaCuandoElPrincipalEsMenorQueUnDerivado()
     {
-        // 500 VA de contactos: el derivado sale en 20 A por el mínimo de contactos, y el
-        // alimentador —3.94 A— en 15 A.
+        // 500 VA de contactos de cocina: el derivado sale en 20 A por 210-11(c)(1), y el
+        // alimentador —1500 VA por 220-52(a), 11.81 A— en 15 A.
         var cuadro = Nuevo();
         var contactos = Espacio(cuadro, 3);
         contactos.Tipo = TipoCarga.Contactos;
+        contactos.Uso = UsoDeContactos.AparatosPequenos;
         contactos.NoContinua = 500m;
         cuadro.Recalcular();
 
