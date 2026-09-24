@@ -179,7 +179,7 @@ de tres aparatos.
 
 **R-09** — Hecho: el tooltip de «Agrupados» ya cita (b)(5)(2) y el neutro ya sale del calibre de la fase; la memoria no lo cita y no hay prueba. Corrección: memoria, sección 2, renglón «Neutro — 310-15(b)(5)(2)» en todo tramo de 2 fases + neutro de estrella (alimentador 2F-3H y derivados de 2 polos en 2F-3H o 3F-4H), con 220-61(c)(1) en el alimentador; tooltip en «Conductor de neutro». No se cita en 1F-3H 120/240, donde el neutro lleva solo el desbalance — (b)(5)(1). Referencia: 310-15(b)(5)(2), 220-61(c)(1). Prueba: `R09_…` (2F-3H, 1270 VA por fase: 10 A, neutro = fase).
 
-**R-10** — Hecho: ninguno se aplica hoy, sin prueba que lo asegure. 220-61(a) excepción: sistemas bifásicos (90°), no 2 fases de estrella. 310-15(b)(7): solo 120/240 V.
+**R-10** — Hecho: ninguno se aplica hoy, sin prueba que lo asegure. 220-61(a) excepción: sistemas bifásicos (90°), no 2 fases de estrella. 310-15(b)(7): solo 120/240 V. Corrección: dos pruebas con alimentador 2F-3H de 99.99 A por fase y terminales 75 °C — 100 A, fase y neutro 3 AWG, Tabla 310-15(b)(16); con × 140 % el neutro sería 1/0 AWG y con (b)(7) la fase sería 4 AWG. Lectura en [`../conocimiento/seleccion-conductor-y-proteccion.md`](../conocimiento/seleccion-conductor-y-proteccion.md). Prueba: `R10_…`.
 
 **R-11** — Hecho: sin tipo de inmueble ni indicación de equipo de acometida. Referencia: 230-79(c) vivienda según carga conectada, vivienda popular hasta 60 m² no menor que 30 A; 230-79(d) demás, no menor que 60 A.
 

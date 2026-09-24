@@ -1,6 +1,6 @@
 # Selección de conductor y protección
 
-**Actualizado:** 2026-09-23. Alcance: seleccionar conductor y protección con la Tabla 310-15(b)(16).
+**Actualizado:** 2026-09-24. Alcance: seleccionar conductor y protección con la Tabla 310-15(b)(16).
 
 Guía de la norma: [dflores296.github.io/NOM-001-SEDE-2012](https://dflores296.github.io/NOM-001-SEDE-2012).
 
@@ -20,6 +20,8 @@ Guía de la norma: [dflores296.github.io/NOM-001-SEDE-2012](https://dflores296.g
 | 10 | Inmediata superior (conductor) | Permitir la protección estándar inmediata superior a la ampacidad no estándar, hasta 800 A, salvo circuitos de varios contactos. Comparar contra la lista completa de 240-6(a). | [240-4(b)](https://dflores296.github.io/NOM-001-SEDE-2012/art/240/#240-4) | Cumple (M-04) | `Excepcion240_4b_…`, `Serie_En240_4bManda_…` |
 | 11 | Choque entre reglas | Aumentar el conductor cuando la protección supera su ampacidad y no aplica 240-4(b). | [240-4](https://dflores296.github.io/NOM-001-SEDE-2012/art/240/#240-4) | Cumple | `Excepcion240_4b_…` |
 | 12 | Visibilidad | Mostrar el desglose de protección y conductor en tooltip y en la memoria, sección 4. | — | Cumple (I-33) | `LaSeccion4CuadraConElConductorElegido` |
+| 13 | Neutro en 2 fases + neutro de estrella | Contar el neutro como portador; darle el calibre de la fase; no reducirlo. | [310-15(b)(5)(2)](https://dflores296.github.io/NOM-001-SEDE-2012/art/310/#310-15), [220-61(c)(1)](https://dflores296.github.io/NOM-001-SEDE-2012/art/220/#220-61) | Cumple (R-09) | `R09_…` |
+| 14 | 2F-3H 220Y/127 | No aplicar la excepción de 220-61(a) (neutro × 140 %) ni la Tabla 310-15(b)(7). Ver abajo. | [220-61(a)](https://dflores296.github.io/NOM-001-SEDE-2012/art/220/#220-61), [310-15(b)(7)](https://dflores296.github.io/NOM-001-SEDE-2012/art/310/#310-15) | Cumple (R-10) | `R10_…` |
 
 ## Casos de verificación
 
@@ -30,6 +32,19 @@ Guía de la norma: [dflores296.github.io/NOM-001-SEDE-2012](https://dflores296.g
 | 26 A no continuos, 9 agrupados | THHN / THW-LS | 10 AWG / 8 AWG |
 | 45 A no continuos, Equipo | Terminales 60 °C / marcadas 75 °C | 6 AWG / 8 AWG |
 | 53 A, Alumbrado, 5 m | NOM completa / riel DIN | 60 A 6 AWG / 63 A 4 AWG |
+| Alimentador 2F-3H 220Y/127, 99.99 A por fase, terminales 75 °C | Sin 220-61(a) excepción ni Tabla 310-15(b)(7) | 100 A; fase y neutro 3 AWG (con × 140 %: neutro 1/0 AWG; con (b)(7): 4 AWG) |
+
+## Lecturas de la norma
+
+**220-61(a), Excepción — neutro × 140 %.** El texto dice «sistemas de 2 fases, 3 hilos o 2 fases 5
+hilos». Viene del NEC 220.61(A) Exception, *2-phase, 3-wire or 2-phase, 5-wire systems*: sistemas
+**bifásicos**, con dos tensiones a 90°. En México «2F-3H» nombra otra cosa: **dos fases de una
+estrella 220Y/127** (120° entre fases). Ahí el neutro lleva ≈ la corriente de fase, 310-15(b)(5)(2),
+y 220-61(c)(1) prohíbe reducirlo. No se multiplica por 1.4: se dimensiona igual que la fase.
+
+**Tabla 310-15(b)(7).** Solo para alimentadores y acometidas **monofásicos de 3 hilos, 120/240 V**,
+de vivienda. No aplica a 2F-3H 220Y/127 ni a ningún tablero trifásico. La tabla no se carga en
+`tablas-nom.json`.
 
 ## Fuera de alcance
 

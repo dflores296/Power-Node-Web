@@ -494,6 +494,48 @@ public class CuadroDeCargaTests
         Assert.Equal(a.Resultado.CalibreFase, a.Resultado.CalibreNeutro);
     }
 
+    // ---- R-10 · Candados de 2F-3H 220Y/127: ni 220-61(a) excepción ni 310-15(b)(7) --------------------
+
+    /// <summary>
+    /// 2F-3H 220Y/127 con 99.99 A no continuos por fase y terminales marcadas 75 °C: 100 A de principal
+    /// y 3 AWG (100 A a 75 °C, Tabla 310-15(b)(16)). Es el caso en que las dos reglas equivocadas sí
+    /// cambiarían el cobre: el neutro × 140 % pediría 140 A (1/0 AWG) y la Tabla 310-15(b)(7) daría
+    /// 4 AWG para 100 A.
+    /// </summary>
+    private static ResultadoAlimentador AlimentadorDe100APorFase2F3H()
+    {
+        var cuadro = Nuevo(espacios: 6, fases: 2, hilos: 3);
+        cuadro.Datos.TerminalesMarcadas75C = true;
+        foreach (var espacio in new[] { 1, 3 })
+            Espacio(cuadro, espacio).NoContinua = 12700m; // 99.99 A a 127.02 V
+        cuadro.Recalcular();
+
+        var r = cuadro.Alimentador.Resultado!;
+        Assert.Equal(99.99m, r.CorrienteDisenoA, 2);
+        Assert.Equal(100m, r.ProteccionA);
+        return r;
+    }
+
+    [Fact]
+    public void R10_En2F3HElNeutroNoSeMultiplicaPor140() // 220-61(a) excepción: solo bifásico a 90°
+    {
+        var r = AlimentadorDe100APorFase2F3H();
+
+        Assert.Equal("3", r.CalibreFase.Designacion);
+        Assert.Equal(r.CalibreFase, r.CalibreNeutro);
+        Assert.DoesNotContain(r.Citas, c => c.Referencia.StartsWith("220-61"));
+    }
+
+    [Fact]
+    public void R10_En2F3HNoSeUsaLaTabla310_15b7() // solo 120/240 V, vivienda
+    {
+        var r = AlimentadorDe100APorFase2F3H();
+
+        Assert.Equal("310-15(b)(16)", r.TablaAmpacidadId);
+        Assert.Equal("3", r.CalibreFase.Designacion); // la (b)(7) daría 4 AWG
+        Assert.DoesNotContain(r.Citas, c => c.Referencia.Contains("310-15(b)(7)"));
+    }
+
     // ---- R-01 · Caída del alimentador: 3 % por tramo, 5 % combinada — 215-2(a)(4) NOTA 2 ---------------
 
     [Fact]
