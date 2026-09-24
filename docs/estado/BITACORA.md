@@ -48,6 +48,7 @@ Pruebas: 66 en `PowerNode.Web.Tests`, 6 en `PowerNode.Normativa.Tests`.
 - «Inmueble» global de nueve opciones para 230-79 y para filtrar las justificaciones del F.D. — R-19, `be9985f`.
 - Desglose opcional de aparatos por circuito, debajo del último espacio; la carga es la suma — I-35, `e429cbb`.
 - Conductor en una celda (calibre y mm² debajo), sin «Hilos»; fases en rectángulos negro, rojo y azul; neutro blanco y tierra verde — 200-6, 250-119; pedido de David, `fb47979`, `48615e2` (AWG o kcmil en la celda).
+- Resumen con título «Tipo de carga» y encabezados centrados; balanceo de fases en tarjeta propia con barras por fase — pedido de David, `db71f23`.
 
 Pruebas: 156 en `PowerNode.Web.Tests`, 6 en `PowerNode.Normativa.Tests`.
 
