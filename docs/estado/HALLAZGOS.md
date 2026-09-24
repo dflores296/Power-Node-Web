@@ -61,6 +61,8 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-40 · Sin cálculo de la canalización | P2 | **Cerrado** | `6e88585`, `04a9f9f` |
 | I-41 · Neutro en todos los circuitos multipolares | P2 | **Cerrado** | `6e88585` |
 | M-07 · Errata de la Tabla 5: TW 10 AWG con 55.68 mm² | P1 | **Cerrado** | `6e88585` |
+| I-42 · Selector de aislamiento con 7 de 17 tipos | P1 | **Cerrado** | `23da7ce` |
+| M-08 · THW rechazado en lugar seco | P1 | **Cerrado** | `23da7ce` |
 | R-01 · Caída del alimentador fija en 5 %, sin verificar la combinada — 215-2(a)(4) NOTA 2 | P1 | **Cerrado** | `2a973ea` |
 | R-02 · Caída del alimentador sin la caída del neutro | P2 | **Cerrado** | `d6cd1c6` |
 | R-03 · La publicación no corre `PowerNode.Web.Tests` | P1 | **Cerrado** | `986c9d7` |
@@ -184,6 +186,10 @@ Formato: **Hecho** (defecto observado) · **Corrección** · **Referencia** · *
 **I-41** — Hecho: todos los circuitos salían con neutro, también un bipolar de 220 V o un trifásico balanceado. Corrección: 1 polo siempre con neutro; 2 y 3 polos solo con la casilla «+N»; nunca en 3F-3H. La columna Neutro dice «—». Prueba: `I41_…`, `R09_…`.
 
 **M-07** — Hecho: la Tabla 5 del DOF publica 55.68 mm² para TW/THHW/THW/THW-2 de 10 AWG; la misma fila da 4.470 mm de diámetro (15.69 mm²), el bloque va 11.68 → 55.68 → 28.19 y el NEC da 15.68. Cada conductor de 10 AWG contaba 3.5 veces su área. Corrección: `ErratasDeLaNorma.AreaTw10Awg` (se verifica antes de corregir y se cita en la memoria). Se barrió la Tabla 5 y la Tabla 4 comparando área contra diámetro: no hay otra. Prueba: `Tabla5_…`.
+
+**I-42** — Hecho (David): el selector de «Aislamiento» era una lista escrita en la pantalla con 7 tipos; el motor reconoce 17 (Tabla 310-104(a)). Faltaban THW, THW-2, THHW, XHH, XHHW, RHH, RHW, RHW-2, USE y USE-2. Corrección: el selector sale de `ITablaAislamiento.DesignacionesReconocidas`; los que no trae la Tabla 5 (THW-LS, THHW-LS, USE, USE-2) dicen «diámetro del fabricante». Prueba: `TodosLosAislamientosDelMotor_…`.
+
+**M-08** — Hecho: THW en lugar seco daba «no es válido para el lugar capturado». El DOF publica THW solo con «75 °C · Lugares mojados» (verificado contra el PDF, pág. 156); `TablaAislamientoJson` buscaba un renglón que dijera «seco». Pero 310-10(a) permite en lugar seco cualquier tipo de la NOM, y 310-10(b) nombra al THW. Corrección: sin renglón para seco, la temperatura que da la tabla (THW: 75 °C). Lo destapó I-42: con la lista corta, THW no se podía elegir. Prueba: `Tabla310_104a_ThwEnLugarSeco_…`.
 
 ### Revisión del 2026-09-23
 

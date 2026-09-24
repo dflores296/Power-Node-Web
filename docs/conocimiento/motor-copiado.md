@@ -91,6 +91,7 @@ Llevar estos cambios a `PowerNode-DesignSuite`.
 | 2026-09-24 | `Casos/SeleccionConductor.cs` | Agregar `caidaVoltsPorImpedancia`: la caída de un calibre la puede dar quien llama. | No (por omisión) | R-02 |
 | 2026-09-24 | `Domain/Proyectos/CircuitoDerivado.cs` | Corregir la cita de `CargaLineal`: «310-15(b)(5)(3)», no «Tabla 310-15(b)(5)(3)». | No | R-13 |
 | 2026-09-24 | `TablasNom/ErratasDeLaNorma.cs` | Agregar `AreaTw10Awg`: Tabla 5, TW/THHW/THW/THW-2 de 10 AWG, 55.68 → 15.68 mm². | Sí, en llenado de canalizaciones | M-07 |
+| 2026-09-24 | `Normativa/TablaAislamientoJson.cs` (en escritorio: `Data/TablasNom`) | `TemperaturaMaxima`: en lugar seco sin renglón propio, la temperatura que da la tabla — 310-10(a). THW se rechazaba en seco. | Sí, THW en lugar seco | M-08 |
 
 ## Nacido en la web — llevar al escritorio
 

@@ -25,7 +25,7 @@ Ejecutar en el navegador (Blazor WebAssembly), sin servidor, publicado en GitHub
 - Leer 18 tablas de la NOM desde JSON (77 KB) — `PowerNode.DesignSuite.Normativa`.
 - Canalizaciones (nacido en la web): portadores, ajuste por tipo de canalización y tamaño —
   `Calculo/Canalizaciones/`. Charola, en una segunda entrega.
-- Pruebas: 22 en `PowerNode.Normativa.Tests`.
+- Pruebas: 23 en `PowerNode.Normativa.Tests`.
 
 ## Interfaz
 
@@ -34,7 +34,7 @@ Ejecutar en el navegador (Blazor WebAssembly), sin servidor, publicado en GitHub
 - `/documento`: emitir el cuadro de carga (24 columnas) y la memoria de cálculo (nueve secciones).
 - Consultar en tooltip el desglose de la protección y del conductor de cada renglón.
 - Asignar cada circuito a su canalización (columna «Canal.») y consultar la tarjeta «Canalizaciones».
-- Pruebas: 166 en `PowerNode.Web.Tests` (20 del documento de pruebas del 2026-09-23).
+- Pruebas: 167 en `PowerNode.Web.Tests` (20 del documento de pruebas del 2026-09-23).
 
 Requisitos con su referencia NOM y su prueba: [`../../README.md`](../../README.md).
 
