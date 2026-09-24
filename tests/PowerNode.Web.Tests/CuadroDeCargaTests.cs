@@ -407,6 +407,33 @@ public class CuadroDeCargaTests
         Assert.Contains(cuadro.Alimentador.Avisos, a => a.Contains("barra del tablero"));
     }
 
+    // ---- R-16 · 240-4(b) en cada calibre, no solo en el de la carga ------------------------------------
+
+    [Fact]
+    public void R16_Con60AElAlimentadorSeQuedaEn6AWGPor240_4b()
+    {
+        // La carga pide 12 AWG; 230-79(d) sube la protección a 60 A. 10 AWG (30 A) y 8 AWG (40 A,
+        // valor estándar) no quedan protegidos; 6 AWG (55 A) sí: 60 A es el estándar inmediato superior.
+        var r = TresAparatosEnAcometida(TipoDeInmueble.Otro).Alimentador.Resultado!;
+
+        Assert.Equal(60m, r.ProteccionA);
+        Assert.Equal("6", r.CalibreFase.Designacion);
+        var cita = Assert.Single(r.Citas, c => c.Referencia == "240-4(b)");
+        Assert.StartsWith("12 (20 A) no cubre la protección de 60 A -- sube a 6 (55 A)", cita.Descripcion);
+        Assert.DoesNotContain(r.Citas, c => c.Referencia == "240-4");
+    }
+
+    [Fact]
+    public void R16_SiUnCalibreCubreLaProteccionSinExcepcion_NoSeCita240_4b()
+    {
+        // 30 A (vivienda popular): 10 AWG tiene 30 A a 60 °C, cubre directo.
+        var r = TresAparatosEnAcometida(TipoDeInmueble.ViviendaPopular).Alimentador.Resultado!;
+
+        Assert.Equal("10", r.CalibreFase.Designacion);
+        Assert.DoesNotContain(r.Citas, c => c.Referencia == "240-4(b)");
+        Assert.Contains(r.Citas, c => c.Referencia == "240-4" && c.Descripcion.Contains("sube a 10"));
+    }
+
     // ---- R-12 · El factor de demanda lo decide el proyectista, con justificación --------------------------
 
     private const string AvisoSinJustificacion = "El factor de demanda de equipo (aparatos) es menor que 1 y no tiene justificación.";
@@ -542,9 +569,8 @@ public class CuadroDeCargaTests
 
         Assert.Equal(60m, r.ProteccionA);
         Assert.Contains(r.Citas, c => c.Referencia == "230-79(d)" && c.Descripcion.Contains("Por carga salía 20 A -> 60 A"));
-        // 240-4: el conductor se protege con 60 A. Sale 4 AWG (70 A a 60 °C): el motor no revisa 240-4(b)
-        // en los calibres intermedios, y 6 AWG (55 A → 60 A por 240-4(b)) también cumpliría. R-16, pendiente.
-        Assert.Equal("4", r.CalibreFase.Designacion);
+        // 240-4: el conductor se protege con 60 A. 6 AWG: 55 A a 60 °C, y 240-4(b) permite 60 A (R-16).
+        Assert.Equal("6", r.CalibreFase.Designacion);
         Assert.Contains("Protección mínima del circuito: 60 A — 230-79(d)", cuadro.DesgloseDelAlimentador()!.Proteccion);
     }
 

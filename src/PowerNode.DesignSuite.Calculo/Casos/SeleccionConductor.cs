@@ -332,32 +332,45 @@ public static class SeleccionConductor
         var ampacidadUtilCarga = AmpacidadUtilizable(ampacidad, calibrePorCarga, materialConductor, tempAislamiento, tempTerminales, factorTemp, factorAgrup, metodoInstalacion)
             ?? throw new InvalidOperationException($"La Tabla 310-15(b)(16)/(17) no trae ampacidad para {calibrePorCarga}.");
 
-        if (breaker <= ampacidadUtilCarga)
-            return (calibrePorCarga, null); // la protección ya cabe dentro de la ampacidad del conductor -- caso normal, sin discrepancia.
-
-        var aplicaExcepcion = permiteExcepcion2404b
+        // 240-4(b) — el estándar inmediato superior a una ampacidad que no es valor estándar. Contra la
+        // lista COMPLETA de 240-6(a), no contra la serie en que se eligió la protección: «el siguiente
+        // valor estándar» es el de la norma. Ver ITablaProteccionEstandar.ValoresDeLaNorma.
+        bool CalificaExcepcion(decimal ampacidadTotal) =>
+            permiteExcepcion2404b
             && breaker <= 800m
-            // Contra la lista COMPLETA de 240-6(a), no contra la serie en que se eligió la protección:
-            // «el siguiente valor estándar» es el de la norma. Ver ITablaProteccionEstandar.ValoresDeLaNorma.
-            && !proteccionEstandar.ValoresDeLaNorma.Contains(ampacidadUtilCarga)
-            && breaker == proteccionEstandar.SiguienteDeLaNorma(ampacidadUtilCarga);
+            && !proteccionEstandar.ValoresDeLaNorma.Contains(ampacidadTotal)
+            && breaker == proteccionEstandar.SiguienteDeLaNorma(ampacidadTotal);
 
-        if (aplicaExcepcion)
-            return (calibrePorCarga, new Cita("240-4(b)",
-                $"Protección {breaker} A un escalón arriba de la ampacidad de {calibrePorCarga} ({ampacidadUtilCarga} A) -- permitido: " +
-                "no corresponde a un valor estándar de 240-6(a) y no excede 800 A."));
+        // CALIBRE POR CALIBRE DESDE EL DE LA CARGA — R-16. El primero que queda protegido, sea porque su
+        // ampacidad cubre la protección o porque califica para 240-4(b). Hasta el 2026-09-24 la
+        // excepción se revisaba solo en el calibre de la carga y, si no calificaba, se saltaba al que
+        // cubría la protección completa: con 60 A (230-79) salía 4 AWG, y 6 AWG (55 A → 60 A por
+        // 240-4(b)) también cumple. Los topes de 240-4(d) se aplican después, en IntentarConN.
+        for (Calibre? candidato = calibrePorCarga; candidato is not null; candidato = catalogo.Siguiente(candidato))
+        {
+            if (AmpacidadUtilizable(ampacidad, candidato, materialConductor, tempAislamiento, tempTerminales, factorTemp, factorAgrup, metodoInstalacion) is not decimal util)
+                continue; // la tabla no trae ese calibre en esta columna: se prueba el siguiente.
 
-        // Sin la excepción: el conductor se dimensiona para cubrir la PROTECCIÓN, no solo la corriente de diseño.
-        var objetivoPorProteccion = breaker / nParalelo;
-        var calibrePorProteccion = CalibrePorAmpacidadUtilizable(
-            catalogo, ampacidad, objetivoPorProteccion, materialConductor, tempAislamiento, tempTerminales, factorTemp, factorAgrup, metodoInstalacion);
+            var total = util * nParalelo;
+            var esElDeLaCarga = candidato.Designacion == calibrePorCarga.Designacion;
 
-        if (calibrePorProteccion.Designacion == calibrePorCarga.Designacion)
-            return (calibrePorCarga, null); // la ampacidad utilizable no alcanzaba el umbral exacto de breaker, pero el mismo calibre ya cubre ambos -- nada que reportar.
+            if (breaker <= total)
+                return (candidato, esElDeLaCarga ? null : new Cita("240-4",
+                    $"{calibrePorCarga} ({ampacidadUtilCarga} A) no cubre la protección de {breaker} A y no calificaba para la excepción 240-4(b) -- " +
+                    $"sube a {candidato} para que el conductor quede protegido según su ampacidad."));
 
-        return (calibrePorProteccion, new Cita("240-4",
-            $"{calibrePorCarga} ({ampacidadUtilCarga} A) no cubre la protección de {breaker} A y no calificaba para la excepción 240-4(b) -- " +
-            $"sube a {calibrePorProteccion} para que el conductor quede protegido según su ampacidad."));
+            if (CalificaExcepcion(total))
+                return (candidato, new Cita("240-4(b)", esElDeLaCarga
+                    ? $"Protección {breaker} A un escalón arriba de la ampacidad de {candidato} ({total} A) -- permitido: " +
+                      "no corresponde a un valor estándar de 240-6(a) y no excede 800 A."
+                    : $"{calibrePorCarga} ({ampacidadUtilCarga} A) no cubre la protección de {breaker} A -- sube a {candidato} ({total} A): " +
+                      "la protección queda un escalón arriba de su ampacidad, permitido porque no corresponde a un valor estándar de " +
+                      "240-6(a) y no excede 800 A."));
+        }
+
+        throw new InvalidOperationException(
+            $"No hay calibre en el catálogo que quede protegido por {breaker} A para {materialConductor} " +
+            $"({(int)tempAislamiento}°C, topado a {(int)tempTerminales}°C de la terminal).");
     }
 
     /// <summary>
