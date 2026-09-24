@@ -71,6 +71,8 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-48 · «1 polos» en el interruptor principal | P3 | **Cerrado** | `1cebf41` |
 | I-49 · Números con más de dos decimales y formatos distintos para el mismo valor | P2 | **Cerrado** | `9fe6995` |
 | I-50 · Fórmula de caída de la memoria sin «÷ 1000» (L en m, R y X en Ω/km) | P2 | **Cerrado** | `9fe6995` |
+| I-51 · Selector de uso de contactos desalineado bajo el de tipo | P3 | **Cerrado** | `pendiente` |
+| I-52 · F.P. cortado en «0.9» tras I-49 | P2 | **Cerrado** | `pendiente` |
 | R-01 · Caída del alimentador fija en 5 %, sin verificar la combinada — 215-2(a)(4) NOTA 2 | P1 | **Cerrado** | `2a973ea` |
 | R-02 · Caída del alimentador sin la caída del neutro | P2 | **Cerrado** | `d6cd1c6` |
 | R-03 · La publicación no corre `PowerNode.Web.Tests` | P1 | **Cerrado** | `986c9d7` |
@@ -214,6 +216,10 @@ Formato: **Hecho** (defecto observado) · **Corrección** · **Referencia** · *
 **I-49** — Hecho (David): los campos capturables mostraban el valor completo —una carga en W con su F.P. salía «823.529411…», el F.P. combinado de un desglose con cuatro decimales—, y un mismo valor salía distinto según dónde: F.D. «1» en la tabla y «1.00» en «Mínimo 220-52»; alumbrado «156.25» en «Continua» y «156» en el total del desglose y el balanceo. Regla de David: al usuario no se le muestran más de dos decimales; el cálculo conserva todos. Corrección: los campos muestran hasta dos decimales (`Numero`, «0.##») y los factores F.P. y F.D. siempre con dos (`Factor`, «0.00»); lo capturado se guarda completo; las cargas en VA van con hasta dos decimales en pantalla y documento («#,0.##»); en la memoria, R y X de la Tabla 9 con dos, y una nota dice que el cálculo usa los completos. Barrido en el navegador (captura, documento y memoria; texto, campos y tooltips) de un caso con W, A, desglose y F.P. de tres decimales: ningún número con más de dos. Prueba: navegador; `I50_…`.
 
 **I-50** — Hecho (Claude, en el barrido de I-49): la fórmula de caída de la memoria escribía «e = 2 × 23.70 m × 6.63 A × [ R × cos + X × sen ] / 1 = 2.83 V», con L en m y R, X en Ω/km: a mano daba 1000 veces la caída. En el alimentador, «× 0.037 km». Corrección: «÷ 1000» en la fórmula general y en la sustituida, con L en m. Prueba: `I50_LaCaidaSeRecalculaAMano_ConMetrosEntre1000_YDosDecimales`.
+
+**I-51** — Hecho (David): en un circuito de contactos de vivienda, el selector de uso («Cocina») salía en bloque pegado a la izquierda de la celda y con otra letra, debajo del de tipo centrado; la nota «Alimentador: 1,500 VA — 220-52(a)» también a la izquierda. Se veía chueco. Corrección: tipo, uso y nota en una columna centrada (`.tipo-uso`), los dos selectores de 108 × 23 px con el mismo borde. Prueba: navegador (mismas coordenadas y medidas; nota centrada bajo el tipo).
+
+**I-52** — Hecho (Claude, revisando I-51): I-49 puso el F.P. siempre con dos decimales («0.90») y el campo de 52 px lo cortaba en «0.9». Corrección: 60 px. Prueba: navegador, ningún campo con el texto más ancho que su caja, en un caso con W, A, desglose y F.P. de tres decimales.
 
 ### Revisión del 2026-09-23
 

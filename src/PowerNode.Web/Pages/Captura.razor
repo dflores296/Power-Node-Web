@@ -192,6 +192,7 @@
                             }
                         </td>
                         <td rowspan="@c.Polos">
+                            <div class="tipo-uso">
                             <select class="tipo" title="@c.Categoria.Descripcion()" @bind="c.Categoria" @bind:after="Recalcular">
                                 @foreach (var categoria in Enum.GetValues<CategoriaDeCarga>()) { <option value="@categoria">@categoria.Nombre()</option> }
                             </select>
@@ -207,6 +208,7 @@
                                     <span class="en-va">Alimentador: 1,500 VA — @c.UsoEfectivo.ReferenciaCargaMinima()</span>
                                 }
                             }
+                            </div>
                         </td>
                         <td rowspan="@c.Polos">
                             <select class="unidad" @bind="c.Unidad" @bind:after="Recalcular" disabled="@c.TieneDesglose" title="@SumaDelDesglose(c)">

@@ -137,7 +137,8 @@ input.desc { width: 100%; }
 /* 80 px: una carga con decimales (931.25 VA, de 745 W ÷ 0.8) se cortaba a 62. */
 input.va { width: 80px; text-align: right; }
 input.va.corto { width: 46px; }
-input.va.fp { width: 52px; }
+/* 60 px: el F.P. va siempre con dos decimales («0.90», I-49) y a 52 se cortaba en «0.9». */
+input.va.fp { width: 60px; }
 input.desc:focus, input.va:focus {
     background: var(--papel);
     border-color: var(--acento);
@@ -231,8 +232,10 @@ select.unidad { width: 56px; padding: 2px 4px; border-radius: var(--radio-xs); }
    navegador lo cortaba en "Alumbrac", que no es una palabra: un campo que miente sobre
    su propio valor es peor que uno estrecho. */
 select.tipo { width: 108px; padding: 2px 4px 2px 6px; border-radius: var(--radio-xs); }
-select.uso { display: block; margin-top: 3px; font-size: 11px; }
-.cuadro select.uso + .en-va { text-align: left; }
+/* Tipo y uso, uno bajo otro, centrados y del mismo tamaño; la nota de 220-52 centrada debajo. El
+   uso iba en bloque pegado a la izquierda y con otra letra: se veía chueco (David, 2026-09-24). */
+.cuadro .tipo-uso { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.cuadro .tipo-uso .en-va { text-align: center; padding-right: 0; }
 
 /* ------------------------------------------------------------------------------------------------
    LA FICHA DEL TABLERO — el bloque de identificación que el Excel lleva arriba del cuadro
