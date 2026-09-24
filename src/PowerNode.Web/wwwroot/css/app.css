@@ -243,17 +243,21 @@ select.uso { display: block; margin-top: 3px; font-size: 11px; }
 
 .ficha .grupo { background: var(--papel); border: 1px solid var(--linea);
                 border-radius: var(--radio-md); padding: 12px 14px 14px; }
-/* Rótulo y campo en dos columnas que llenan la tarjeta: con campos de ancho fijo pegados a la
-   derecha, en una tarjeta ancha quedaba un hueco en medio y todo se veía cargado a la derecha. */
-.ficha .grupo label { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr);
-                      align-items: center; gap: 12px;
-                      font-size: 11px; color: var(--tenue); margin-top: 6px; }
+/* UN SOLO FORMATO para todos los campos (David, 2026-09-24): rótulo a la izquierda en una columna
+   fija, campo a la derecha llenando el resto. Antes los selectores de opciones largas iban en su
+   propio renglón («apilado») y los demás en línea: dos formatos en la misma tarjeta.
+
+   Donde la tarjeta es angosta (tres columnas en pantalla mediana, o un teléfono) TODOS pasan a
+   rótulo arriba y campo abajo, parejos: cortado, «Centro de carg» miente sobre su valor. */
+.ficha .grupo label { display: grid; grid-template-columns: 150px minmax(0, 1fr);
+                      align-items: center; gap: 12px; min-height: 32px;
+                      font-size: 11px; color: var(--tenue); margin-top: 8px; }
+.ficha .grupo label > .ayuda { justify-self: start; }
 .ficha .grupo input, .ficha .grupo select { width: 100%; }
 .ficha .grupo input.casilla { width: auto; justify-self: start; }
-/* Un selector con opciones largas va en su propio renglón, a todo lo ancho: cortado, «Centro de
-   carg» miente sobre su valor (misma lección que «Alumbrac»). */
-.ficha .grupo label.apilado { grid-template-columns: 1fr; gap: 4px; }
-.ficha .grupo label.apilado select { width: 100%; }
+@media (min-width: 1101px) and (max-width: 1500px), (max-width: 480px) {
+    .ficha .grupo label { grid-template-columns: 1fr; gap: 4px; }
+}
 .derivado { margin: 10px 0 0; font-size: 11px; color: var(--tenue); line-height: 1.5; }
 
 .acciones { display: flex; gap: 8px; align-items: center; }

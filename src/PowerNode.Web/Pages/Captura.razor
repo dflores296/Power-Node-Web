@@ -49,7 +49,7 @@
         <label>Espacios <select @bind="Datos.NumeroEspacios" @bind:after="Recalcular">
             @foreach (var e in new[] { 6, 12, 18, 24, 30, 36, 42 }) { <option value="@e">@e</option> }
         </select></label>
-        <label class="apilado">Acometida <select @bind="Datos.TipoAcometida" @bind:after="Recalcular">
+        <label>Acometida <select @bind="Datos.TipoAcometida" @bind:after="Recalcular">
             <option value="@TipoAcometidaTablero.InterruptorPrincipal">Interruptor principal</option>
             <option value="@TipoAcometidaTablero.ZapatasPrincipales">Zapatas principales</option>
         </select></label>
@@ -66,14 +66,14 @@
         </select></label>
         <label>Capacidad de barra (A) <input type="number" min="0" step="1" placeholder="—"
                                              @bind="Datos.CapacidadBarraA" @bind:after="Recalcular" /></label>
-        <label class="apilado"><span class="ayuda" title="Seleccionar la familia de interruptores. Centro de carga (NEMA): 240-6(a) sin 16, 32 ni 63 A. Riel DIN (IEC): 16, 20, 25, 32, 40, 50, 63, 80, 100 y 125 A. NOM completa: 240-6(a) sin exclusiones.">Interruptores</span>
+        <label><span class="ayuda" title="Seleccionar la familia de interruptores. Centro de carga (NEMA): 240-6(a) sin 16, 32 ni 63 A. Riel DIN (IEC): 16, 20, 25, 32, 40, 50, 63, 80, 100 y 125 A. NOM completa: 240-6(a) sin exclusiones.">Interruptores</span>
             <select @bind="Datos.SerieInterruptores" @bind:after="Recalcular">
                 @foreach (var serie in new[] { SerieDeInterruptores.CentroDeCargaNema, SerieDeInterruptores.RielDinIec, SerieDeInterruptores.NomCompleta })
                 {
                     <option value="@serie">@serie.Nombre()</option>
                 }
             </select></label>
-        <label class="apilado"><span class="ayuda" title="Seleccionar el inmueble. Decide dos cosas: el mínimo del principal si el tablero es equipo de acometida — 230-79 (vivienda unifamiliar: según la carga; vivienda popular hasta 60 m²: 30 A; los demás: 60 A) — y qué justificaciones del factor de demanda aplican — Tabla 220-42, vivienda o no vivienda.">Inmueble</span>
+        <label><span class="ayuda" title="Seleccionar el inmueble. Decide dos cosas: el mínimo del principal si el tablero es equipo de acometida — 230-79 (vivienda unifamiliar: según la carga; vivienda popular hasta 60 m²: 30 A; los demás: 60 A) — y qué justificaciones del factor de demanda aplican — Tabla 220-42, vivienda o no vivienda.">Inmueble</span>
             <select @bind="Datos.Inmueble" @bind:after="Recalcular">
                 @foreach (var inmueble in Enum.GetValues<TipoDeInmueble>()) { <option value="@inmueble">@inmueble.Nombre()</option> }
             </select></label>
@@ -91,12 +91,12 @@
             <select @bind="Datos.TipoAislamiento" @bind:after="Recalcular">
                 @foreach (var aislamiento in Aislamientos) { <option value="@aislamiento">@aislamiento</option> }
             </select></label>
-        <label class="apilado"><span class="ayuda" title="Declarar la temperatura de las terminales del interruptor y del equipo — 110-14(c)(1). Regla general: 60 °C hasta 100 A; 75 °C arriba de 100 A. Marcadas 75 °C: aplicar solo si ambas terminales lo indican — a.(3). Conductor de 60 °C: usar 60 °C — a.(1).">Terminales</span>
+        <label><span class="ayuda" title="Declarar la temperatura de las terminales del interruptor y del equipo — 110-14(c)(1). Regla general: 60 °C hasta 100 A; 75 °C arriba de 100 A. Marcadas 75 °C: aplicar solo si ambas terminales lo indican — a.(3). Conductor de 60 °C: usar 60 °C — a.(1).">Terminales</span>
             <select @bind="Terminales" @bind:after="Recalcular">
                 <option value="60">60 °C hasta 100 A (regla general)</option>
                 <option value="75">Marcadas 75 °C</option>
             </select></label>
-        <label class="apilado"><span class="ayuda" title="Seleccionar el lugar de instalación — Tabla 310-104(a). Determina la temperatura del aislamiento (THHW-LS: 90 °C seco, 75 °C mojado) y su validez (THHN: solo lugar seco).">Lugar</span>
+        <label><span class="ayuda" title="Seleccionar el lugar de instalación — Tabla 310-104(a). Determina la temperatura del aislamiento (THHW-LS: 90 °C seco, 75 °C mojado) y su validez (THHN: solo lugar seco).">Lugar</span>
             <select @bind="Lugar" @bind:after="Recalcular">
                 <option value="seco">Seco</option>
                 <option value="mojado">Húmedo o mojado</option>
