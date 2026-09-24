@@ -293,6 +293,14 @@ public sealed class CuadroDeCarga
     {
         foreach (var c in _circuitos)
         {
+            // 424-3(b): la calefacción fija de ambiente es carga continua. Lo capturado como no continua
+            // pasa a continua — R-18.
+            if (c.Categoria == CategoriaDeCarga.CalefaccionFija && c.NoContinua > 0m)
+            {
+                c.Continua += c.NoContinua;
+                c.NoContinua = 0m;
+            }
+
             c.ContinuaVA = AVoltAmperes(c, c.Continua);
             c.NoContinuaVA = AVoltAmperes(c, c.NoContinua);
             c.Ajuste220_52VA = c.TieneCarga && c.UsoEfectivo.ReferenciaCargaMinima() is not null

@@ -22,6 +22,12 @@ public enum JustificacionFactorDemanda
     DemandaMaximaMedida,
     RestauranteNuevo,
 
+    /// <summary>430-26: no todos los motores funcionan al mismo tiempo, o servicio intermitente.</summary>
+    MotoresNoSimultaneos,
+
+    /// <summary>220-51, Excepción: la calefacción trabaja por ciclos o no toda a la vez.</summary>
+    CalefaccionPorCiclos,
+
     /// <summary>Criterio del proyectista, con su texto en <see cref="DatosDelTablero.JustificacionOtra"/>.</summary>
     Otra,
 }
@@ -44,6 +50,8 @@ public static class JustificacionesFactorDemanda
         JustificacionFactorDemanda.Escuelas => "Tabla 220-86 — escuelas",
         JustificacionFactorDemanda.DemandaMaximaMedida => "220-87 — instalación existente con demanda máxima medida",
         JustificacionFactorDemanda.RestauranteNuevo => "Tabla 220-88 — restaurante nuevo",
+        JustificacionFactorDemanda.MotoresNoSimultaneos => "430-26 — no todos los motores funcionan al mismo tiempo, o servicio intermitente",
+        JustificacionFactorDemanda.CalefaccionPorCiclos => "220-51, Excepción — la calefacción trabaja por ciclos o no toda a la vez",
         _ => "Otra — criterio del proyectista",
     };
 }

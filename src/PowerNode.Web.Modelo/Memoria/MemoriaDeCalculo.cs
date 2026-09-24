@@ -150,7 +150,7 @@ public static class MemoriaDeCalculo
     /// </summary>
     private static IReadOnlyList<RenglonMemoria> FactoresDeDemanda(DatosDelTablero datos) =>
     [
-        .. CategoriasDeCarga.Reducibles
+        .. CategoriasDeCarga.Todas
             .Where(c => datos.FactorDeDemanda(c) < 1m)
             .Select(c => new RenglonMemoria(
                 $"F.D. {c.NombreCompleto().ToLowerInvariant()} — 220-40",

@@ -490,7 +490,7 @@ public class CuadroDeCargaTests
     // ---- R-17 · Factor de demanda por tipo de carga ---------------------------------------------------
 
     [Fact]
-    public void R17_CadaTipoConSuFactor_YMotoresYCalefaccionNoSeReducen()
+    public void R17_CadaTipoConSuFactor_MotoresYCalefaccionEn1PorOmision()
     {
         var cuadro = Nuevo(espacios: 12);
         foreach (var (espacio, categoria) in new[]
@@ -511,9 +511,64 @@ public class CuadroDeCargaTests
         Assert.Equal(500m, Demandada(CategoriaDeCarga.Alumbrado));
         Assert.Equal(600m, Demandada(CategoriaDeCarga.Contactos));
         Assert.Equal(750m, Demandada(CategoriaDeCarga.Equipo));
-        Assert.Equal(1000m, Demandada(CategoriaDeCarga.MotorOAireAcondicionado)); // 220-50
-        Assert.Equal(1000m, Demandada(CategoriaDeCarga.CalefaccionFija));         // 220-51
+        Assert.Equal(1000m, Demandada(CategoriaDeCarga.MotorOAireAcondicionado)); // 1.0 por omisión
+        Assert.Equal(1000m, Demandada(CategoriaDeCarga.CalefaccionFija));
         Assert.Equal(3850m, cuadro.Resumen.DemandadaVA);
+    }
+
+    // ---- R-18 · Motores y calefacción también admiten F.D. (430-26, 220-51 Exc.); calefacción, continua
+
+    [Fact]
+    public void R18_MotoresYCalefaccionSeReducenConSuJustificacion()
+    {
+        var cuadro = Nuevo(espacios: 6);
+        Espacio(cuadro, 1).Categoria = CategoriaDeCarga.MotorOAireAcondicionado;
+        Espacio(cuadro, 1).NoContinua = 1000m;
+        Espacio(cuadro, 3).Categoria = CategoriaDeCarga.CalefaccionFija;
+        Espacio(cuadro, 3).Continua = 1000m;
+        cuadro.Datos.FactorDemandaMotores = 0.7m;
+        cuadro.Datos.FactorDemandaCalefaccion = 0.8m;
+        cuadro.Recalcular();
+
+        decimal Demandada(CategoriaDeCarga c) => cuadro.Resumen.PorCategoria!.Single(f => f.Categoria == c).DemandadaVA;
+        Assert.Equal(700m, Demandada(CategoriaDeCarga.MotorOAireAcondicionado));
+        Assert.Equal(800m, Demandada(CategoriaDeCarga.CalefaccionFija));
+        Assert.Equal(2, cuadro.Alimentador.Avisos.Count(a => a.Contains("no tiene justificación")));
+
+        Assert.Equal(
+            [JustificacionFactorDemanda.MotoresNoSimultaneos, JustificacionFactorDemanda.CargasNoCoincidentes, JustificacionFactorDemanda.Otra],
+            CategoriaDeCarga.MotorOAireAcondicionado.JustificacionesPosibles());
+        Assert.Equal(
+            [JustificacionFactorDemanda.CalefaccionPorCiclos, JustificacionFactorDemanda.CargasNoCoincidentes, JustificacionFactorDemanda.Otra],
+            CategoriaDeCarga.CalefaccionFija.JustificacionesPosibles());
+
+        cuadro.Datos.Justificaciones[CategoriaDeCarga.MotorOAireAcondicionado].Add(JustificacionFactorDemanda.MotoresNoSimultaneos);
+        cuadro.Datos.Justificaciones[CategoriaDeCarga.CalefaccionFija].Add(JustificacionFactorDemanda.CalefaccionPorCiclos);
+        cuadro.Recalcular();
+        Assert.DoesNotContain(cuadro.Alimentador.Avisos, a => a.Contains("no tiene justificación"));
+    }
+
+    [Fact]
+    public void R18_LaCalefaccionPasaSolaACargaContinua()
+    {
+        // 424-3(b): lo capturado como no continua se mueve a continua, y entra al 125 %.
+        var cuadro = Nuevo();
+        var c = Espacio(cuadro, 1);
+        c.Categoria = CategoriaDeCarga.CalefaccionFija;
+        c.NoContinua = 1270m; // 10 A
+        cuadro.Recalcular();
+
+        Assert.Equal(1270m, c.Continua);
+        Assert.Equal(0m, c.NoContinua);
+        Assert.Equal(1270m, c.ContinuaVA);
+        Assert.Equal(12.5m, c.Resultado!.Detalle!.CapacidadMinimaA, 2); // 125 % × 10 A
+    }
+
+    [Fact]
+    public void R18_ElTooltipDelTipoTraeEjemplos()
+    {
+        Assert.Contains("inverter frío/calor", CategoriaDeCarga.MotorOAireAcondicionado.Descripcion());
+        Assert.Contains("calderas eléctricas", CategoriaDeCarga.CalefaccionFija.Descripcion());
     }
 
     [Fact]

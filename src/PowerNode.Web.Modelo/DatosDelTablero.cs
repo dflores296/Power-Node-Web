@@ -148,33 +148,49 @@ public sealed class DatosDelTablero
     /// <summary>
     /// <b>Factor de demanda por tipo de carga</b> — R-17. 220-40: la carga del alimentador es la suma
     /// de los derivados «después de aplicar cualquier factor de demanda aplicable», y el Art. 220 los
-    /// da por tipo. Los captura el proyectista; 1.0 = sin reducción. Motores, A/C y calefacción fija no
-    /// se reducen (220-50, 220-51). Sustituye a los dos factores del Excel (continua y no continua):
-    /// el 125 % de 215-3 se sigue aplicando a la parte continua de cada circuito.
+    /// da por tipo. Los captura el proyectista; 1.0 = sin reducción. Motores y A/C (430-26) y
+    /// calefacción (220-51, Excepción) también, con su condición — R-18. Sustituye a los dos factores
+    /// del Excel (continua y no continua): el 125 % de 215-3 se sigue aplicando a la parte continua.
     /// </summary>
     public decimal FactorDemandaAlumbrado { get; set; } = 1m;
     public decimal FactorDemandaContactos { get; set; } = 1m;
     public decimal FactorDemandaEquipo { get; set; } = 1m;
+    public decimal FactorDemandaMotores { get; set; } = 1m;
+    public decimal FactorDemandaCalefaccion { get; set; } = 1m;
 
-    /// <summary>El factor de un tipo. 1.0 en los que la norma no deja reducir.</summary>
+    /// <summary>El factor de un tipo.</summary>
     public decimal FactorDeDemanda(CategoriaDeCarga categoria) => categoria switch
     {
         CategoriaDeCarga.Alumbrado => FactorDemandaAlumbrado,
         CategoriaDeCarga.Contactos => FactorDemandaContactos,
         CategoriaDeCarga.Equipo => FactorDemandaEquipo,
-        _ => 1m,
+        CategoriaDeCarga.MotorOAireAcondicionado => FactorDemandaMotores,
+        _ => FactorDemandaCalefaccion,
     };
 
+    /// <summary>Cambia el factor de un tipo.</summary>
+    public void CambiarFactorDeDemanda(CategoriaDeCarga categoria, decimal factor)
+    {
+        switch (categoria)
+        {
+            case CategoriaDeCarga.Alumbrado: FactorDemandaAlumbrado = factor; break;
+            case CategoriaDeCarga.Contactos: FactorDemandaContactos = factor; break;
+            case CategoriaDeCarga.Equipo: FactorDemandaEquipo = factor; break;
+            case CategoriaDeCarga.MotorOAireAcondicionado: FactorDemandaMotores = factor; break;
+            default: FactorDemandaCalefaccion = factor; break;
+        }
+    }
+
     /// <summary>Algún tipo reduce su carga: la memoria pide justificación — R-12.</summary>
-    public bool ReduceCargaPorDemanda => CategoriasDeCarga.Reducibles.Any(c => FactorDeDemanda(c) < 1m);
+    public bool ReduceCargaPorDemanda => CategoriasDeCarga.Todas.Any(c => FactorDeDemanda(c) < 1m);
 
     /// <summary>Con qué se justifica el factor de cada tipo. Varias por tipo — R-12, R-17.</summary>
     public Dictionary<CategoriaDeCarga, HashSet<JustificacionFactorDemanda>> Justificaciones { get; } =
-        CategoriasDeCarga.Reducibles.ToDictionary(c => c, _ => new HashSet<JustificacionFactorDemanda>());
+        CategoriasDeCarga.Todas.ToDictionary(c => c, _ => new HashSet<JustificacionFactorDemanda>());
 
     /// <summary>El texto de «Otra — criterio del proyectista», por tipo.</summary>
     public Dictionary<CategoriaDeCarga, string> JustificacionOtra { get; } =
-        CategoriasDeCarga.Reducibles.ToDictionary(c => c, _ => string.Empty);
+        CategoriasDeCarga.Todas.ToDictionary(c => c, _ => string.Empty);
 
     /// <summary>
     /// La justificación de un tipo como la imprime la memoria, en el orden de la lista. <c>null</c> si
@@ -197,7 +213,7 @@ public sealed class DatosDelTablero
 
     /// <summary>Los tipos con factor menor que 1 y sin justificación.</summary>
     public IEnumerable<CategoriaDeCarga> SinJustificacion =>
-        CategoriasDeCarga.Reducibles.Where(c => FactorDeDemanda(c) < 1m && JustificacionDe(c) is null);
+        CategoriasDeCarga.Todas.Where(c => FactorDeDemanda(c) < 1m && JustificacionDe(c) is null);
 
     // ---- Condiciones de cálculo (Excel columnas DA a DR, iguales en todos los renglones) --------
 

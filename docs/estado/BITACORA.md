@@ -44,8 +44,9 @@ Pruebas: 66 en `PowerNode.Web.Tests`, 6 en `PowerNode.Normativa.Tests`.
 - Justificación del factor de demanda, selección múltiple del Art. 220, en la memoria; aviso si falta — R-12, `eb50462`.
 - Cinco tipos de carga y factor de demanda por tipo; motores, A/C y calefacción fija al 100 %; justificación por tipo — R-17, `8e28f86`.
 - Revisar 240-4(b) en cada calibre, no solo en el de la carga: 60 A en 6 AWG, no 4 AWG — R-16, `2da832f`.
+- Factor de demanda también en motores y A/C (430-26) y calefacción (220-51 Excepción); calefacción a continua; tooltips con ejemplos — R-18.
 
-Pruebas: 134 en `PowerNode.Web.Tests`, 6 en `PowerNode.Normativa.Tests`.
+Pruebas: 137 en `PowerNode.Web.Tests`, 6 en `PowerNode.Normativa.Tests`.
 
 ## 2026-09-22 (tercera parte)
 

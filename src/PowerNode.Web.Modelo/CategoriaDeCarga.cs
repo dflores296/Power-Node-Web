@@ -5,9 +5,14 @@ namespace PowerNode.Web.Modelo;
 /// <summary>
 /// <b>El tipo de carga del circuito, como lo agrupa el Art. 220 para el factor de demanda</b> — R-17
 /// (David, 2026-09-24). Los factores van por tipo, no por continua / no continua: la tabla de
-/// alumbrado (220-42) no es la de contactos (220-44) ni la de aparatos (220-53 a 220-56), y dos tipos
-/// no se reducen nunca: motores y aire acondicionado (220-50, van por 430-24 y 440) y calefacción
-/// eléctrica fija (220-51, al 100 %).
+/// alumbrado (220-42) no es la de contactos (220-44) ni la de aparatos (220-53 a 220-56).
+///
+/// <para>
+/// <b>Los cinco admiten factor de demanda, con justificación</b> — R-18. Motores y A/C (220-50) y
+/// calefacción fija (220-51) se calculan al 100 % como regla general, pero 430-26 y la Excepción de
+/// 220-51 permiten menos cuando no funcionan todos a la vez o trabajan por ciclos. Hasta el
+/// 2026-09-24 esos dos quedaban fijos en 1.00: era más estricto que la norma.
+/// </para>
 ///
 /// <para>
 /// Para el cálculo del circuito, <see cref="MotorOAireAcondicionado"/> y <see cref="CalefaccionFija"/>
@@ -26,11 +31,8 @@ public enum CategoriaDeCarga
 
 public static class CategoriasDeCarga
 {
-    /// <summary>Los tipos cuyo factor de demanda captura el proyectista.</summary>
-    public static readonly IReadOnlyList<CategoriaDeCarga> Reducibles =
-        [CategoriaDeCarga.Alumbrado, CategoriaDeCarga.Contactos, CategoriaDeCarga.Equipo];
-
-    public static bool AdmiteFactorDeDemanda(this CategoriaDeCarga c) => Reducibles.Contains(c);
+    /// <summary>Todos los tipos: cada uno lleva su factor de demanda, 1.0 por omisión.</summary>
+    public static readonly IReadOnlyList<CategoriaDeCarga> Todas = Enum.GetValues<CategoriaDeCarga>();
 
     /// <summary>Para el selector del renglón, que mide 108 px.</summary>
     public static string Nombre(this CategoriaDeCarga c) => c switch
@@ -51,12 +53,14 @@ public static class CategoriasDeCarga
         _ => c.Nombre(),
     };
 
-    /// <summary>Por qué no se reduce. <c>null</c> en los tipos que sí admiten factor.</summary>
-    public static string? SinReduccion(this CategoriaDeCarga c) => c switch
+    /// <summary>Qué va en cada tipo, con ejemplos. Es el tooltip del selector.</summary>
+    public static string Descripcion(this CategoriaDeCarga c) => c switch
     {
-        CategoriaDeCarga.MotorOAireAcondicionado => "220-50: se calcula con 430-24 y 440, sin factor de demanda",
-        CategoriaDeCarga.CalefaccionFija => "220-51: al 100 % de la carga conectada",
-        _ => null,
+        CategoriaDeCarga.Alumbrado => "Alumbrado: luminarias y alumbrado general — Tabla 220-42.",
+        CategoriaDeCarga.Contactos => "Contactos: contactos de uso general. En vivienda, seleccionar el uso (cocina, lavadora, baño) — 210-11(c).",
+        CategoriaDeCarga.Equipo => "Equipo: aparatos que no son motor ni calefacción de ambiente: hornos, estufas, parrillas, secadoras, calentadores de agua, equipo electrónico — 220-53 a 220-56.",
+        CategoriaDeCarga.MotorOAireAcondicionado => "Motor / A/C: todo lo que funciona con motor o compresor: aire acondicionado, refrigeración, bombas, ventiladores, bombas de calor e inverter frío/calor — 220-50, Art. 430 y 440.",
+        _ => "Calefacción: calefacción por resistencia eléctrica: calefactores, cables calefactores, calderas eléctricas. Carga continua — 424-3(b); 220-51.",
     };
 
     /// <summary>El tipo con el que calcula el motor: los tres de equipo son carga de placa.</summary>
@@ -67,25 +71,28 @@ public static class CategoriasDeCarga
         _ => TipoCarga.Equipo,
     };
 
-    /// <summary>Las justificaciones que le aplican a cada tipo. La Parte D (métodos opcionales) y «Otra», a todos.</summary>
+    /// <summary>Las justificaciones que le aplican a cada tipo.</summary>
     public static IReadOnlyList<JustificacionFactorDemanda> JustificacionesPosibles(this CategoriaDeCarga c)
     {
+        // Motores y calefacción: solo con la condición de su propia sección, o si no coinciden.
+        if (c == CategoriaDeCarga.MotorOAireAcondicionado)
+            return [JustificacionFactorDemanda.MotoresNoSimultaneos, JustificacionFactorDemanda.CargasNoCoincidentes, JustificacionFactorDemanda.Otra];
+        if (c == CategoriaDeCarga.CalefaccionFija)
+            return [JustificacionFactorDemanda.CalefaccionPorCiclos, JustificacionFactorDemanda.CargasNoCoincidentes, JustificacionFactorDemanda.Otra];
+
         IEnumerable<JustificacionFactorDemanda> propias = c switch
         {
             CategoriaDeCarga.Alumbrado => [JustificacionFactorDemanda.AlumbradoGeneral],
             // 220-44: los contactos de inmuebles que no son vivienda van «sujetos a los factores de
             // demanda de la Tabla 220-42 o la Tabla 220-44».
             CategoriaDeCarga.Contactos => [JustificacionFactorDemanda.AlumbradoGeneral, JustificacionFactorDemanda.ContactosNoVivienda],
-            CategoriaDeCarga.Equipo =>
+            _ =>
             [
                 JustificacionFactorDemanda.AparatosFijosVivienda, JustificacionFactorDemanda.SecadorasVivienda,
                 JustificacionFactorDemanda.EstufasVivienda, JustificacionFactorDemanda.CocinaComercial,
                 JustificacionFactorDemanda.CargasNoCoincidentes,
             ],
-            _ => [],
         };
-        if (!c.AdmiteFactorDeDemanda())
-            return [];
 
         return
         [
