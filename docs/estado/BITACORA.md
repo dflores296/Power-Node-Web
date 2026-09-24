@@ -66,6 +66,12 @@ Pruebas: 66 en `PowerNode.Web.Tests`, 6 en `PowerNode.Normativa.Tests`.
 - Una sola lista de tubos: cada circuito con carga nace en el suyo (T1, T2…), sin «Propia»; opciones en columnas; tamaño en combo mm/in con el calculado ya elegido; sin columna vacía — I-44, `c7ab778`.
 - El selector «Canal.» mostraba otro tubo que el del circuito al quitarse uno de la lista (opciones reutilizadas por posición): `@key` — I-45, `2ddc0b5`.
 
+**Revisión de la cocina de David (1F-2H, 127 V, inmueble «Otro»)** — el caso se reprodujo en el motor con los mismos números.
+
+- Aplicar el uso de contactos (210-11(c), 220-52) solo en vivienda de más de 60 m² — I-46, `1cebf41`.
+- F.P. del alimentador con demanda y 220-52, el de la caída; sin renglón de neutro en 1F-2H — I-47, `1cebf41`.
+- «1 polo» en el interruptor principal — I-48, `1cebf41`.
+
 Pruebas: 167 en `PowerNode.Web.Tests`, 23 en `PowerNode.Normativa.Tests`.
 
 ## 2026-09-22 (tercera parte)
