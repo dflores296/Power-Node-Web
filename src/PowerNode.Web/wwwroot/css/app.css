@@ -138,10 +138,37 @@ input.desc:focus, input.va:focus {
     box-shadow: 0 0 0 3px rgb(11 110 153 / .12);
 }
 
-.fase { font-weight: 600; letter-spacing: .06em; }
-.fase-a { color: #8a1d1d; }
-.fase-b { color: #1d3f8a; }
-.fase-c { color: #1d6b3a; }
+/*
+   COLORES DE CONDUCTOR, los de la NOM donde la NOM los fija (David, 2026-09-24):
+     neutro -- blanco o gris claro, 200-6;
+     tierra -- verde, o verde con franjas amarillas, 250-119.
+   Las fases NO tienen color en la NOM: 210-5(c)(2) deja cualquier medio y 210-5(c)(3) pide
+   documentarlo. Se usa la práctica común: A negro, B rojo, C azul. Antes la C iba en verde, que es
+   justo el color que 250-119 reserva a la puesta a tierra.
+
+   Rectángulo de esquinas redondeadas, no círculo, con la letra en blanco: los tres pasan 4.5:1.
+*/
+.fase { font-weight: 600; white-space: nowrap; }
+.fase-rect { display: inline-flex; align-items: center; justify-content: center;
+         min-width: 20px; height: 17px; padding: 0 5px; border-radius: 5px;
+         font-size: 10px; font-weight: 700; letter-spacing: 0; color: #fff; }
+.fase .fase-rect + .fase-rect { margin-left: 3px; }
+.fase-rect-a { background: #1b1f23; }
+.fase-rect-b { background: #c62828; }
+.fase-rect-c { background: #1565c0; }
+
+/* Las muestras antes de «Fase», «Neutro» y «Puesta a tierra»: el color del forro de cada uno. */
+.muestras { display: inline-flex; gap: 2px; margin-right: 5px; vertical-align: -1px; }
+.muestras i { display: block; width: 7px; height: 11px; border-radius: 2px; }
+.color-a { background: #1b1f23; }
+.color-b { background: #c62828; }
+.color-c { background: #1565c0; }
+.color-neutro { background: #fff; box-shadow: inset 0 0 0 1px #9aa6b2; }
+.color-tierra { background: #2e7d32; }
+
+/* Un conductor en una sola celda: el calibre y, debajo, la sección. */
+.cuadro td.conductor { white-space: nowrap; }
+.cuadro td.conductor .mm2 { display: block; font-size: 10px; color: var(--tenue); }
 
 .fila-error td { color: var(--alerta); font-size: 11px; text-align: left; padding: 4px 8px 8px; }
 
@@ -365,16 +392,8 @@ label.suelto input { width: 90px; }
                    font-variant-numeric: tabular-nums; }
 
 /* Una pastilla por barra que toca, apiladas: un 3 polos toca A, B y C, y fundir eso en un solo
-   color perdería justo el dato que el color existe para enseñar.
-
-   Los tonos salen de los colores de fase que ya usa el cuadro (A vinto, B azul, C verde). OJO: el
-   editor de escritorio pinta la A de azul; si algún día se quiere una sola paleta entre los dos
-   programas, hay que decidir cuál manda. */
-.pastilla { width: 17px; height: 17px; border-radius: var(--radio-xs); font-size: 10px;
-            font-weight: 700; display: flex; align-items: center; justify-content: center; }
-.pastilla-a { background: #f7e0e0; color: #8a1d1d; }
-.pastilla-b { background: #dfe6f7; color: #1d3f8a; }
-.pastilla-c { background: #ddeee3; color: #1d6b3a; }
+   color perdería justo el dato que el color existe para enseñar. Los colores son los de .fase-rect. */
+.bloque .fase-rect { min-width: 18px; height: 16px; padding: 0 4px; }
 
 .principal { margin-top: 8px; padding: 8px 10px; text-align: center; font-size: 11px;
              color: var(--tenue); background: #eef2f7; border: 1px solid var(--linea);

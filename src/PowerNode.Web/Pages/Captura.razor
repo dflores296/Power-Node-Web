@@ -135,9 +135,9 @@
                 <th rowspan="2"><span class="ayuda" title="Consultar las barras que toca el interruptor. Las determina el espacio de montaje.">Barras</span></th>
                 <th rowspan="2"><span class="ayuda" title="Consultar la corriente de diseño de la carga capturada — 210-19(a)(1)."><span class="simbolo">In (A)</span></span></th>
                 <th rowspan="2"><span class="ayuda" title="Consultar la protección: primer tamaño normalizado mayor o igual a la capacidad mínima — 240-6(a), 210-20(a). Pasar el cursor sobre el valor para consultar el desglose.">Protec. <span class="simbolo">(A)</span></span></th>
-                <th colspan="3"><span class="ayuda" title="Consultar el conductor de fase: hilos por fase, sección (mm²) y designación AWG/kcmil. Pasar el cursor sobre el calibre para consultar el desglose.">Fase</span></th>
-                <th colspan="3"><span class="ayuda" title="Consultar el conductor de neutro.">Neutro</span></th>
-                <th colspan="3"><span class="ayuda" title="Consultar el conductor de puesta a tierra de equipos — Tabla 250-122 y 250-122(b).">Puesta a tierra</span></th>
+                <th rowspan="2"><span class="muestras">@foreach (var barra in Datos.Barras) { <i class="color-@char.ToLowerInvariant(barra)"></i> }</span><span class="ayuda" title="Consultar el conductor de fase: designación AWG/kcmil y, debajo, su sección (mm²) — Tabla 8. Si lleva conductores en paralelo, «2 ×» antes del calibre. Pasar el cursor sobre el calibre para consultar el desglose.&#10;&#10;Colores de fase: la NOM no los fija — 210-5(c)(2) —; se usan negro, rojo y azul, la práctica común.">Fase</span></th>
+                <th rowspan="2"><span class="muestras"><i class="color-neutro"></i></span><span class="ayuda" title="Consultar el conductor de neutro. Blanco o gris claro — 200-6.">Neutro</span></th>
+                <th rowspan="2"><span class="muestras"><i class="color-tierra"></i></span><span class="ayuda" title="Consultar el conductor de puesta a tierra de equipos — Tabla 250-122 y 250-122(b). Verde, o verde con franjas amarillas — 250-119.">Puesta a tierra</span></th>
                 <th rowspan="2" class="ultima"><span class="ayuda" title="Consultar la caída de tensión del circuito. Límite recomendado: 3 % en el derivado y 5 % combinada — 210-19(a)(1), nota 4."><span class="simbolo">e (%)</span></span></th>
             </tr>
             <tr>
@@ -147,13 +147,7 @@
                 <th><span class="ayuda" title="Capturar el factor de potencia de la carga. Valor inicial: 0.9.&#10;&#10;Capturada en W: VA = W ÷ F.P. Modifica corriente, protección, conductor, caída de tensión y kW.&#10;&#10;Capturada en VA o A: modifica solo la caída de tensión (y el conductor, si excede el límite) y los kW — Tabla 9, nota 2.">F.P.</span></th>
                 @foreach (var barra in Datos.Barras)
                 {
-                    <th><span class="ayuda" title="Consultar la carga que el circuito asigna a la barra @barra.">@barra</span></th>
-                }
-                @foreach (var _ in new[] { "fase", "neutro", "tierra" })
-                {
-                    <th><span class="ayuda" title="Consultar los conductores en paralelo por fase.">Hilos</span></th>
-                    <th><span class="ayuda" title="Consultar la sección transversal del conductor — Tabla 8."><span class="simbolo">mm²</span></span></th>
-                    <th><span class="ayuda" title="Consultar la designación AWG o kcmil."><span class="simbolo">AWG/kcmil</span></span></th>
+                    <th><span class="ayuda" title="Consultar la carga que el circuito asigna a la barra @barra."><span class="fase-rect fase-rect-@char.ToLowerInvariant(barra)">@barra</span></span></th>
                 }
             </tr>
         </thead>
@@ -244,7 +238,7 @@
                         <td rowspan="@c.Polos" class="fase">
                             @foreach (var barra in c.Fases)
                             {
-                                <span class="fase-@char.ToLowerInvariant(barra)">@barra</span>
+                                <span class="fase-rect fase-rect-@char.ToLowerInvariant(barra)">@barra</span>
                             }
                         </td>
                         <td rowspan="@c.Polos" class="num">@c.Resultado?.CorrienteDisenoA.ToString("N2")</td>
@@ -360,7 +354,7 @@
                     <span class="pastillas">
                         @foreach (var barra in bloque.Barras)
                         {
-                            <span class="pastilla pastilla-@char.ToLowerInvariant(barra)">@barra</span>
+                            <span class="fase-rect fase-rect-@char.ToLowerInvariant(barra)">@barra</span>
                         }
                     </span>
                     <span class="etiqueta">
@@ -478,7 +472,7 @@
         <h2 class="separado">Balanceo de fases</h2>
         <table class="datos">
             <tr>
-                @foreach (var barra in Datos.Barras) { <th>@barra <span class="simbolo">(VA)</span></th> }
+                @foreach (var barra in Datos.Barras) { <th><span class="fase-rect fase-rect-@char.ToLowerInvariant(barra)">@barra</span> <span class="simbolo">(VA)</span></th> }
                 <th>Desbalanceo</th>
             </tr>
             <tr>
@@ -602,34 +596,33 @@
     /// Cuántas columnas tiene el cuadro, para los <c>colspan</c> de los renglones que abarcan todo.
     /// Depende de las barras: un tablero de dos barras no tiene columna de balanceo para la C.
     /// </summary>
-    private int Columnas => 22 + Datos.Barras.Count;
+    private int Columnas => 16 + Datos.Barras.Count;
 
     /// <summary>Los dos bloques del cuadro, ya materializados: cada uno se recorre más de una vez.</summary>
     private List<CircuitoDelCuadro>[] Lados => [Cuadro.Nones.ToList(), Cuadro.Pares.ToList()];
 
     /// <summary>
-    /// Las tres celdas de un conductor: hilos, mm² y designación AWG/kcmil. Se combinan hacia abajo
-    /// tantos renglones como polos tenga el interruptor.
+    /// La celda de un conductor: la designación AWG/kcmil y, debajo, su sección en mm². Los hilos en
+    /// paralelo ya no llevan columna (David, 2026-09-24): si son más de uno, «2 ×» antes del calibre.
+    /// Se combina hacia abajo tantos renglones como polos tenga el interruptor.
     /// </summary>
     /// <param name="porque">El desglose de la selección: si viene, la designación AWG/kcmil lleva un
     /// tooltip con cómo se llegó a ese calibre.</param>
     private static RenderFragment Conductor(Calibre? calibre, int hilos, int polos, IReadOnlyList<string>? porque = null) => builder =>
     {
-        var textos = calibre is null || hilos <= 0
-            ? ["", "", ""]
-            : new[] { hilos.ToString(), calibre.AreaMm2.ToString("N2"), calibre.Designacion };
-
-        for (var i = 0; i < textos.Length; i++)
+        builder.OpenElement(0, "td");
+        builder.AddAttribute(1, "class", "num conductor");
+        builder.AddAttribute(2, "rowspan", polos);
+        if (calibre is not null && hilos > 0)
         {
-            builder.OpenElement(0, "td");
-            builder.AddAttribute(1, "class", "num");
-            builder.AddAttribute(2, "rowspan", polos);
-            if (i == 2 && porque is not null && textos[i] != "")
-                builder.AddContent(3, Ayuda(textos[i], porque));
-            else
-                builder.AddContent(4, textos[i]);
+            var designacion = hilos > 1 ? $"{hilos} × {calibre.Designacion}" : calibre.Designacion;
+            builder.AddContent(3, Ayuda(designacion, porque));
+            builder.OpenElement(4, "span");
+            builder.AddAttribute(5, "class", "mm2");
+            builder.AddContent(6, $"{calibre.AreaMm2:N2} mm²");
             builder.CloseElement();
         }
+        builder.CloseElement();
     };
 
     /// <summary>
