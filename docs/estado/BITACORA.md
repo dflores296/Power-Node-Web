@@ -51,6 +51,7 @@ Pruebas: 66 en `PowerNode.Web.Tests`, 6 en `PowerNode.Normativa.Tests`.
 - Resumen con título «Tipo de carga» y encabezados centrados; balanceo de fases en tarjeta propia con barras por fase — pedido de David, `db71f23`.
 - Desglose de aparatos como lista: tarjeta blanca a todo el ancho del renglón, línea entre aparatos — pedido de David, `4f45202`.
 - Calibre con su unidad en el alimentador; documento impreso sin «Hilos»; columnas A/B/C de igual ancho — pedido de David, `f3a762b`.
+- Quitar del gabinete la nota del acomodo de barras — pedido de David, `d9c2f39`.
 
 Pruebas: 156 en `PowerNode.Web.Tests`, 6 en `PowerNode.Normativa.Tests`.
 
