@@ -61,9 +61,13 @@ select, input { font: inherit; padding: 5px 8px; border: 1px solid var(--linea);
 /* separate y no collapse: con border-collapse: collapse el navegador IGNORA el
    border-radius y las esquinas salen cuadradas. Las líneas interiores se dibujan
    entonces con border-bottom en las celdas, no con el borde de la tabla. */
-.cuadro { width: 100%; border-collapse: separate; border-spacing: 0;
+/* ANCHO NATURAL, NO COMPRIMIDO (David, 2026-09-24): la tabla mide lo que piden sus columnas y, si no
+   cabe, se recorre de lado dentro de .cuadro-completo — como en el teléfono. Antes width: 100% la
+   apretaba al ancho de la página y cortaba selectores («Propia» salía «Propi»). min-width: en
+   pantallas anchas sigue llenando el renglón. */
+.cuadro { width: max-content; min-width: 100%; border-collapse: separate; border-spacing: 0;
           background: var(--papel); border: 1px solid var(--linea);
-          border-radius: var(--radio-md); overflow: hidden;
+          border-radius: var(--radio-md); overflow: clip; /* clip y no hidden: hidden la vuelve contenedor de desplazamiento y la columna fija de N.º deja de fijarse */
           font-variant-numeric: tabular-nums; }
 .cuadro th { background: #eef2f7; font-size: 10px; text-transform: uppercase;
              letter-spacing: .03em; color: var(--tenue); font-weight: 600;
@@ -108,8 +112,9 @@ select, input { font: inherit; padding: 5px 8px; border: 1px solid var(--linea);
 
 /* La descripción se queda con lo que sobra: las demás columnas son de ancho de contenido, así que
    sin esto el navegador le daba lo mínimo y "Alumbrado oficinas" salía cortado. */
-.cuadro th.descripcion { width: 17%; min-width: 180px; }
-.cuadro td { padding: 3px 6px; border-bottom: 1px solid var(--linea); text-align: center; }
+.cuadro th.descripcion { min-width: 240px; }
+.cuadro td { padding: 3px 6px; border-bottom: 1px solid var(--linea); text-align: center; white-space: nowrap; }
+.cuadro tr.fila-desglose td { white-space: normal; }
 .cuadro tbody tr:hover { background: #f8fafc; }
 .cuadro tr.vacio { color: #b9c2cc; }
 .cuadro td.tenue { color: var(--tenue); }
@@ -504,7 +509,7 @@ label.suelto input { width: 90px; }
 .encabezado-tarjeta { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .encabezado-tarjeta h2 { margin: 0; }
 .desplazable { overflow-x: auto; }
-.datos.canal { margin-top: 10px; }
+.datos.canal { margin-top: 10px; width: max-content; min-width: 100%; }
 .datos.canal th { text-align: center; }
 .datos.canal th.izq { text-align: left; }
 .datos.canal td { vertical-align: middle; padding: 6px 8px; }
@@ -512,7 +517,7 @@ label.suelto input { width: 90px; }
 .datos.canal td.tipo select { max-width: 190px; }
 .datos.canal .medidas { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: var(--tenue); }
 .datos.canal .medidas input { width: 64px; }
-.datos.canal td.opciones { white-space: normal; min-width: 260px; }
+.datos.canal td.opciones { white-space: nowrap; }
 .datos.canal td.opciones label { display: inline-flex; align-items: center; gap: 4px; margin-right: 10px;
                                  font-size: 11px; color: var(--tenue); white-space: nowrap; }
 .datos.canal input.corto { width: 56px; }
@@ -521,3 +526,13 @@ details.propias summary { cursor: pointer; font-size: 12px; color: var(--tenue);
 .fabricante { margin-top: 14px; max-width: 420px; }
 .doc-titulo-canal { margin: 14px 0 6px; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
 .doc-canal { width: 100%; }
+
+/* Al recorrer el cuadro de lado, el número del espacio se queda fijo a la izquierda: sin él, a la
+   altura de los conductores ya no se sabe de qué circuito es el renglón. */
+.cuadro thead tr:first-child > th:first-child,
+.cuadro tbody tr:not(.separador) > td:first-child {
+    position: sticky; left: 0; z-index: 1;
+    box-shadow: 1px 0 0 var(--linea);
+}
+.cuadro tbody tr:not(.separador) > td:first-child { background: var(--papel); }
+.cuadro thead tr:first-child > th:first-child { background: #eef2f7; z-index: 2; }
