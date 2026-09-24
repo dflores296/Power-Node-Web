@@ -32,7 +32,7 @@
 
     <div class="grupo">
         <h2>Sistema</h2>
-        <label>Tensión F-F (V) <input type="number" min="100" step="1" @bind="Datos.TensionFaseFaseV" @bind:after="Recalcular" /></label>
+        <label>Tensión F-F (V) <input type="number" min="100" step="1" value="@Numero(Datos.TensionFaseFaseV)" @onchange="e => { Datos.TensionFaseFaseV = Leer(e, Datos.TensionFaseFaseV); Recalcular(); }" /></label>
         <label>Fases <select @bind="Datos.Fases" @bind:after="Recalcular">@foreach (var f in new[] { 1, 2, 3 }) { <option value="@f">@f</option> }</select></label>
         <label>Hilos <select @bind="Datos.Hilos" @bind:after="Recalcular">@foreach (var h in Datos.HilosValidos) { <option value="@h">@h</option> }</select></label>
         <label>Frecuencia (Hz) <input type="number" min="50" step="10" @bind="Datos.FrecuenciaHz" /></label>
@@ -104,11 +104,11 @@
                 <option value="seco">Seco</option>
                 <option value="mojado">Húmedo o mojado</option>
             </select></label>
-        <label>T. ambiente (°C) <input type="number" min="10" max="80" step="1" @bind="Datos.TemperaturaAmbienteC" @bind:after="Recalcular" /></label>
+        <label>T. ambiente (°C) <input type="number" min="10" max="80" step="1" value="@Numero(Datos.TemperaturaAmbienteC)" @onchange="e => { Datos.TemperaturaAmbienteC = Leer(e, Datos.TemperaturaAmbienteC); Recalcular(); }" /></label>
         <label><span class="ayuda" title="Marcar si la mayor parte de la carga es no lineal (electrónica, iluminación LED, equipo de cómputo): en 3F-4H el neutro lleva armónicas y cuenta como portador — 310-15(b)(5)(3).">Carga no lineal</span>
             <input type="checkbox" class="casilla" @bind="Datos.CargaNoLineal" @bind:after="Recalcular" /></label>
-        <label><span class="ayuda" title="Capturar el límite de caída del circuito derivado. Recomendado: 3 % — 210-19(a)(1), NOTA 4.">e% máx. derivado</span> <input type="number" min="0.5" max="10" step="0.5" @bind="Datos.CaidaMaxDerivadoPct" @bind:after="Recalcular" /></label>
-        <label><span class="ayuda" title="Capturar el límite de caída del alimentador. Valor inicial: 2 %, para que con el 3 % del derivado sumen el 5 % combinado — 215-2(a)(4), NOTA 2; 210-19(a)(1), NOTA 4.">e% máx. alimentador</span> <input type="number" min="0.5" max="10" step="0.5" @bind="Datos.CaidaMaxAlimentadorPct" @bind:after="Recalcular" /></label>
+        <label><span class="ayuda" title="Capturar el límite de caída del circuito derivado. Recomendado: 3 % — 210-19(a)(1), NOTA 4.">e% máx. derivado</span> <input type="number" min="0.5" max="10" step="0.5" value="@Numero(Datos.CaidaMaxDerivadoPct)" @onchange="e => { Datos.CaidaMaxDerivadoPct = Leer(e, Datos.CaidaMaxDerivadoPct); Recalcular(); }" /></label>
+        <label><span class="ayuda" title="Capturar el límite de caída del alimentador. Valor inicial: 2 %, para que con el 3 % del derivado sumen el 5 % combinado — 215-2(a)(4), NOTA 2; 210-19(a)(1), NOTA 4.">e% máx. alimentador</span> <input type="number" min="0.5" max="10" step="0.5" value="@Numero(Datos.CaidaMaxAlimentadorPct)" @onchange="e => { Datos.CaidaMaxAlimentadorPct = Leer(e, Datos.CaidaMaxAlimentadorPct); Recalcular(); }" /></label>
         @if (Datos.AvisoLimitesDeCaida is { } avisoLimites)
         {
             <p class="aviso">@avisoLimites</p>
@@ -216,22 +216,22 @@
                             </select>
                         </td>
                         <td rowspan="@c.Polos">
-                            <input class="va" type="number" min="0" @bind="c.Continua" @bind:after="Recalcular"
+                            <input class="va" type="number" min="0" value="@Numero(c.Continua)" @onchange="e => { c.Continua = Leer(e, c.Continua); Recalcular(); }"
                                    disabled="@c.TieneDesglose" title="@SumaDelDesglose(c)" />
                             @EnVA(c, c.Continua, c.ContinuaVA)
                         </td>
                         <td rowspan="@c.Polos">
-                            <input class="va" type="number" min="0" @bind="c.NoContinua" @bind:after="Recalcular"
+                            <input class="va" type="number" min="0" value="@Numero(c.NoContinua)" @onchange="e => { c.NoContinua = Leer(e, c.NoContinua); Recalcular(); }"
                                    disabled="@(c.TieneDesglose || c.Categoria == CategoriaDeCarga.CalefaccionFija)"
                                    title="@(c.Categoria == CategoriaDeCarga.CalefaccionFija ? "Calefacción fija: carga continua — 424-3(b)." : SumaDelDesglose(c))" />
                             @EnVA(c, c.NoContinua, c.NoContinuaVA)
                         </td>
-                        <td rowspan="@c.Polos"><input class="va fp" type="number" min="0.1" max="1" step="0.05" title="@(c.TieneDesglose ? "F.P. combinado de los aparatos: P ÷ √(P² + Q²)." : AyudaFactorPotencia(c))" @bind="c.FactorPotencia" @bind:after="Recalcular" disabled="@c.TieneDesglose" /></td>
+                        <td rowspan="@c.Polos"><input class="va fp" type="number" min="0.1" max="1" step="0.05" title="@(c.TieneDesglose ? "F.P. combinado de los aparatos: P ÷ √(P² + Q²)." : AyudaFactorPotencia(c))" value="@Factor(c.FactorPotencia)" @onchange="e => { c.FactorPotencia = Leer(e, c.FactorPotencia); Recalcular(); }" disabled="@c.TieneDesglose" /></td>
                         @foreach (var barra in Datos.Barras)
                         {
-                            <td rowspan="@c.Polos" class="num tenue col-fase">@(c.TieneCarga && c.Fases.Contains(barra) ? c.CargaPorFaseVA.ToString("N0") : "")</td>
+                            <td rowspan="@c.Polos" class="num tenue col-fase">@(c.TieneCarga && c.Fases.Contains(barra) ? c.CargaPorFaseVA.ToString("#,0.##") : "")</td>
                         }
-                        <td rowspan="@c.Polos"><input class="va corto" type="number" min="0" @bind="c.LongitudM" @bind:after="Recalcular" /></td>
+                        <td rowspan="@c.Polos"><input class="va corto" type="number" min="0" value="@Numero(c.LongitudM)" @onchange="e => { c.LongitudM = Leer(e, c.LongitudM); Recalcular(); }" /></td>
                         <td rowspan="@c.Polos" class="canal">
                             <select class="canal" value="@(c.Canalizacion ?? "")" @onchange="e => CambiarCanalizacion(c, e.Value?.ToString())">
                                 @if (!c.TieneCarga)
@@ -328,10 +328,10 @@
                                                         <option value="@UnidadConsumo.Amperes">A</option>
                                                     </select>
                                                 </td>
-                                                <td><input class="va" type="number" min="0" @bind="aparato.CargaUnitaria" @bind:after="Recalcular" /></td>
+                                                <td><input class="va" type="number" min="0" value="@Numero(aparato.CargaUnitaria)" @onchange="e => { aparato.CargaUnitaria = Leer(e, aparato.CargaUnitaria); Recalcular(); }" /></td>
                                                 <td><input type="checkbox" @bind="aparato.Continua" @bind:after="Recalcular" disabled="@calefaccion" /></td>
-                                                <td><input class="va fp" type="number" min="0.1" max="1" step="0.05" @bind="aparato.FactorPotencia" @bind:after="Recalcular" /></td>
-                                                <td class="num">@aparato.TotalVA.ToString("N0")</td>
+                                                <td><input class="va fp" type="number" min="0.1" max="1" step="0.05" value="@Factor(aparato.FactorPotencia)" @onchange="e => { aparato.FactorPotencia = Leer(e, aparato.FactorPotencia); Recalcular(); }" /></td>
+                                                <td class="num">@aparato.TotalVA.ToString("#,0.##")</td>
                                                 <td><button class="quitar" title="Quitar el aparato" @onclick="() => QuitarAparato(c, aparato)">✕</button></td>
                                             </tr>
                                         }
@@ -342,7 +342,7 @@
                                             <td colspan="7" class="num">
                                                 @if (c.TieneDesglose)
                                                 {
-                                                    <text>Total: continua @c.ContinuaVA.ToString("N0") · no continua @c.NoContinuaVA.ToString("N0") VA · F.P. @c.FactorPotencia.ToString("N2")</text>
+                                                    <text>Total: continua @c.ContinuaVA.ToString("#,0.##") · no continua @c.NoContinuaVA.ToString("#,0.##") VA · F.P. @c.FactorPotencia.ToString("N2")</text>
                                                 }
                                             </td>
                                         </tr>
@@ -439,7 +439,7 @@
             {
                 var clave = DatosDelTablero.ClaveDiametro(Datos.TipoAislamiento, designacion);
                 <label class="suelto">@Calibre.UnidadDe(designacion) (mm)
-                    <input type="number" min="0" step="0.01" value="@(Datos.DiametrosFabricante.TryGetValue(clave, out var d) ? d.ToString(CultureInfo.InvariantCulture) : "")"
+                    <input type="number" min="0" step="0.01" value="@(Datos.DiametrosFabricante.TryGetValue(clave, out var d) ? Numero(d) : "")"
                            @onchange="e => CambiarDiametro(clave, e.Value?.ToString())" />
                 </label>
             }
@@ -521,7 +521,7 @@
                     <td class="num">@((fila.InstaladaVA / 1000m).ToString("N2"))</td>
                     <td class="num">
                         <input class="va chico" type="number" min="0" max="1" step="0.05"
-                               value="@fila.FactorDemanda.ToString(CultureInfo.InvariantCulture)"
+                               value="@Factor(fila.FactorDemanda)"
                                @onchange="e => CambiarFactor(fila.Categoria, e)" />
                     </td>
                     <td class="num">@((fila.DemandadaVA / 1000m).ToString("N2"))</td>
@@ -532,7 +532,7 @@
                 <tr>
                     <td class="izq"><span class="ayuda" title="Completar a 1500 VA cada circuito de aparatos pequeños o de lavadora — 220-52(a) y (b). Carga de alimentador; no cambia el derivado. Lleva el F.D. de contactos.">Mínimo 220-52</span></td>
                     <td class="num">@((Cuadro.Resumen.Minimo220_52VA / 1000m).ToString("N2"))</td>
-                    <td class="num">@Datos.FactorDemandaContactos.ToString("N2")</td>
+                    <td class="num">@Factor(Datos.FactorDemandaContactos)</td>
                     <td class="num">@((Cuadro.Resumen.Minimo220_52DemandadoVA / 1000m).ToString("N2"))</td>
                 </tr>
             }
@@ -595,7 +595,7 @@
             <div class="fila-fase">
                 <span class="fase-rect fase-rect-@char.ToLowerInvariant(barra)">@barra</span>
                 <div class="pista"><div class="relleno color-@char.ToLowerInvariant(barra)" style="width: @ancho.ToString("0.#", CultureInfo.InvariantCulture)%"></div></div>
-                <span class="num fuerte">@va.ToString("N0") VA</span>
+                <span class="num fuerte">@va.ToString("#,0.##") VA</span>
             </div>
         }
         <div class="desbalanceo">
@@ -640,7 +640,7 @@
             <p class="derivado">Canalización: <strong>@Datos.CanalizacionAlimentador.Rotulo · @Datos.CanalizacionAlimentador.TamanoRotulo</strong> · @(Datos.CanalizacionAlimentador.Conteo?.Portadores) portadores — ver «Canalizaciones».</p>
 
             <label class="suelto">Longitud del alimentador (m)
-                <input type="number" min="0" step="1" @bind="Datos.LongitudAlimentadorM" @bind:after="Recalcular" />
+                <input type="number" min="0" step="1" value="@Numero(Datos.LongitudAlimentadorM)" @onchange="e => { Datos.LongitudAlimentadorM = Leer(e, Datos.LongitudAlimentadorM); Recalcular(); }" />
             </label>
             <table class="datos">
                 @if (Cuadro.Alimentador.Gobierna is { } g && Datos.Barras.Count > 1)
@@ -669,7 +669,7 @@
         else
         {
             <label class="suelto">Longitud del alimentador (m)
-                <input type="number" min="0" step="1" @bind="Datos.LongitudAlimentadorM" @bind:after="Recalcular" />
+                <input type="number" min="0" step="1" value="@Numero(Datos.LongitudAlimentadorM)" @onchange="e => { Datos.LongitudAlimentadorM = Leer(e, Datos.LongitudAlimentadorM); Recalcular(); }" />
             </label>
             @if (Cuadro.Alimentador.Error is { } error)
             {
@@ -756,7 +756,24 @@
     private List<string> DesignacionesSinDiametro() =>
         Cuadro.TodasLasCanalizaciones.SelectMany(t => t.Ocupacion?.Faltantes ?? []).Distinct().ToList();
 
-    private static string Opcional(decimal? v) => v?.ToString(CultureInfo.InvariantCulture) ?? "";
+    private static string Opcional(decimal? v) => v is { } x ? Numero(x) : "";
+
+    /// <summary>
+    /// Un número capturable, como se muestra: hasta dos decimales, sin ceros de más — «1500»,
+    /// «156.25», «823.53» (David, 2026-09-24: una carga en W con su F.P. se veía «823.529411…»). El
+    /// valor guardado conserva todos sus decimales. Con punto: lo exige <c>type="number"</c>.
+    /// </summary>
+    private static string Numero(decimal v) => v.ToString("0.##", CultureInfo.InvariantCulture);
+
+    /// <summary>Un factor (F.P., F.D.): siempre con dos decimales, «0.90», «1.00».</summary>
+    private static string Factor(decimal v) => v.ToString("0.00", CultureInfo.InvariantCulture);
+
+    /// <summary>
+    /// Lo capturado se guarda completo: el cálculo usa todos sus decimales y solo lo que se muestra
+    /// va con dos (David, 2026-09-24). Ilegible: se queda el que estaba.
+    /// </summary>
+    private static decimal Leer(ChangeEventArgs e, decimal actual) =>
+        decimal.TryParse(e.Value?.ToString(), NumberStyles.Number, CultureInfo.InvariantCulture, out var v) ? v : actual;
 
     private static decimal? Decimal(object? valor) =>
         decimal.TryParse(valor?.ToString(), NumberStyles.Number, CultureInfo.InvariantCulture, out var d) && d > 0m ? d : null;
@@ -1064,7 +1081,7 @@
     private static RenderFragment? EnVA(CircuitoDelCuadro c, decimal capturado, decimal va) =>
         c.Unidad == UnidadConsumo.VoltAmperes || capturado <= 0m
             ? null
-            : @<span class="en-va">= @va.ToString("N0") VA</span>;
+            : @<span class="en-va">= @va.ToString("#,0.##") VA</span>;
 
     /// <summary>
     /// Qué hace el F.P. en ESTE renglón, que depende de la unidad: con W convierte a VA y mueve todo;

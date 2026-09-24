@@ -344,12 +344,11 @@ public static class MemoriaDeCalculo
         {
             // R-02: fase por fase con el neutro. Cada renglón se puede recalcular a mano: Z por la
             // suma fasorial de la corriente de la fase y la del neutro, proyectada sobre su tensión.
-            var km = hoja.LongitudM / 1000m;
             var peor = porFase.Aggregate((max, f) => f.CaidaPct > max.CaidaPct ? f : max);
             var formulasFase = new List<string>
             {
                 "e_f = Re[ Z × (I_f + I_N) × conj(û_f) ],   I_N = suma fasorial de las corrientes de fase",
-                $"Z = ( {d.ResistenciaOhmKm:N4} + j {d.ReactanciaOhmKm:N4} ) Ω/km × {km:N3} km / {hoja.ConductoresPorFase}",
+                $"Z = ( {d.ResistenciaOhmKm:N2} + j {d.ReactanciaOhmKm:N2} ) Ω/km × {hoja.LongitudM:N2} m ÷ 1000 / {hoja.ConductoresPorFase}",
             };
             if (hoja.CorrienteNeutro is { } iN)
                 formulasFase.Add($"I_N = {iN.Magnitud:N2} A ∠ {iN.AnguloGrados:N1}°");
@@ -357,7 +356,7 @@ public static class MemoriaDeCalculo
                 $"Fase {f.Fase}: I = {f.Corriente.Magnitud:N2} A ∠ {f.Corriente.AnguloGrados:N1}° → e = {f.CaidaV:N2} V ({f.CaidaPct:N2} %)"));
             bloques.Add(new BloqueMemoria("6. CÁLCULO DE CAÍDA DE TENSIÓN", [], formulasFase,
             [
-                "R y X en ohm/km, de la Tabla 9 de la NOM-001-SEDE-2012. El neutro es del mismo calibre que la fase.",
+                "R y X en ohm/km, de la Tabla 9 de la NOM-001-SEDE-2012. Todos los valores se muestran con dos decimales; el cálculo usa los completos. El neutro es del mismo calibre que la fase.",
                 $"Ángulos respecto a V_AN = 0°; cada corriente, atrasada según el F.P. de sus circuitos. Porcentaje sobre " +
                 $"V_FN = {hoja.TensionFaseNeutroV:N2} V. Manda la fase {peor.Fase}.",
             ]));
@@ -367,8 +366,8 @@ public static class MemoriaDeCalculo
             var formulas6 = new List<string>
             {
                 hoja.NumeroFases == 3
-                    ? "e = √3 × L × In × [ R × cos(θ) + X × sen(θ) ] / N"
-                    : "e = 2 × L × In × [ R × cos(θ) + X × sen(θ) ] / N",
+                    ? "e = √3 × L × In × [ R × cos(θ) + X × sen(θ) ] ÷ 1000 / N"
+                    : "e = 2 × L × In × [ R × cos(θ) + X × sen(θ) ] ÷ 1000 / N",
             };
             var notas6 = new List<string>();
             if (d is not null)
@@ -376,10 +375,10 @@ public static class MemoriaDeCalculo
                 var k = hoja.NumeroFases == 3 ? "√3" : "2";
                 formulas6.Add(
                     $"e = {k} × {hoja.LongitudM:N2} m × {hoja.CorrienteDisenoA:N2} A × " +
-                    $"[ {d.ResistenciaOhmKm:N4} × {hoja.FactorPotencia:N2} + {d.ReactanciaOhmKm:N4} × {senTheta:N2} ] / " +
+                    $"[ {d.ResistenciaOhmKm:N2} × {hoja.FactorPotencia:N2} + {d.ReactanciaOhmKm:N2} × {senTheta:N2} ] ÷ 1000 / " +
                     $"{hoja.ConductoresPorFase} = {d.CaidaTensionV:N2} V");
                 notas6.Add(
-                    $"R y X en ohm/km, de la Tabla 9 de la NOM-001-SEDE-2012. cos(θ) = {hoja.FactorPotencia:N2}, " +
+                    $"L en m; R y X en ohm/km, de la Tabla 9 de la NOM-001-SEDE-2012. Todos los valores se muestran con dos decimales; el cálculo usa los completos. cos(θ) = {hoja.FactorPotencia:N2}, " +
                     $"sen(θ) = {senTheta:N2}.");
             }
             bloques.Add(new BloqueMemoria("6. CÁLCULO DE CAÍDA DE TENSIÓN", [], formulas6, notas6));

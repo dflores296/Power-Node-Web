@@ -157,6 +157,22 @@ public class MemoriaDeCalculoTests
     }
 
     [Fact]
+    public void I50_LaCaidaSeRecalculaAMano_ConMetrosEntre1000_YDosDecimales()
+    {
+        // 720 VA de alumbrado a 127 V: 5.67 A, 14 AWG en EMT, 20 m. La fórmula decía «/ 1» con la
+        // longitud en m y R, X en Ω/km: a mano daba 1000 veces la caída. R y X salían con cuatro
+        // decimales («10.2000»); al usuario no se le muestran más de dos (David, 2026-09-24). La
+        // Tabla 9 da 10.2 y 0.240 (acero): 2 × 20 × 5.67 × (10.2 × 0.90 + 0.24 × 0.44) ÷ 1000 = 2.11 V.
+        var cuadro = ConUnCircuito();
+        var formula = MemoriaDeCalculo.Secciones(MemoriaDeCalculo.DeCircuito(cuadro, cuadro.Circuitos[0]))[5].Formulas[1];
+
+        Assert.Equal("e = 2 × 20.00 m × 5.67 A × [ 10.20 × 0.90 + 0.24 × 0.44 ] ÷ 1000 / 1 = 2.11 V", formula);
+        var alimentador = MemoriaDeCalculo.Secciones(MemoriaDeCalculo.DelAlimentador(cuadro)!)[5].Formulas[1];
+        Assert.Contains("m ÷ 1000", alimentador);
+        Assert.DoesNotMatch(@"\d\.\d{3}", alimentador);
+    }
+
+    [Fact]
     public void R12_LaMemoriaDelAlimentadorImprimeLosFactoresYSuJustificacion()
     {
         var cuadro = ConUnCircuito(); // un circuito de alumbrado

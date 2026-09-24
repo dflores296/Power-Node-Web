@@ -35,7 +35,7 @@
                 <div><dt>Proyecto</dt><dd>@Texto(Datos.Proyecto)</dd></div>
                 <div><dt>Cliente</dt><dd>@Texto(Datos.Cliente)</dd></div>
                 <div><dt>Sistema</dt><dd>@Datos.EtiquetaSistema</dd></div>
-                <div><dt>Tensión</dt><dd>@Datos.TensionFaseFaseV.ToString("N0") V F-F · @Datos.TensionFaseNeutroV.ToString("N1") V F-N · @Datos.FrecuenciaHz Hz</dd></div>
+                <div><dt>Tensión</dt><dd>@Datos.TensionFaseFaseV.ToString("#,0.##") V F-F · @Datos.TensionFaseNeutroV.ToString("N1") V F-N · @Datos.FrecuenciaHz Hz</dd></div>
                 <div><dt>Int. ppal.</dt><dd>@(Cuadro.InterruptorPrincipalA > 0m ? $"{Cuadro.InterruptorPrincipalA:N0} A" : "—")</dd></div>
                 <div><dt>Acometida</dt><dd>@(Datos.UsaInterruptorPrincipal ? "Interruptor principal" : "Zapatas principales")</dd></div>
                 <div><dt>Inmueble</dt><dd>@Datos.Inmueble.Nombre()</dd></div>
@@ -100,7 +100,7 @@
                             <td rowspan="@c.Polos" class="num">@Cifra(c.CargaInstaladaVA)</td>
                             @foreach (var barra in Datos.Barras)
                             {
-                                <td rowspan="@c.Polos" class="num col-fase">@(c.TieneCarga && c.Fases.Contains(barra) ? c.CargaPorFaseVA.ToString("N0") : "")</td>
+                                <td rowspan="@c.Polos" class="num col-fase">@(c.TieneCarga && c.Fases.Contains(barra) ? c.CargaPorFaseVA.ToString("#,0.##") : "")</td>
                             }
                             <td rowspan="@c.Polos" class="num">@(c.Resultado is null ? "" : c.Polos.ToString())</td>
                             <td rowspan="@c.Polos" class="num">@(c.Resultado is null ? "" : c.Resultado.ProteccionA.ToString("N0"))</td>
@@ -201,7 +201,7 @@
                     <tr>
                         @foreach (var barra in Datos.Barras)
                         {
-                            <td class="num">@Cuadro.Resumen.CargaPorFaseVA[barra].ToString("N0")</td>
+                            <td class="num">@Cuadro.Resumen.CargaPorFaseVA[barra].ToString("#,0.##")</td>
                         }
                         <td class="num fuerte">@Cuadro.Resumen.DesbalanceoPct.ToString("N1") %</td>
                     </tr>
@@ -386,7 +386,7 @@ else
 
     private static string Texto(string valor) => string.IsNullOrWhiteSpace(valor) ? "—" : valor;
 
-    private static string Cifra(decimal valor) => valor <= 0m ? "" : valor.ToString("N0");
+    private static string Cifra(decimal valor) => valor <= 0m ? "" : valor.ToString("#,0.##");
 
     private static string DePapel(CanalizacionDelTablero t, PapelConductor papel) =>
         t.Ocupacion is { } o ? o.Renglones.Where(r => r.Conductor.Papel == papel).Sum(r => r.Conductor.Cantidad).ToString() : "";
