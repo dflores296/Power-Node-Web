@@ -89,7 +89,7 @@ select, input { font: inherit; padding: 5px 8px; border: 1px solid var(--linea);
    combinado le faltara el borde.
 */
 .cuadro th.ultima, .cuadro td.ultima { border-right: 0; }
-.cuadro tr.separador td, .cuadro tr.fila-error td + td, .cuadro tr.fila-aviso td + td { border-right: 0; }
+.cuadro tr.separador td, .cuadro tr.fila-error td + td { border-right: 0; }
 
 /* Cada espacio ocupa el mismo alto, tenga interruptor propio o venga combinado desde arriba: un
    multipolar de 3 polos mide exactamente lo que miden 3 renglones, como en un directorio de
@@ -144,7 +144,6 @@ input.desc:focus, input.va:focus {
 .fase-c { color: #1d6b3a; }
 
 .fila-error td { color: var(--alerta); font-size: 11px; text-align: left; padding: 4px 8px 8px; }
-.fila-aviso td { color: #7a5a12; font-size: 11px; text-align: left; padding: 4px 8px 8px; }
 
 .memoria { margin-top: 22px; background: var(--papel); border: 1px solid var(--linea);
            border-radius: var(--radio-lg); padding: 16px 20px; }
@@ -248,6 +247,7 @@ select.uso { display: block; margin-top: 3px; font-size: 11px; }
 
 .tarjeta { background: var(--papel); border: 1px solid var(--linea);
            border-radius: var(--radio-lg); padding: 16px 20px; }
+.tarjeta.avisos { margin-top: 20px; }
 .tarjeta h2.separado { margin-top: 18px; }
 .datos { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
 .datos th { font-size: 10px; text-transform: uppercase; letter-spacing: .03em;

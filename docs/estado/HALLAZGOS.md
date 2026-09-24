@@ -66,6 +66,7 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | R-11 · Sin mínimo del principal según 230-79 | P2 | Pendiente | — |
 | R-12 · Sin factores de demanda del Art. 220 por tipo de inmueble | P2 | Pendiente | — |
 | R-14 · Mínimo de 20 A en todos los contactos (criterio del Excel); sin 210-11(c) ni 220-52 | P1 | **Cerrado** | `ab9c785` |
+| R-15 · Límites de caída por omisión 3 % + 3 % = 6 %, contra el 5 % combinado; aviso de caída combinada dentro de la tabla | P2 | Pendiente | — |
 | R-13 · «Tabla 310-15(b)(5)(3)» en `CircuitoDerivado.cs`: es numeral | P3 | **Cerrado** | `69a5ed6` |
 
 ## Detalle
@@ -188,3 +189,5 @@ de tres aparatos.
 **R-13** — Hecho: `Domain/Proyectos/CircuitoDerivado.cs:117` cita «Tabla 310-15(b)(5)(3)». Es el numeral 310-15(b)(5)(3). Corrección: citar «310-15(b)(5)(3)». Pendiente: llevar a `PowerNode-DesignSuite` ([`../conocimiento/motor-copiado.md`](../conocimiento/motor-copiado.md)).
 
 **R-14** — Hecho: `CalculadoraCircuitoDerivadoNoMotor` aplicaba 15 A mínimo en alumbrado y 20 A en contactos, el `MAX(20, …)` del Excel. La NOM no lo pide (210-3 y 210-21(b)(3) permiten contactos en 15 A); solo 210-11(c) exige 20 A en cocina, lavadora y baño de vivienda, y 220-52 carga 1500 VA por circuito de cocina y de lavadora. 500 VA de contactos salían en 20 A y 12 AWG. Corrección: quitar el mínimo; «Uso» por circuito de contactos (General, Cocina, Lavadora, Baño) con 20 A y su cita; 1500 VA al alimentador (renglón «Mínimo 220-52» en el resumen y en la memoria); aviso con un solo circuito de aparatos pequeños. Referencia: 210-11(c), 220-52(a) y (b). Decisión: [`../decisiones/minimo-de-proteccion-por-uso.md`](../decisiones/minimo-de-proteccion-por-uso.md). Prueba: `SinMinimoPorTipo_…`, `Vivienda_…`. Pendiente: llevar a `PowerNode-DesignSuite`.
+
+**R-15** — Hecho (David, revisando R-01): el alimentador arrancaba en 3 % y el derivado en 3 %: 6 %, arriba del 5 % combinado de la misma nota, sin aviso en los campos. El aviso de caída combinada salía como renglón dentro del cuadro. Corrección: alimentador 2 % por omisión (2 % + 3 % = 5 %); aviso en «Condiciones de cálculo» si los límites suman más de 5 %; los avisos de caída combinada, en su tarjeta debajo del cuadro. Con 2 % + 3 % ningún circuito pasa del 5 %: el aviso por circuito solo sale si se suben los límites. Caso base con 80 m: el alimentador sube a 6 AWG. Referencia: 215-2(a)(4) NOTA 2, 210-19(a)(1) NOTA 4. Prueba: `R15_…`.

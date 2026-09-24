@@ -176,16 +176,27 @@ public sealed class DatosDelTablero
     public decimal CaidaMaxDerivadoPct { get; set; } = 3m;
 
     /// <summary>
-    /// Límite de caída del alimentador, por tramo: <b>3 % por omisión</b> — 215-2(a)(4) NOTA 2. Estuvo
-    /// fijo en 5 %, que es el límite de la caída <i>combinada</i>, no el del alimentador (R-01).
+    /// Límite de caída del alimentador, por tramo: <b>2 % por omisión</b>, para que con el 3 % del
+    /// derivado la suma quede en el 5 % combinado — 215-2(a)(4) NOTA 2, 210-19(a)(1) NOTA 4 (R-15).
+    /// Estuvo fijo en 5 % (R-01) y luego en 3 %, que con el derivado sumaba 6 %.
     /// </summary>
-    public decimal CaidaMaxAlimentadorPct { get; set; } = 3m;
+    public decimal CaidaMaxAlimentadorPct { get; set; } = 2m;
 
     /// <summary>
     /// Caída combinada alimentador + derivado hasta la salida más lejana: 5 % — 215-2(a)(4) NOTA 2 y
     /// 210-19(a)(1) NOTA 4. Fijo: lo da la norma, no el proyecto. Solo avisa.
     /// </summary>
     public const decimal CaidaMaxCombinadaPct = 5m;
+
+    /// <summary>
+    /// Aviso cuando los dos límites por tramo suman más que el combinado: con ellos, un circuito puede
+    /// quedar arriba del 5 % aunque cada tramo cumpla el suyo. <c>null</c> si suman 5 % o menos.
+    /// </summary>
+    public string? AvisoLimitesDeCaida =>
+        CaidaMaxAlimentadorPct + CaidaMaxDerivadoPct > CaidaMaxCombinadaPct
+            ? $"Los límites suman {CaidaMaxAlimentadorPct + CaidaMaxDerivadoPct:0.##} %: un circuito puede quedar arriba del " +
+              $"{CaidaMaxCombinadaPct:0} % combinado — 210-19(a)(1) NOTA 4, 215-2(a)(4) NOTA 2."
+            : null;
 
     /// <summary>Longitud del alimentador que llega al tablero, en metros — la «L» de la fila 79 del Excel.</summary>
     public decimal LongitudAlimentadorM { get; set; } = 20m;

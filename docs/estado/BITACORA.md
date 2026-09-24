@@ -39,8 +39,9 @@ Pruebas: 66 en `PowerNode.Web.Tests`, 6 en `PowerNode.Normativa.Tests`.
 - Citar el neutro portador en 2 fases + neutro de estrella, en la memoria y en el tooltip del neutro — R-09, `04c3df3`.
 - Fijar con pruebas que en 2F-3H 220Y/127 no se aplican 220-61(a) excepción ni 310-15(b)(7) — R-10, `c942ccb`.
 - Llevar al motor el cálculo por fase del alimentador y calcular su caída fase por fase con el neutro (fasorial) — R-04, R-02, `d6cd1c6`.
+- Límites de caída por omisión 2 % + 3 % = 5 %; aviso si los límites suman más; avisos de caída combinada fuera del cuadro — R-15.
 
-Pruebas: 119 en `PowerNode.Web.Tests`, 6 en `PowerNode.Normativa.Tests`.
+Pruebas: 121 en `PowerNode.Web.Tests`, 6 en `PowerNode.Normativa.Tests`.
 
 ## 2026-09-22 (tercera parte)
 

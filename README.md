@@ -59,7 +59,7 @@ Cada requisito se relaciona con su referencia normativa y con su verificación e
 | A-4 | Avisar si el principal es menor que el derivado más grande. | — | `M03_…` |
 | A-5 | Avisar si el principal queda debajo del mínimo capturado. | — | `ConMinimoCapturadoSoloAvisa_…` |
 | A-6 | Verificar la protección contra la capacidad de la barra. | 408-36 | `ElAvisoDel408_36…` |
-| A-7 | Limitar la caída de tensión del alimentador: 3 % por omisión, capturable. | 215-2(a)(4) NOTA 2 | `R01_…` |
+| A-7 | Limitar la caída de tensión del alimentador: 2 % por omisión (con el 3 % del derivado, 5 %), capturable. Avisar si los límites suman más de 5 %. | 215-2(a)(4) NOTA 2, 210-19(a)(1) NOTA 4 | `R01_…`, `R15_…` |
 | A-11 | Calcular la caída del alimentador fase por fase, con la caída del neutro (suma fasorial); limitar con la peor fase. | Tabla 9 | `R02_…` |
 | A-8 | Avisar por circuito si la caída del alimentador en su fase más la del derivado excede 5 %. | 215-2(a)(4) NOTA 2, 210-19(a)(1) NOTA 4 | `R01_…` |
 | A-9 | Cargar al alimentador 1500 VA por circuito de aparatos pequeños y de lavadora. | 220-52(a), 220-52(b) | `Vivienda_AparatosPequenosYLavadora…` |

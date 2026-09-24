@@ -506,6 +506,7 @@ public class CuadroDeCargaTests
     {
         var cuadro = Nuevo(espacios: 6, fases: 2, hilos: 3);
         cuadro.Datos.TerminalesMarcadas75C = true;
+        cuadro.Datos.LongitudAlimentadorM = 5m; // que la caída no suba el calibre: la prueba es de ampacidad
         foreach (var espacio in new[] { 1, 3 })
             Espacio(cuadro, espacio).NoContinua = 12700m; // 99.99 A a 127.02 V
         cuadro.Recalcular();
@@ -669,8 +670,37 @@ public class CuadroDeCargaTests
     // ---- R-01 · Caída del alimentador: 3 % por tramo, 5 % combinada — 215-2(a)(4) NOTA 2 ---------------
 
     [Fact]
-    public void R01_ElAlimentadorAdmite3PorCientoPorOmision() =>
-        Assert.Equal(3m, new DatosDelTablero().CaidaMaxAlimentadorPct);
+    public void R15_PorOmisionLosLimitesSuman5PorCiento_YNoHayAviso()
+    {
+        var datos = new DatosDelTablero();
+
+        Assert.Equal(2m, datos.CaidaMaxAlimentadorPct);
+        Assert.Equal(3m, datos.CaidaMaxDerivadoPct);
+        Assert.Null(datos.AvisoLimitesDeCaida);
+    }
+
+    [Fact]
+    public void R15_SiLosLimitesSumanMasDe5PorCiento_SeAvisaEnLosCampos()
+    {
+        var datos = new DatosDelTablero { CaidaMaxAlimentadorPct = 3m };
+
+        Assert.Equal(
+            "Los límites suman 6 %: un circuito puede quedar arriba del 5 % combinado — 210-19(a)(1) NOTA 4, 215-2(a)(4) NOTA 2.",
+            datos.AvisoLimitesDeCaida);
+    }
+
+    [Fact]
+    public void R15_ConLosLimitesPorOmisionNingunCircuitoPasaDel5PorCiento()
+    {
+        // Cada tramo queda en su límite o abajo, así que la suma no pasa de 2 % + 3 %.
+        var cuadro = TresAparatos();
+        cuadro.Datos.LongitudAlimentadorM = 80m;
+        cuadro.Recalcular();
+
+        Assert.Equal("6", cuadro.Alimentador.Resultado!.CalibreFase.Designacion);
+        Assert.True(cuadro.Alimentador.Resultado.CaidaTensionPct <= 2m);
+        Assert.Empty(cuadro.ConCaidaCombinadaExcedida);
+    }
 
     [Fact]
     public void R01_CasoBaseCon80mY5PorCiento_AvisaElCircuitoDeLaFaseC()
@@ -700,6 +730,7 @@ public class CuadroDeCargaTests
     {
         var cuadro = TresAparatos();
         cuadro.Datos.LongitudAlimentadorM = 80m;
+        cuadro.Datos.CaidaMaxAlimentadorPct = 3m;
         cuadro.Recalcular();
 
         var alimentador = cuadro.Alimentador.Resultado!;

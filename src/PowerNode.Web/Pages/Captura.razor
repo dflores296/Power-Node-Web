@@ -103,7 +103,11 @@
         <label>T. ambiente (°C) <input type="number" min="10" max="80" step="1" @bind="Datos.TemperaturaAmbienteC" @bind:after="Recalcular" /></label>
         <label><span class="ayuda" title="Capturar los conductores portadores de corriente en la canalización — Tabla 310-15(b)(3)(a): 4 a 6, 80 %; 7 a 9, 70 %; 10 a 20, 50 %. Excluir la tierra — 310-15(b)(6). Excluir el neutro con solo corriente de desbalance — (b)(5)(1). Contar el neutro en 2 fases + neutro de estrella — (b)(5)(2) y con carga no lineal — (b)(5)(3).">Agrupados</span> <input type="number" min="1" max="40" step="1" @bind="Datos.ConductoresAgrupados" @bind:after="Recalcular" /></label>
         <label><span class="ayuda" title="Capturar el límite de caída del circuito derivado. Recomendado: 3 % — 210-19(a)(1), NOTA 4.">e% máx. derivado</span> <input type="number" min="0.5" max="10" step="0.5" @bind="Datos.CaidaMaxDerivadoPct" @bind:after="Recalcular" /></label>
-        <label><span class="ayuda" title="Capturar el límite de caída del alimentador. Recomendado: 3 % — 215-2(a)(4), NOTA 2. Avisar si alimentador + derivado exceden 5 %.">e% máx. alimentador</span> <input type="number" min="0.5" max="10" step="0.5" @bind="Datos.CaidaMaxAlimentadorPct" @bind:after="Recalcular" /></label>
+        <label><span class="ayuda" title="Capturar el límite de caída del alimentador. Valor inicial: 2 %, para que con el 3 % del derivado sumen el 5 % combinado — 215-2(a)(4), NOTA 2; 210-19(a)(1), NOTA 4.">e% máx. alimentador</span> <input type="number" min="0.5" max="10" step="0.5" @bind="Datos.CaidaMaxAlimentadorPct" @bind:after="Recalcular" /></label>
+        @if (Datos.AvisoLimitesDeCaida is { } avisoLimites)
+        {
+            <p class="aviso">@avisoLimites</p>
+        }
     </div>
 </section>
 
@@ -249,14 +253,6 @@
                         <tr class="fila-error">
                             <td></td>
                             <td colspan="@(Columnas - 1)">@(c.Error ?? _motivo[c.Espacio])</td>
-                        </tr>
-                    }
-
-                    @if (c.AvisoCaidaCombinada is { } avisoCaida)
-                    {
-                        <tr class="fila-aviso">
-                            <td></td>
-                            <td colspan="@(Columnas - 1)">@avisoCaida</td>
                         </tr>
                     }
                 }
@@ -448,6 +444,22 @@
         }
     </section>
 </div>
+
+@*
+    Los avisos de caída combinada van aquí y no como renglón de la tabla: dentro del cuadro partían
+    los circuitos y se leían como parte del cálculo. Solo salen si los límites por tramo suman más
+    del 5 % (Datos.AvisoLimitesDeCaida) y algún circuito de verdad se pasa.
+*@
+@if (Cuadro.ConCaidaCombinadaExcedida.Any())
+{
+    <section class="tarjeta avisos">
+        <h2>Avisos de caída combinada</h2>
+        @foreach (var c in Cuadro.ConCaidaCombinadaExcedida)
+        {
+            <p class="aviso">@c.AvisoCaidaCombinada</p>
+        }
+    </section>
+}
 
 <footer class="pie">
     Tablas leídas de
