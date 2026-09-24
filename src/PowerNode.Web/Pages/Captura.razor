@@ -488,14 +488,41 @@
     </section>
     </div>
 
-    <section class="tarjeta">
+    @*
+        Lo primero que se ve es la protección seleccionada, y luego los conductores con el color de su
+        forro (David, 2026-09-24). El cálculo que lleva a ellos va abajo; los avisos, en su tarjeta.
+    *@
+    <section class="tarjeta alimentador">
         <h2>Alimentador y protección principal</h2>
-        <label class="suelto">Longitud del alimentador (m)
-            <input type="number" min="0" step="1" @bind="Datos.LongitudAlimentadorM" @bind:after="Recalcular" />
-        </label>
 
         @if (Cuadro.Alimentador.Resultado is { } a)
         {
+            <div class="seleccion">
+                <span class="rotulo">@(Datos.UsaInterruptorPrincipal ? "Interruptor principal" : "Protección del lado de alimentación")</span>
+                <span class="valor">@Ayuda($"{a.ProteccionA:N0} A", Cuadro.DesgloseDelAlimentador()?.Proteccion) <span class="polos">· @Cuadro.Alimentador.Polos polos</span></span>
+            </div>
+
+            <div class="cables">
+                <div class="cable">
+                    <span class="muestras grande">@foreach (var barra in Datos.Barras) { <i class="color-@char.ToLowerInvariant(barra)"></i> }</span>
+                    <span class="rotulo">Fase</span>
+                    <span class="calibre">@Ayuda(ConHilos(a.CalibreFase, a.NumeroConductoresParalelo), Cuadro.DesgloseDelAlimentador()?.Conductor)<small>@a.CalibreFase.AreaMm2.ToString("N2") mm²</small></span>
+                </div>
+                <div class="cable">
+                    <span class="muestras grande"><i class="color-neutro"></i></span>
+                    <span class="rotulo"><span class="ayuda" title="Consultar el conductor de neutro: mismo calibre que la fase. En 2 fases + neutro de estrella lleva ≈ la corriente de fase: contarlo en «Agrupados» — 310-15(b)(5)(2); no reducirlo — 220-61(c)(1). Blanco o gris claro — 200-6.">Neutro</span></span>
+                    <span class="calibre">@ConHilos(a.CalibreNeutro, a.NumeroConductoresParalelo)<small>@a.CalibreNeutro.AreaMm2.ToString("N2") mm²</small></span>
+                </div>
+                <div class="cable">
+                    <span class="muestras grande"><i class="color-tierra"></i></span>
+                    <span class="rotulo"><span class="ayuda" title="Consultar el conductor de puesta a tierra de equipos — Tabla 250-122. Verde, o verde con franjas amarillas — 250-119.">Puesta a tierra</span></span>
+                    <span class="calibre">@a.CalibreTierra.DesignacionConUnidad<small>@a.CalibreTierra.AreaMm2.ToString("N2") mm²</small></span>
+                </div>
+            </div>
+
+            <label class="suelto">Longitud del alimentador (m)
+                <input type="number" min="0" step="1" @bind="Datos.LongitudAlimentadorM" @bind:after="Recalcular" />
+            </label>
             <table class="datos">
                 @if (Cuadro.Alimentador.Gobierna is { } g && Datos.Barras.Count > 1)
                 {
@@ -509,13 +536,6 @@
                     <td class="izq"><span class="ayuda" title="Consultar el factor de potencia de las cargas de la fase que gobierna. Aplica a la caída de tensión del alimentador.">Factor de potencia</span></td>
                     <td class="num">@Cuadro.Alimentador.FactorPotencia.ToString("N2")</td>
                 </tr>
-                <tr class="total">
-                    <td class="izq">@(Datos.UsaInterruptorPrincipal ? "Interruptor principal" : "Protección del lado de alimentación")</td>
-                    <td class="num fuerte">@Ayuda($"{a.ProteccionA:N0} A · {Cuadro.Alimentador.Polos} polos", Cuadro.DesgloseDelAlimentador()?.Proteccion)</td>
-                </tr>
-                <tr><td class="izq">Conductor de fase</td><td class="num">@Ayuda(ConHilos(a.CalibreFase, a.NumeroConductoresParalelo), Cuadro.DesgloseDelAlimentador()?.Conductor)</td></tr>
-                <tr><td class="izq"><span class="ayuda" title="Consultar el conductor de neutro: mismo calibre que la fase. En 2 fases + neutro de estrella lleva ≈ la corriente de fase: contarlo en «Agrupados» — 310-15(b)(5)(2); no reducirlo — 220-61(c)(1).">Conductor de neutro</span></td><td class="num">@ConHilos(a.CalibreNeutro, a.NumeroConductoresParalelo)</td></tr>
-                <tr><td class="izq">Puesta a tierra</td><td class="num">@a.CalibreTierra.DesignacionConUnidad</td></tr>
                 <tr>
                     <td class="izq"><span class="ayuda" title="Consultar la caída de tensión del alimentador: la de la peor fase, con la caída del neutro — Tabla 9. Pasar el cursor sobre el valor para consultar cada fase. Recomendado: 3 % en el alimentador y 5 % combinada con el derivado — 215-2(a)(4), NOTA 2.">Caída de tensión</span></td>
                     <td class="num @(a.CaidaTensionPct > Datos.CaidaMaxAlimentadorPct ? "excede" : null)">@Ayuda(CaidaDelAlimentador(a), CaidaPorFase(a))</td>
@@ -525,32 +545,41 @@
                     <tr><td class="izq"><span class="ayuda" title="Consultar la corriente del neutro: suma fasorial de las corrientes de fase. Entra a la caída de tensión.">Corriente de neutro</span></td><td class="num">@neutro.Magnitud.ToString("N2") A</td></tr>
                 }
             </table>
-
-            @foreach (var aviso in Cuadro.Alimentador.Avisos)
-            {
-                <p class="aviso">@aviso</p>
-            }
-        }
-        else if (Cuadro.Alimentador.Error is { } error)
-        {
-            <p class="aviso error">@error</p>
         }
         else
         {
-            <p class="derivado">Captura la carga de algún circuito y aquí sale el alimentador.</p>
+            <label class="suelto">Longitud del alimentador (m)
+                <input type="number" min="0" step="1" @bind="Datos.LongitudAlimentadorM" @bind:after="Recalcular" />
+            </label>
+            @if (Cuadro.Alimentador.Error is { } error)
+            {
+                <p class="aviso error">@error</p>
+            }
+            else
+            {
+                <p class="derivado">Captura la carga de algún circuito y aquí sale el alimentador.</p>
+            }
         }
     </section>
 </div>
 
 @*
-    Los avisos de caída combinada van aquí y no como renglón de la tabla: dentro del cuadro partían
-    los circuitos y se leían como parte del cálculo. Solo salen si los límites por tramo suman más
-    del 5 % (Datos.AvisoLimitesDeCaida) y algún circuito de verdad se pasa.
+    TODOS LOS AVISOS DEL CÁLCULO, en una tarjeta al final (David, 2026-09-24): los del principal y los
+    de caída combinada. Van después de los resultados porque salen de ellos: se capturan los
+    circuitos, se revisa el cierre y aquí queda lo que hay que atender. Dentro del cuadro partían los
+    circuitos; dentro de la tarjeta del alimentador la amontonaban.
 *@
-@if (Cuadro.ConCaidaCombinadaExcedida.Any())
+@if (Cuadro.Alimentador.Resultado is not null && Cuadro.Alimentador.Avisos.Any() || Cuadro.ConCaidaCombinadaExcedida.Any())
 {
     <section class="tarjeta avisos">
-        <h2>Avisos de caída combinada</h2>
+        <h2>Avisos</h2>
+        @if (Cuadro.Alimentador.Resultado is not null)
+        {
+            @foreach (var aviso in Cuadro.Alimentador.Avisos)
+            {
+                <p class="aviso">@aviso</p>
+            }
+        }
         @foreach (var c in Cuadro.ConCaidaCombinadaExcedida)
         {
             <p class="aviso">@c.AvisoCaidaCombinada</p>

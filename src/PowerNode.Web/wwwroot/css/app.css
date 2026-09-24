@@ -314,6 +314,25 @@ label.suelto { display: flex; align-items: center; justify-content: space-betwee
                gap: 8px; font-size: 11px; color: var(--tenue); margin-bottom: 10px; }
 label.suelto input { width: 90px; }
 
+/* Alimentador: primero la protección, luego los cables con su color, luego el cálculo. */
+.alimentador .seleccion { display: flex; flex-direction: column; gap: 2px; padding: 12px 16px;
+                          margin-bottom: 14px; background: #eaf3f8; border: 1px solid #bcd7e5;
+                          border-radius: var(--radio-sm); }
+.alimentador .seleccion .rotulo { font-size: 11px; color: var(--tenue); font-weight: 600;
+                                  text-transform: uppercase; letter-spacing: .04em; }
+.alimentador .seleccion .valor { font-size: 24px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.alimentador .seleccion .polos { font-size: 16px; font-weight: 500; color: var(--tenue); }
+.alimentador .cables { display: flex; flex-direction: column; margin-bottom: 16px;
+                       border: 1px solid var(--linea); border-radius: var(--radio-sm); }
+.alimentador .cable { display: grid; grid-template-columns: 34px 1fr auto; align-items: center;
+                      gap: 10px; padding: 9px 14px; }
+.alimentador .cable + .cable { border-top: 1px solid #eef1f5; }
+.alimentador .cable .calibre { text-align: right; font-weight: 600; font-size: 14px; }
+.alimentador .cable .calibre small { display: block; font-size: 10px; font-weight: 400; color: var(--tenue); }
+.muestras.grande { gap: 3px; margin: 0; }
+.muestras.grande i { width: 8px; height: 18px; border-radius: 3px; }
+.alimentador .datos td { padding: 7px 6px; }
+
 .aviso { margin: 10px 0 0; font-size: 11px; line-height: 1.5; color: #7a5a12;
          background: #fdf6e3; border-left: 3px solid #d9a441;
          border-radius: var(--radio-xs); padding: 8px 10px; }
