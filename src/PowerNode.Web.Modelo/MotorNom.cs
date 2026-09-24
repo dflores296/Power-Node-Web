@@ -1,3 +1,4 @@
+using PowerNode.DesignSuite.Calculo.Canalizaciones;
 using PowerNode.DesignSuite.Calculo.Casos;
 using PowerNode.DesignSuite.Calculo.TablasNom;
 using PowerNode.DesignSuite.Normativa;
@@ -56,6 +57,10 @@ public sealed class MotorNom
 
         ProteccionEstandar = proteccion;
         Ampacidad = ampacidad;
+        Ocupacion = new CalculadoraOcupacion(
+            new TablaOcupacionJson(fuente), new TablaTuboConduitJson(fuente), new TablaDimensionesConductorJson(fuente));
+        Azotea = new TablaTemperaturaAzoteaJson(fuente);
+        Agrupamiento = agrupamiento;
     }
 
     private readonly Dictionary<SerieDeInterruptores, CalculadoraCircuitoDerivadoNoMotor> _noMotor = [];
@@ -78,6 +83,15 @@ public sealed class MotorNom
     /// «INT. PPAL.» del encabezado es una referencia a la fila del alimentador).
     /// </summary>
     public CalculadoraAlimentador Alimentador(SerieDeInterruptores serie) => _alimentador[serie];
+
+    /// <summary>El tamaño de cada canalización — Capítulo 10, Tablas 1, 4, 5 y 8.</summary>
+    public CalculadoraOcupacion Ocupacion { get; }
+
+    /// <summary>Tabla 310-15(b)(3)(a): el factor que resulta de los portadores de cada canalización.</summary>
+    public ITablaAgrupamiento Agrupamiento { get; }
+
+    /// <summary>Tabla 310-15(b)(3)(c): lo que se suma a la temperatura de un tubo en azotea al sol.</summary>
+    public ITablaTemperaturaAzotea Azotea { get; }
 
     /// <summary>Descarga el JSON de la norma y arma el motor. Se hace una sola vez, al arrancar.</summary>
     public static async Task<MotorNom> CargarAsync(HttpClient http) =>

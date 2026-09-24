@@ -1,3 +1,4 @@
+using PowerNode.DesignSuite.Calculo.Canalizaciones;
 using PowerNode.DesignSuite.Calculo.Casos;
 using PowerNode.DesignSuite.Calculo.Magnitudes;
 using PowerNode.DesignSuite.Calculo.Tableros;
@@ -160,11 +161,43 @@ public sealed class CuadroDeCarga
         AjustarEspacios();
         ResolverOcupacion();
         ConvertirCargas();
+        ResolverFases();
+        PrepararCanalizaciones();
         CalcularCircuitos();
         DibujarGabinete();
         CalcularResumen();
         CalcularAlimentador();
+        DimensionarCanalizaciones();
         EvaluarCaidaCombinada();
+    }
+
+    /// <summary>
+    /// Las canalizaciones con sus resultados: las compartidas (T1, T2…), después la propia de cada
+    /// circuito con carga y al final la del alimentador.
+    /// </summary>
+    public IEnumerable<CanalizacionDelTablero> TodasLasCanalizaciones =>
+        Datos.Canalizaciones
+            .Concat(_circuitos.Where(c => c.TieneCarga && c.Canalizacion is null && c.CanalizacionEfectiva is not null)
+                .Select(c => c.CanalizacionEfectiva!))
+            .Append(Datos.CanalizacionAlimentador);
+
+    /// <summary>Los avisos de todas las canalizaciones, con la canalización al frente.</summary>
+    public IEnumerable<string> AvisosDeCanalizaciones =>
+        TodasLasCanalizaciones.SelectMany(t => t.Avisos.Select(a => $"{NombreDe(t)}: {a}"));
+
+    /// <summary>«Canalización T1», «Canalización del circuito 3», «Canalización del alimentador».</summary>
+    public static string NombreDe(CanalizacionDelTablero t) =>
+        t.Id.StartsWith("Circuito ") ? $"Canalización del {t.Id.ToLowerInvariant()}"
+        : t.Id == "Alimentador" ? "Canalización del alimentador"
+        : $"Canalización {t.Id}";
+
+    /// <summary>Quita una canalización compartida; sus circuitos regresan a su canalización propia.</summary>
+    public void QuitarCanalizacion(CanalizacionDelTablero canalizacion)
+    {
+        Datos.Canalizaciones.Remove(canalizacion);
+        foreach (var c in _circuitos.Where(c => c.Canalizacion == canalizacion.Id))
+            c.Canalizacion = null;
+        Recalcular();
     }
 
     /// <summary>
@@ -346,16 +379,191 @@ public sealed class CuadroDeCarga
         ConsumoDePlaca.AVoltAmperes(
             valor, c.Unidad, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV, c.Polos, c.FactorPotencia);
 
+    /// <summary>Las barras que toca cada renglón. La resuelve la geometría del tablero.</summary>
+    private void ResolverFases()
+    {
+        foreach (var c in _circuitos)
+            c.Fases = c.EsContinuacion
+                ? string.Empty
+                : DistribucionBarras.FasesQueOcupa(c.Espacio, c.Polos, Datos.Sistema);
+    }
+
+    private ConfiguracionTablero Configuracion => SistemaDelTablero.De(Datos.Sistema);
+
+    /// <summary>
+    /// ANTES DE CALCULAR: a qué canalización va cada circuito, cuántos portadores lleva cada una y si
+    /// el ajuste por agrupamiento aplica según su tipo — I-39. No depende del calibre, así que no hay
+    /// ciclo: el conteo sale de polos y neutros, y el calibre sale después con ese factor.
+    /// </summary>
+    private void PrepararCanalizaciones()
+    {
+        var sistemaConNeutro = Configuracion != ConfiguracionTablero.TresFasesTresHilos;
+        foreach (var c in _circuitos)
+        {
+            // I-41: 1 polo siempre con neutro; 2 y 3 polos solo con «+N».
+            c.LlevaNeutro = sistemaConNeutro && (c.Polos == 1 || c.ConNeutro);
+            c.CanalizacionEfectiva = null;
+        }
+
+        foreach (var t in Datos.Canalizaciones)
+            t.Limpiar();
+
+        var grupos = new Dictionary<CanalizacionDelTablero, List<CircuitoDelCuadro>>();
+        foreach (var c in _circuitos.Where(c => !c.EsContinuacion))
+        {
+            var compartida = Datos.Canalizacion(c.Canalizacion);
+            if (c.Canalizacion is not null && compartida is null)
+                c.Canalizacion = null; // la quitaron
+
+            var canal = compartida;
+            if (canal is null)
+            {
+                canal = new CanalizacionDelTablero($"Circuito {c.Espacio}");
+                canal.CopiarConfiguracionDe(Datos.CanalizacionPorOmision);
+            }
+            c.CanalizacionEfectiva = canal;
+
+            if (!grupos.TryGetValue(canal, out var lista))
+                grupos[canal] = lista = [];
+            if (c.TieneCarga)
+                lista.Add(c);
+        }
+
+        foreach (var (canal, circuitos) in grupos)
+        {
+            canal.Circuitos = circuitos;
+            Contar(canal, [.. circuitos.Select(c => new CircuitoEnCanalizacion(
+                $"circuito {c.Espacio}", c.Polos, c.LlevaNeutro, c.Fases.ToCharArray()))]);
+        }
+    }
+
+    /// <summary>Conteo, ajuste y azotea de una canalización.</summary>
+    private void Contar(CanalizacionDelTablero canal, IReadOnlyList<CircuitoEnCanalizacion> circuitos, decimal? ocupacionPct = null)
+    {
+        var conteo = ContadorDePortadores.Contar(circuitos, Configuracion, Datos.CargaNoLineal, canal.NeutroCompartido);
+        canal.Conteo = conteo;
+        canal.Ajuste = AjusteDeAgrupamientoPorCanalizacion.Evaluar(canal.Tipo, conteo.Portadores, canal.AreaInteriorMm2, ocupacionPct);
+        canal.FactorAgrupamiento = _motor.Agrupamiento.Factor(canal.Ajuste.ConductoresParaElMotor);
+        canal.SumadorAzoteaC = 0m;
+        if (canal.AlturaSobreTechoMm is { } altura && canal.Tipo.EsTubo())
+        {
+            try { canal.SumadorAzoteaC = _motor.Azotea.Sumador(altura); }
+            catch (InvalidOperationException ex) { canal.Avisos.Add(ex.Message); }
+        }
+        foreach (var aviso in conteo.Avisos.Where(a => !canal.Avisos.Contains(a)))
+            canal.Avisos.Add(aviso);
+    }
+
+    /// <summary>
+    /// DESPUÉS DE CALCULAR: el tamaño de cada canalización con los calibres que resultaron —
+    /// Capítulo 10. Y lo que solo se sabe con el resultado: un circuito que salió en paralelo dentro
+    /// de un tubo compartido, o una superficial metálica que pasó del 20 % y pierde la exención de
+    /// 386-22 (entonces se recalcula con el ajuste).
+    /// </summary>
+    private void DimensionarCanalizaciones()
+    {
+        var recalcular = false;
+        foreach (var canal in TodasLasCanalizaciones.Where(t => t.Id != "Alimentador").ToList())
+        {
+            Dimensionar(canal, [.. canal.Circuitos.Where(c => c.Resultado is not null)
+                .Select(ConductoresDe)]);
+
+            var enParalelo = canal.Circuitos.Where(c => c.Resultado?.NumeroConductoresParalelo > 1).ToList();
+            if (canal.Circuitos.Count == 1 && enParalelo.Count == 1)
+                canal.CanalizacionesIguales = enParalelo[0].Resultado!.NumeroConductoresParalelo;
+            else
+                foreach (var c in enParalelo)
+                    canal.Avisos.Add($"El circuito {c.Espacio} salió con {c.Resultado!.NumeroConductoresParalelo} conductores por fase: "
+                        + "cada juego va en su propia canalización y todas iguales — 310-10(h)(3). Sácalo a una canalización propia.");
+
+            if (canal.Tipo == TipoCanalizacion.SuperficialMetalica && canal.Ajuste is { Aplica: false } && canal.Ocupacion?.OcupacionPct > 20m)
+                recalcular = true;
+        }
+
+        if (!recalcular)
+            return;
+
+        // 386-22: la exención pedía no pasar del 20 %. Se vuelve a contar con la ocupación real.
+        foreach (var canal in Datos.Canalizaciones.Where(t => t.Tipo == TipoCanalizacion.SuperficialMetalica && t.Ocupacion?.OcupacionPct > 20m))
+            Contar(canal, [.. canal.Circuitos.Select(c => new CircuitoEnCanalizacion(
+                $"circuito {c.Espacio}", c.Polos, c.LlevaNeutro, c.Fases.ToCharArray()))], canal.Ocupacion!.OcupacionPct);
+        CalcularCircuitos();
+        foreach (var canal in TodasLasCanalizaciones.Where(t => t.Id != "Alimentador").ToList())
+            Dimensionar(canal, [.. canal.Circuitos.Where(c => c.Resultado is not null)
+                .Select(ConductoresDe)]);
+    }
+
+    private sealed record ConductoresDelCircuito(
+        string Nombre, int Polos, bool LlevaNeutro,
+        DesignSuite.Calculo.Unidades.Calibre Fase, DesignSuite.Calculo.Unidades.Calibre Neutro, DesignSuite.Calculo.Unidades.Calibre Tierra);
+
+    private static ConductoresDelCircuito ConductoresDe(CircuitoDelCuadro c) =>
+        new($"circuito {c.Espacio}", c.Polos, c.LlevaNeutro, c.Resultado!.CalibreFase, c.Resultado.CalibreNeutro, c.Resultado.CalibreTierra);
+
+    /// <summary>
+    /// Arma la lista de conductores de una canalización y le pide el tamaño al motor. Con neutro
+    /// compartido va un solo neutro, el mayor; con tierra común una sola tierra, la mayor — 250-122(c).
+    /// </summary>
+    private void Dimensionar(
+        CanalizacionDelTablero canal,
+        IReadOnlyList<ConductoresDelCircuito> circuitos,
+        int juegosPorCanalizacion = 1)
+    {
+        if (circuitos.Count == 0)
+        {
+            canal.Ocupacion = null;
+            return;
+        }
+
+        var aislamiento = Datos.TipoAislamiento;
+        decimal? Diametro(string designacion) =>
+            Datos.DiametrosFabricante.TryGetValue(DatosDelTablero.ClaveDiametro(aislamiento, designacion), out var d) ? d : null;
+        ConductorEnCanalizacion Conductor(string circuito, PapelConductor papel, DesignSuite.Calculo.Unidades.Calibre calibre, int cantidad, bool desnudo = false) =>
+            new(circuito, papel, calibre.Designacion, desnudo ? null : aislamiento, desnudo ? null : Diametro(calibre.Designacion), cantidad);
+
+        var neutroCompartido = canal.Conteo?.NeutroCompartidoAplicado == true;
+        var conductores = new List<ConductorEnCanalizacion>();
+        foreach (var x in circuitos)
+        {
+            conductores.Add(Conductor(x.Nombre, PapelConductor.Fase, x.Fase, x.Polos * juegosPorCanalizacion));
+            if (x.LlevaNeutro && !(neutroCompartido && x.Polos == 1))
+                conductores.Add(Conductor(x.Nombre, PapelConductor.Neutro, x.Neutro, juegosPorCanalizacion));
+            if (!canal.TierraComun)
+                conductores.Add(Conductor(x.Nombre, PapelConductor.Tierra, x.Tierra, juegosPorCanalizacion, canal.TierraDesnuda));
+        }
+        if (neutroCompartido)
+        {
+            var mayor = circuitos.Where(x => x.Polos == 1).Select(x => x.Neutro).MaxBy(k => k.AreaMm2)!;
+            conductores.Add(Conductor("neutro compartido", PapelConductor.Neutro, mayor, 1));
+        }
+        if (canal.TierraComun)
+        {
+            var mayor = circuitos.Select(x => x.Tierra).MaxBy(k => k.AreaMm2)!;
+            conductores.Add(Conductor("tierra común", PapelConductor.Tierra, mayor, 1, canal.TierraDesnuda));
+        }
+
+        try
+        {
+            canal.Ocupacion = _motor.Ocupacion.Calcular(
+                canal.Tipo, canal.Tubo, conductores, canal.AnchoMm, canal.AltoMm,
+                canal.AreaInteriorMm2, canal.MaxConductoresFabricante, canal.TamanoFijado);
+            foreach (var aviso in canal.Ocupacion.Avisos.Where(a => !canal.Avisos.Contains(a)))
+                canal.Avisos.Add(aviso);
+        }
+        catch (InvalidOperationException ex)
+        {
+            canal.Ocupacion = null;
+            canal.Avisos.Add(ex.Message);
+        }
+    }
+
     private void CalcularCircuitos()
     {
         foreach (var c in _circuitos)
         {
             c.Limpiar();
-            c.Fases = c.EsContinuacion
-                ? string.Empty
-                : DistribucionBarras.FasesQueOcupa(c.Espacio, c.Polos, Datos.Sistema);
 
-            if (!c.TieneCarga)
+            if (!c.TieneCarga || c.CanalizacionEfectiva is not { } canal)
                 continue;
 
             try
@@ -373,10 +581,12 @@ public sealed class CuadroDeCarga
                     TensionFaseFaseV: Datos.TensionFaseFaseV,
                     LongitudM: c.LongitudM,
                     NumeroConductoresParalelo: 1,
-                    NumeroConductoresAgrupados: Datos.ConductoresAgrupados,
-                    TemperaturaAmbienteC: Datos.TemperaturaAmbienteC,
+                    // DE SU CANALIZACIÓN, no del tablero — I-39: los portadores según el tipo de
+                    // canalización, la temperatura con la azotea al sol y la columna de la Tabla 9.
+                    NumeroConductoresAgrupados: canal.Ajuste!.ConductoresParaElMotor,
+                    TemperaturaAmbienteC: Datos.TemperaturaAmbienteC + canal.SumadorAzoteaC,
                     MaterialConductor: Datos.MaterialConductor,
-                    MaterialCanalizacion: Datos.MaterialCanalizacion,
+                    MaterialCanalizacion: canal.MaterialParaTabla9,
                     // El del circuito: la nota 2 de la Tabla 9 usa «el ángulo del factor de potencia
                     // del circuito».
                     FactorPotencia: c.FactorPotencia,
@@ -614,13 +824,15 @@ public sealed class CuadroDeCarga
                 .Where(c => c.TieneCarga && c.Fases.Contains(gobierna.Fase))
                 .Select(c => (c.CargaPorFaseVA, c.FactorPotencia)));
 
-        try
-        {
-            // EL MOTOR RECIBE LA CARGA TOTAL Y LAS CORRIENTES DE CADA FASE — R-04. Con ellas elige la
-            // fase que gobierna, aplica el factor de demanda (220-40, con la carga real en su cita) y
-            // calcula la caída fase por fase con el neutro (R-02). Antes la web le entregaba 3 × los VA
-            // de la fase más cargada y reescribía la cita 220-40: ya no.
-            var resultado = _motor.Alimentador(Datos.SerieInterruptores).Calcular(new DatosEntradaAlimentador(
+        var canal = Datos.CanalizacionAlimentador;
+        canal.Limpiar();
+        var conNeutro = Configuracion != ConfiguracionTablero.TresFasesTresHilos;
+
+        // EL MOTOR RECIBE LA CARGA TOTAL Y LAS CORRIENTES DE CADA FASE — R-04. Con ellas elige la
+        // fase que gobierna, aplica el factor de demanda (220-40, con la carga real en su cita) y
+        // calcula la caída fase por fase con el neutro (R-02). Antes la web le entregaba 3 × los VA
+        // de la fase más cargada y reescribía la cita 220-40: ya no.
+        ResultadoAlimentador Calcular() => _motor.Alimentador(Datos.SerieInterruptores).Calcular(new DatosEntradaAlimentador(
                 // Ya con el factor de demanda de cada tipo (R-17): por eso el motor va con F.D. 1 abajo.
                 CargaContinuaVA: Resumen.ContinuaDemandadaVA,
                 CargaNoContinuaVA: Resumen.NoContinuaDemandadaVA + Resumen.Minimo220_52DemandadoVA,
@@ -629,10 +841,11 @@ public sealed class CuadroDeCarga
                 TensionFaseFaseV: Datos.TensionFaseFaseV,
                 LongitudM: Datos.LongitudAlimentadorM,
                 NumeroConductoresParalelo: 1,
-                NumeroConductoresAgrupados: Datos.ConductoresAgrupados,
-                TemperaturaAmbienteC: Datos.TemperaturaAmbienteC,
+                // De SU canalización — I-39: el alimentador ya no hereda el agrupamiento de los derivados.
+                NumeroConductoresAgrupados: canal.Ajuste!.ConductoresParaElMotor,
+                TemperaturaAmbienteC: Datos.TemperaturaAmbienteC + canal.SumadorAzoteaC,
                 MaterialConductor: Datos.MaterialConductor,
-                MaterialCanalizacion: Datos.MaterialCanalizacion,
+                MaterialCanalizacion: canal.MaterialParaTabla9,
                 // Solo para la caída balanceada de un alimentador sin neutro (3F-3H).
                 FactorPotencia: fpAlimentador,
                 CaidaTensionMaxPct: Datos.CaidaMaxAlimentadorPct,
@@ -648,6 +861,33 @@ public sealed class CuadroDeCarga
                 // 230-79: el principal SUBE al mínimo si el tablero es el de la acometida — R-11.
                 ProteccionMinimaA: Datos.Minimo230_79?.Amperes,
                 ReferenciaProteccionMinima: Datos.Minimo230_79?.Referencia));
+
+        try
+        {
+            // CONDUCTORES EN PARALELO. Un juego por canalización, todas iguales (310-10(h)(3)): el
+            // conteo no cambia. Si se declaran todos en una, cada conductor cuenta
+            // (310-15(b)(3)(a)): más portadores pueden pedir más cobre, y más cobre más juegos. Se
+            // repite hasta que el número de juegos deje de cambiar.
+            var juegos = 1;
+            ResultadoAlimentador resultado;
+            for (var vuelta = 0; ; vuelta++)
+            {
+                Contar(canal, [new CircuitoEnCanalizacion("alimentador", polos, conNeutro, [.. Datos.Barras], juegos)]);
+                resultado = Calcular();
+                var enUno = canal.JuegosEnUnTubo ? resultado.NumeroConductoresParalelo : 1;
+                if (enUno == juegos) break;
+                if (vuelta == 3)
+                    throw new InvalidOperationException(
+                        "Con todos los conductores en paralelo en una sola canalización, el número de juegos no se estabiliza: "
+                        + "declara un juego por canalización.");
+                juegos = enUno;
+            }
+
+            var n = resultado.NumeroConductoresParalelo;
+            canal.CanalizacionesIguales = canal.JuegosEnUnTubo ? 1 : n;
+            Dimensionar(canal,
+                [new ConductoresDelCircuito("alimentador", polos, conNeutro, resultado.CalibreFase, resultado.CalibreNeutro, resultado.CalibreTierra)],
+                canal.JuegosEnUnTubo ? n : 1);
 
             // La fase que gobierna la decide el motor; la de aquí es la misma regla, para mostrarla.
             if (resultado.FaseQueGobierna is { } fase)

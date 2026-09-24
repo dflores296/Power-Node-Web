@@ -1548,11 +1548,11 @@ public class CuadroDeCargaTests
         // 210-19(a)(1) ese caso ya cumple con 10 AWG en THW-LS —30 A de tabla ≥ 25 A y 24.5 A ≥
         // 20 A—, así que dejó de demostrar nada.)
         var cuadro = Nuevo();
-        cuadro.Datos.ConductoresAgrupados = 9;
         var c = Espacio(cuadro, 1);
         c.Unidad = UnidadConsumo.Amperes;
         c.NoContinua = 26m;
         c.LongitudM = 5m;
+        Agrupar.EnTubo(cuadro, c, 9);
 
         cuadro.Recalcular();
         Assert.Equal("10", c.Resultado!.CalibreFase.Designacion);
@@ -1608,12 +1608,11 @@ public class CuadroDeCargaTests
         //   240-4(b): 38.5 A no es estándar, el inmediato superior es 40 A ✔
         // Antes el programa exigía 38.5 ≥ 40 y daba 6 AWG.
         var cuadro = Nuevo();
-        cuadro.Datos.ConductoresAgrupados = 9;
         var c = Espacio(cuadro, 1);
         c.Unidad = UnidadConsumo.Amperes;
         c.Continua = 32m;
         c.LongitudM = 5m;
-        cuadro.Recalcular();
+        Agrupar.EnTubo(cuadro, c, 9);
 
         Assert.Equal(40m, c.Resultado!.ProteccionA);
         Assert.Equal("8", c.Resultado.CalibreFase.Designacion);
@@ -1695,13 +1694,12 @@ public class CuadroDeCargaTests
         foreach (var (tipo, calibre) in new[] { (TipoCarga.Equipo, "8"), (TipoCarga.Contactos, "6") })
         {
             var cuadro = Nuevo();
-            cuadro.Datos.ConductoresAgrupados = 9;
             var c = Espacio(cuadro, 1);
             c.Tipo = tipo;
             c.Unidad = UnidadConsumo.Amperes;
             c.Continua = 32m;
             c.LongitudM = 5m;
-            cuadro.Recalcular();
+            Agrupar.EnTubo(cuadro, c, 9);
 
             Assert.Equal(calibre, c.Resultado!.CalibreFase.Designacion);
         }

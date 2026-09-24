@@ -94,6 +94,9 @@ public class CalculadoraOcupacion(ITablaOcupacion ocupacion, ITablaTuboConduit t
             return new ResultadoOcupacion(renglones, n, null, 0m, null, null, null, null, false, false, faltantes, avisos, citas);
         }
 
+        foreach (var fuente in renglones.Select(r => r.Fuente).Where(f => f.StartsWith("Tabla 5, ERRATA")).Distinct())
+            citas.Add(new Cita("ERRATA Tabla 5", fuente["Tabla 5, ERRATA: ".Length..]));
+
         var total = renglones.Sum(r => r.AreaMm2!.Value);
         citas.Add(new Cita("Capítulo 10, Tablas 5 y 8", $"Suma de las áreas de los conductores: {total:N2} mm²."));
 
@@ -211,7 +214,10 @@ public class CalculadoraOcupacion(ITablaOcupacion ocupacion, ITablaTuboConduit t
         }
 
         if (dimensiones.Aislado(c.Designacion, c.TipoAislamiento) is { } t5)
-            return new RenglonDeOcupacion(c, t5.DiametroMm, t5.AreaMm2, "Tabla 5");
+            return new RenglonDeOcupacion(c, t5.DiametroMm, t5.AreaMm2,
+                dimensiones.ErrataAplicada(c.Designacion, c.TipoAislamiento) is { } e
+                    ? $"Tabla 5, ERRATA: {e.ValorCorregido} mm² en lugar de los {e.ValorPublicado} publicados, porque {e.Sustento}"
+                    : "Tabla 5");
 
         var falta = $"{Unidades.Calibre.UnidadDe(c.Designacion)} {c.TipoAislamiento}";
         if (!faltantes.Contains(falta)) faltantes.Add(falta);

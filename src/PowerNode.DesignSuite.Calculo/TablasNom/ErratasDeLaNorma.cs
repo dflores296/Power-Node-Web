@@ -153,8 +153,36 @@ public static class ErratasDeLaNorma
             + "76-80 en una tabla que avanza en bandas de 5 °C, así que el único hueco que puede "
             + "llenar es 71-75; leída como se publica, la tabla deja sin cobertura los 71 a 74 °C");
 
-    /// <summary>Todas las erratas de celda conocidas. Hoy es una.</summary>
-    public static readonly IReadOnlyList<ErrataDeCelda> Todas = [Flc10HpEn575V];
+    /// <summary>
+    /// <b>Tabla 5 del Capítulo 10, TW/THHW/THW/THW-2 de 10 AWG: el DOF publica 55.68 mm².</b>
+    /// Encontrada el 2026-09-24 al dimensionar canalizaciones (nacido en la web).
+    ///
+    /// <para><b>Que 55.68 es imposible lo dice la propia fila</b>, por tres caminos:</para>
+    /// <list type="number">
+    /// <item>La misma fila da el diámetro: 4.470 mm. El área de un círculo de 4.470 mm es
+    /// π × 4.470² / 4 = <b>15.69 mm²</b>. En las demás filas de la Tabla 5 el área y el diámetro
+    /// cuadran a menos del 3 % (se barrieron todas).</item>
+    /// <item>Rompe la monotonía del bloque: 12 AWG = 11.68, <b>10 AWG = 55.68</b>, 8 AWG = 28.19. Un
+    /// conductor más delgado no puede ocupar el doble que el siguiente.</item>
+    /// <item>La tabla equivalente del NEC (Chapter 9, Table 5) da 15.68 mm² para TW 10 AWG.</item>
+    /// </list>
+    ///
+    /// <para><b>Consecuencia si no se corrige:</b> cada conductor de 10 AWG en TW, THW o THHW cuenta
+    /// 3.5 veces su área y el tubo sale uno o dos tamaños más grande.</para>
+    /// </summary>
+    public static readonly ErrataDeCelda AreaTw10Awg = new(
+        TablaId: "5",
+        ClaveFila: "TW,THHW,THW,THW-2|10",
+        Columna: 4,
+        ValorPublicado: 55.68m,
+        ValorCorregido: 15.68m,
+        Descripcion: "Tabla 5 del Capítulo 10, TW/THHW/THW/THW-2 de 10 AWG, área",
+        Sustento: "el DOF publica 55.68 mm², pero la misma fila da 4.470 mm de diámetro, que son "
+            + "π × 4.470² / 4 = 15.69 mm²; además rompe su bloque (12 AWG = 11.68, 8 AWG = 28.19), y "
+            + "la tabla equivalente del NEC (Chapter 9, Table 5) da 15.68 mm²");
+
+    /// <summary>Todas las erratas de celda conocidas.</summary>
+    public static readonly IReadOnlyList<ErrataDeCelda> Todas = [Flc10HpEn575V, AreaTw10Awg];
 
     /// <summary>Todas las erratas de rótulo conocidas. Hoy es una.</summary>
     public static readonly IReadOnlyList<ErrataDeRotulo> TodasLasDeRotulo = [Banda71a75];

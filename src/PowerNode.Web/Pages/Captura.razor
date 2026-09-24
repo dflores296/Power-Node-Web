@@ -101,13 +101,20 @@
                 <option value="seco">Seco</option>
                 <option value="mojado">Húmedo o mojado</option>
             </select></label>
-        <label>Canalización <select @bind="Datos.MaterialCanalizacion" @bind:after="Recalcular">
-            <option value="@MaterialCanalizacion.Pvc">PVC</option>
-            <option value="@MaterialCanalizacion.Aluminio">Aluminio</option>
-            <option value="@MaterialCanalizacion.Acero">Acero</option>
-        </select></label>
         <label>T. ambiente (°C) <input type="number" min="10" max="80" step="1" @bind="Datos.TemperaturaAmbienteC" @bind:after="Recalcular" /></label>
-        <label><span class="ayuda" title="Capturar los conductores portadores de corriente en la canalización — Tabla 310-15(b)(3)(a): 4 a 6, 80 %; 7 a 9, 70 %; 10 a 20, 50 %. Excluir la tierra — 310-15(b)(6). Excluir el neutro con solo corriente de desbalance — (b)(5)(1). Contar el neutro en 2 fases + neutro de estrella — (b)(5)(2) y con carga no lineal — (b)(5)(3).">Agrupados</span> <input type="number" min="1" max="40" step="1" @bind="Datos.ConductoresAgrupados" @bind:after="Recalcular" /></label>
+        <label><span class="ayuda" title="Seleccionar la canalización de los circuitos que no se asignan a una compartida en la columna «Canal.» del cuadro. Cada tipo trae su regla: tubo conduit, Tabla 1 del Capítulo 10 y ajuste con más de 3 portadores; niple de 60 cm o menos, sin ajuste; ductos y canales metálicos, ajuste solo con más de 30 portadores — 376-22, 366-23.">Canalización</span>
+            <select @bind="Datos.CanalizacionPorOmision.Tipo" @bind:after="Recalcular">
+                @foreach (var tipo in Enum.GetValues<TipoCanalizacion>()) { <option value="@tipo">@tipo.Nombre()</option> }
+            </select></label>
+        @if (Datos.CanalizacionPorOmision.Tipo.EsTubo())
+        {
+            <label><span class="ayuda" title="Seleccionar el tubo — Tabla 4 del Capítulo 10. Da el tamaño y la columna de reactancia de la Tabla 9 (metálico: acero; no metálico: PVC).">Tubo</span>
+                <select @bind="Datos.CanalizacionPorOmision.Tubo" @bind:after="Recalcular">
+                    @foreach (var tubo in Enum.GetValues<TipoTuboConduit>()) { <option value="@tubo">@tubo.Nombre()</option> }
+                </select></label>
+        }
+        <label><span class="ayuda" title="Marcar si la mayor parte de la carga es no lineal (electrónica, iluminación LED, equipo de cómputo): en 3F-4H el neutro lleva armónicas y cuenta como portador — 310-15(b)(5)(3).">Carga no lineal</span>
+            <input type="checkbox" class="casilla" @bind="Datos.CargaNoLineal" @bind:after="Recalcular" /></label>
         <label><span class="ayuda" title="Capturar el límite de caída del circuito derivado. Recomendado: 3 % — 210-19(a)(1), NOTA 4.">e% máx. derivado</span> <input type="number" min="0.5" max="10" step="0.5" @bind="Datos.CaidaMaxDerivadoPct" @bind:after="Recalcular" /></label>
         <label><span class="ayuda" title="Capturar el límite de caída del alimentador. Valor inicial: 2 %, para que con el 3 % del derivado sumen el 5 % combinado — 215-2(a)(4), NOTA 2; 210-19(a)(1), NOTA 4.">e% máx. alimentador</span> <input type="number" min="0.5" max="10" step="0.5" @bind="Datos.CaidaMaxAlimentadorPct" @bind:after="Recalcular" /></label>
         @if (Datos.AvisoLimitesDeCaida is { } avisoLimites)
@@ -133,6 +140,7 @@
                 <th colspan="4"><span class="ayuda" title="Capturar la carga de placa en VA, W o A y su factor de potencia. Continua (3 h o más): 125 % — 210-19(a)(1), 210-20(a). No continua: 100 %. En W o A, consultar abajo el VA de cálculo.">Carga</span></th>
                 <th colspan="@Datos.Barras.Count"><span class="ayuda" title="Consultar la carga del circuito repartida entre las barras que toca.">Balanceo de fases <span class="simbolo">(VA)</span></span></th>
                 <th rowspan="2"><span class="ayuda" title="Capturar la longitud del circuito. Determina la caída de tensión — Tabla 9."><span class="simbolo">L (m)</span></span></th>
+                <th rowspan="2"><span class="ayuda" title="Seleccionar la canalización del circuito: «Propia» o una compartida (T1, T2…). Los circuitos de una misma canalización se agrupan y el programa cuenta sus portadores — 310-15(b)(3)(a). Si el circuito pasa por varias, la del tramo más desfavorable — 310-15(a)(2). Debajo: el tamaño que resultó.">Canal.</span></th>
                 <th rowspan="2"><span class="ayuda" title="Seleccionar los polos del interruptor. Un multipolar ocupa los espacios N, N+2 y N+4 del mismo lado.">P</span></th>
                 <th rowspan="2"><span class="ayuda" title="Consultar las barras que toca el interruptor. Las determina el espacio de montaje.">Barras</span></th>
                 <th rowspan="2"><span class="ayuda" title="Consultar la corriente de diseño de la carga capturada — 210-19(a)(1)."><span class="simbolo">In (A)</span></span></th>
@@ -231,11 +239,27 @@
                             <td rowspan="@c.Polos" class="num tenue col-fase">@(c.TieneCarga && c.Fases.Contains(barra) ? c.CargaPorFaseVA.ToString("N0") : "")</td>
                         }
                         <td rowspan="@c.Polos"><input class="va corto" type="number" min="0" @bind="c.LongitudM" @bind:after="Recalcular" /></td>
+                        <td rowspan="@c.Polos" class="canal">
+                            <select class="canal" value="@(c.Canalizacion ?? "")" @onchange="e => CambiarCanalizacion(c, e.Value?.ToString())">
+                                <option value="">Propia</option>
+                                @foreach (var t in Datos.Canalizaciones) { <option value="@t.Id">@t.Id</option> }
+                                <option value="+">+ Nueva</option>
+                            </select>
+                            @if (c.TieneCarga && c.CanalizacionEfectiva is { } canal)
+                            {
+                                <span class="en-va">@canal.TamanoRotulo</span>
+                            }
+                        </td>
                         <td rowspan="@c.Polos">
                             <select class="polos" value="@c.Polos"
                                     @onchange="e => CambiarPolos(c, e.Value?.ToString())">
                                 @foreach (var p in Enumerable.Range(1, Datos.MaximoPolos)) { <option value="@p">@p</option> }
                             </select>
+                            @if (c.Polos > 1 && TieneNeutro)
+                            {
+                                <label class="mas-n" title="Marcar si la carga es F-N (220/127 V) y el circuito lleva neutro. En 2 fases + neutro de estrella el neutro cuenta como portador — 310-15(b)(5)(2).">
+                                    <input type="checkbox" checked="@c.ConNeutro" @onchange="e => { c.ConNeutro = e.Value is true; Recalcular(); }" />+N</label>
+                            }
                         </td>
                         <td rowspan="@c.Polos" class="fase">
                             @foreach (var barra in c.Fases)
@@ -247,7 +271,7 @@
                         @{ var desglose = Cuadro.Desglose(c); }
                         <td rowspan="@c.Polos" class="num">@Ayuda(c.Resultado?.ProteccionA.ToString("N0"), desglose?.Proteccion)</td>
                         @Conductor(c.Resultado?.CalibreFase, c.Resultado?.NumeroConductoresParalelo ?? 0, c.Polos, desglose?.Conductor)
-                        @Conductor(c.Resultado?.CalibreNeutro, c.Resultado is null ? 0 : 1, c.Polos)
+                        @Conductor(c.Resultado?.CalibreNeutro, c.Resultado is null ? 0 : 1, c.Polos, sinConductor: c.Resultado is not null && !c.LlevaNeutro)
                         @Conductor(c.Resultado?.CalibreTierra, c.Resultado is null ? 0 : 1, c.Polos)
                         <td rowspan="@c.Polos" class="num ultima @(Excede(c) ? "excede" : null)">@c.Resultado?.CaidaTensionPct.ToString("N2")</td>
                     </tr>
@@ -330,6 +354,72 @@
             }
         </tbody>
     </table>
+</section>
+
+@*
+    CANALIZACIONES — decisión canalizaciones-y-agrupamiento (2026-09-24). Se captura qué circuitos van
+    juntos (columna «Canal.») y aquí sale lo demás: portadores, factor de agrupamiento según el tipo
+    de canalización y tamaño (Capítulo 10). Las propias van plegadas: son una por circuito.
+*@
+<section class="tarjeta canalizaciones">
+    <div class="encabezado-tarjeta">
+        <h2>Canalizaciones</h2>
+        <button class="agregar" @onclick="NuevaCanalizacion">+ Nueva canalización</button>
+    </div>
+    <div class="desplazable">
+    <table class="datos canal">
+        <tr>
+            <th class="izq">Canal.</th>
+            <th class="izq"><span class="ayuda" title="Tipo de canalización y, en tubo, el bloque de la Tabla 4. Ductos y canales: medidas interiores (20 % — 376-22, 378-22, 366-22). Superficiales: área interior y número de conductores del fabricante (386-22, 388-22).">Tipo</span></th>
+            <th class="izq">Circuitos</th>
+            <th><span class="ayuda" title="Conductores en la canalización: fases, neutros y tierras. Para el llenado cuentan todos — Nota 3 del Capítulo 10.">F · N · T</span></th>
+            <th><span class="ayuda" title="Conductores portadores de corriente — 310-15(b)(3)(a), (b)(5). La tierra no cuenta — (b)(6). Pasar el cursor sobre el número para consultar el conteo.">Portadores</span></th>
+            <th><span class="ayuda" title="Factor de ajuste por agrupamiento — Tabla 310-15(b)(3)(a), según el tipo de canalización. Pasar el cursor para consultar por qué.">F.A.</span></th>
+            <th><span class="ayuda" title="Suma de las áreas de los conductores — Tablas 5 y 8 del Capítulo 10.">Área <span class="simbolo">(mm²)</span></span></th>
+            <th><span class="ayuda" title="Tubo: designación métrica (tamaño comercial) — Tablas 1 y 4 del Capítulo 10. Ducto sin medidas: área interior mínima. «2 ×»: una canalización por juego de conductores en paralelo — 310-10(h)(3).">Tamaño</span></th>
+            <th><span class="ayuda" title="Área de los conductores entre el área interior de la canalización.">Ocupación</span></th>
+            <th class="izq">Opciones</th>
+            <th></th>
+        </tr>
+        @foreach (var t in Datos.Canalizaciones)
+        {
+            @FilaCanal(t, compartida: true)
+        }
+        @FilaCanal(Datos.CanalizacionAlimentador, compartida: false)
+    </table>
+    </div>
+
+    @{ var propias = Cuadro.TodasLasCanalizaciones.Where(t => t.Id.StartsWith("Circuito ")).ToList(); }
+    @if (propias.Count > 0)
+    {
+        <details class="propias">
+            <summary>@propias.Count canalización@(propias.Count == 1 ? "" : "es") propia@(propias.Count == 1 ? "" : "s") (@Datos.CanalizacionPorOmision.Rotulo, de «Condiciones de cálculo»)</summary>
+            <div class="desplazable">
+            <table class="datos canal">
+                @foreach (var t in propias)
+                {
+                    @FilaCanal(t, compartida: false, propia: true)
+                }
+            </table>
+            </div>
+        </details>
+    }
+
+    @{ var sinDiametro = DesignacionesSinDiametro(); }
+    @if (sinDiametro.Count > 0 || Datos.DiametrosFabricante.Keys.Any(k => k.StartsWith(Datos.TipoAislamiento + "|")))
+    {
+        <div class="fabricante">
+            <h2 class="separado"><span class="ayuda" title="El aislamiento @Datos.TipoAislamiento no está en la Tabla 5 del Capítulo 10: el llenado se calcula con el diámetro exterior real del fabricante — Nota 5.">Diámetro exterior del fabricante · @Datos.TipoAislamiento</span></h2>
+            @foreach (var designacion in DesignacionesEnUso())
+            {
+                var clave = DatosDelTablero.ClaveDiametro(Datos.TipoAislamiento, designacion);
+                <label class="suelto">@Calibre.UnidadDe(designacion) (mm)
+                    <input type="number" min="0" step="0.01" value="@(Datos.DiametrosFabricante.TryGetValue(clave, out var d) ? d.ToString(CultureInfo.InvariantCulture) : "")"
+                           @onchange="e => CambiarDiametro(clave, e.Value?.ToString())" />
+                </label>
+            }
+        </div>
+    }
 </section>
 
 <div class="cierre">
@@ -522,6 +612,8 @@
                 </div>
             </div>
 
+            <p class="derivado">Canalización: <strong>@Datos.CanalizacionAlimentador.Rotulo · @Datos.CanalizacionAlimentador.TamanoRotulo</strong> · @(Datos.CanalizacionAlimentador.Conteo?.Portadores) portadores — ver «Canalizaciones».</p>
+
             <label class="suelto">Longitud del alimentador (m)
                 <input type="number" min="0" step="1" @bind="Datos.LongitudAlimentadorM" @bind:after="Recalcular" />
             </label>
@@ -571,7 +663,7 @@
     circuitos, se revisa el cierre y aquí queda lo que hay que atender. Dentro del cuadro partían los
     circuitos; dentro de la tarjeta del alimentador la amontonaban.
 *@
-@if (Cuadro.Alimentador.Resultado is not null && Cuadro.Alimentador.Avisos.Any() || Cuadro.ConCaidaCombinadaExcedida.Any())
+@if (Cuadro.Alimentador.Resultado is not null && Cuadro.Alimentador.Avisos.Any() || Cuadro.ConCaidaCombinadaExcedida.Any() || Cuadro.AvisosDeCanalizaciones.Any())
 {
     <section class="tarjeta avisos">
         <h2>Avisos</h2>
@@ -585,6 +677,10 @@
         @foreach (var c in Cuadro.ConCaidaCombinadaExcedida)
         {
             <p class="aviso">@c.AvisoCaidaCombinada</p>
+        }
+        @foreach (var aviso in Cuadro.AvisosDeCanalizaciones)
+        {
+            <p class="aviso">@aviso</p>
         }
     </section>
 }
@@ -605,6 +701,146 @@
     private DatosDelTablero Datos => Cuadro.Datos;
 
     private void Recalcular() => Cuadro.Recalcular();
+
+    private void NuevaCanalizacion()
+    {
+        Datos.NuevaCanalizacion();
+        Recalcular();
+    }
+
+    private void CambiarDiametro(string clave, string? valor)
+    {
+        if (decimal.TryParse(valor, NumberStyles.Number, CultureInfo.InvariantCulture, out var d) && d > 0m)
+            Datos.DiametrosFabricante[clave] = d;
+        else
+            Datos.DiametrosFabricante.Remove(clave);
+        Recalcular();
+    }
+
+    /// <summary>Los calibres aislados que se usan en alguna canalización, de menor a mayor.</summary>
+    private List<string> DesignacionesEnUso() =>
+        Cuadro.TodasLasCanalizaciones
+            .SelectMany(t => t.Ocupacion?.Renglones ?? [])
+            .Where(r => r.Conductor.TipoAislamiento is not null)
+            .Select(r => r.Conductor.Designacion)
+            .Distinct()
+            .OrderBy(d => Motor.Calibres.BuscarPorDesignacion(d)?.AreaMm2 ?? 0m)
+            .ToList();
+
+    private List<string> DesignacionesSinDiametro() =>
+        Cuadro.TodasLasCanalizaciones.SelectMany(t => t.Ocupacion?.Faltantes ?? []).Distinct().ToList();
+
+    private static string Opcional(decimal? v) => v?.ToString(CultureInfo.InvariantCulture) ?? "";
+
+    private static decimal? Decimal(object? valor) =>
+        decimal.TryParse(valor?.ToString(), NumberStyles.Number, CultureInfo.InvariantCulture, out var d) && d > 0m ? d : null;
+
+    /// <summary>
+    /// Un renglón de la tarjeta «Canalizaciones». Las compartidas y la del alimentador se configuran
+    /// aquí; las propias se muestran nada más (su configuración es la de «Condiciones de cálculo»).
+    /// </summary>
+    private RenderFragment FilaCanal(CanalizacionDelTablero t, bool compartida, bool propia = false) =>
+        @<tr>
+            <td class="izq fuerte">@(t.Id == "Alimentador" ? "Alimentador" : t.Id.Replace("Circuito ", "Circ. "))</td>
+            <td class="izq tipo">
+                @if (propia)
+                {
+                    @t.Rotulo
+                }
+                else
+                {
+                    <select value="@t.Tipo" @onchange="e => { t.Tipo = Enum.Parse<TipoCanalizacion>(e.Value!.ToString()!); Recalcular(); }">
+                        @foreach (var tipo in Enum.GetValues<TipoCanalizacion>()) { <option value="@tipo">@tipo.Nombre()</option> }
+                    </select>
+                    @if (t.Tipo.EsTubo())
+                    {
+                        <select value="@t.Tubo" @onchange="e => { t.Tubo = Enum.Parse<TipoTuboConduit>(e.Value!.ToString()!); Recalcular(); }">
+                            @foreach (var tubo in Enum.GetValues<TipoTuboConduit>()) { <option value="@tubo">@tubo.Corto()</option> }
+                        </select>
+                    }
+                    else if (t.Tipo.EsDuctoOCanal())
+                    {
+                        <span class="medidas">
+                            <input type="number" min="0" placeholder="ancho" title="Ancho interior (mm)" value="@Opcional(t.AnchoMm)" @onchange="e => { t.AnchoMm = Decimal(e.Value); Recalcular(); }" />
+                            ×
+                            <input type="number" min="0" placeholder="alto" title="Alto interior (mm)" value="@Opcional(t.AltoMm)" @onchange="e => { t.AltoMm = Decimal(e.Value); Recalcular(); }" /> mm
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="medidas">
+                            <input type="number" min="0" placeholder="área mm²" title="Área interior (mm²)" value="@Opcional(t.AreaInteriorMm2)" @onchange="e => { t.AreaInteriorMm2 = Decimal(e.Value); Recalcular(); }" />
+                            <input type="number" min="0" placeholder="máx." title="Número máximo de conductores del fabricante" value="@(t.MaxConductoresFabricante?.ToString() ?? "")" @onchange="e => { t.MaxConductoresFabricante = int.TryParse(e.Value?.ToString(), out var m) && m > 0 ? m : null; Recalcular(); }" />
+                        </span>
+                    }
+                }
+            </td>
+            <td class="izq">@(t.Id == "Alimentador" ? "—" : string.Join(", ", t.Circuitos.Select(c => c.Espacio)))</td>
+            <td class="num">@ConductoresPorPapel(t)</td>
+            <td class="num">
+                @if (t.Conteo is { } conteo)
+                {
+                    <span class="ayuda" title="@string.Join("\n", conteo.Desglose.Select(d => $"{d.Circuito}: {d.Fases} fase(s) + {d.Neutros} neutro(s) — {d.Motivo}"))">@conteo.Portadores</span>
+                }
+            </td>
+            <td class="num">
+                @if (t.Ajuste is { } ajuste)
+                {
+                    <span class="ayuda" title="@ajuste.Motivo">@t.FactorAgrupamiento?.ToString("N2")</span>
+                }
+            </td>
+            <td class="num">@t.Ocupacion?.AreaTotalMm2?.ToString("N1")</td>
+            <td class="num fuerte">@t.TamanoRotulo</td>
+            <td class="num @(t.Ocupacion?.Excede == true ? "excede" : null)">@(t.Ocupacion?.OcupacionPct is { } pct ? $"{pct:N1} %" : "")</td>
+            <td class="izq opciones">
+                @if (!propia)
+                {
+                    @if (compartida)
+                    {
+                        <label title="Circuitos de 1 polo en barras distintas con un solo neutro — circuito multiconductor, 210-4. Exige desconexión simultánea — 210-4(b)."><input type="checkbox" checked="@t.NeutroCompartido" @onchange="e => { t.NeutroCompartido = e.Value is true; Recalcular(); }" /> neutro compartido</label>
+                        <label title="Una sola tierra para todos los circuitos, con la protección mayor — 250-122(c)."><input type="checkbox" checked="@t.TierraComun" @onchange="e => { t.TierraComun = e.Value is true; Recalcular(); }" /> tierra común</label>
+                    }
+                    <label title="Tierra desnuda: su área sale de la Tabla 8 — Nota 8 del Capítulo 10."><input type="checkbox" checked="@t.TierraDesnuda" @onchange="e => { t.TierraDesnuda = e.Value is true; Recalcular(); }" /> tierra desnuda</label>
+                    @if (t.Id == "Alimentador")
+                    {
+                        <label title="Todos los conductores en paralelo en esta canalización: cada uno cuenta como portador — 310-15(b)(3)(a). Sin marcar: un juego por canalización, todas iguales — 310-10(h)(3)."><input type="checkbox" checked="@t.JuegosEnUnTubo" @onchange="e => { t.JuegosEnUnTubo = e.Value is true; Recalcular(); }" /> paralelos en un tubo</label>
+                    }
+                    @if (t.Tipo.EsTubo())
+                    {
+                        <label title="Tubo en azotea al sol: distancia del techo a la base del tubo, en mm. Vacío: no está en azotea — Tabla 310-15(b)(3)(c).">azotea <input type="number" min="0" class="corto" placeholder="mm" value="@Opcional(t.AlturaSobreTechoMm)" @onchange="e => { t.AlturaSobreTechoMm = decimal.TryParse(e.Value?.ToString(), NumberStyles.Number, CultureInfo.InvariantCulture, out var h) && h >= 0m ? h : null; Recalcular(); }" /></label>
+                        <label title="Fijar la designación métrica del tubo; el programa verifica que alcance. Vacío: la elige el programa.">fijar <input type="number" min="0" class="corto" placeholder="—" value="@(t.TamanoFijado?.ToString() ?? "")" @onchange="e => { t.TamanoFijado = int.TryParse(e.Value?.ToString(), out var f) && f > 0 ? f : null; Recalcular(); }" /></label>
+                    }
+                }
+            </td>
+            <td>
+                @if (compartida)
+                {
+                    <button class="quitar" title="Quitar la canalización: sus circuitos regresan a su canalización propia" @onclick="() => Cuadro.QuitarCanalizacion(t)">✕</button>
+                }
+            </td>
+        </tr>;
+
+    private static string ConductoresPorPapel(CanalizacionDelTablero t)
+    {
+        if (t.Ocupacion is not { } o) return "";
+        int De(PapelConductor p) => o.Renglones.Where(r => r.Conductor.Papel == p).Sum(r => r.Conductor.Cantidad);
+        return $"{De(PapelConductor.Fase)} · {De(PapelConductor.Neutro)} · {De(PapelConductor.Tierra)}";
+    }
+
+    /// <summary>El tablero tiene neutro: todos salvo 3F-3H.</summary>
+    private bool TieneNeutro => SistemaDelTablero.De(Datos.Sistema) != ConfiguracionTablero.TresFasesTresHilos;
+
+    /// <summary>«Propia», una compartida o «+ Nueva», que crea la siguiente y lo pone ahí.</summary>
+    private void CambiarCanalizacion(CircuitoDelCuadro circuito, string? valor)
+    {
+        circuito.Canalizacion = valor switch
+        {
+            "+" => Datos.NuevaCanalizacion().Id,
+            null or "" => null,
+            _ => valor,
+        };
+        Recalcular();
+    }
 
     /// <summary>
     /// Los aislamientos de uso común en instalaciones de baja tensión, todos reconocidos por la
@@ -630,7 +866,7 @@
     /// Cuántas columnas tiene el cuadro, para los <c>colspan</c> de los renglones que abarcan todo.
     /// Depende de las barras: un tablero de dos barras no tiene columna de balanceo para la C.
     /// </summary>
-    private int Columnas => 16 + Datos.Barras.Count;
+    private int Columnas => 17 + Datos.Barras.Count;
 
     /// <summary>Los dos bloques del cuadro, ya materializados: cada uno se recorre más de una vez.</summary>
     private List<CircuitoDelCuadro>[] Lados => [Cuadro.Nones.ToList(), Cuadro.Pares.ToList()];
@@ -642,12 +878,15 @@
     /// </summary>
     /// <param name="porque">El desglose de la selección: si viene, la designación AWG/kcmil lleva un
     /// tooltip con cómo se llegó a ese calibre.</param>
-    private static RenderFragment Conductor(Calibre? calibre, int hilos, int polos, IReadOnlyList<string>? porque = null) => builder =>
+    /// <param name="sinConductor">El circuito no lleva ese conductor (un bipolar F-F sin neutro): «—» — I-41.</param>
+    private static RenderFragment Conductor(Calibre? calibre, int hilos, int polos, IReadOnlyList<string>? porque = null, bool sinConductor = false) => builder =>
     {
         builder.OpenElement(0, "td");
         builder.AddAttribute(1, "class", "num conductor");
         builder.AddAttribute(2, "rowspan", polos);
-        if (calibre is not null && hilos > 0)
+        if (sinConductor)
+            builder.AddContent(7, "—");
+        else if (calibre is not null && hilos > 0)
         {
             builder.AddContent(3, Ayuda(ConHilos(calibre, hilos), porque));
             builder.OpenElement(4, "span");

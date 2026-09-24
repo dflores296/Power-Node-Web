@@ -131,6 +131,29 @@ public sealed class CircuitoDelCuadro
     /// <summary>Las barras que toca, en el orden en que las toca: «A», «AB», «ABC». La resuelve la geometría del tablero, no se captura.</summary>
     public string Fases { get; internal set; } = "A";
 
+    /// <summary>
+    /// La canalización compartida por la que va («T1»), o <c>null</c>: va en la suya propia, con la
+    /// configuración por omisión del tablero. Si el circuito pasa por varias, la del tramo más
+    /// desfavorable — 310-15(a)(2).
+    /// </summary>
+    public string? Canalizacion { get; set; }
+
+    /// <summary>
+    /// Casilla «+N» de un circuito de 2 o 3 polos: la carga es F-N (220/127 V) y lleva neutro. Un
+    /// circuito de 1 polo siempre lo lleva; ver <see cref="LlevaNeutro"/>.
+    /// </summary>
+    public bool ConNeutro { get; set; }
+
+    /// <summary>
+    /// Si el circuito lleva neutro: 1 polo sí; 2 y 3 polos solo con <see cref="ConNeutro"/>; nunca en
+    /// un tablero sin neutro (3F-3H). Lo resuelve <see cref="CuadroDeCarga"/> — I-41: antes todos
+    /// los circuitos salían con neutro, aunque la carga fuera F-F.
+    /// </summary>
+    public bool LlevaNeutro { get; internal set; } = true;
+
+    /// <summary>La canalización con la que se calculó: la compartida o la propia. La mantiene <see cref="CuadroDeCarga"/>.</summary>
+    public CanalizacionDelTablero? CanalizacionEfectiva { get; internal set; }
+
     public ResultadoCircuitoDerivado? Resultado { get; internal set; }
 
     /// <summary>Lo que el motor rechazó, ya redactado. <c>null</c> = el renglón calculó.</summary>

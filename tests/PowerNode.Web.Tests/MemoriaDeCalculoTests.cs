@@ -312,13 +312,12 @@ public class MemoriaDeCalculoTests
         // de 40 A. Los 50 A eran de la columna de 90 °C; ahora se ven las dos columnas.
         var cuadro = new CuadroDeCarga(new MotorNom(Json));
         cuadro.Datos.NumeroEspacios = 6;
-        cuadro.Datos.ConductoresAgrupados = 6;
         var c = cuadro.Circuitos[0];
         c.Tipo = PowerNode.DesignSuite.Calculo.Unidades.TipoCarga.Equipo;
         c.Unidad = PowerNode.DesignSuite.Calculo.Casos.UnidadConsumo.Amperes;
         c.Continua = 32m;
         c.LongitudM = 5m;
-        cuadro.Recalcular();
+        Agrupar.EnTubo(cuadro, c, 6);
 
         var formulas = MemoriaDeCalculo.Secciones(MemoriaDeCalculo.DeCircuito(cuadro, c))[3].Formulas;
 

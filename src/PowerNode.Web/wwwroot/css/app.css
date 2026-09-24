@@ -491,3 +491,31 @@ label.suelto input { width: 90px; }
                                   border-top: 1px solid var(--linea); border-bottom: 0; }
 .cuadro button.agregar, .cuadro button.quitar { border: 0; background: none; cursor: pointer; color: var(--acento, #2563eb); font-size: 11px; padding: 2px 4px; }
 .cuadro button.quitar { color: var(--tenue); }
+
+/* ------------------------------------------------------------------------------------------------
+   CANALIZACIONES — decisión canalizaciones-y-agrupamiento (2026-09-24).
+   ------------------------------------------------------------------------------------------------ */
+.cuadro td.canal { white-space: nowrap; }
+.cuadro select.canal { width: 92px; }
+.cuadro td.canal .en-va { text-align: center; }
+.cuadro .mas-n { display: flex; align-items: center; justify-content: center; gap: 3px;
+                 font-size: 10px; color: var(--tenue); margin-top: 3px; cursor: pointer; }
+.tarjeta.canalizaciones { margin-top: 22px; }
+.encabezado-tarjeta { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.encabezado-tarjeta h2 { margin: 0; }
+.desplazable { overflow-x: auto; }
+.datos.canal { margin-top: 10px; }
+.datos.canal th { text-align: center; }
+.datos.canal th.izq { text-align: left; }
+.datos.canal td { vertical-align: middle; padding: 6px 8px; }
+.datos.canal td.tipo { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.datos.canal td.tipo select { max-width: 190px; }
+.datos.canal .medidas { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: var(--tenue); }
+.datos.canal .medidas input { width: 64px; }
+.datos.canal td.opciones { white-space: normal; min-width: 260px; }
+.datos.canal td.opciones label { display: inline-flex; align-items: center; gap: 4px; margin-right: 10px;
+                                 font-size: 11px; color: var(--tenue); white-space: nowrap; }
+.datos.canal input.corto { width: 56px; }
+details.propias { margin-top: 12px; }
+details.propias summary { cursor: pointer; font-size: 12px; color: var(--tenue); }
+.fabricante { margin-top: 14px; max-width: 420px; }

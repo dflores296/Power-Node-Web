@@ -181,6 +181,12 @@ public class TablasDeLaNormaTests
         Assert.NotNull(tabla.Aislado("12", "THW"));
         Assert.NotNull(tabla.Aislado("350", "THHN"));
 
+        // ERRATA del DOF: TW 10 AWG publica 55.68 mm² con 4.470 mm de diámetro (π·d²/4 = 15.69).
+        Assert.Equal((4.470m, 15.68m), tabla.Aislado("10", "TW"));
+        Assert.Equal(15.68m, tabla.Aislado("10", "THW")!.Value.AreaMm2);
+        Assert.Same(ErratasDeLaNorma.AreaTw10Awg, tabla.ErrataAplicada("10", "THHW"));
+        Assert.Null(tabla.ErrataAplicada("12", "TW"));
+
         // Los LS no están: la Nota 5 pide las dimensiones reales.
         Assert.Null(tabla.Aislado("12", "THW-LS"));
         Assert.Null(tabla.Aislado("12", "THHW-LS"));

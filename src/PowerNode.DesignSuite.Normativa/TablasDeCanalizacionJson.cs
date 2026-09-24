@@ -158,12 +158,19 @@ public class TablaTuboConduitJson(IFuenteTablas fuente) : ITablaTuboConduit
 public class TablaDimensionesConductorJson(IFuenteTablas fuente) : ITablaDimensionesConductor
 {
     private Dictionary<(string Tipo, string Designacion), (decimal, decimal)>? _aislados;
+    private readonly Dictionary<(string Tipo, string Designacion), ErrataDeCelda> _erratas = [];
     private Dictionary<string, (decimal Diametro, decimal Area, decimal Hilos)>? _desnudos;
 
     public (decimal DiametroMm, decimal AreaMm2)? Aislado(string designacion, string tipoAislamiento)
     {
         _aislados ??= LeerTabla5();
         return _aislados.TryGetValue((NormalizarTipo(tipoAislamiento), NormaParsing.DesignacionLimpia(designacion)), out var d) ? d : null;
+    }
+
+    public ErrataDeCelda? ErrataAplicada(string designacion, string tipoAislamiento)
+    {
+        _aislados ??= LeerTabla5();
+        return _erratas.TryGetValue((NormalizarTipo(tipoAislamiento), NormaParsing.DesignacionLimpia(designacion)), out var e) ? e : null;
     }
 
     public (decimal DiametroMm, decimal AreaMm2)? Desnudo(string designacion)
@@ -194,11 +201,19 @@ public class TablaDimensionesConductorJson(IFuenteTablas fuente) : ITablaDimensi
 
             var designacion = NormaParsing.DesignacionLimpia(f.Texto(2) ?? "");
             var diametro = NormaParsing.Decimal(f.Texto(3));
-            var area = NormaParsing.Decimal(f.Texto(4));
-            if (designacion.Length == 0 || diametro is null || area is null) continue;
+            var leida = NormaParsing.Decimal(f.Texto(4));
+            if (designacion.Length == 0 || diametro is null || leida is null) continue;
+
+            // Erratas del DOF: se verifican antes de corregir y llegan a la memoria (ErratasDeLaNorma).
+            var clave = $"{string.Join(",", tipos)}|{designacion}";
+            var area = ErratasDeLaNorma.Aplicar("5", clave, 4, leida)!.Value;
+            var errata = area != leida ? ErratasDeLaNorma.DeLaCelda("5", clave, 4) : null;
 
             foreach (var tipo in tipos)
-                resultado.TryAdd((tipo, designacion), (diametro.Value, area.Value));
+            {
+                if (resultado.TryAdd((tipo, designacion), (diametro.Value, area)) && errata is not null)
+                    _erratas[(tipo, designacion)] = errata;
+            }
         }
 
         return resultado;

@@ -300,10 +300,10 @@ public class PruebasDelDocumento20260923Tests
         foreach (var (aislamiento, seco, calibre) in new[] { ("THHN", true, "10"), ("THW-LS", true, "8"), ("THHN", false, (string?)null) })
         {
             var cuadro = Nuevo();
-            cuadro.Datos.ConductoresAgrupados = 9;
             cuadro.Datos.TipoAislamiento = aislamiento;
             cuadro.Datos.LugarSeco = seco;
             var c = Capturar(cuadro, 1, TipoCarga.Alumbrado, UnidadConsumo.Amperes, 0m, 26m, 0.9m, 5m);
+            Agrupar.EnTubo(cuadro, c, 9);
 
             if (calibre is null)
                 Assert.Contains("THHN", c.Error);
@@ -316,8 +316,8 @@ public class PruebasDelDocumento20260923Tests
     public void P13_El125AntesDeFactoresYLaCargaDespues()
     {
         var cuadro = Nuevo();
-        cuadro.Datos.ConductoresAgrupados = 9;
         var c = Capturar(cuadro, 1, TipoCarga.Alumbrado, UnidadConsumo.Amperes, 32m, 0m, 0.9m, 5m);
+        Agrupar.EnTubo(cuadro, c, 9);
         var conductor = cuadro.Desglose(c)!.Conductor;
 
         Assert.Equal(40m, c.Resultado!.ProteccionA);
@@ -348,8 +348,8 @@ public class PruebasDelDocumento20260923Tests
         foreach (var (tipo, calibre) in new[] { (TipoCarga.Equipo, "8"), (TipoCarga.Contactos, "6") })
         {
             var cuadro = Nuevo();
-            cuadro.Datos.ConductoresAgrupados = 9;
             var c = Capturar(cuadro, 1, tipo, UnidadConsumo.Amperes, 32m, 0m, 0.9m, 5m);
+            Agrupar.EnTubo(cuadro, c, 9);
 
             Assert.Equal(calibre, c.Resultado!.CalibreFase.Designacion);
         }

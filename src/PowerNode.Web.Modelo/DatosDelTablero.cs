@@ -275,9 +275,52 @@ public sealed class DatosDelTablero
     /// </summary>
     public bool TerminalesMarcadas75C { get; set; }
 
-    public MaterialCanalizacion MaterialCanalizacion { get; set; } = MaterialCanalizacion.Pvc;
     public decimal TemperaturaAmbienteC { get; set; } = 30m;
-    public int ConductoresAgrupados { get; set; } = 3;
+
+    // ---- Canalizaciones (decisión canalizaciones-y-agrupamiento, 2026-09-24) -------------------
+    // ANTES: «Agrupados» (un número para todo el tablero) y «Canalización» (PVC, aluminio o acero,
+    // solo para la Tabla 9). Un solo número se aplicaba igual a cada derivado y al alimentador — I-39.
+    // Ahora se captura qué circuitos van juntos y el agrupamiento y el material salen de ahí.
+
+    /// <summary>
+    /// La configuración con la que nace la canalización propia de cada circuito que no se asigna a
+    /// ninguna compartida: PVC cédula 40 por omisión.
+    /// </summary>
+    public CanalizacionDelTablero CanalizacionPorOmision { get; } = new("Por omisión");
+
+    /// <summary>Las canalizaciones compartidas: T1, T2…</summary>
+    public List<CanalizacionDelTablero> Canalizaciones { get; } = [];
+
+    /// <summary>La del alimentador, que va solo.</summary>
+    public CanalizacionDelTablero CanalizacionAlimentador { get; } = new("Alimentador");
+
+    /// <summary>
+    /// La mayor parte de la carga es no lineal (electrónica, iluminación LED, equipo de cómputo): en
+    /// 3F-4H el neutro lleva armónicas y cuenta como portador — 310-15(b)(5)(3).
+    /// </summary>
+    public bool CargaNoLineal { get; set; }
+
+    /// <summary>
+    /// Diámetro exterior del fabricante, en mm, por aislamiento y calibre («THW-LS|12»). Solo para
+    /// aislamientos que no están en la Tabla 5 del Capítulo 10 — Nota 5.
+    /// </summary>
+    public Dictionary<string, decimal> DiametrosFabricante { get; } = [];
+
+    public static string ClaveDiametro(string aislamiento, string designacion) => $"{aislamiento}|{designacion}";
+
+    /// <summary>Agrega una canalización compartida con el siguiente número libre y la configuración por omisión.</summary>
+    public CanalizacionDelTablero NuevaCanalizacion()
+    {
+        var n = 1;
+        while (Canalizaciones.Any(c => c.Id == $"T{n}")) n++;
+        var nueva = new CanalizacionDelTablero($"T{n}");
+        nueva.CopiarConfiguracionDe(CanalizacionPorOmision);
+        Canalizaciones.Add(nueva);
+        return nueva;
+    }
+
+    public CanalizacionDelTablero? Canalizacion(string? id) =>
+        id is null ? null : Canalizaciones.FirstOrDefault(c => c.Id == id);
     // SIN FACTOR DE POTENCIA DEL TABLERO. Un tablero no tiene F.P.: lo tienen sus cargas. Cada
     // circuito lleva el suyo (CircuitoDelCuadro.FactorPotencia) y el del alimentador resulta de
     // combinarlos. Decidido por David el 2026-09-23 — docs/decisiones/factor-de-potencia-por-circuito.md.

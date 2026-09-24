@@ -60,6 +60,9 @@ public interface ITablaDimensionesConductor
 
     /// <summary>Diámetro y área total del conductor desnudo, trenzado (Tabla 8; Nota 8 del Cap. 10).</summary>
     (decimal DiametroMm, decimal AreaMm2)? Desnudo(string designacion);
+
+    /// <summary>La errata de <see cref="ErratasDeLaNorma"/> que se aplicó al leer esa fila, o null.</summary>
+    ErrataDeCelda? ErrataAplicada(string designacion, string tipoAislamiento);
 }
 
 /// <summary>Tabla 310-15(b)(3)(c) — lo que se suma a la temperatura ambiente en azoteas al sol.</summary>
