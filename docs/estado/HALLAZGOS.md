@@ -63,7 +63,7 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | M-07 · Errata de la Tabla 5: TW 10 AWG con 55.68 mm² | P1 | **Cerrado** | `6e88585` |
 | I-42 · Selector de aislamiento con 7 de 17 tipos | P1 | **Cerrado** | `23da7ce` |
 | M-08 · THW rechazado en lugar seco | P1 | **Cerrado** | `23da7ce` |
-| I-43 · Canalización de los circuitos sin compartida fijada en Condiciones de cálculo | P2 | **Cerrado** | `pendiente` |
+| I-43 · Canalización de los circuitos sin compartida fijada en Condiciones de cálculo | P2 | **Cerrado** | `58febd2` |
 | R-01 · Caída del alimentador fija en 5 %, sin verificar la combinada — 215-2(a)(4) NOTA 2 | P1 | **Cerrado** | `2a973ea` |
 | R-02 · Caída del alimentador sin la caída del neutro | P2 | **Cerrado** | `d6cd1c6` |
 | R-03 · La publicación no corre `PowerNode.Web.Tests` | P1 | **Cerrado** | `986c9d7` |

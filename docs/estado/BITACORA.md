@@ -62,6 +62,7 @@ Pruebas: 66 en `PowerNode.Web.Tests`, 6 en `PowerNode.Normativa.Tests`.
 - Cuadro con su ancho natural y desplazamiento lateral, N.º fijo — pedido de David, `5639aa0`.
 - Selector de aislamiento con los 17 tipos del motor; THW válido en lugar seco (310-10(a)) — I-42, M-08, `23da7ce`.
 - Canalizaciones en dos tablas (derivados y alimentador), propias sin plegar, tamaño en mm e in — pedido de David, `c2d7094`.
+- Quitar «Canalización» y «Tubo» de Condiciones: toda canalización nace EMT y se configura en su renglón; la propia se guarda con el circuito; nombres editables — I-43, `58febd2`.
 
 Pruebas: 167 en `PowerNode.Web.Tests`, 23 en `PowerNode.Normativa.Tests`.
 
