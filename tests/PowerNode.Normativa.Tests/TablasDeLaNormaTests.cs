@@ -1,3 +1,4 @@
+using PowerNode.DesignSuite.Calculo.Canalizaciones;
 using PowerNode.DesignSuite.Calculo.TablasNom;
 using PowerNode.DesignSuite.Calculo.Unidades;
 using PowerNode.DesignSuite.Normativa;
@@ -120,5 +121,83 @@ public class TablasDeLaNormaTests
                  })
             Assert.False(string.IsNullOrWhiteSpace(Fuente.VerificadaEl(id)),
                 $"La tabla {id} no trae fecha de verificación.");
+    }
+
+    // ---- Capítulo 10: canalizaciones (nacido en la web, 2026-09-24) -------------------------
+
+    [Fact]
+    public void Tabla1_PorcentajeDeOcupacion()
+    {
+        var tabla = new TablaOcupacionJson(Fuente);
+        Assert.Equal(53m, tabla.PorcentajeMaximo(1));
+        Assert.Equal(31m, tabla.PorcentajeMaximo(2));
+        Assert.Equal(40m, tabla.PorcentajeMaximo(3));
+        Assert.Equal(40m, tabla.PorcentajeMaximo(40));
+    }
+
+    [Fact]
+    public void Tabla4_BloquesYTamanos()
+    {
+        var tabla = new TablaTuboConduitJson(Fuente);
+
+        // EMT: el primer bloque, cuyo título cae en el encabezado de la tabla.
+        var emt = tabla.Tamanos(TipoTuboConduit.Emt);
+        Assert.Equal(16, emt[0].DesignacionMetrica);
+        Assert.Equal("½", emt[0].TamanoComercial);
+        Assert.Equal(15.8m, emt[0].DiametroInteriorMm);
+        Assert.Equal(78m, emt[0].AreaDisponible(40m));
+        Assert.Equal(104m, emt[0].AreaDisponible(53m));
+        Assert.Equal("16 (½)", emt[0].Rotulo);
+
+        // PVC cédula 40, 27 (1).
+        var pvc40 = tabla.Tamanos(TipoTuboConduit.PvcCedula40).Single(t => t.DesignacionMetrica == 27);
+        Assert.Equal("1", pvc40.TamanoComercial);
+
+        // «––»: el ENT no tiene 63 (2½) y el RMC no tiene 12 (⅜).
+        Assert.DoesNotContain(tabla.Tamanos(TipoTuboConduit.Ent), t => t.DesignacionMetrica == 63);
+        Assert.DoesNotContain(tabla.Tamanos(TipoTuboConduit.Rmc), t => t.DesignacionMetrica == 12);
+
+        // La cédula 80 que se ofrece es la primera: 53 (2) con 48.60 mm, menos que la cédula 40.
+        var ced80 = tabla.Tamanos(TipoTuboConduit.PvcCedula80).Single(t => t.DesignacionMetrica == 53);
+        Assert.Equal(48.60m, ced80.DiametroInteriorMm);
+        Assert.True(ced80.DiametroInteriorMm < tabla.Tamanos(TipoTuboConduit.PvcCedula40).Single(t => t.DesignacionMetrica == 53).DiametroInteriorMm);
+
+        // Los once bloques que se ofrecen existen.
+        foreach (var tipo in Enum.GetValues<TipoTuboConduit>())
+            Assert.NotEmpty(tabla.Tamanos(tipo));
+    }
+
+    [Fact]
+    public void Tabla5_ConductoresAisladosPorDesignacion()
+    {
+        var tabla = new TablaDimensionesConductorJson(Fuente);
+
+        Assert.Equal((2.819m, 6.258m), tabla.Aislado("14", "THHN"));
+        Assert.Equal((3.302m, 8.581m), tabla.Aislado("12", "THWN-2"));
+        // El bloque THHN trae la columna de mm² corrida en el DOF; por AWG sale el área correcta.
+        Assert.Equal(23.61m, tabla.Aislado("8", "THHN")!.Value.AreaMm2);
+        Assert.Equal(32.71m, tabla.Aislado("6", "THHN")!.Value.AreaMm2);
+        Assert.Equal(8.968m, tabla.Aislado("14", "XHHW-2")!.Value.AreaMm2);
+        Assert.NotNull(tabla.Aislado("12", "THW"));
+        Assert.NotNull(tabla.Aislado("350", "THHN"));
+
+        // Los LS no están: la Nota 5 pide las dimensiones reales.
+        Assert.Null(tabla.Aislado("12", "THW-LS"));
+        Assert.Null(tabla.Aislado("12", "THHW-LS"));
+
+        // Desnudo, Tabla 8 (trenzado).
+        Assert.NotNull(tabla.Desnudo("10"));
+    }
+
+    [Fact]
+    public void Tabla310_15_b_3_c_SumadorEnAzotea()
+    {
+        var tabla = new TablaTemperaturaAzoteaJson(Fuente);
+        Assert.Equal(33m, tabla.Sumador(0m));
+        Assert.Equal(33m, tabla.Sumador(13m));
+        Assert.Equal(22m, tabla.Sumador(14m));
+        Assert.Equal(17m, tabla.Sumador(300m));
+        Assert.Equal(14m, tabla.Sumador(900m));
+        Assert.Throws<InvalidOperationException>(() => tabla.Sumador(901m));
     }
 }
