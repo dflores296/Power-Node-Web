@@ -169,6 +169,13 @@ input.desc:focus, input.va:focus {
 /* Un conductor en una sola celda: el calibre y, debajo, la sección. */
 .cuadro td.conductor { white-space: nowrap; }
 .cuadro td.conductor .mm2 { display: block; font-size: 10px; color: var(--tenue); }
+.doc-cuadro td.conductor { white-space: nowrap; }
+.doc-cuadro td.conductor .mm2 { display: block; font-size: 8px; color: var(--tenue); }
+
+/* Las columnas de balanceo miden lo mismo, tengan carga o no (David, 2026-09-24): sin ancho fijo, una
+   fase vacía se encogía y el cuadro se veía chueco. */
+.cuadro .col-fase { width: 76px; min-width: 76px; }
+.doc-cuadro .col-fase { width: 52px; min-width: 52px; }
 
 .fila-error td { color: var(--alerta); font-size: 11px; text-align: left; padding: 4px 8px 8px; }
 

@@ -147,7 +147,7 @@
                 <th><span class="ayuda" title="Capturar el factor de potencia de la carga. Valor inicial: 0.9.&#10;&#10;Capturada en W: VA = W ÷ F.P. Modifica corriente, protección, conductor, caída de tensión y kW.&#10;&#10;Capturada en VA o A: modifica solo la caída de tensión (y el conductor, si excede el límite) y los kW — Tabla 9, nota 2.">F.P.</span></th>
                 @foreach (var barra in Datos.Barras)
                 {
-                    <th><span class="ayuda" title="Consultar la carga que el circuito asigna a la barra @barra."><span class="fase-rect fase-rect-@char.ToLowerInvariant(barra)">@barra</span></span></th>
+                    <th class="col-fase"><span class="ayuda" title="Consultar la carga que el circuito asigna a la barra @barra."><span class="fase-rect fase-rect-@char.ToLowerInvariant(barra)">@barra</span></span></th>
                 }
             </tr>
         </thead>
@@ -226,7 +226,7 @@
                         <td rowspan="@c.Polos"><input class="va fp" type="number" min="0.1" max="1" step="0.05" title="@(c.TieneDesglose ? "F.P. combinado de los aparatos: P ÷ √(P² + Q²)." : AyudaFactorPotencia(c))" @bind="c.FactorPotencia" @bind:after="Recalcular" disabled="@c.TieneDesglose" /></td>
                         @foreach (var barra in Datos.Barras)
                         {
-                            <td rowspan="@c.Polos" class="num tenue">@(c.TieneCarga && c.Fases.Contains(barra) ? c.CargaPorFaseVA.ToString("N0") : "")</td>
+                            <td rowspan="@c.Polos" class="num tenue col-fase">@(c.TieneCarga && c.Fases.Contains(barra) ? c.CargaPorFaseVA.ToString("N0") : "")</td>
                         }
                         <td rowspan="@c.Polos"><input class="va corto" type="number" min="0" @bind="c.LongitudM" @bind:after="Recalcular" /></td>
                         <td rowspan="@c.Polos">
@@ -519,9 +519,9 @@
                     <td class="izq">@(Datos.UsaInterruptorPrincipal ? "Interruptor principal" : "Protección del lado de alimentación")</td>
                     <td class="num fuerte">@Ayuda($"{a.ProteccionA:N0} A · {Cuadro.Alimentador.Polos} polos", Cuadro.DesgloseDelAlimentador()?.Proteccion)</td>
                 </tr>
-                <tr><td class="izq">Conductor de fase</td><td class="num">@Ayuda($"{a.CalibreFase.Designacion} AWG/kcmil", Cuadro.DesgloseDelAlimentador()?.Conductor)</td></tr>
-                <tr><td class="izq"><span class="ayuda" title="Consultar el conductor de neutro: mismo calibre que la fase. En 2 fases + neutro de estrella lleva ≈ la corriente de fase: contarlo en «Agrupados» — 310-15(b)(5)(2); no reducirlo — 220-61(c)(1).">Conductor de neutro</span></td><td class="num">@a.CalibreNeutro.Designacion AWG/kcmil</td></tr>
-                <tr><td class="izq">Puesta a tierra</td><td class="num">@a.CalibreTierra.Designacion AWG/kcmil</td></tr>
+                <tr><td class="izq">Conductor de fase</td><td class="num">@Ayuda(ConHilos(a.CalibreFase, a.NumeroConductoresParalelo), Cuadro.DesgloseDelAlimentador()?.Conductor)</td></tr>
+                <tr><td class="izq"><span class="ayuda" title="Consultar el conductor de neutro: mismo calibre que la fase. En 2 fases + neutro de estrella lleva ≈ la corriente de fase: contarlo en «Agrupados» — 310-15(b)(5)(2); no reducirlo — 220-61(c)(1).">Conductor de neutro</span></td><td class="num">@ConHilos(a.CalibreNeutro, a.NumeroConductoresParalelo)</td></tr>
+                <tr><td class="izq">Puesta a tierra</td><td class="num">@a.CalibreTierra.DesignacionConUnidad</td></tr>
                 <tr>
                     <td class="izq"><span class="ayuda" title="Consultar la caída de tensión del alimentador: la de la peor fase, con la caída del neutro — Tabla 9. Pasar el cursor sobre el valor para consultar cada fase. Recomendado: 3 % en el alimentador y 5 % combinada con el derivado — 215-2(a)(4), NOTA 2.">Caída de tensión</span></td>
                     <td class="num @(a.CaidaTensionPct > Datos.CaidaMaxAlimentadorPct ? "excede" : null)">@Ayuda(CaidaDelAlimentador(a), CaidaPorFase(a))</td>
@@ -624,8 +624,7 @@
         builder.AddAttribute(2, "rowspan", polos);
         if (calibre is not null && hilos > 0)
         {
-            var designacion = hilos > 1 ? $"{hilos} × {calibre.DesignacionConUnidad}" : calibre.DesignacionConUnidad;
-            builder.AddContent(3, Ayuda(designacion, porque));
+            builder.AddContent(3, Ayuda(ConHilos(calibre, hilos), porque));
             builder.OpenElement(4, "span");
             builder.AddAttribute(5, "class", "mm2");
             builder.AddContent(6, $"{calibre.AreaMm2:N2} mm²");
@@ -633,6 +632,10 @@
         }
         builder.CloseElement();
     };
+
+    /// <summary>El calibre con su unidad, y «2 ×» antes si lleva conductores en paralelo.</summary>
+    internal static string ConHilos(Calibre calibre, int hilos) =>
+        hilos > 1 ? $"{hilos} × {calibre.DesignacionConUnidad}" : calibre.DesignacionConUnidad;
 
     /// <summary>
     /// Un valor con su porqué en un tooltip, subrayado punteado como los encabezados que ya lo

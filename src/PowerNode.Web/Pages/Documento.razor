@@ -60,20 +60,17 @@
                     <th colspan="5">Carga <span class="simbolo">(VA)</span></th>
                     <th colspan="@Datos.Barras.Count">Balanceo de fases <span class="simbolo">(VA)</span></th>
                     <th colspan="2">Protección</th>
-                    <th colspan="3">Fase</th>
-                    <th colspan="3">Neutro</th>
-                    <th colspan="3">Puesta a tierra</th>
+                    <th rowspan="2">Fase</th>
+                    <th rowspan="2">Neutro</th>
+                    <th rowspan="2">Puesta a tierra</th>
                     <th rowspan="2"><span class="simbolo">In (A)</span></th>
                     <th rowspan="2"><span class="simbolo">L (m)</span></th>
                     <th rowspan="2"><span class="simbolo">e (%)</span></th>
                 </tr>
                 <tr>
                     <th>Continua</th><th>F.D.</th><th>No cont.</th><th>F.D.</th><th>Instalada</th>
-                    @foreach (var barra in Datos.Barras) { <th>@barra</th> }
+                    @foreach (var barra in Datos.Barras) { <th class="col-fase">@barra</th> }
                     <th>P</th><th>A</th>
-                    <th>Hilos</th><th><span class="simbolo">mm²</span></th><th><span class="simbolo">AWG/kcmil</span></th>
-                    <th>Hilos</th><th><span class="simbolo">mm²</span></th><th><span class="simbolo">AWG/kcmil</span></th>
-                    <th>Hilos</th><th><span class="simbolo">mm²</span></th><th><span class="simbolo">AWG/kcmil</span></th>
                 </tr>
             </thead>
             <tbody>
@@ -87,7 +84,7 @@
                 {
                     @if (indice > 0)
                     {
-                        <tr class="separador"><td colspan="@(19 + Datos.Barras.Count)"></td></tr>
+                        <tr class="separador"><td colspan="@(15 + Datos.Barras.Count)"></td></tr>
                     }
 
                     @foreach (var c in lado.Where(x => !x.EsContinuacion))
@@ -102,7 +99,7 @@
                             <td rowspan="@c.Polos" class="num">@Cifra(c.CargaInstaladaVA)</td>
                             @foreach (var barra in Datos.Barras)
                             {
-                                <td rowspan="@c.Polos" class="num">@(c.TieneCarga && c.Fases.Contains(barra) ? c.CargaPorFaseVA.ToString("N0") : "")</td>
+                                <td rowspan="@c.Polos" class="num col-fase">@(c.TieneCarga && c.Fases.Contains(barra) ? c.CargaPorFaseVA.ToString("N0") : "")</td>
                             }
                             <td rowspan="@c.Polos" class="num">@(c.Resultado is null ? "" : c.Polos.ToString())</td>
                             <td rowspan="@c.Polos" class="num">@(c.Resultado is null ? "" : c.Resultado.ProteccionA.ToString("N0"))</td>
@@ -184,9 +181,9 @@
                         </tr>
                         <tr>
                             <td class="num fuerte">@Cuadro.Alimentador.Polos × @a.ProteccionA.ToString("N0")</td>
-                            <td class="num">@a.NumeroConductoresParalelo–@a.CalibreFase.Designacion</td>
-                            <td class="num">1–@a.CalibreNeutro.Designacion</td>
-                            <td class="num">1–@a.CalibreTierra.Designacion</td>
+                            <td class="num">@Captura.ConHilos(a.CalibreFase, a.NumeroConductoresParalelo)</td>
+                            <td class="num">@Captura.ConHilos(a.CalibreNeutro, a.NumeroConductoresParalelo)</td>
+                            <td class="num">@a.CalibreTierra.DesignacionConUnidad</td>
                             @* La corriente de la fase más cargada, que es con la que se dimensiona — M-02. *@
                             <td class="num">@a.CorrienteDisenoA.ToString("N2")@(Cuadro.Alimentador.Gobierna is { } g && Datos.Barras.Count > 1 ? $" (fase {g.Fase})" : "")</td>
                             <td class="num">@Datos.LongitudAlimentadorM.ToString("N0")</td>
@@ -321,22 +318,22 @@ else
     private static string Cifra(decimal valor) => valor <= 0m ? "" : valor.ToString("N0");
 
     /// <summary>
-    /// Las tres celdas de un conductor: hilos, mm² y designación AWG/kcmil, combinadas hacia abajo
-    /// tantos renglones como polos tenga el interruptor.
+    /// La celda de un conductor, como en la captura: el calibre con su unidad y, debajo, su sección
+    /// en mm². Sin columna de hilos: si son más de uno, «2 ×» antes del calibre.
     /// </summary>
     private static RenderFragment Conductor(Calibre? calibre, int hilos, int polos) => builder =>
     {
-        var textos = calibre is null || hilos <= 0
-            ? ["", "", ""]
-            : new[] { hilos.ToString(), calibre.AreaMm2.ToString("N2"), calibre.Designacion };
-
-        foreach (var texto in textos)
+        builder.OpenElement(0, "td");
+        builder.AddAttribute(1, "class", "num conductor");
+        builder.AddAttribute(2, "rowspan", polos);
+        if (calibre is not null && hilos > 0)
         {
-            builder.OpenElement(0, "td");
-            builder.AddAttribute(1, "class", "num");
-            builder.AddAttribute(2, "rowspan", polos);
-            builder.AddContent(3, texto);
+            builder.AddContent(3, Captura.ConHilos(calibre, hilos));
+            builder.OpenElement(4, "span");
+            builder.AddAttribute(5, "class", "mm2");
+            builder.AddContent(6, $"{calibre.AreaMm2:N2} mm²");
             builder.CloseElement();
         }
+        builder.CloseElement();
     };
 }
