@@ -32,7 +32,7 @@ Pruebas: 66 en `PowerNode.Web.Tests`, 6 en `PowerNode.Normativa.Tests`.
 
 - Correr `PowerNode.Web.Tests` al publicar — R-03, `986c9d7`.
 - Agregar las 20 pruebas del documento de pruebas — R-07, `986c9d7`.
-- Limitar la caída del alimentador a 3 % por omisión, capturable; avisar la caída combinada mayor que 5 % por circuito; corregir la cita de la memoria, sección 7 (decía «310-15, NOTA 4») — R-01.
+- Limitar la caída del alimentador a 3 % por omisión, capturable; avisar la caída combinada mayor que 5 % por circuito; corregir la cita de la memoria, sección 7 (decía «310-15, NOTA 4») — R-01, `2a973ea`.
 
 Pruebas: 91 en `PowerNode.Web.Tests`, 6 en `PowerNode.Normativa.Tests`.
 
