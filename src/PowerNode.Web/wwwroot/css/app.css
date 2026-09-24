@@ -519,3 +519,5 @@ label.suelto input { width: 90px; }
 details.propias { margin-top: 12px; }
 details.propias summary { cursor: pointer; font-size: 12px; color: var(--tenue); }
 .fabricante { margin-top: 14px; max-width: 420px; }
+.doc-titulo-canal { margin: 14px 0 6px; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+.doc-canal { width: 100%; }

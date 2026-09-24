@@ -20,6 +20,8 @@ namespace PowerNode.Web.Modelo.Memoria;
 /// cuenta en el agrupamiento — 310-15(b)(5)(2).</param>
 /// <param name="Minimo220_52VA">Solo en el alimentador: lo que agrega 220-52 a la carga instalada.</param>
 /// <param name="CaidaCombinada">Solo en un derivado: alimentador + circuito, ya redactado — R-01.</param>
+/// <param name="Canalizacion">La canalización del tramo: portadores, factor de agrupamiento y azotea —
+/// I-39. Va en la sección 4.</param>
 public sealed record HojaDeMemoria(
     string Sujeto,
     string Articulo,
@@ -52,7 +54,8 @@ public sealed record HojaDeMemoria(
     PowerNode.DesignSuite.Calculo.Magnitudes.Fasor? CorrienteNeutro = null,
     decimal TensionFaseNeutroV = 0m,
     IReadOnlyList<RenglonMemoria>? FactoresDeDemanda = null,
-    IReadOnlyList<RenglonMemoria>? Desglose = null);
+    IReadOnlyList<RenglonMemoria>? Desglose = null,
+    IReadOnlyList<RenglonMemoria>? Canalizacion = null);
 
 /// <summary>Un renglón «rótulo: valor» de una sección de la memoria.</summary>
 public sealed record RenglonMemoria(string Rotulo, string Valor);

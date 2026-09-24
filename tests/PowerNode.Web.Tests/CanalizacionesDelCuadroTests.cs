@@ -206,4 +206,28 @@ public class CanalizacionesDelCuadroTests
         Assert.Equal(1, canal.CanalizacionesIguales);
         Assert.Equal(3 * b.NumeroConductoresParalelo, canal.Conteo!.Portadores);
     }
+
+    [Fact]
+    public void Memoria_Seccion4DiceLaCanalizacion_YCadaUnaTieneSuHoja()
+    {
+        var cuadro = Nuevo();
+        cuadro.Datos.TipoAislamiento = "TW";
+        var t1 = cuadro.Datos.NuevaCanalizacion();
+        var c1 = Carga(cuadro, 1, 19m, t1.Id);
+        Carga(cuadro, 3, 19m, t1.Id);
+        Carga(cuadro, 5, 19m, t1.Id);
+        cuadro.Recalcular();
+
+        var seccion4 = PowerNode.Web.Modelo.Memoria.MemoriaDeCalculo.Secciones(PowerNode.Web.Modelo.Memoria.MemoriaDeCalculo.DeCircuito(cuadro, c1))[3];
+        Assert.Contains(seccion4.Renglones, r => r.Valor.Contains("Canalización T1") && r.Valor.Contains("6 portadores"));
+        Assert.Contains(seccion4.Renglones, r => r.Rotulo.StartsWith("Factor de agrupamiento") && r.Valor.StartsWith("0.80"));
+
+        var hojas = PowerNode.Web.Modelo.Memoria.MemoriaDeCalculo.Canalizaciones(cuadro);
+        var t1Hoja = hojas.Single(h => h.Sujeto.StartsWith("Canalización T1"));
+        Assert.Contains(t1Hoja.Bloques[2].Formulas, f => f.StartsWith("Capítulo 10, Tabla 4"));
+        // TW 10 AWG: la errata de la Tabla 5 llega al papel.
+        Assert.Contains(t1Hoja.Bloques[0].Renglones, r => r.Valor.Contains("con errata"));
+        Assert.Single(t1Hoja.Bloques[2].Formulas, f => f.StartsWith("ERRATA Tabla 5"));
+        Assert.Contains(hojas, h => h.Sujeto.StartsWith("Canalización del alimentador"));
+    }
 }

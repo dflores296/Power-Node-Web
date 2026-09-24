@@ -94,8 +94,13 @@ public class CalculadoraOcupacion(ITablaOcupacion ocupacion, ITablaTuboConduit t
             return new ResultadoOcupacion(renglones, n, null, 0m, null, null, null, null, false, false, faltantes, avisos, citas);
         }
 
-        foreach (var fuente in renglones.Select(r => r.Fuente).Where(f => f.StartsWith("Tabla 5, ERRATA")).Distinct())
-            citas.Add(new Cita("ERRATA Tabla 5", fuente["Tabla 5, ERRATA: ".Length..]));
+        // Una errata que se aplica llega al papel, una sola vez — ErratasDeLaNorma.
+        foreach (var e in renglones
+                     .Where(r => r.Conductor.TipoAislamiento is not null && r.Fuente.StartsWith("Tabla 5, con errata"))
+                     .Select(r => dimensiones.ErrataAplicada(r.Conductor.Designacion, r.Conductor.TipoAislamiento!)!)
+                     .Distinct())
+            citas.Add(new Cita($"ERRATA Tabla {e.TablaId}",
+                $"{e.Descripcion}: se calcula con {e.ValorCorregido} en lugar de los {e.ValorPublicado} publicados en el DOF, porque {e.Sustento}."));
 
         var total = renglones.Sum(r => r.AreaMm2!.Value);
         citas.Add(new Cita("Capítulo 10, Tablas 5 y 8", $"Suma de las áreas de los conductores: {total:N2} mm²."));
@@ -215,8 +220,8 @@ public class CalculadoraOcupacion(ITablaOcupacion ocupacion, ITablaTuboConduit t
 
         if (dimensiones.Aislado(c.Designacion, c.TipoAislamiento) is { } t5)
             return new RenglonDeOcupacion(c, t5.DiametroMm, t5.AreaMm2,
-                dimensiones.ErrataAplicada(c.Designacion, c.TipoAislamiento) is { } e
-                    ? $"Tabla 5, ERRATA: {e.ValorCorregido} mm² en lugar de los {e.ValorPublicado} publicados, porque {e.Sustento}"
+                dimensiones.ErrataAplicada(c.Designacion, c.TipoAislamiento) is not null
+                    ? "Tabla 5, con errata (ver la cita)"
                     : "Tabla 5");
 
         var falta = $"{Unidades.Calibre.UnidadDe(c.Designacion)} {c.TipoAislamiento}";

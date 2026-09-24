@@ -65,6 +65,7 @@
                     <th rowspan="2">Puesta a tierra</th>
                     <th rowspan="2"><span class="simbolo">In (A)</span></th>
                     <th rowspan="2"><span class="simbolo">L (m)</span></th>
+                    <th rowspan="2">Canal.</th>
                     <th rowspan="2"><span class="simbolo">e (%)</span></th>
                 </tr>
                 <tr>
@@ -84,7 +85,7 @@
                 {
                     @if (indice > 0)
                     {
-                        <tr class="separador"><td colspan="@(15 + Datos.Barras.Count)"></td></tr>
+                        <tr class="separador"><td colspan="@(16 + Datos.Barras.Count)"></td></tr>
                     }
 
                     @foreach (var c in lado.Where(x => !x.EsContinuacion))
@@ -104,10 +105,11 @@
                             <td rowspan="@c.Polos" class="num">@(c.Resultado is null ? "" : c.Polos.ToString())</td>
                             <td rowspan="@c.Polos" class="num">@(c.Resultado is null ? "" : c.Resultado.ProteccionA.ToString("N0"))</td>
                             @Conductor(c.Resultado?.CalibreFase, c.Resultado?.NumeroConductoresParalelo ?? 0, c.Polos)
-                            @Conductor(c.Resultado?.CalibreNeutro, c.Resultado is null ? 0 : 1, c.Polos)
+                            @Conductor(c.LlevaNeutro ? c.Resultado?.CalibreNeutro : null, c.Resultado is null ? 0 : 1, c.Polos, sinConductor: c.Resultado is not null && !c.LlevaNeutro)
                             @Conductor(c.Resultado?.CalibreTierra, c.Resultado is null ? 0 : 1, c.Polos)
                             <td rowspan="@c.Polos" class="num">@(c.Resultado?.CorrienteDisenoA.ToString("N2"))</td>
                             <td rowspan="@c.Polos" class="num">@(c.Resultado is null ? "" : c.LongitudM.ToString("N0"))</td>
+                            <td rowspan="@c.Polos" class="num">@(c.Resultado is not null && c.CanalizacionEfectiva is { } canal ? $"{c.Canalizacion ?? "Propia"} · {canal.TamanoRotulo}" : "")</td>
                             <td rowspan="@c.Polos" class="num">@(c.Resultado?.CaidaTensionPct.ToString("N2"))</td>
                         </tr>
 
@@ -207,6 +209,31 @@
             </div>
         </section>
 
+        @{ var canales = Cuadro.TodasLasCanalizaciones.Where(t => t.Ocupacion is not null).ToList(); }
+        @if (canales.Count > 0)
+        {
+            <h3 class="doc-titulo-canal">Canalizaciones</h3>
+            <table class="doc-resumen doc-canal">
+                <tr>
+                    <th>Canal.</th><th>Tipo</th><th>Circuitos</th><th>F · N · T</th><th>Portadores</th><th>F.A.</th><th>Área <span class="simbolo">(mm²)</span></th><th>Tamaño</th><th>Ocupación</th>
+                </tr>
+                @foreach (var t in canales)
+                {
+                    <tr>
+                        <td class="izq">@(t.Id == "Alimentador" ? "Alimentador" : t.Id.Replace("Circuito ", "Circ. "))</td>
+                        <td class="izq">@t.Rotulo</td>
+                        <td class="izq">@(t.Id == "Alimentador" ? "—" : string.Join(", ", t.Circuitos.Select(c => c.Espacio)))</td>
+                        <td class="num">@PorPapel(t)</td>
+                        <td class="num">@t.Conteo?.Portadores</td>
+                        <td class="num">@t.FactorAgrupamiento?.ToString("N2")</td>
+                        <td class="num">@t.Ocupacion!.AreaTotalMm2?.ToString("N1")</td>
+                        <td class="num fuerte">@t.TamanoRotulo</td>
+                        <td class="num">@(t.Ocupacion.OcupacionPct is { } pct ? $"{pct:N1} %" : "")</td>
+                    </tr>
+                }
+            </table>
+        }
+
         @foreach (var aviso in Cuadro.Alimentador.Avisos)
         {
             <p class="aviso">@aviso</p>
@@ -214,6 +241,10 @@
         @foreach (var c in Cuadro.ConCaidaCombinadaExcedida)
         {
             <p class="aviso">@c.AvisoCaidaCombinada</p>
+        }
+        @foreach (var aviso in Cuadro.AvisosDeCanalizaciones)
+        {
+            <p class="aviso">@aviso</p>
         }
 
         <p class="doc-nota">
@@ -296,6 +327,37 @@ else
                 </ul>
             </section>
         }
+
+        @foreach (var (sujeto, bloques) in MemoriaDeCalculo.Canalizaciones(Cuadro))
+        {
+            <section class="hoja">
+                <h3>@sujeto</h3>
+                @foreach (var bloque in bloques)
+                {
+                    <h4>@bloque.Titulo</h4>
+                    @if (bloque.Renglones.Count > 0)
+                    {
+                        <table class="doc-resumen">
+                            @foreach (var renglon in bloque.Renglones)
+                            {
+                                <tr>
+                                    <td class="izq rotulo">@renglon.Rotulo</td>
+                                    <td class="izq">@renglon.Valor</td>
+                                </tr>
+                            }
+                        </table>
+                    }
+                    @foreach (var formula in bloque.Formulas)
+                    {
+                        <p class="formula">@formula</p>
+                    }
+                    @foreach (var nota in bloque.Notas)
+                    {
+                        <p class="nota">@nota</p>
+                    }
+                }
+            </section>
+        }
     </article>
 }
 
@@ -317,16 +379,25 @@ else
 
     private static string Cifra(decimal valor) => valor <= 0m ? "" : valor.ToString("N0");
 
+    private static string PorPapel(CanalizacionDelTablero t)
+    {
+        if (t.Ocupacion is not { } o) return "";
+        int De(PapelConductor p) => o.Renglones.Where(r => r.Conductor.Papel == p).Sum(r => r.Conductor.Cantidad);
+        return $"{De(PapelConductor.Fase)} · {De(PapelConductor.Neutro)} · {De(PapelConductor.Tierra)}";
+    }
+
     /// <summary>
     /// La celda de un conductor, como en la captura: el calibre con su unidad y, debajo, su sección
     /// en mm². Sin columna de hilos: si son más de uno, «2 ×» antes del calibre.
     /// </summary>
-    private static RenderFragment Conductor(Calibre? calibre, int hilos, int polos) => builder =>
+    private static RenderFragment Conductor(Calibre? calibre, int hilos, int polos, bool sinConductor = false) => builder =>
     {
         builder.OpenElement(0, "td");
         builder.AddAttribute(1, "class", "num conductor");
         builder.AddAttribute(2, "rowspan", polos);
-        if (calibre is not null && hilos > 0)
+        if (sinConductor)
+            builder.AddContent(7, "—");
+        else if (calibre is not null && hilos > 0)
         {
             builder.AddContent(3, Captura.ConHilos(calibre, hilos));
             builder.OpenElement(4, "span");

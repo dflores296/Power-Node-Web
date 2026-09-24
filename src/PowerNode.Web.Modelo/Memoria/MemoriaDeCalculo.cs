@@ -1,3 +1,4 @@
+using PowerNode.DesignSuite.Calculo.Canalizaciones;
 using PowerNode.DesignSuite.Calculo.Casos;
 using PowerNode.DesignSuite.Calculo.Magnitudes;
 using PowerNode.DesignSuite.Calculo.Tableros;
@@ -71,8 +72,9 @@ public static class MemoriaDeCalculo
             Aislamiento: Aislamiento(cuadro.Datos),
             DesgloseConductor: cuadro.Desglose(circuito)?.Conductor,
             CaidaCombinada: CaidaCombinada(cuadro, circuito),
-            NeutroPortador: NeutroPortador(cuadro, circuito.Polos, alimentador: false),
-            Desglose: Desglose(circuito));
+            NeutroPortador: circuito.LlevaNeutro ? NeutroPortador(cuadro, circuito.Polos, alimentador: false) : null,
+            Desglose: Desglose(circuito),
+            Canalizacion: DeLaCanalizacion(cuadro, circuito.CanalizacionEfectiva));
     }
 
     /// <summary>
@@ -88,8 +90,8 @@ public static class MemoriaDeCalculo
         if (!estrella || fases != 2)
             return null;
 
-        return "Portador de corriente: en 2 fases + neutro de estrella lleva ≈ la corriente de fase. Contarlo en " +
-               "«Agrupados». Mismo calibre que la fase" + (alimentador ? "; no se reduce — 220-61(c)(1)." : ".");
+        return "Portador de corriente: en 2 fases + neutro de estrella lleva ≈ la corriente de fase, y se cuenta en " +
+               "su canalización. Mismo calibre que la fase" + (alimentador ? "; no se reduce — 220-61(c)(1)." : ".");
     }
 
     /// <summary>«Alimentador 4.62 % + circuito 2.31 % = 6.94 % — mayor que 5 %». <c>null</c> sin alimentador.</summary>
@@ -101,6 +103,82 @@ public static class MemoriaDeCalculo
         var limite = DatosDelTablero.CaidaMaxCombinadaPct;
         return $"Alimentador {alimentador:N2} % + circuito {circuito.Resultado!.CaidaTensionPct:N2} % = {combinada:N2} % " +
                (circuito.AvisoCaidaCombinada is null ? $"≤ {limite:N0} %" : $"— mayor que {limite:N0} %");
+    }
+
+    /// <summary>
+    /// Los renglones de la sección 4 que dicen de dónde sale el factor de agrupamiento: la
+    /// canalización, sus portadores y si el ajuste aplica según su tipo — I-39.
+    /// </summary>
+    private static IReadOnlyList<RenglonMemoria>? DeLaCanalizacion(CuadroDeCarga cuadro, CanalizacionDelTablero? t)
+    {
+        if (t?.Conteo is not { } conteo || t.Ajuste is not { } ajuste)
+            return null;
+
+        var circuitos = t.Circuitos.Count > 1 ? $" — circuitos {string.Join(", ", t.Circuitos.Select(c => c.Espacio))}" : "";
+        var renglones = new List<RenglonMemoria>
+        {
+            new("Canalización", $"{CuadroDeCarga.NombreDe(t)} ({t.Rotulo}, {t.TamanoRotulo}): {conteo.Portadores} portadores{circuitos}"),
+            new("Factor de agrupamiento — Tabla 310-15(b)(3)(a)", $"{t.FactorAgrupamiento:N2} · {ajuste.Motivo}"),
+        };
+        if (t.SumadorAzoteaC > 0m)
+            renglones.Add(new("Azotea al sol — Tabla 310-15(b)(3)(c)",
+                $"+{t.SumadorAzoteaC:N0} °C: {cuadro.Datos.TemperaturaAmbienteC + t.SumadorAzoteaC:N0} °C para el factor de temperatura"));
+        return renglones;
+    }
+
+    /// <summary>
+    /// La memoria de cada canalización con conductores calculados — I-40: los conductores con su
+    /// área y de qué tabla sale, los portadores y el ajuste, el tamaño y la ocupación.
+    /// </summary>
+    public static IReadOnlyList<(string Sujeto, IReadOnlyList<BloqueMemoria> Bloques)> Canalizaciones(CuadroDeCarga cuadro)
+    {
+        var hojas = new List<(string, IReadOnlyList<BloqueMemoria>)>();
+        foreach (var t in cuadro.TodasLasCanalizaciones)
+        {
+            if (t.Ocupacion is not { } o || t.Conteo is not { } conteo || t.Ajuste is not { } ajuste)
+                continue;
+
+            var bloques = new List<BloqueMemoria>
+            {
+                new("1. CONDUCTORES",
+                    [.. o.Renglones.Select(r => new RenglonMemoria(
+                        $"{Mayuscula(r.Conductor.Circuito)} · {Papel(r.Conductor.Papel)}",
+                        r.AreaUnitariaMm2 is { } a
+                            ? $"{r.Conductor.Descripcion} × {a:N2} mm² = {a * r.Conductor.Cantidad:N2} mm² — {r.Fuente}"
+                            : $"{r.Conductor.Descripcion} — {r.Fuente}"))],
+                    o.AreaTotalMm2 is { } total ? [$"Suma = {total:N2} mm² ({o.NumeroConductores} conductores)"] : [],
+                    ["Se cuentan todos los conductores, incluida la puesta a tierra — Nota 3 del Capítulo 10."]),
+                new("2. PORTADORES Y FACTOR DE AGRUPAMIENTO",
+                    [.. conteo.Desglose.Select(d => new RenglonMemoria(
+                        Mayuscula(d.Circuito), $"{d.Fases} fase(s) + {d.Neutros} neutro(s) — {d.Motivo}"))],
+                    [$"Portadores = {conteo.Portadores}", $"F.A. = {t.FactorAgrupamiento:N2}"],
+                    [ajuste.Motivo, "El conductor de puesta a tierra no se cuenta — 310-15(b)(6). Entre canalizaciones se mantiene la separación — 310-15(b)(3)(b)."]),
+                new("3. TAMAÑO",
+                    [],
+                    [.. o.Citas.Select(c => $"{c.Referencia}: {c.Descripcion}")],
+                    Notas(t)),
+            };
+            hojas.Add(($"{CuadroDeCarga.NombreDe(t)} — {t.Rotulo}, {t.TamanoRotulo}", bloques));
+        }
+        return hojas;
+
+        static string Mayuscula(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
+        static string Papel(PapelConductor p) => p switch
+        {
+            PapelConductor.Fase => "fase",
+            PapelConductor.Neutro => "neutro",
+            _ => "tierra",
+        };
+        static List<string> Notas(CanalizacionDelTablero t)
+        {
+            var notas = new List<string>(t.Avisos);
+            if (!t.Tipo.EsTubo())
+                notas.Add("La reactancia de la Tabla 9 es de tubo conduit; en esta canalización se usa la columna " +
+                          $"{Etiqueta(t.MaterialParaTabla9)} como supuesto.");
+            if (t.Circuitos.Count > 0)
+                notas.Add("Si un circuito pasa por varias canalizaciones, se le asigna la del tramo más desfavorable — 310-15(a)(2).");
+            return notas;
+        }
     }
 
     public static HojaDeMemoria? DelAlimentador(CuadroDeCarga cuadro)
@@ -142,7 +220,8 @@ public static class MemoriaDeCalculo
             CaidaPorFase: r.CaidaPorFase,
             CorrienteNeutro: r.CorrienteNeutro,
             TensionFaseNeutroV: datos.TensionFaseNeutroV,
-            FactoresDeDemanda: FactoresDeDemanda(datos));
+            FactoresDeDemanda: FactoresDeDemanda(datos),
+            Canalizacion: DeLaCanalizacion(cuadro, datos.CanalizacionAlimentador));
     }
 
     /// <summary>«Estufa: 1 × 3,000 W = 3,000 VA · no continua · F.P. 1.00». Un renglón por aparato — I-35.</summary>
@@ -244,14 +323,15 @@ public static class MemoriaDeCalculo
         // del aislamiento y los 40 el tope de la terminal. Ahora se enseñan las dos columnas.
         bloques.Add(new BloqueMemoria(
             "4. CÁLCULO POR CAPACIDAD",
-            [],
+            hoja.Canalizacion ?? [],
             hoja.DesgloseConductor ?? [],
             [
                 "FT es el factor de corrección por temperatura ambiente (Tabla 310-15(b)(2)(a)) y FA el factor de " +
                 "ajuste por agrupamiento (Tabla 310-15(b)(3)(a)). Se aplican en la columna del aislamiento; la " +
                 "ampacidad que se usa no pasa de la de la terminal — 110-14(c).",
             ],
-            Introduccion: "Ampacidad del conductor elegido:"));
+            // Con los renglones de la canalización arriba, el rótulo quedaría separado de sus fórmulas.
+            Introduccion: hoja.Canalizacion is null ? "Ampacidad del conductor elegido:" : null));
 
         // ---- 5
         bloques.Add(Seccion("5. CONDUCTOR DE FASE SELECCIONADO", [

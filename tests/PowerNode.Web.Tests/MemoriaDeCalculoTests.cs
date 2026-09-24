@@ -119,6 +119,11 @@ public class MemoriaDeCalculoTests
         var cuadro = Sistema(3, 4, 220m);
         Assert.Null(cuadro.CambiarPolos(cuadro.Circuitos[0], 2));
 
+        // I-41: un bipolar lleva neutro solo con «+N»; sin él (carga F-F) no hay nota.
+        Assert.Null(NotaDeNeutro(MemoriaDeCalculo.DeCircuito(cuadro, cuadro.Circuitos[0])));
+        cuadro.Circuitos[0].ConNeutro = true;
+        cuadro.Recalcular();
+
         var nota = NotaDeNeutro(MemoriaDeCalculo.DeCircuito(cuadro, cuadro.Circuitos[0]));
 
         Assert.NotNull(nota);
