@@ -71,6 +71,8 @@ Pruebas: 66 en `PowerNode.Web.Tests`, 6 en `PowerNode.Normativa.Tests`.
 - Aplicar el uso de contactos (210-11(c), 220-52) solo en vivienda de más de 60 m² — I-46, `1cebf41`.
 - F.P. del alimentador con demanda y 220-52, el de la caída; sin renglón de neutro en 1F-2H — I-47, `1cebf41`.
 - «1 polo» en el interruptor principal — I-48, `1cebf41`.
+- Mostrar como máximo dos decimales (el cálculo conserva todos); F.D. y F.P. siempre con dos; VA iguales en todas partes — I-49, `9fe6995`.
+- «÷ 1000» en la fórmula de caída de la memoria — I-50, `9fe6995`.
 
 Pruebas: 167 en `PowerNode.Web.Tests`, 23 en `PowerNode.Normativa.Tests`.
 
