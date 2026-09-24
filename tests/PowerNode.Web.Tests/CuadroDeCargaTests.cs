@@ -388,6 +388,53 @@ public class CuadroDeCargaTests
         return cuadro;
     }
 
+    // ---- R-01 · Caída del alimentador: 3 % por tramo, 5 % combinada — 215-2(a)(4) NOTA 2 ---------------
+
+    [Fact]
+    public void R01_ElAlimentadorAdmite3PorCientoPorOmision() =>
+        Assert.Equal(3m, new DatosDelTablero().CaidaMaxAlimentadorPct);
+
+    [Fact]
+    public void R01_CasoBaseCon80m_AvisaLaCaidaCombinadaDeCadaCircuito()
+    {
+        var cuadro = TresAparatos();
+        cuadro.Datos.LongitudAlimentadorM = 80m;
+        cuadro.Datos.CaidaMaxAlimentadorPct = 5m; // el límite de antes: el alimentador se queda en 12 AWG
+        cuadro.Recalcular();
+
+        Assert.Equal(4.62m, cuadro.Alimentador.Resultado!.CaidaTensionPct, 2);
+        var airFryer = Espacio(cuadro, 5);
+        Assert.Equal(6.94m, airFryer.CaidaCombinadaPct!.Value, 2); // 4.62 % + 2.31 %
+        Assert.Equal(
+            "Caída combinada del circuito 5: alimentador 4.62 % + circuito 2.31 % = 6.94 %, mayor que el 5 % " +
+            "recomendado — 215-2(a)(4) NOTA 2, 210-19(a)(1) NOTA 4.",
+            airFryer.AvisoCaidaCombinada);
+        Assert.Equal([1, 3, 5], cuadro.ConCaidaCombinadaExcedida.Select(c => c.Espacio));
+    }
+
+    [Fact]
+    public void R01_CasoBaseCon80m_ConEl3PorCientoElAlimentadorSube()
+    {
+        var cuadro = TresAparatos();
+        cuadro.Datos.LongitudAlimentadorM = 80m;
+        cuadro.Recalcular();
+
+        var alimentador = cuadro.Alimentador.Resultado!;
+        Assert.Equal("10", alimentador.CalibreFase.Designacion);
+        Assert.Equal(2.75m, alimentador.CaidaTensionPct, 2);
+        // Aun así, el circuito más largo de la fase C pasa del 5 %: 2.75 % + 2.31 %.
+        Assert.Equal([5], cuadro.ConCaidaCombinadaExcedida.Select(c => c.Espacio));
+    }
+
+    [Fact]
+    public void R01_CasoBaseCon20m_SinAvisoDeCaidaCombinada()
+    {
+        var cuadro = TresAparatos();
+
+        Assert.Equal(3.47m, Espacio(cuadro, 5).CaidaCombinadaPct!.Value, 2); // 1.16 % + 2.31 %
+        Assert.Empty(cuadro.ConCaidaCombinadaExcedida);
+    }
+
     [Fact]
     public void M02_ElAlimentadorSeDimensionaConLaFaseMasCargada()
     {

@@ -174,7 +174,18 @@ public sealed class DatosDelTablero
     // circuito lleva el suyo (CircuitoDelCuadro.FactorPotencia) y el del alimentador resulta de
     // combinarlos. Decidido por David el 2026-09-23 — docs/decisiones/factor-de-potencia-por-circuito.md.
     public decimal CaidaMaxDerivadoPct { get; set; } = 3m;
-    public decimal CaidaMaxAlimentadorPct { get; set; } = 5m;
+
+    /// <summary>
+    /// Límite de caída del alimentador, por tramo: <b>3 % por omisión</b> — 215-2(a)(4) NOTA 2. Estuvo
+    /// fijo en 5 %, que es el límite de la caída <i>combinada</i>, no el del alimentador (R-01).
+    /// </summary>
+    public decimal CaidaMaxAlimentadorPct { get; set; } = 3m;
+
+    /// <summary>
+    /// Caída combinada alimentador + derivado hasta la salida más lejana: 5 % — 215-2(a)(4) NOTA 2 y
+    /// 210-19(a)(1) NOTA 4. Fijo: lo da la norma, no el proyecto. Solo avisa.
+    /// </summary>
+    public const decimal CaidaMaxCombinadaPct = 5m;
 
     /// <summary>Longitud del alimentador que llega al tablero, en metros — la «L» de la fila 79 del Excel.</summary>
     public decimal LongitudAlimentadorM { get; set; } = 20m;

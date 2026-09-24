@@ -197,6 +197,10 @@
         {
             <p class="aviso">@aviso</p>
         }
+        @foreach (var c in Cuadro.ConCaidaCombinadaExcedida)
+        {
+            <p class="aviso">@c.AvisoCaidaCombinada</p>
+        }
 
         <p class="doc-nota">
             Calculado con las tablas de la NOM-001-SEDE-2012 verificadas contra el PDF del DOF.

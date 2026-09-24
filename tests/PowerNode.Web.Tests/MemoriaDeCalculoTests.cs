@@ -46,6 +46,21 @@ public class MemoriaDeCalculoTests
     }
 
     [Fact]
+    public void R01_LaSeccion7CitaLaNotaDeSuArticulo_YElDerivadoDaLaCaidaCombinada()
+    {
+        var cuadro = ConUnCircuito();
+
+        var derivado = MemoriaDeCalculo.Secciones(MemoriaDeCalculo.DeCircuito(cuadro, cuadro.Circuitos[0]))[6];
+        var alimentador = MemoriaDeCalculo.Secciones(MemoriaDeCalculo.DelAlimentador(cuadro)!)[6];
+
+        Assert.StartsWith("210-19(a)(1), NOTA 4", derivado.Renglones.Single(r => r.Rotulo == "Referencia").Valor);
+        Assert.StartsWith("215-2(a)(4), NOTA 2", alimentador.Renglones.Single(r => r.Rotulo == "Referencia").Valor);
+        Assert.Matches(@"^Alimentador \d+\.\d\d % \+ circuito \d+\.\d\d % = \d+\.\d\d % ≤ 5 %$",
+            derivado.Renglones.Single(r => r.Rotulo == "Caída combinada").Valor);
+        Assert.DoesNotContain(alimentador.Renglones, r => r.Rotulo == "Caída combinada");
+    }
+
+    [Fact]
     public void UnDerivadoCitaEl210YElAlimentadorEl215()
     {
         var cuadro = ConUnCircuito();

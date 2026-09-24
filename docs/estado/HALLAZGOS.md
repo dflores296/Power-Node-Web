@@ -160,7 +160,7 @@ Formato: **Hecho** (defecto observado) · **Corrección** · **Referencia** · *
 Validada contra el texto de la NOM (`NOM-001-SEDE-2012/data/corpus.json`), el código y el caso base
 de tres aparatos.
 
-**R-01** — Hecho: `DatosDelTablero.CaidaMaxAlimentadorPct = 5`, sin campo en pantalla; sin verificación de la caída combinada. Caso base con alimentador de 80 m: 4.62 % + 2.31 % (circuito 5) = 6.94 %, sin aviso. Referencia: 215-2(a)(4) NOTA 2 (3 % alimentador, 5 % combinada), 210-19(a)(1) NOTA 4.
+**R-01** — Hecho: `DatosDelTablero.CaidaMaxAlimentadorPct = 5`, sin campo en pantalla; sin verificación de la caída combinada. Caso base con alimentador de 80 m: 4.62 % + 2.31 % (circuito 5) = 6.94 %, sin aviso. Además, la memoria, sección 7, citaba «310-15, NOTA 4». Corrección: «e% máx. alimentador» capturable, 3 % por omisión; `CaidaTensionAcumulada.Evaluar` por circuito con el alimentador (límite 5 %, solo aviso) en la captura, el documento y la memoria, sección 7; la sección 7 cita 210-19(a)(1) NOTA 4 en el derivado y 215-2(a)(4) NOTA 2 en el alimentador. Con 3 % el alimentador de 80 m sube a 10 AWG (2.75 %) y el circuito 5 sigue avisando (5.07 %). Referencia: 215-2(a)(4) NOTA 2 (3 % alimentador, 5 % combinada), 210-19(a)(1) NOTA 4. Prueba: `R01_…`.
 
 **R-02** — Hecho: la caída del alimentador usa el equivalente balanceado (√3·I·Z / V_FF). Caso base con 80 m: neutro 6.11 A; fase C 4.62 % calculada contra 6.77 % con el neutro (fasorial). 2F-3H balanceado: `2·I·Z / V_FF` subestima una fase ≈39 %. Va con R-04.
 

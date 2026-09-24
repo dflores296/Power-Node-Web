@@ -102,7 +102,8 @@
         </select></label>
         <label>T. ambiente (°C) <input type="number" min="10" max="80" step="1" @bind="Datos.TemperaturaAmbienteC" @bind:after="Recalcular" /></label>
         <label><span class="ayuda" title="Capturar los conductores portadores de corriente en la canalización — Tabla 310-15(b)(3)(a): 4 a 6, 80 %; 7 a 9, 70 %; 10 a 20, 50 %. Excluir la tierra — 310-15(b)(6). Excluir el neutro con solo corriente de desbalance — (b)(5)(1). Contar el neutro en 2 fases + neutro de estrella — (b)(5)(2) y con carga no lineal — (b)(5)(3).">Agrupados</span> <input type="number" min="1" max="40" step="1" @bind="Datos.ConductoresAgrupados" @bind:after="Recalcular" /></label>
-        <label>e% máx. derivado <input type="number" min="0.5" max="10" step="0.5" @bind="Datos.CaidaMaxDerivadoPct" @bind:after="Recalcular" /></label>
+        <label><span class="ayuda" title="Capturar el límite de caída del circuito derivado. Recomendado: 3 % — 210-19(a)(1), NOTA 4.">e% máx. derivado</span> <input type="number" min="0.5" max="10" step="0.5" @bind="Datos.CaidaMaxDerivadoPct" @bind:after="Recalcular" /></label>
+        <label><span class="ayuda" title="Capturar el límite de caída del alimentador. Recomendado: 3 % — 215-2(a)(4), NOTA 2. Avisar si alimentador + derivado exceden 5 %.">e% máx. alimentador</span> <input type="number" min="0.5" max="10" step="0.5" @bind="Datos.CaidaMaxAlimentadorPct" @bind:after="Recalcular" /></label>
     </div>
 </section>
 
@@ -237,6 +238,14 @@
                         <tr class="fila-error">
                             <td></td>
                             <td colspan="@(Columnas - 1)">@(c.Error ?? _motivo[c.Espacio])</td>
+                        </tr>
+                    }
+
+                    @if (c.AvisoCaidaCombinada is { } avisoCaida)
+                    {
+                        <tr class="fila-aviso">
+                            <td></td>
+                            <td colspan="@(Columnas - 1)">@avisoCaida</td>
                         </tr>
                     }
                 }
@@ -395,7 +404,7 @@
                 <tr><td class="izq">Conductor de neutro</td><td class="num">@a.CalibreNeutro.Designacion AWG/kcmil</td></tr>
                 <tr><td class="izq">Puesta a tierra</td><td class="num">@a.CalibreTierra.Designacion AWG/kcmil</td></tr>
                 <tr>
-                    <td class="izq">Caída de tensión</td>
+                    <td class="izq"><span class="ayuda" title="Consultar la caída de tensión del alimentador, con la corriente de la fase que gobierna. Recomendado: 3 % en el alimentador y 5 % combinada con el derivado — 215-2(a)(4), NOTA 2.">Caída de tensión</span></td>
                     <td class="num @(a.CaidaTensionPct > Datos.CaidaMaxAlimentadorPct ? "excede" : null)">@a.CaidaTensionPct.ToString("N2") %</td>
                 </tr>
             </table>

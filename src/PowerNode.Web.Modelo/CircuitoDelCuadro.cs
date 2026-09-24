@@ -81,6 +81,15 @@ public sealed class CircuitoDelCuadro
     /// <summary>Lo que el motor rechazó, ya redactado. <c>null</c> = el renglón calculó.</summary>
     public string? Error { get; internal set; }
 
+    /// <summary>
+    /// Caída del alimentador + la de este circuito, en %. <c>null</c> si falta alguno de los dos
+    /// cálculos — R-01.
+    /// </summary>
+    public decimal? CaidaCombinadaPct { get; internal set; }
+
+    /// <summary>El aviso de caída combinada mayor que 5 %, ya redactado. <c>null</c> = cumple o no aplica.</summary>
+    public string? AvisoCaidaCombinada { get; internal set; }
+
     public bool EsContinuacion => ContinuacionDe is not null;
 
     public decimal CargaInstaladaVA => ContinuaVA + NoContinuaVA;
@@ -103,5 +112,7 @@ public sealed class CircuitoDelCuadro
     {
         Resultado = null;
         Error = null;
+        CaidaCombinadaPct = null;
+        AvisoCaidaCombinada = null;
     }
 }

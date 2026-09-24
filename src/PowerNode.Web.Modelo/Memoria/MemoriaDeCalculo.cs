@@ -67,7 +67,19 @@ public static class MemoriaDeCalculo
             Citas: r.Citas,
             SerieDeInterruptores: cuadro.Datos.SerieInterruptores.Explicacion(),
             Aislamiento: Aislamiento(cuadro.Datos),
-            DesgloseConductor: cuadro.Desglose(circuito)?.Conductor);
+            DesgloseConductor: cuadro.Desglose(circuito)?.Conductor,
+            CaidaCombinada: CaidaCombinada(cuadro, circuito));
+    }
+
+    /// <summary>«Alimentador 4.62 % + circuito 2.31 % = 6.94 % — mayor que 5 %». <c>null</c> sin alimentador.</summary>
+    private static string? CaidaCombinada(CuadroDeCarga cuadro, CircuitoDelCuadro circuito)
+    {
+        if (circuito.CaidaCombinadaPct is not { } combinada || cuadro.Alimentador.Resultado is not { } a)
+            return null;
+
+        var limite = DatosDelTablero.CaidaMaxCombinadaPct;
+        return $"Alimentador {a.CaidaTensionPct:N2} % + circuito {circuito.Resultado!.CaidaTensionPct:N2} % = {combinada:N2} % " +
+               (circuito.AvisoCaidaCombinada is null ? $"≤ {limite:N0} %" : $"— mayor que {limite:N0} %");
     }
 
     public static HojaDeMemoria? DelAlimentador(CuadroDeCarga cuadro)
@@ -203,9 +215,16 @@ public static class MemoriaDeCalculo
         bloques.Add(new BloqueMemoria("6. CÁLCULO DE CAÍDA DE TENSIÓN", [], formulas6, notas6));
 
         // ---- 7
-        bloques.Add(Seccion("7. CAÍDA DE TENSIÓN EN EL TRAMO", [
+        var renglones7 = new List<(string, string)>
+        {
             ("Caída de tensión", d is null ? $"{hoja.CaidaTensionPct:N2} %" : $"{d.CaidaTensionV:N2} V  ({hoja.CaidaTensionPct:N2} %)"),
-            ("Referencia", "310-15, NOTA 4 — la caída recomendada es 3 % en el derivado y 5 % combinada")]));
+        };
+        if (hoja.CaidaCombinada is { } combinada)
+            renglones7.Add(("Caída combinada", combinada));
+        renglones7.Add(("Referencia", hoja.Articulo == "215"
+            ? "215-2(a)(4), NOTA 2 — caída recomendada: 3 % en el alimentador y 5 % combinada con el derivado"
+            : "210-19(a)(1), NOTA 4 — caída recomendada: 3 % en el derivado y 5 % combinada con el alimentador"));
+        bloques.Add(Seccion("7. CAÍDA DE TENSIÓN EN EL TRAMO", [.. renglones7]));
 
         // ---- 8
         bloques.Add(new BloqueMemoria(

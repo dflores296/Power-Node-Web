@@ -57,6 +57,8 @@ Cada requisito se relaciona con su referencia normativa y con su verificación e
 | A-4 | Avisar si el principal es menor que el derivado más grande. | — | `M03_…` |
 | A-5 | Avisar si el principal queda debajo del mínimo capturado. | — | `ConMinimoCapturadoSoloAvisa_…` |
 | A-6 | Verificar la protección contra la capacidad de la barra. | 408-36 | `ElAvisoDel408_36…` |
+| A-7 | Limitar la caída de tensión del alimentador: 3 % por omisión, capturable. | 215-2(a)(4) NOTA 2 | `R01_…` |
+| A-8 | Avisar por circuito si la caída del alimentador más la del derivado excede 5 %. | 215-2(a)(4) NOTA 2, 210-19(a)(1) NOTA 4 | `R01_…` |
 
 ### Entregable
 

@@ -148,6 +148,7 @@ public sealed class CuadroDeCarga
         DibujarGabinete();
         CalcularResumen();
         CalcularAlimentador();
+        EvaluarCaidaCombinada();
     }
 
     /// <summary>
@@ -511,6 +512,39 @@ public sealed class CuadroDeCarga
             Alimentador = new RenglonDelAlimentador(null, ex.Message, [], polos, fases, gobierna, fpAlimentador);
         }
     }
+
+    /// <summary>
+    /// <b>La caída combinada alimentador + derivado, por circuito</b> — R-01. La suma y la comparación
+    /// son de <see cref="CaidaTensionAcumulada"/>, del motor; aquí solo se arma la ruta de dos tramos.
+    ///
+    /// <para>
+    /// La caída del alimentador es la de <b>la fase que gobierna</b>, y se suma a todos los
+    /// circuitos: del lado seguro para los de las otras fases, que llevan menos.
+    /// </para>
+    /// </summary>
+    private void EvaluarCaidaCombinada()
+    {
+        if (Alimentador.Resultado is not { } alimentador)
+            return;
+
+        foreach (var c in _circuitos.Where(c => c.Resultado is not null))
+        {
+            var r = CaidaTensionAcumulada.Evaluar(
+                [new TramoCaida("Alimentador", alimentador.CaidaTensionPct), new TramoCaida($"Circuito {c.Espacio}", c.Resultado!.CaidaTensionPct)],
+                DatosDelTablero.CaidaMaxCombinadaPct);
+
+            c.CaidaCombinadaPct = r.AcumuladaPct;
+            if (r.ExcedeLimite)
+                c.AvisoCaidaCombinada =
+                    $"Caída combinada del circuito {c.Espacio}: alimentador {alimentador.CaidaTensionPct:N2} % + circuito " +
+                    $"{c.Resultado.CaidaTensionPct:N2} % = {r.AcumuladaPct:N2} %, mayor que el " +
+                    $"{DatosDelTablero.CaidaMaxCombinadaPct:N0} % recomendado — 215-2(a)(4) NOTA 2, 210-19(a)(1) NOTA 4.";
+        }
+    }
+
+    /// <summary>Los circuitos con caída combinada mayor que 5 %, en orden de espacio.</summary>
+    public IEnumerable<CircuitoDelCuadro> ConCaidaCombinadaExcedida =>
+        _circuitos.Where(c => c.AvisoCaidaCombinada is not null);
 
     /// <summary>
     /// La cita del 220-40 con la carga <b>del tablero</b>. La que escribe la calculadora habla de la

@@ -11,6 +11,7 @@ namespace PowerNode.Web.Modelo.Memoria;
 /// <param name="FaseQueGobierna">Solo en el alimentador: cuál barra es la más cargada y con qué
 /// corriente se dimensiona, ya redactado. Sin él, la corriente de diseño no se deduce de la carga
 /// total de la sección 1.</param>
+/// <param name="CaidaCombinada">Solo en un derivado: alimentador + circuito, ya redactado — R-01.</param>
 public sealed record HojaDeMemoria(
     string Sujeto,
     string Articulo,
@@ -35,7 +36,8 @@ public sealed record HojaDeMemoria(
     string? FaseQueGobierna = null,
     string? SerieDeInterruptores = null,
     string? Aislamiento = null,
-    IReadOnlyList<string>? DesgloseConductor = null);
+    IReadOnlyList<string>? DesgloseConductor = null,
+    string? CaidaCombinada = null);
 
 /// <summary>Un renglón «rótulo: valor» de una sección de la memoria.</summary>
 public sealed record RenglonMemoria(string Rotulo, string Valor);
