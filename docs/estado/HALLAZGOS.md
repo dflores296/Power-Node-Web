@@ -63,7 +63,7 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | R-08 · Principal menor que un derivado: aviso o bloqueo sin decidir | P3 | **Cerrado** (aviso) | `ab9c785` |
 | R-09 · 2F-3H: neutro portador sin cita en la memoria ni prueba — 310-15(b)(5)(2) | P2 | **Cerrado** | `04c3df3` |
 | R-10 · 2F-3H 220Y/127: sin prueba de que no se aplican 220-61(a) excepción ni 310-15(b)(7) | P2 | **Cerrado** | `c942ccb` |
-| R-11 · Sin mínimo del principal según 230-79 | P2 | Pendiente | — |
+| R-11 · Sin mínimo del principal según 230-79 | P2 | **Cerrado** | `62fc7f9` |
 | R-12 · Sin factores de demanda del Art. 220 por tipo de inmueble | P2 | Pendiente | — |
 | R-14 · Mínimo de 20 A en todos los contactos (criterio del Excel); sin 210-11(c) ni 220-52 | P1 | **Cerrado** | `ab9c785` |
 | R-15 · Límites de caída por omisión 3 % + 3 % = 6 %, contra el 5 % combinado; aviso de caída combinada dentro de la tabla | P2 | **Cerrado** | `6ca60a1` |
