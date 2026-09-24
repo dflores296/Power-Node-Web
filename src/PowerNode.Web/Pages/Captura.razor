@@ -20,6 +20,7 @@
 </header>
 
 <section class="ficha">
+    <div class="pila">
     <div class="grupo">
         <h2>Identificación</h2>
         <label>Tablero <input @bind="Datos.Tablero" @bind:event="oninput" /></label>
@@ -40,6 +41,7 @@
             Tensión F-N <strong>@Datos.TensionFaseNeutroV.ToString("N1") V</strong> ·
             barras <strong>@string.Join(" ", Datos.Barras)</strong>
         </p>
+    </div>
     </div>
 
     <div class="grupo">
