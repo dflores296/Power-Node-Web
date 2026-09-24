@@ -1753,4 +1753,25 @@ public class CuadroDeCargaTests
         Assert.Equal(3, cuadro.EspaciosOcupados);
         Assert.Equal(9, cuadro.EspaciosLibres);
     }
+
+    [Fact]
+    public void AlCambiarLasFases_LosHilosQuedanEnUnSistemaQueExiste()
+    {
+        var datos = new DatosDelTablero(); // 3F-4H
+
+        datos.Fases = 1;
+        Assert.Equal([2, 3], datos.HilosValidos);
+        Assert.Equal(2, datos.Hilos); // no «1F-4H»
+
+        datos.Hilos = 3; // 1F-3H
+        datos.Fases = 1;
+        Assert.Equal(3, datos.Hilos); // mismas fases: no se toca
+
+        datos.Fases = 2;
+        Assert.Equal(3, datos.Hilos);
+
+        datos.Fases = 3;
+        Assert.Equal(4, datos.Hilos); // de regreso a 3F-4H, no a un 3F-3H que nadie pidió
+        Assert.Equal([3, 4], datos.HilosValidos);
+    }
 }

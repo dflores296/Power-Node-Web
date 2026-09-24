@@ -34,7 +34,7 @@
         <h2>Sistema</h2>
         <label>Tensión F-F (V) <input type="number" min="100" step="1" @bind="Datos.TensionFaseFaseV" @bind:after="Recalcular" /></label>
         <label>Fases <select @bind="Datos.Fases" @bind:after="Recalcular">@foreach (var f in new[] { 1, 2, 3 }) { <option value="@f">@f</option> }</select></label>
-        <label>Hilos <select @bind="Datos.Hilos" @bind:after="Recalcular">@foreach (var h in new[] { 2, 3, 4 }) { <option value="@h">@h</option> }</select></label>
+        <label>Hilos <select @bind="Datos.Hilos" @bind:after="Recalcular">@foreach (var h in Datos.HilosValidos) { <option value="@h">@h</option> }</select></label>
         <label>Frecuencia (Hz) <input type="number" min="50" step="10" @bind="Datos.FrecuenciaHz" /></label>
         <p class="derivado">
             @Datos.EtiquetaSistema ·

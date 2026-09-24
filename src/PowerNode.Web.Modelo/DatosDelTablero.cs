@@ -96,8 +96,42 @@ public sealed class DatosDelTablero
     // ---- Sistema (Excel T22:T26) ---------------------------------------------------------------
 
     public decimal TensionFaseFaseV { get; set; } = 220m;
-    public int Fases { get; set; } = 3;
+    /// <summary>
+    /// Al cambiar las fases, los hilos pasan a los del sistema más común de esas fases: «1 fase,
+    /// 4 hilos» no es nada — el motor lo leía como 1F-3H sin avisar. Siempre al más común, y no solo
+    /// cuando quedan inválidos: de 3F-4H a 2F y de regreso a 3F, conservar los 3 hilos dejaba un
+    /// 3F-3H (delta) que nadie pidió.
+    /// </summary>
+    public int Fases
+    {
+        get => _fases;
+        set
+        {
+            if (value == _fases)
+                return;
+            _fases = value;
+            Hilos = HilosPorOmision(value);
+        }
+    }
+    private int _fases = 3;
+
     public int Hilos { get; set; } = 4;
+
+    /// <summary>
+    /// Los hilos que admite cada número de fases: 1F-2H o 1F-3H; 2F de estrella solo con neutro,
+    /// 3 hilos; 3F-3H (delta) o 3F-4H (estrella).
+    /// </summary>
+    public IReadOnlyList<int> HilosValidos => HilosDe(Fases);
+
+    private static int[] HilosDe(int fases) => fases switch
+    {
+        <= 1 => [2, 3],
+        2 => [3],
+        _ => [3, 4],
+    };
+
+    /// <summary>El más común de cada caso: 1F-2H, 2F-3H, 3F-4H.</summary>
+    private static int HilosPorOmision(int fases) => fases switch { <= 1 => 2, 2 => 3, _ => 4 };
     public int FrecuenciaHz { get; set; } = 60;
 
     /// <summary>

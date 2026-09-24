@@ -129,7 +129,8 @@ input.desc, input.va {
     box-shadow: none;
 }
 input.desc { width: 100%; }
-input.va { width: 62px; text-align: right; }
+/* 80 px: una carga con decimales (931.25 VA, de 745 W ÷ 0.8) se cortaba a 62. */
+input.va { width: 80px; text-align: right; }
 input.va.corto { width: 46px; }
 input.va.fp { width: 52px; }
 input.desc:focus, input.va:focus {
