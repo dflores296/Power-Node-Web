@@ -54,6 +54,7 @@ Pruebas: 66 en `PowerNode.Web.Tests`, 6 en `PowerNode.Normativa.Tests`.
 - Quitar del gabinete la nota del acomodo de barras — pedido de David, `d9c2f39`.
 - Alimentador: protección seleccionada primero, cables con su color; avisos del principal y de caída combinada en una tarjeta «Avisos» al final — pedido de David, `2c4b2b4`.
 - Tarjetas del cierre al mismo alto — pedido de David, `10de2c0`.
+- Ficha en tres columnas (Identificación y Sistema apiladas) con campos que llenan la tarjeta — pedido de David, `362c3a7`.
 
 Pruebas: 156 en `PowerNode.Web.Tests`, 6 en `PowerNode.Normativa.Tests`.
 
