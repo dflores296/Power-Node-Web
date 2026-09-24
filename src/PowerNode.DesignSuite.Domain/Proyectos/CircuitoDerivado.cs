@@ -114,7 +114,7 @@ public class CircuitoDerivado
 
     /// <summary>
     /// Si la carga es no lineal (electrónica, VFD, LED, etc.), el neutro se cuenta como conductor
-    /// portador de corriente para el factor de agrupamiento — Tabla 310-15(b)(5)(3).
+    /// portador de corriente para el factor de agrupamiento — 310-15(b)(5)(3).
     /// </summary>
     public bool CargaLineal { get; set; } = true;
 
