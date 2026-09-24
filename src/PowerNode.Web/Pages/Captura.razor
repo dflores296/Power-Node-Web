@@ -2,6 +2,7 @@
 @inject ProyectoActual Proyecto
 @inject MotorNom Motor
 @inject NavigationManager Navegacion
+@using System.Globalization
 
 <PageTitle>Cuadro de carga — Power Node</PageTitle>
 
@@ -129,7 +130,7 @@
             <tr>
                 <th rowspan="2"><span class="ayuda" title="Identificar el circuito por su espacio en la barra. Nones arriba, pares abajo.">N.º</span></th>
                 <th rowspan="2" class="izq descripcion">Descripción</th>
-                <th rowspan="2"><span class="ayuda" title="Seleccionar el tipo de carga. Determina la aplicación de 240-4(b) (excluida en contactos). Protección: primer tamaño de 240-6(a) ≥ capacidad mínima, sin mínimo por tipo. Contactos de vivienda: seleccionar el uso — 210-11(c).">Tipo</span></th>
+                <th rowspan="2"><span class="ayuda" title="Seleccionar el tipo de carga. Determina el factor de demanda del resumen — Art. 220 — y la aplicación de 240-4(b) (excluida en contactos). Motor / A/C y calefacción: sin factor de demanda — 220-50, 220-51; se calculan como carga de placa (Art. 430 pendiente). Contactos de vivienda: seleccionar el uso — 210-11(c).">Tipo</span></th>
                 <th colspan="4"><span class="ayuda" title="Capturar la carga de placa en VA, W o A y su factor de potencia. Continua (3 h o más): 125 % — 210-19(a)(1), 210-20(a). No continua: 100 %. En W o A, consultar abajo el VA de cálculo.">Carga</span></th>
                 <th colspan="@Datos.Barras.Count"><span class="ayuda" title="Consultar la carga del circuito repartida entre las barras que toca.">Balanceo de fases <span class="simbolo">(VA)</span></span></th>
                 <th rowspan="2"><span class="ayuda" title="Capturar la longitud del circuito. Determina la caída de tensión — Tabla 9."><span class="simbolo">L (m)</span></span></th>
@@ -188,10 +189,8 @@
                         <td class="num">@c.Espacio</td>
                         <td rowspan="@c.Polos"><input class="desc" @bind="c.Descripcion" @bind:event="oninput" placeholder="—" /></td>
                         <td rowspan="@c.Polos">
-                            <select class="tipo" @bind="c.Tipo" @bind:after="Recalcular">
-                                <option value="@TipoCarga.Alumbrado">Alumbrado</option>
-                                <option value="@TipoCarga.Contactos">Contactos</option>
-                                <option value="@TipoCarga.Equipo">Equipo</option>
+                            <select class="tipo" @bind="c.Categoria" @bind:after="Recalcular">
+                                @foreach (var categoria in Enum.GetValues<CategoriaDeCarga>()) { <option value="@categoria">@categoria.Nombre()</option> }
                             </select>
                             @if (c.Tipo == TipoCarga.Contactos)
                             {
@@ -339,26 +338,32 @@
             <tr>
                 <th></th><th>Instalada <span class="simbolo">(kVA)</span></th><th>F.D.</th><th>Demandada <span class="simbolo">(kVA)</span></th>
             </tr>
-            <tr>
-                <td class="izq">Carga continua</td>
-                <td class="num">@((Cuadro.Resumen.ContinuaVA / 1000m).ToString("N2"))</td>
-                <td class="num"><input class="va chico" type="number" min="0" max="1" step="0.05"
-                                       @bind="Datos.FactorDemandaContinua" @bind:after="Recalcular" /></td>
-                <td class="num">@((Cuadro.Resumen.ContinuaDemandadaVA / 1000m).ToString("N2"))</td>
-            </tr>
-            <tr>
-                <td class="izq">Carga no continua</td>
-                <td class="num">@((Cuadro.Resumen.NoContinuaVA / 1000m).ToString("N2"))</td>
-                <td class="num"><input class="va chico" type="number" min="0" max="1" step="0.05"
-                                       @bind="Datos.FactorDemandaNoContinua" @bind:after="Recalcular" /></td>
-                <td class="num">@((Cuadro.Resumen.NoContinuaDemandadaVA / 1000m).ToString("N2"))</td>
-            </tr>
+            @foreach (var fila in Cuadro.Resumen.PorCategoria ?? [])
+            {
+                <tr>
+                    <td class="izq">@fila.Categoria.NombreCompleto()</td>
+                    <td class="num">@((fila.InstaladaVA / 1000m).ToString("N2"))</td>
+                    <td class="num">
+                        @if (fila.Categoria.AdmiteFactorDeDemanda())
+                        {
+                            <input class="va chico" type="number" min="0" max="1" step="0.05"
+                                   value="@fila.FactorDemanda.ToString(CultureInfo.InvariantCulture)"
+                                   @onchange="e => CambiarFactor(fila.Categoria, e)" />
+                        }
+                        else
+                        {
+                            <span class="ayuda" title="@fila.Categoria.SinReduccion()">1.00</span>
+                        }
+                    </td>
+                    <td class="num">@((fila.DemandadaVA / 1000m).ToString("N2"))</td>
+                </tr>
+            }
             @if (Cuadro.Resumen.Minimo220_52VA > 0m)
             {
                 <tr>
-                    <td class="izq"><span class="ayuda" title="Completar a 1500 VA cada circuito de aparatos pequeños o de lavadora — 220-52(a) y (b). Carga de alimentador; no cambia el derivado.">Mínimo 220-52</span></td>
+                    <td class="izq"><span class="ayuda" title="Completar a 1500 VA cada circuito de aparatos pequeños o de lavadora — 220-52(a) y (b). Carga de alimentador; no cambia el derivado. Lleva el F.D. de contactos.">Mínimo 220-52</span></td>
                     <td class="num">@((Cuadro.Resumen.Minimo220_52VA / 1000m).ToString("N2"))</td>
-                    <td class="num">@Datos.FactorDemandaNoContinua.ToString("N2")</td>
+                    <td class="num">@Datos.FactorDemandaContactos.ToString("N2")</td>
                     <td class="num">@((Cuadro.Resumen.Minimo220_52DemandadoVA / 1000m).ToString("N2"))</td>
                 </tr>
             }
@@ -379,21 +384,32 @@
                 <td class="num">@Cuadro.Resumen.FactorPotencia.ToString("N2")</td>
                 <td></td><td></td>
             </tr>
+            <tr>
+                <td class="izq"><span class="ayuda" title="Consultar la carga continua y la no continua. La continua entra al 125 % en el alimentador — 215-2(a)(1), 215-3.">Continua / no continua</span></td>
+                <td class="num">@((Cuadro.Resumen.ContinuaVA / 1000m).ToString("N2")) / @((Cuadro.Resumen.NoContinuaVA / 1000m).ToString("N2"))</td>
+                <td></td>
+                <td class="num">@((Cuadro.Resumen.ContinuaDemandadaVA / 1000m).ToString("N2")) / @(((Cuadro.Resumen.NoContinuaDemandadaVA + Cuadro.Resumen.Minimo220_52DemandadoVA) / 1000m).ToString("N2"))</td>
+            </tr>
         </table>
 
         @if (Datos.ReduceCargaPorDemanda)
         {
-            <h2 class="separado"><span class="ayuda" title="Seleccionar la tabla o sección del Art. 220 que sustenta el factor de demanda. Se imprime en la memoria del alimentador — 220-40. Sin reducción: calefacción fija (220-51) y motores (220-50).">Justificación del F.D.</span></h2>
-            <div class="justificaciones">
-                @foreach (var j in Enum.GetValues<JustificacionFactorDemanda>())
-                {
-                    <label><input type="checkbox" checked="@Datos.Justificaciones.Contains(j)" @onchange="e => Justificar(j, e)" /> @j.Nombre()</label>
-                }
-                @if (Datos.Justificaciones.Contains(JustificacionFactorDemanda.Otra))
-                {
-                    <input class="otra" placeholder="Describir el criterio" @bind="Datos.JustificacionOtra" @bind:event="oninput" @bind:after="Recalcular" />
-                }
-            </div>
+            <h2 class="separado"><span class="ayuda" title="Seleccionar, para cada tipo con F.D. menor que 1, la tabla o sección del Art. 220 que lo sustenta. Se imprime en la memoria del alimentador — 220-40.">Justificación del F.D.</span></h2>
+            @foreach (var categoria in CategoriasDeCarga.Reducibles.Where(c => Datos.FactorDeDemanda(c) < 1m))
+            {
+                <div class="justificaciones">
+                    <strong>@categoria.NombreCompleto() · F.D. @Datos.FactorDeDemanda(categoria).ToString("N2")</strong>
+                    @foreach (var j in categoria.JustificacionesPosibles())
+                    {
+                        <label><input type="checkbox" checked="@Datos.Justificaciones[categoria].Contains(j)" @onchange="e => Justificar(categoria, j, e)" /> @j.Nombre()</label>
+                    }
+                    @if (Datos.Justificaciones[categoria].Contains(JustificacionFactorDemanda.Otra))
+                    {
+                        <input class="otra" placeholder="Describir el criterio" value="@Datos.JustificacionOtra[categoria]"
+                               @oninput="e => { Datos.JustificacionOtra[categoria] = e.Value?.ToString() ?? string.Empty; Recalcular(); }" />
+                    }
+                </div>
+            }
         }
 
         <h2 class="separado">Balanceo de fases</h2>
@@ -605,12 +621,27 @@
             ? [.. fases.Select(f => $"Fase {f.Fase}: {f.Corriente.Magnitud:N2} A → {f.CaidaV:N2} V ({f.CaidaPct:N2} %)")]
             : null;
 
-    private void Justificar(JustificacionFactorDemanda j, ChangeEventArgs e)
+    private void Justificar(CategoriaDeCarga categoria, JustificacionFactorDemanda j, ChangeEventArgs e)
     {
         if (e.Value is true)
-            Datos.Justificaciones.Add(j);
+            Datos.Justificaciones[categoria].Add(j);
         else
-            Datos.Justificaciones.Remove(j);
+            Datos.Justificaciones[categoria].Remove(j);
+        Recalcular();
+    }
+
+    /// <summary>El F.D. de un tipo. Fuera de 0 a 1 o ilegible, se queda el que estaba.</summary>
+    private void CambiarFactor(CategoriaDeCarga categoria, ChangeEventArgs e)
+    {
+        if (!decimal.TryParse(e.Value?.ToString(), NumberStyles.Number, CultureInfo.InvariantCulture, out var factor) || factor < 0m || factor > 1m)
+            return;
+
+        switch (categoria)
+        {
+            case CategoriaDeCarga.Alumbrado: Datos.FactorDemandaAlumbrado = factor; break;
+            case CategoriaDeCarga.Contactos: Datos.FactorDemandaContactos = factor; break;
+            case CategoriaDeCarga.Equipo: Datos.FactorDemandaEquipo = factor; break;
+        }
         Recalcular();
     }
 

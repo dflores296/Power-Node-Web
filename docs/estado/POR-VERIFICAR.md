@@ -17,3 +17,5 @@ Supuestos del cálculo pendientes de confirmar en campo o por David. Ordenados p
 | El desbalanceo se calcula en corriente; el balanceo se imprime en VA. | Los dos valores no coinciden entre sí. | Igual que el motor y el Excel. |
 | El entregable se imprime desde el navegador. | No editable antes de entregar. | Propuesta — [`../decisiones/documento-imprimible-en-vez-de-archivo.md`](../decisiones/documento-imprimible-en-vez-de-archivo.md). |
 | Impresión revisada solo en PDF de Chromium. | Márgenes o cortes distintos en impresora. | Imprimir una vez en físico. |
+| Motor / A/C y calefacción fija se calculan como carga de placa. | Sin 430-22, 430-52 ni 440 en el derivado de un motor. | Pendiente — I-15. |
+| El mínimo de 220-52 lleva el factor de demanda de contactos. | Alimentador de menos si el F.D. de contactos es bajo. | 220-52 permite sumarlo al alumbrado general con la Tabla 220-42. |

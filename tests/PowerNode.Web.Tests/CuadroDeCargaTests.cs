@@ -380,11 +380,13 @@ public class CuadroDeCargaTests
         cuadro.Recalcular();
         var sinDemanda = cuadro.Alimentador.Resultado!.CorrienteDisenoA;
 
-        cuadro.Datos.FactorDemandaContinua = 0.5m;
+        cuadro.Datos.FactorDemandaAlumbrado = 0.5m; // los seis son de alumbrado, el tipo por omisión
         cuadro.Recalcular();
 
         Assert.Equal(sinDemanda / 2m, cuadro.Alimentador.Resultado!.CorrienteDisenoA, 2);
-        Assert.Contains(cuadro.Alimentador.Resultado.Citas, c => c.Referencia == "220-40");
+        var alumbrado = cuadro.Resumen.PorCategoria!.Single(f => f.Categoria == CategoriaDeCarga.Alumbrado);
+        Assert.Equal(18000m, alumbrado.InstaladaVA);
+        Assert.Equal(9000m, alumbrado.DemandadaVA);
     }
 
     [Fact]
@@ -407,7 +409,7 @@ public class CuadroDeCargaTests
 
     // ---- R-12 · El factor de demanda lo decide el proyectista, con justificación --------------------------
 
-    private const string AvisoSinJustificacion = "Hay un factor de demanda menor que 1 sin justificación.";
+    private const string AvisoSinJustificacion = "El factor de demanda de equipo (aparatos) es menor que 1 y no tiene justificación.";
 
     [Fact]
     public void R12_SinReduccionNoSePideJustificacion()
@@ -421,8 +423,8 @@ public class CuadroDeCargaTests
     [Fact]
     public void R12_ConReduccionSinJustificacion_SeAvisa()
     {
-        var cuadro = TresAparatos();
-        cuadro.Datos.FactorDemandaNoContinua = 0.5m;
+        var cuadro = TresAparatos(); // tres circuitos de equipo
+        cuadro.Datos.FactorDemandaEquipo = 0.5m;
         cuadro.Recalcular();
 
         Assert.Contains(cuadro.Alimentador.Avisos, a => a.StartsWith(AvisoSinJustificacion));
@@ -432,14 +434,14 @@ public class CuadroDeCargaTests
     public void R12_VariasJustificaciones_EnElOrdenDeLaLista()
     {
         var cuadro = TresAparatos();
-        cuadro.Datos.FactorDemandaContinua = 0.8m;
-        cuadro.Datos.Justificaciones.Add(JustificacionFactorDemanda.ContactosNoVivienda);
-        cuadro.Datos.Justificaciones.Add(JustificacionFactorDemanda.AlumbradoGeneral);
+        cuadro.Datos.FactorDemandaEquipo = 0.8m;
+        cuadro.Datos.Justificaciones[CategoriaDeCarga.Equipo].Add(JustificacionFactorDemanda.CargasNoCoincidentes);
+        cuadro.Datos.Justificaciones[CategoriaDeCarga.Equipo].Add(JustificacionFactorDemanda.AparatosFijosVivienda);
         cuadro.Recalcular();
 
         Assert.Equal(
-            "Tabla 220-42 — alumbrado general; 220-44 — contactos en inmuebles que no son vivienda",
-            cuadro.Datos.JustificacionDelFactorDeDemanda);
+            "220-53 — cuatro o más aparatos fijos en vivienda, 75 %; 220-60 — cargas no coincidentes",
+            cuadro.Datos.JustificacionDe(CategoriaDeCarga.Equipo));
         Assert.DoesNotContain(cuadro.Alimentador.Avisos, a => a.StartsWith(AvisoSinJustificacion));
     }
 
@@ -447,15 +449,68 @@ public class CuadroDeCargaTests
     public void R12_OtraSinTextoNoJustifica_ConTextoSi()
     {
         var cuadro = TresAparatos();
-        cuadro.Datos.FactorDemandaNoContinua = 0.7m;
-        cuadro.Datos.Justificaciones.Add(JustificacionFactorDemanda.Otra);
+        cuadro.Datos.FactorDemandaEquipo = 0.7m;
+        cuadro.Datos.Justificaciones[CategoriaDeCarga.Equipo].Add(JustificacionFactorDemanda.Otra);
         cuadro.Recalcular();
         Assert.Contains(cuadro.Alimentador.Avisos, a => a.StartsWith(AvisoSinJustificacion));
 
-        cuadro.Datos.JustificacionOtra = "Registro de demanda de la planta existente";
+        cuadro.Datos.JustificacionOtra[CategoriaDeCarga.Equipo] = "Registro de demanda de la planta existente";
         cuadro.Recalcular();
-        Assert.Equal("Criterio del proyectista: Registro de demanda de la planta existente", cuadro.Datos.JustificacionDelFactorDeDemanda);
+        Assert.Equal("Criterio del proyectista: Registro de demanda de la planta existente", cuadro.Datos.JustificacionDe(CategoriaDeCarga.Equipo));
         Assert.DoesNotContain(cuadro.Alimentador.Avisos, a => a.StartsWith(AvisoSinJustificacion));
+    }
+
+    // ---- R-17 · Factor de demanda por tipo de carga ---------------------------------------------------
+
+    [Fact]
+    public void R17_CadaTipoConSuFactor_YMotoresYCalefaccionNoSeReducen()
+    {
+        var cuadro = Nuevo(espacios: 12);
+        foreach (var (espacio, categoria) in new[]
+                 {
+                     (1, CategoriaDeCarga.Alumbrado), (2, CategoriaDeCarga.Contactos), (3, CategoriaDeCarga.Equipo),
+                     (4, CategoriaDeCarga.MotorOAireAcondicionado), (5, CategoriaDeCarga.CalefaccionFija),
+                 })
+        {
+            Espacio(cuadro, espacio).Categoria = categoria;
+            Espacio(cuadro, espacio).NoContinua = 1000m;
+        }
+        cuadro.Datos.FactorDemandaAlumbrado = 0.5m;
+        cuadro.Datos.FactorDemandaContactos = 0.6m;
+        cuadro.Datos.FactorDemandaEquipo = 0.75m;
+        cuadro.Recalcular();
+
+        decimal Demandada(CategoriaDeCarga c) => cuadro.Resumen.PorCategoria!.Single(f => f.Categoria == c).DemandadaVA;
+        Assert.Equal(500m, Demandada(CategoriaDeCarga.Alumbrado));
+        Assert.Equal(600m, Demandada(CategoriaDeCarga.Contactos));
+        Assert.Equal(750m, Demandada(CategoriaDeCarga.Equipo));
+        Assert.Equal(1000m, Demandada(CategoriaDeCarga.MotorOAireAcondicionado)); // 220-50
+        Assert.Equal(1000m, Demandada(CategoriaDeCarga.CalefaccionFija));         // 220-51
+        Assert.Equal(3850m, cuadro.Resumen.DemandadaVA);
+    }
+
+    [Fact]
+    public void R17_ElTipoDelMotorDeMotorYCalefaccionEsEquipo()
+    {
+        var cuadro = Nuevo();
+        var c = Espacio(cuadro, 1);
+        c.Categoria = CategoriaDeCarga.MotorOAireAcondicionado;
+        Assert.Equal(TipoCarga.Equipo, c.Tipo);
+
+        c.Tipo = TipoCarga.Contactos;
+        Assert.Equal(CategoriaDeCarga.Contactos, c.Categoria);
+    }
+
+    [Fact]
+    public void R17_ElFactorSeAplicaEnLaCorrienteDelAlimentador_NoEnElDerivado()
+    {
+        var cuadro = TresAparatos(); // tres circuitos de equipo
+        var derivado = Espacio(cuadro, 5).Resultado!.CorrienteDisenoA;
+        cuadro.Datos.FactorDemandaEquipo = 0.5m;
+        cuadro.Recalcular();
+
+        Assert.Equal(derivado, Espacio(cuadro, 5).Resultado!.CorrienteDisenoA); // 220-42: no en el derivado
+        Assert.Equal(6.10m, cuadro.Alimentador.Resultado!.CorrienteDisenoA, 2);  // 0.5 × 12.20 A
     }
 
     // ---- R-11 · Mínimo del principal por 230-79, solo si el tablero es el de la acometida ----------------
@@ -730,22 +785,20 @@ public class CuadroDeCargaTests
     // ---- R-04 · La fase que gobierna la elige el motor ------------------------------------------------
 
     [Fact]
-    public void R04_ElMotorEligeLaFaseYCitaLaCargaRealEnEl220_40()
+    public void R04_ElMotorEligeLaFaseQueGobierna()
     {
         var cuadro = TresAparatos();
-        cuadro.Datos.FactorDemandaContinua = 0.8m;
+        cuadro.Datos.FactorDemandaEquipo = 0.8m;
         cuadro.Recalcular();
         var r = cuadro.Alimentador.Resultado!;
 
         Assert.Equal('C', r.FaseQueGobierna);
         Assert.Equal('C', cuadro.Alimentador.Gobierna!.Fase);
         Assert.Contains(r.Citas, c => c.Referencia == "215-2(a)(1)" && c.Descripcion.StartsWith("Fase que gobierna: C"));
-        // La carga del tablero (3800 VA), no 3 × los VA de la fase C.
-        var cita220_40 = Assert.Single(r.Citas, c => c.Referencia == "220-40");
-        Assert.Contains("continua 3800 VA x 0.8 = 3040 VA", cita220_40.Descripcion);
-        Assert.Contains("fase que gobierna (fase C)", cita220_40.Descripcion);
-        // 0.8 × 12.20 A de la fase C.
+        // 0.8 × 12.20 A de la fase C. El factor ya viene aplicado por tipo (R-17): el motor, con F.D. 1,
+        // no escribe su propia cita 220-40 — la escribe la memoria, por tipo.
         Assert.Equal(9.76m, r.CorrienteDisenoA, 2);
+        Assert.DoesNotContain(r.Citas, c => c.Referencia == "220-40");
     }
 
     // ---- R-01 · Caída del alimentador: 3 % por tramo, 5 % combinada — 215-2(a)(4) NOTA 2 ---------------
@@ -883,22 +936,19 @@ public class CuadroDeCargaTests
     [Fact]
     public void M02_ElFactorDeDemandaSeAplicaAntesDeElegirLaFase()
     {
-        // Fase A: 3000 VA continuos; fase B: 3500 VA no continuos. Sin demanda gobierna A
-        // (1.25 × 23.62 = 29.53 A contra 27.56 A); con 0.5 sobre la continua gobierna B.
+        // Fase A: alumbrado, 3000 VA continuos; fase B: contactos, 3500 VA no continuos. Sin demanda
+        // gobierna A (1.25 × 23.62 = 29.53 A contra 27.56 A); con 0.5 en alumbrado gobierna B.
         var cuadro = Nuevo();
         Espacio(cuadro, 1).Continua = 3000m;
+        Espacio(cuadro, 3).Tipo = TipoCarga.Contactos;
         Espacio(cuadro, 3).NoContinua = 3500m;
         cuadro.Recalcular();
         Assert.Equal('A', cuadro.Alimentador.Gobierna!.Fase);
 
-        cuadro.Datos.FactorDemandaContinua = 0.5m;
+        cuadro.Datos.FactorDemandaAlumbrado = 0.5m;
         cuadro.Recalcular();
         Assert.Equal('B', cuadro.Alimentador.Gobierna!.Fase);
         Assert.Equal(3500m / cuadro.Datos.TensionFaseNeutroV, cuadro.Alimentador.Resultado!.CorrienteDisenoA, 2);
-
-        // Y la cita del 220-40 habla de la carga del tablero, no de la equivalente de la fase.
-        var cita = Assert.Single(cuadro.Alimentador.Resultado.Citas, c => c.Referencia == "220-40");
-        Assert.Contains("continua 3000 VA x 0.5 = 1500", cita.Descripcion);
     }
 
     [Fact]

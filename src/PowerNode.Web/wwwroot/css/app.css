@@ -252,6 +252,7 @@ select.uso { display: block; margin-top: 3px; font-size: 11px; }
 .justificaciones { display: flex; flex-direction: column; gap: 4px; font-size: 11px; }
 .justificaciones label { display: flex; align-items: flex-start; gap: 6px; }
 .justificaciones input.otra { margin-top: 4px; width: 100%; }
+.justificaciones + .justificaciones { margin-top: 12px; }
 .tarjeta h2.separado { margin-top: 18px; }
 .datos { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
 .datos th { font-size: 10px; text-transform: uppercase; letter-spacing: .03em;

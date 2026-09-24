@@ -143,46 +143,61 @@ public sealed class DatosDelTablero
 
     public bool UsaInterruptorPrincipal => TipoAcometida == TipoAcometidaTablero.InterruptorPrincipal;
 
-    // ---- Factores de demanda del resumen (Excel AX79 y AZ79) ------------------------------------
+    // ---- Factores de demanda, por tipo de carga (antes: continua y no continua, Excel AX79 y AZ79) --
 
     /// <summary>
-    /// Factor de demanda de la carga continua acumulada. <b>Va en el alimentador, no en el
-    /// derivado</b> — 220-40 lo pone sobre la carga acumulada y 220-42 lo prohíbe expresamente en el
-    /// circuito derivado. El Excel lo lleva por renglón <i>y</i> en el total; aquí solo en el total,
-    /// que es donde la norma lo admite.
+    /// <b>Factor de demanda por tipo de carga</b> — R-17. 220-40: la carga del alimentador es la suma
+    /// de los derivados «después de aplicar cualquier factor de demanda aplicable», y el Art. 220 los
+    /// da por tipo. Los captura el proyectista; 1.0 = sin reducción. Motores, A/C y calefacción fija no
+    /// se reducen (220-50, 220-51). Sustituye a los dos factores del Excel (continua y no continua):
+    /// el 125 % de 215-3 se sigue aplicando a la parte continua de cada circuito.
     /// </summary>
-    public decimal FactorDemandaContinua { get; set; } = 1m;
+    public decimal FactorDemandaAlumbrado { get; set; } = 1m;
+    public decimal FactorDemandaContactos { get; set; } = 1m;
+    public decimal FactorDemandaEquipo { get; set; } = 1m;
 
-    /// <summary>Factor de demanda de la carga no continua acumulada. Ver <see cref="FactorDemandaContinua"/>.</summary>
-    public decimal FactorDemandaNoContinua { get; set; } = 1m;
-
-    /// <summary>Algún factor de demanda reduce la carga: entonces la memoria pide justificación — R-12.</summary>
-    public bool ReduceCargaPorDemanda => FactorDemandaContinua < 1m || FactorDemandaNoContinua < 1m;
-
-    /// <summary>Con qué se justifica el factor de demanda. Varias a la vez. Solo cuenta con <see cref="ReduceCargaPorDemanda"/>.</summary>
-    public HashSet<JustificacionFactorDemanda> Justificaciones { get; } = [];
-
-    /// <summary>El texto de «Otra — criterio del proyectista».</summary>
-    public string JustificacionOtra { get; set; } = string.Empty;
-
-    /// <summary>
-    /// La justificación como la imprime la memoria, en el orden de la lista. <c>null</c> si falta: sin
-    /// ninguna escogida, o solo «Otra» sin texto.
-    /// </summary>
-    public string? JustificacionDelFactorDeDemanda
+    /// <summary>El factor de un tipo. 1.0 en los que la norma no deja reducir.</summary>
+    public decimal FactorDeDemanda(CategoriaDeCarga categoria) => categoria switch
     {
-        get
-        {
-            var partes = Enum.GetValues<JustificacionFactorDemanda>()
-                .Where(Justificaciones.Contains)
-                .Select(j => j == JustificacionFactorDemanda.Otra
-                    ? (string.IsNullOrWhiteSpace(JustificacionOtra) ? null : $"Criterio del proyectista: {JustificacionOtra.Trim()}")
-                    : j.Nombre())
-                .OfType<string>()
-                .ToList();
-            return partes.Count == 0 ? null : string.Join("; ", partes);
-        }
+        CategoriaDeCarga.Alumbrado => FactorDemandaAlumbrado,
+        CategoriaDeCarga.Contactos => FactorDemandaContactos,
+        CategoriaDeCarga.Equipo => FactorDemandaEquipo,
+        _ => 1m,
+    };
+
+    /// <summary>Algún tipo reduce su carga: la memoria pide justificación — R-12.</summary>
+    public bool ReduceCargaPorDemanda => CategoriasDeCarga.Reducibles.Any(c => FactorDeDemanda(c) < 1m);
+
+    /// <summary>Con qué se justifica el factor de cada tipo. Varias por tipo — R-12, R-17.</summary>
+    public Dictionary<CategoriaDeCarga, HashSet<JustificacionFactorDemanda>> Justificaciones { get; } =
+        CategoriasDeCarga.Reducibles.ToDictionary(c => c, _ => new HashSet<JustificacionFactorDemanda>());
+
+    /// <summary>El texto de «Otra — criterio del proyectista», por tipo.</summary>
+    public Dictionary<CategoriaDeCarga, string> JustificacionOtra { get; } =
+        CategoriasDeCarga.Reducibles.ToDictionary(c => c, _ => string.Empty);
+
+    /// <summary>
+    /// La justificación de un tipo como la imprime la memoria, en el orden de la lista. <c>null</c> si
+    /// falta: ninguna escogida, o solo «Otra» sin texto.
+    /// </summary>
+    public string? JustificacionDe(CategoriaDeCarga categoria)
+    {
+        if (!Justificaciones.TryGetValue(categoria, out var escogidas))
+            return null;
+
+        var partes = categoria.JustificacionesPosibles()
+            .Where(escogidas.Contains)
+            .Select(j => j == JustificacionFactorDemanda.Otra
+                ? (string.IsNullOrWhiteSpace(JustificacionOtra[categoria]) ? null : $"Criterio del proyectista: {JustificacionOtra[categoria].Trim()}")
+                : j.Nombre())
+            .OfType<string>()
+            .ToList();
+        return partes.Count == 0 ? null : string.Join("; ", partes);
     }
+
+    /// <summary>Los tipos con factor menor que 1 y sin justificación.</summary>
+    public IEnumerable<CategoriaDeCarga> SinJustificacion =>
+        CategoriasDeCarga.Reducibles.Where(c => FactorDeDemanda(c) < 1m && JustificacionDe(c) is null);
 
     // ---- Condiciones de cálculo (Excel columnas DA a DR, iguales en todos los renglones) --------
 

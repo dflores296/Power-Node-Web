@@ -22,7 +22,24 @@ public sealed class CircuitoDelCuadro
     public int Espacio { get; }
 
     public string Descripcion { get; set; } = string.Empty;
-    public TipoCarga Tipo { get; set; } = TipoCarga.Alumbrado;
+    /// <summary>El tipo de carga de los cinco del selector — R-17. Decide el factor de demanda.</summary>
+    public CategoriaDeCarga Categoria { get; set; } = CategoriaDeCarga.Alumbrado;
+
+    /// <summary>
+    /// El tipo con el que calcula el motor, que sale de <see cref="Categoria"/>: motor, A/C y
+    /// calefacción son <see cref="TipoCarga.Equipo"/>. Asignarlo fija la categoría (Fuerza → motor).
+    /// </summary>
+    public TipoCarga Tipo
+    {
+        get => Categoria.TipoDelMotor();
+        set => Categoria = value switch
+        {
+            TipoCarga.Alumbrado => CategoriaDeCarga.Alumbrado,
+            TipoCarga.Contactos => CategoriaDeCarga.Contactos,
+            TipoCarga.Fuerza => CategoriaDeCarga.MotorOAireAcondicionado,
+            _ => CategoriaDeCarga.Equipo,
+        };
+    }
 
     /// <summary>
     /// Para qué es el circuito, si es de contactos: aparatos pequeños, lavadora o baño de vivienda
@@ -114,6 +131,9 @@ public sealed class CircuitoDelCuadro
     /// propio derivado: 220-52 es carga de alimentador.
     /// </summary>
     public decimal Ajuste220_52VA { get; internal set; }
+
+    /// <summary>La carga con la que entra al alimentador: la capturada más el mínimo de 220-52.</summary>
+    public decimal CargaCalculadaVA => CargaInstaladaVA + Ajuste220_52VA;
 
     /// <summary>
     /// La potencia activa, en W: los VA por el F.P. del circuito. Para un renglón capturado en W

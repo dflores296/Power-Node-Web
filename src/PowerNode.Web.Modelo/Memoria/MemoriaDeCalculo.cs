@@ -140,11 +140,22 @@ public static class MemoriaDeCalculo
             CaidaPorFase: r.CaidaPorFase,
             CorrienteNeutro: r.CorrienteNeutro,
             TensionFaseNeutroV: datos.TensionFaseNeutroV,
-            FactorDeDemanda: datos.ReduceCargaPorDemanda
-                ? $"Continua {datos.FactorDemandaContinua:N2}, no continua {datos.FactorDemandaNoContinua:N2}. " +
-                  (datos.JustificacionDelFactorDeDemanda ?? "SIN JUSTIFICACIÓN")
-                : null);
+            FactoresDeDemanda: FactoresDeDemanda(datos));
     }
+
+    /// <summary>
+    /// «F.D. alumbrado — 220-40: 0.80 · Tabla 220-42 — alumbrado general». Un renglón por tipo con
+    /// factor menor que 1 — R-12, R-17. Sin justificación lo dice en mayúsculas: la memoria no la
+    /// inventa.
+    /// </summary>
+    private static IReadOnlyList<RenglonMemoria> FactoresDeDemanda(DatosDelTablero datos) =>
+    [
+        .. CategoriasDeCarga.Reducibles
+            .Where(c => datos.FactorDeDemanda(c) < 1m)
+            .Select(c => new RenglonMemoria(
+                $"F.D. {c.NombreCompleto().ToLowerInvariant()} — 220-40",
+                $"{datos.FactorDeDemanda(c):N2} · {datos.JustificacionDe(c) ?? "SIN JUSTIFICACIÓN"}")),
+    ];
 
     /// <summary>
     /// «Fase C, la más cargada: 125 % × 12.20 A + 0.00 A = 15.25 A». Es lo que explica por qué la
@@ -171,7 +182,7 @@ public static class MemoriaDeCalculo
         var bloques = new List<BloqueMemoria>();
 
         // ---- 1
-        bloques.Add(Seccion("1. DATOS DEL SISTEMA", [
+        var seccion1 = Seccion("1. DATOS DEL SISTEMA", [
             ("Carga total instalada", $"{cargaTotal:N0} VA"),
             ("Carga continua", $"{hoja.CargaContinuaVa:N0} VA"),
             ("Carga no continua", $"{hoja.CargaNoContinuaVa:N0} VA"),
@@ -179,13 +190,15 @@ public static class MemoriaDeCalculo
                 ? $"{hoja.Minimo220_52VA:N0} VA — aparatos pequeños y lavadora a 1,500 VA por circuito, 220-52(a) y (b)"
                 : null),
             ("Carga calculada", hoja.Minimo220_52VA > 0m ? $"{cargaTotal + hoja.Minimo220_52VA:N0} VA" : null),
-            ("Factor de demanda — 220-40", hoja.FactorDeDemanda),
             ("Tensión nominal", $"{hoja.TensionV:N1} V"),
             ("Frecuencia", "60 Hz"),
             ("Factor de potencia", hoja.Articulo == "215"
                 ? $"{hoja.FactorPotencia:N2} — resulta de combinar las cargas de la fase que gobierna"
                 : $"{hoja.FactorPotencia:N2}"),
-            ("Fases / hilos", $"{hoja.NumeroFases} / {hoja.NumeroHilos}")]));
+            ("Fases / hilos", $"{hoja.NumeroFases} / {hoja.NumeroHilos}")]);
+        bloques.Add(hoja.FactoresDeDemanda is { Count: > 0 } factores
+            ? seccion1 with { Renglones = [.. seccion1.Renglones, .. factores] }
+            : seccion1);
 
         // ---- 2
         bloques.Add(Seccion("2. CONSIDERACIONES", [
@@ -335,8 +348,8 @@ public static class MemoriaDeCalculo
     /// <summary>«Contactos · Aparatos pequeños (cocina)»: el tipo, y el uso si no es general.</summary>
     public static string Etiqueta(CircuitoDelCuadro circuito) =>
         circuito.UsoEfectivo == UsoDeContactos.General
-            ? Etiqueta(circuito.Tipo)
-            : $"{Etiqueta(circuito.Tipo)} · {circuito.UsoEfectivo.Nombre()}";
+            ? circuito.Categoria.NombreCompleto()
+            : $"{circuito.Categoria.NombreCompleto()} · {circuito.UsoEfectivo.Nombre()}";
 
     public static string Etiqueta(TipoCarga tipo) => tipo switch
     {

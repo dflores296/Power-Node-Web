@@ -67,6 +67,7 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | R-12 · Sin factores de demanda del Art. 220 por tipo de inmueble | P2 | **Cerrado** (justificación; el factor, a criterio) | `eb50462` |
 | R-14 · Mínimo de 20 A en todos los contactos (criterio del Excel); sin 210-11(c) ni 220-52 | P1 | **Cerrado** | `ab9c785` |
 | R-15 · Límites de caída por omisión 3 % + 3 % = 6 %, contra el 5 % combinado; aviso de caída combinada dentro de la tabla | P2 | **Cerrado** | `6ca60a1` |
+| R-17 · Factor de demanda por continua / no continua, no por tipo de carga como el Art. 220 | P2 | Pendiente | — |
 | R-16 · 240-4(b) no se revisa en calibres intermedios: más cobre del necesario | P3 | Pendiente | — |
 | R-13 · «Tabla 310-15(b)(5)(3)» en `CircuitoDerivado.cs`: es numeral | P3 | **Cerrado** | `69a5ed6` |
 
@@ -194,3 +195,5 @@ de tres aparatos.
 **R-15** — Hecho (David, revisando R-01): el alimentador arrancaba en 3 % y el derivado en 3 %: 6 %, arriba del 5 % combinado de la misma nota, sin aviso en los campos. El aviso de caída combinada salía como renglón dentro del cuadro. Corrección: alimentador 2 % por omisión (2 % + 3 % = 5 %); aviso en «Condiciones de cálculo» si los límites suman más de 5 %; los avisos de caída combinada, en su tarjeta debajo del cuadro. Con 2 % + 3 % ningún circuito pasa del 5 %: el aviso por circuito solo sale si se suben los límites. Caso base con 80 m: el alimentador sube a 6 AWG. Referencia: 215-2(a)(4) NOTA 2, 210-19(a)(1) NOTA 4. Prueba: `R15_…`.
 
 **R-16** — Hecho: `SeleccionConductor.DeterminarCalibreBase` revisa 240-4(b) solo en el calibre por carga; si no califica, salta al primer calibre cuya ampacidad cubre toda la protección. Caso base con principal de 60 A (230-79(d)): 12 AWG no alcanza y salta a 4 AWG (70 A); 6 AWG (55 A a 60 °C, 240-4(b) → 60 A) también cumple. Del lado seguro, con más cobre. Viene del motor copiado. Pendiente: decisión de David.
+
+**R-17** — Hecho (David): los dos factores de demanda venían del Excel (continua, no continua); el Art. 220 los da por tipo de carga. «Equipo» mezclaba cargas que no se reducen: motores y A/C (220-50) y calefacción fija (220-51). Corrección: cinco tipos (Alumbrado, Contactos, Equipo, Motor / A/C, Calefacción); factor capturable en los tres primeros, 1.00 fijo en los otros dos. Cada circuito lleva el factor de su tipo en la continua y en la no continua; el 125 % de 215-3 sigue sobre la continua. Resumen por tipo con «Continua / no continua» abajo. Justificación por tipo, solo con las opciones que le aplican. Motor / A/C y calefacción se calculan como carga de placa (Art. 430 pendiente, I-15). Referencia: 220-40, 220-42, 220-44, 220-50, 220-51, 220-53 a 220-56. Prueba: `R17_…`.

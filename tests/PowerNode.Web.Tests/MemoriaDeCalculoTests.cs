@@ -153,18 +153,19 @@ public class MemoriaDeCalculoTests
     [Fact]
     public void R12_LaMemoriaDelAlimentadorImprimeLosFactoresYSuJustificacion()
     {
-        var cuadro = ConUnCircuito();
+        var cuadro = ConUnCircuito(); // un circuito de alumbrado
+        const string Rotulo = "F.D. alumbrado — 220-40";
         Assert.DoesNotContain(MemoriaDeCalculo.Secciones(MemoriaDeCalculo.DelAlimentador(cuadro)!)[0].Renglones,
-            r => r.Rotulo == "Factor de demanda — 220-40");
+            r => r.Rotulo.StartsWith("F.D."));
 
-        cuadro.Datos.FactorDemandaContinua = 0.9m;
+        cuadro.Datos.FactorDemandaAlumbrado = 0.9m;
         cuadro.Recalcular();
         string Renglon() => MemoriaDeCalculo.Secciones(MemoriaDeCalculo.DelAlimentador(cuadro)!)[0].Renglones
-            .Single(r => r.Rotulo == "Factor de demanda — 220-40").Valor;
-        Assert.Equal("Continua 0.90, no continua 1.00. SIN JUSTIFICACIÓN", Renglon());
+            .Single(r => r.Rotulo == Rotulo).Valor;
+        Assert.Equal("0.90 · SIN JUSTIFICACIÓN", Renglon());
 
-        cuadro.Datos.Justificaciones.Add(JustificacionFactorDemanda.AlumbradoGeneral);
-        Assert.Equal("Continua 0.90, no continua 1.00. Tabla 220-42 — alumbrado general", Renglon());
+        cuadro.Datos.Justificaciones[CategoriaDeCarga.Alumbrado].Add(JustificacionFactorDemanda.AlumbradoGeneral);
+        Assert.Equal("0.90 · Tabla 220-42 — alumbrado general", Renglon());
     }
 
     [Fact]

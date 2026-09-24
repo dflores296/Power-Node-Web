@@ -5,28 +5,34 @@ using PowerNode.DesignSuite.Calculo.Validaciones;
 
 namespace PowerNode.Web.Modelo;
 
-/// <summary>El resumen de carga del encabezado del Excel (bloque «RESUMEN DE CARGA», filas 21 a 26).</summary>
+/// <summary>Un renglón del resumen: la carga de un tipo, su factor de demanda y lo que queda — R-17.</summary>
+public sealed record CargaPorCategoria(CategoriaDeCarga Categoria, decimal InstaladaVA, decimal FactorDemanda, decimal DemandadaVA);
+
+/// <summary>
+/// El resumen de carga: por tipo de carga, cada uno con su factor de demanda (R-17), y la misma carga
+/// partida en continua y no continua, que es la que decide el 125 % del alimentador (215-3).
+/// </summary>
+/// <param name="ContinuaDemandadaVA">La continua de todos los circuitos, cada uno con el F.D. de su tipo.</param>
 /// <param name="Minimo220_52VA">
 /// Lo que se agrega para que cada circuito de aparatos pequeños o de lavadora cuente 1500 VA —
 /// 220-52. Renglón propio del resumen: no está en <see cref="NoContinuaVA"/>, que es la suma de los
-/// renglones. Lleva el F.D. de la no continua.
+/// renglones. Lleva el F.D. de contactos.
 /// </param>
 public sealed record ResumenDeCarga(
     decimal ContinuaVA,
-    decimal FactorDemandaContinua,
     decimal ContinuaDemandadaVA,
     decimal NoContinuaVA,
-    decimal FactorDemandaNoContinua,
     decimal NoContinuaDemandadaVA,
     IReadOnlyDictionary<char, decimal> CargaPorFaseVA,
     decimal DesbalanceoPct,
     decimal InstaladaW = 0m,
     decimal DemandadaW = 0m,
     decimal FactorPotencia = 1m,
-    decimal Minimo220_52VA = 0m)
+    decimal Minimo220_52VA = 0m,
+    decimal Minimo220_52DemandadoVA = 0m,
+    IReadOnlyList<CargaPorCategoria>? PorCategoria = null)
 {
     public decimal InstaladaVA => ContinuaVA + NoContinuaVA;
-    public decimal Minimo220_52DemandadoVA => Minimo220_52VA * FactorDemandaNoContinua;
 
     /// <summary>La carga que va al alimentador: la instalada más el mínimo de 220-52.</summary>
     public decimal CalculadaVA => InstaladaVA + Minimo220_52VA;
@@ -409,24 +415,36 @@ public sealed class CuadroDeCarga
         // Con los 1500 VA de 220-52 a su F.P., igual que el total en kVA: si no, la demandada salía
         // mayor que la instalada.
         var instaladaW = conCarga.Sum(c => c.PotenciaActivaW + c.Ajuste220_52VA * c.FactorPotencia);
-        var demandadaW = conCarga.Sum(c =>
-            (c.ContinuaVA * Datos.FactorDemandaContinua + (c.NoContinuaVA + c.Ajuste220_52VA) * Datos.FactorDemandaNoContinua) * c.FactorPotencia);
+        // CADA CIRCUITO CON EL FACTOR DE SU TIPO — R-17. La parte continua y la no continua llevan el
+        // mismo factor; lo que las distingue es el 125 % del alimentador, no la demanda.
+        var demandadaW = conCarga.Sum(c => c.CargaCalculadaVA * FactorDeDemanda(c) * c.FactorPotencia);
         var minimo220_52 = conCarga.Sum(c => c.Ajuste220_52VA);
 
         Resumen = new ResumenDeCarga(
             ContinuaVA: continua,
-            FactorDemandaContinua: Datos.FactorDemandaContinua,
-            ContinuaDemandadaVA: continua * Datos.FactorDemandaContinua,
+            ContinuaDemandadaVA: conCarga.Sum(c => c.ContinuaVA * FactorDeDemanda(c)),
             NoContinuaVA: noContinua,
-            FactorDemandaNoContinua: Datos.FactorDemandaNoContinua,
-            NoContinuaDemandadaVA: noContinua * Datos.FactorDemandaNoContinua,
+            NoContinuaDemandadaVA: conCarga.Sum(c => c.NoContinuaVA * FactorDeDemanda(c)),
             CargaPorFaseVA: porFase,
             DesbalanceoPct: desbalanceo,
             InstaladaW: instaladaW,
             DemandadaW: demandadaW,
             FactorPotencia: FactorPotenciaCombinado.De(conCarga.Select(c => (c.CargaInstaladaVA, c.FactorPotencia))),
-            Minimo220_52VA: minimo220_52);
+            Minimo220_52VA: minimo220_52,
+            Minimo220_52DemandadoVA: conCarga.Sum(c => c.Ajuste220_52VA * FactorDeDemanda(c)),
+            PorCategoria:
+            [
+                .. Enum.GetValues<CategoriaDeCarga>().Select(categoria =>
+                {
+                    var instalada = conCarga.Where(c => c.Categoria == categoria).Sum(c => c.CargaInstaladaVA);
+                    var factor = Datos.FactorDeDemanda(categoria);
+                    return new CargaPorCategoria(categoria, instalada, factor, instalada * factor);
+                }),
+            ]);
     }
+
+    /// <summary>El factor de demanda del tipo del circuito — R-17.</summary>
+    private decimal FactorDeDemanda(CircuitoDelCuadro c) => Datos.FactorDeDemanda(c.Categoria);
 
     /// <summary>
     /// <b>La corriente de cada barra del alimentador</b> — M-02. Cada fase del alimentador lleva su
@@ -446,16 +464,17 @@ public sealed class CuadroDeCarga
     {
         var conCarga = _circuitos.Where(c => c.TieneCarga).ToList();
 
-        IReadOnlyDictionary<char, decimal> Sumar(Func<CircuitoDelCuadro, decimal> va, decimal factorDemanda) =>
+        // Cada circuito con el factor de demanda de su tipo — R-17.
+        IReadOnlyDictionary<char, decimal> Sumar(Func<CircuitoDelCuadro, decimal> va) =>
             CalculadoraDesbalanceo.CorrientePorFase(
                 [.. conCarga.Select(c => new CorrientePorCircuito(
                     c.Fases,
-                    factorDemanda * va(c) / TensionDeCalculo.Divisor(c.Polos, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV)))],
+                    FactorDeDemanda(c) * va(c) / TensionDeCalculo.Divisor(c.Polos, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV)))],
                 Datos.Barras);
 
-        var continua = Sumar(c => c.ContinuaVA, Datos.FactorDemandaContinua);
+        var continua = Sumar(c => c.ContinuaVA);
         // Los 1500 VA de 220-52 son carga de alimentador: entran aquí, no en el derivado.
-        var noContinua = Sumar(c => c.NoContinuaVA + c.Ajuste220_52VA, Datos.FactorDemandaNoContinua);
+        var noContinua = Sumar(c => c.NoContinuaVA + c.Ajuste220_52VA);
 
         // El mismo 125 % (o 100 %, con el ensamble aprobado) que aplica la calculadora del
         // alimentador: la fase que gobierna es la que pide más capacidad, no la de más corriente.
@@ -470,7 +489,8 @@ public sealed class CuadroDeCarga
     }
 
     /// <summary>
-    /// <b>Las corrientes de cada fase para el motor</b>, sin factor de demanda — R-04 y R-02. La suma
+    /// <b>Las corrientes de cada fase para el motor</b>, ya con el factor de demanda del tipo de cada
+    /// circuito (R-17): el motor las recibe con F.D. 1 — R-04 y R-02. La suma
     /// aritmética dimensiona (la misma de <see cref="CorrientesPorFase"/>); la fasorial da la caída con
     /// el neutro. Cada circuito aporta según cómo circula su corriente:
     /// <list type="bullet">
@@ -493,8 +513,8 @@ public sealed class CuadroDeCarga
         foreach (var c in _circuitos.Where(c => c.TieneCarga))
         {
             var divisor = TensionDeCalculo.Divisor(c.Polos, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV);
-            var iContinua = c.ContinuaVA / divisor;
-            var iNoContinua = (c.NoContinuaVA + c.Ajuste220_52VA) / divisor;
+            var iContinua = FactorDeDemanda(c) * c.ContinuaVA / divisor;
+            var iNoContinua = FactorDeDemanda(c) * (c.NoContinuaVA + c.Ajuste220_52VA) / divisor;
             var theta = (decimal)(Math.Acos((double)c.FactorPotencia) * 180.0 / Math.PI);
             var fases = c.Fases.Where(angulo.ContainsKey).ToList();
 
@@ -560,8 +580,9 @@ public sealed class CuadroDeCarga
             // calcula la caída fase por fase con el neutro (R-02). Antes la web le entregaba 3 × los VA
             // de la fase más cargada y reescribía la cita 220-40: ya no.
             var resultado = _motor.Alimentador(Datos.SerieInterruptores).Calcular(new DatosEntradaAlimentador(
-                CargaContinuaVA: Resumen.ContinuaVA,
-                CargaNoContinuaVA: Resumen.NoContinuaVA + Resumen.Minimo220_52VA,
+                // Ya con el factor de demanda de cada tipo (R-17): por eso el motor va con F.D. 1 abajo.
+                CargaContinuaVA: Resumen.ContinuaDemandadaVA,
+                CargaNoContinuaVA: Resumen.NoContinuaDemandadaVA + Resumen.Minimo220_52DemandadoVA,
                 NumeroFases: polos,
                 TensionFaseNeutroV: Datos.TensionFaseNeutroV,
                 TensionFaseFaseV: Datos.TensionFaseFaseV,
@@ -575,8 +596,8 @@ public sealed class CuadroDeCarga
                 FactorPotencia: fpAlimentador,
                 CaidaTensionMaxPct: Datos.CaidaMaxAlimentadorPct,
                 PisoPracticoCalibreMm2: null,
-                FactorDemandaContinua: Datos.FactorDemandaContinua,
-                FactorDemandaNoContinua: Datos.FactorDemandaNoContinua,
+                FactorDemandaContinua: 1m,
+                FactorDemandaNoContinua: 1m,
                 TipoAislamiento: Datos.TipoAislamiento,
                 LugarInstalacionSeco: Datos.LugarSeco,
                 ConjuntoAprobado100Pct: Datos.ConjuntoAprobado100Pct,
@@ -690,11 +711,11 @@ public sealed class CuadroDeCarga
                 avisos.Add(avisoDin);
         }
 
-        // R-12: el factor de demanda lo decide el proyectista, pero no sin sustento.
-        if (Datos.ReduceCargaPorDemanda && Datos.JustificacionDelFactorDeDemanda is null)
+        // R-12: el factor de demanda lo decide el proyectista, pero no sin sustento. Uno por tipo (R-17).
+        foreach (var categoria in Datos.SinJustificacion)
             avisos.Add(
-                "Hay un factor de demanda menor que 1 sin justificación. Escoge en «Resumen de carga» la tabla o sección " +
-                "del Art. 220 que lo sustenta — 220-40.");
+                $"El factor de demanda de {categoria.NombreCompleto().ToLowerInvariant()} es menor que 1 y no tiene justificación. " +
+                "Escoge en «Resumen de carga» la tabla o sección del Art. 220 que lo sustenta — 220-40.");
 
         // 210-11(c)(1): los circuitos de aparatos pequeños son DOS O MÁS. Con uno solo capturado, se
         // dice; con ninguno, el tablero puede no ser de vivienda y no hay nada que decir.
@@ -744,5 +765,5 @@ public sealed class CuadroDeCarga
     }
 
     private static ResumenDeCarga Vacio() =>
-        new(0m, 1m, 0m, 0m, 1m, 0m, new Dictionary<char, decimal>(), 0m);
+        new(0m, 0m, 0m, 0m, new Dictionary<char, decimal>(), 0m);
 }

@@ -129,24 +129,21 @@
                 <h3>Resumen de carga</h3>
                 <table class="doc-resumen">
                     <tr><th></th><th>Instalada <span class="simbolo">(kVA)</span></th><th>F.D.</th><th>Demandada <span class="simbolo">(kVA)</span></th></tr>
-                    <tr>
-                        <td class="izq">Carga continua</td>
-                        <td class="num">@((Cuadro.Resumen.ContinuaVA / 1000m).ToString("N2"))</td>
-                        <td class="num">@Datos.FactorDemandaContinua.ToString("N2")</td>
-                        <td class="num">@((Cuadro.Resumen.ContinuaDemandadaVA / 1000m).ToString("N2"))</td>
-                    </tr>
-                    <tr>
-                        <td class="izq">Carga no continua</td>
-                        <td class="num">@((Cuadro.Resumen.NoContinuaVA / 1000m).ToString("N2"))</td>
-                        <td class="num">@Datos.FactorDemandaNoContinua.ToString("N2")</td>
-                        <td class="num">@((Cuadro.Resumen.NoContinuaDemandadaVA / 1000m).ToString("N2"))</td>
-                    </tr>
+                    @foreach (var fila in (Cuadro.Resumen.PorCategoria ?? []).Where(f => f.InstaladaVA > 0m))
+                    {
+                        <tr>
+                            <td class="izq">@fila.Categoria.NombreCompleto()</td>
+                            <td class="num">@((fila.InstaladaVA / 1000m).ToString("N2"))</td>
+                            <td class="num">@fila.FactorDemanda.ToString("N2")</td>
+                            <td class="num">@((fila.DemandadaVA / 1000m).ToString("N2"))</td>
+                        </tr>
+                    }
                     @if (Cuadro.Resumen.Minimo220_52VA > 0m)
                     {
                         <tr>
-                            <td class="izq"><span class="ayuda" title="Completar a 1500 VA cada circuito de aparatos pequeños o de lavadora — 220-52(a) y (b). Carga de alimentador; no cambia el derivado.">Mínimo 220-52</span></td>
+                            <td class="izq">Mínimo 220-52</td>
                             <td class="num">@((Cuadro.Resumen.Minimo220_52VA / 1000m).ToString("N2"))</td>
-                            <td class="num">@Datos.FactorDemandaNoContinua.ToString("N2")</td>
+                            <td class="num">@Datos.FactorDemandaContactos.ToString("N2")</td>
                             <td class="num">@((Cuadro.Resumen.Minimo220_52DemandadoVA / 1000m).ToString("N2"))</td>
                         </tr>
                     }
@@ -166,6 +163,12 @@
                         <td class="izq">F.P. resultante</td>
                         <td class="num">@Cuadro.Resumen.FactorPotencia.ToString("N2")</td>
                         <td></td><td></td>
+                    </tr>
+                    <tr>
+                        <td class="izq">Continua / no continua</td>
+                        <td class="num">@((Cuadro.Resumen.ContinuaVA / 1000m).ToString("N2")) / @((Cuadro.Resumen.NoContinuaVA / 1000m).ToString("N2"))</td>
+                        <td></td>
+                        <td class="num">@((Cuadro.Resumen.ContinuaDemandadaVA / 1000m).ToString("N2")) / @(((Cuadro.Resumen.NoContinuaDemandadaVA + Cuadro.Resumen.Minimo220_52DemandadoVA) / 1000m).ToString("N2"))</td>
                     </tr>
                 </table>
             </div>
