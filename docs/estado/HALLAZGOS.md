@@ -67,7 +67,7 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | R-12 · Sin factores de demanda del Art. 220 por tipo de inmueble | P2 | **Cerrado** (justificación; el factor, a criterio) | `eb50462` |
 | R-14 · Mínimo de 20 A en todos los contactos (criterio del Excel); sin 210-11(c) ni 220-52 | P1 | **Cerrado** | `ab9c785` |
 | R-15 · Límites de caída por omisión 3 % + 3 % = 6 %, contra el 5 % combinado; aviso de caída combinada dentro de la tabla | P2 | **Cerrado** | `6ca60a1` |
-| R-17 · Factor de demanda por continua / no continua, no por tipo de carga como el Art. 220 | P2 | Pendiente | — |
+| R-17 · Factor de demanda por continua / no continua, no por tipo de carga como el Art. 220 | P2 | **Cerrado** | `8e28f86` |
 | R-16 · 240-4(b) no se revisa en calibres intermedios: más cobre del necesario | P3 | Pendiente | — |
 | R-13 · «Tabla 310-15(b)(5)(3)» en `CircuitoDerivado.cs`: es numeral | P3 | **Cerrado** | `69a5ed6` |
 
