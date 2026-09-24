@@ -215,19 +215,28 @@
             <h3 class="doc-titulo-canal">Canalizaciones</h3>
             <table class="doc-resumen doc-canal">
                 <tr>
-                    <th>Canal.</th><th>Tipo</th><th>Circuitos</th><th>F · N · T</th><th>Portadores</th><th>F.A.</th><th>Área <span class="simbolo">(mm²)</span></th><th>Tamaño</th><th>Ocupación</th>
+                    <th rowspan="2">Canal.</th><th rowspan="2">Tipo</th><th rowspan="2">Circuitos</th>
+                    <th colspan="3">Conductores</th>
+                    <th rowspan="2">Portadores</th><th rowspan="2">F.A.</th><th rowspan="2">Área <span class="simbolo">(mm²)</span></th>
+                    <th colspan="2">Tamaño</th><th rowspan="2">Ocupación</th>
+                </tr>
+                <tr>
+                    <th>Fase</th><th>Neutro</th><th>Tierra</th><th><span class="simbolo">mm</span></th><th><span class="simbolo">in</span></th>
                 </tr>
                 @foreach (var t in canales)
                 {
                     <tr>
-                        <td class="izq">@(t.Id == "Alimentador" ? "Alimentador" : t.Id.Replace("Circuito ", "Circ. "))</td>
-                        <td class="izq">@t.Rotulo</td>
-                        <td class="izq">@(t.Id == "Alimentador" ? "—" : string.Join(", ", t.Circuitos.Select(c => c.Espacio)))</td>
-                        <td class="num">@PorPapel(t)</td>
+                        <td>@(t.Id == "Alimentador" ? "Alimentador" : t.Id.StartsWith("Circuito ") ? "Propia" : t.Id)</td>
+                        <td>@t.Rotulo</td>
+                        <td>@(t.Id == "Alimentador" ? "" : string.Join(", ", t.Circuitos.Select(c => c.Espacio)))</td>
+                        <td class="num">@DePapel(t, PapelConductor.Fase)</td>
+                        <td class="num">@DePapel(t, PapelConductor.Neutro)</td>
+                        <td class="num">@DePapel(t, PapelConductor.Tierra)</td>
                         <td class="num">@t.Conteo?.Portadores</td>
                         <td class="num">@t.FactorAgrupamiento?.ToString("N2")</td>
                         <td class="num">@t.Ocupacion!.AreaTotalMm2?.ToString("N1")</td>
-                        <td class="num fuerte">@t.TamanoRotulo</td>
+                        <td class="num fuerte">@t.TamanoMm</td>
+                        <td class="num fuerte">@t.TamanoIn</td>
                         <td class="num">@(t.Ocupacion.OcupacionPct is { } pct ? $"{pct:N1} %" : "")</td>
                     </tr>
                 }
@@ -379,12 +388,8 @@ else
 
     private static string Cifra(decimal valor) => valor <= 0m ? "" : valor.ToString("N0");
 
-    private static string PorPapel(CanalizacionDelTablero t)
-    {
-        if (t.Ocupacion is not { } o) return "";
-        int De(PapelConductor p) => o.Renglones.Where(r => r.Conductor.Papel == p).Sum(r => r.Conductor.Cantidad);
-        return $"{De(PapelConductor.Fase)} · {De(PapelConductor.Neutro)} · {De(PapelConductor.Tierra)}";
-    }
+    private static string DePapel(CanalizacionDelTablero t, PapelConductor papel) =>
+        t.Ocupacion is { } o ? o.Renglones.Where(r => r.Conductor.Papel == papel).Sum(r => r.Conductor.Cantidad).ToString() : "";
 
     /// <summary>
     /// La celda de un conductor, como en la captura: el calibre con su unidad y, debajo, su sección

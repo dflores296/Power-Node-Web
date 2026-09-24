@@ -30,8 +30,17 @@ public sealed record TamanoDeTubo(
         _ => Area100Mm2 * porcentaje / 100m,
     };
 
-    /// <summary>«27 (1)»: designación métrica y, entre paréntesis, el tamaño comercial.</summary>
-    public string Rotulo => $"{DesignacionMetrica} ({TamanoComercial})";
+    /// <summary>La designación métrica, en mm: «21 mm».</summary>
+    public string Milimetros => $"{DesignacionMetrica} mm";
+
+    /// <summary>El tamaño comercial, en pulgadas: «¾ in».</summary>
+    public string Pulgadas => $"{TamanoComercial} in";
+
+    /// <summary>
+    /// «21 mm / ¾ in». Las dos designaciones con su unidad (David, 2026-09-24): «21 (¾)» se leía como
+    /// una medida entre paréntesis de la otra.
+    /// </summary>
+    public string Rotulo => $"{Milimetros} / {Pulgadas}";
 }
 
 /// <summary>Tabla 1 del Capítulo 10 — porcentaje de la sección del tubo que pueden ocupar los conductores.</summary>

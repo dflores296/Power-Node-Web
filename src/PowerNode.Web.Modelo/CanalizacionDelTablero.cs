@@ -86,19 +86,29 @@ public sealed class CanalizacionDelTablero(string id)
         _ => Tipo.Nombre(),
     };
 
-    /// <summary>«27 (1)», «× 2», o «—» si todavía no hay tamaño.</summary>
-    public string TamanoRotulo
+    /// <summary>
+    /// El tamaño en mm: la designación métrica de un tubo («21 mm»), las medidas de un ducto o canal
+    /// («100 × 100 mm») o, sin ellas, el área interior mínima («mín. 706 mm²»). «2 ×» antes cuando
+    /// van canalizaciones iguales, una por juego en paralelo. «—» sin tamaño.
+    /// </summary>
+    public string TamanoMm
     {
         get
         {
-            // Ducto o canal con medidas: las medidas; sin ellas, el área interior mínima que hace falta.
-            var tamano = Ocupacion?.Tamano?.Rotulo
+            var tamano = Ocupacion?.Tamano?.Milimetros
                 ?? (Tipo.EsDuctoOCanal() && AnchoMm is { } a && AltoMm is { } h ? $"{a:N0} × {h:N0} mm" : null)
-                ?? (Ocupacion?.AreaMinimaMm2 is { } min ? $"≥ {min:N0} mm²" : null)
-                ?? "—";
-            return CanalizacionesIguales > 1 ? $"{CanalizacionesIguales} × {tamano}" : tamano;
+                ?? (Ocupacion?.AreaMinimaMm2 is { } min ? $"mín. {min:N0} mm²" : null);
+            return tamano is null ? "—" : Veces(tamano);
         }
     }
+
+    /// <summary>El tamaño comercial en pulgadas («¾ in»). Solo en tubo; «—» en lo demás.</summary>
+    public string TamanoIn => Ocupacion?.Tamano?.Pulgadas is { } pulgadas ? Veces(pulgadas) : "—";
+
+    /// <summary>«21 mm / ¾ in», o solo los mm cuando no hay pulgadas.</summary>
+    public string TamanoRotulo => TamanoIn == "—" ? TamanoMm : $"{TamanoMm} / {Ocupacion!.Tamano!.Pulgadas}";
+
+    private string Veces(string tamano) => CanalizacionesIguales > 1 ? $"{CanalizacionesIguales} × {tamano}" : tamano;
 
     /// <summary>La columna de la Tabla 9 con la que se lee la reactancia.</summary>
     public MaterialCanalizacion MaterialParaTabla9 => TiposDeCanalizacion.MaterialParaTabla9(Tipo, Tubo, MetalAluminio);

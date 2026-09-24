@@ -509,23 +509,24 @@ label.suelto input { width: 90px; }
 .encabezado-tarjeta { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .encabezado-tarjeta h2 { margin: 0; }
 .desplazable { overflow-x: auto; }
-.datos.canal { margin-top: 10px; width: max-content; min-width: 100%; }
-.datos.canal th { text-align: center; }
-.datos.canal th.izq { text-align: left; }
-.datos.canal td { vertical-align: middle; padding: 6px 8px; }
-.datos.canal td.tipo { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
-.datos.canal td.tipo select { max-width: 190px; }
-.datos.canal .medidas { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: var(--tenue); }
-.datos.canal .medidas input { width: 64px; }
-.datos.canal td.opciones { white-space: nowrap; }
-.datos.canal td.opciones label { display: inline-flex; align-items: center; gap: 4px; margin-right: 10px;
+.subtitulo-canal { margin: 16px 0 6px; font-size: 11px; font-weight: 600; text-transform: uppercase;
+                   letter-spacing: .04em; color: var(--tenue); }
+/* Las dos tablas de canalizaciones se ven como el cuadro (.cuadro): fondo, bordes y encabezados
+   agrupados. Todo centrado (David, 2026-09-24). */
+.canal-tabla td { padding: 6px 10px; vertical-align: middle; }
+.canal-tabla .tipo-controles { display: flex; gap: 6px; align-items: center; justify-content: center; }
+.canal-tabla .medidas { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: var(--tenue); }
+.canal-tabla .medidas input { width: 64px; }
+/* Una opción por línea: en fila, la tabla se iba de ancho. */
+.canal-tabla td.opciones { text-align: left; }
+.canal-tabla td.opciones label { display: flex; align-items: center; gap: 6px; padding: 2px 0;
                                  font-size: 11px; color: var(--tenue); white-space: nowrap; }
-.datos.canal input.corto { width: 56px; }
-details.propias { margin-top: 12px; }
-details.propias summary { cursor: pointer; font-size: 12px; color: var(--tenue); }
+.canal-tabla input.corto { width: 56px; }
+.canal-tabla td.vacia { color: var(--tenue); font-style: italic; }
 .fabricante { margin-top: 14px; max-width: 420px; }
 .doc-titulo-canal { margin: 14px 0 6px; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
 .doc-canal { width: 100%; }
+.doc-canal td, .doc-canal th { text-align: center; }
 
 /* Al recorrer el cuadro de lado, el número del espacio se queda fijo a la izquierda: sin él, a la
    altura de los conductores ya no se sabe de qué circuito es el renglón. */

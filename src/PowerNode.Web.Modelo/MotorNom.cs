@@ -58,7 +58,8 @@ public sealed class MotorNom
         ProteccionEstandar = proteccion;
         Ampacidad = ampacidad;
         Dimensiones = new TablaDimensionesConductorJson(fuente);
-        Ocupacion = new CalculadoraOcupacion(new TablaOcupacionJson(fuente), new TablaTuboConduitJson(fuente), Dimensiones);
+        Tubos = new TablaTuboConduitJson(fuente);
+        Ocupacion = new CalculadoraOcupacion(new TablaOcupacionJson(fuente), Tubos, Dimensiones);
         Aislamiento = aislamiento;
         Azotea = new TablaTemperaturaAzoteaJson(fuente);
         Agrupamiento = agrupamiento;
@@ -93,6 +94,9 @@ public sealed class MotorNom
 
     /// <summary>Tablas 5 y 8 del Capítulo 10: si un aislamiento trae dimensiones o pide las del fabricante.</summary>
     public ITablaDimensionesConductor Dimensiones { get; }
+
+    /// <summary>Tabla 4 del Capítulo 10: los tamaños de cada tubo, para fijar uno a mano.</summary>
+    public ITablaTuboConduit Tubos { get; }
 
     /// <summary>El tamaño de cada canalización — Capítulo 10, Tablas 1, 4, 5 y 8.</summary>
     public CalculadoraOcupacion Ocupacion { get; }

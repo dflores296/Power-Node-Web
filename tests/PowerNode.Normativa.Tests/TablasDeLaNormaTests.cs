@@ -147,7 +147,7 @@ public class TablasDeLaNormaTests
         Assert.Equal(15.8m, emt[0].DiametroInteriorMm);
         Assert.Equal(78m, emt[0].AreaDisponible(40m));
         Assert.Equal(104m, emt[0].AreaDisponible(53m));
-        Assert.Equal("16 (½)", emt[0].Rotulo);
+        Assert.Equal("16 mm / ½ in", emt[0].Rotulo);
 
         // PVC cédula 40, 27 (1).
         var pvc40 = tabla.Tamanos(TipoTuboConduit.PvcCedula40).Single(t => t.DesignacionMetrica == 27);
