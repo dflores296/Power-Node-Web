@@ -56,8 +56,9 @@ Pruebas: 66 en `PowerNode.Web.Tests`, 6 en `PowerNode.Normativa.Tests`.
 - Tarjetas del cierre al mismo alto — pedido de David, `10de2c0`.
 - Ficha en tres columnas (Identificación y Sistema apiladas) con campos que llenan la tarjeta — pedido de David, `362c3a7`.
 - Ficha con un solo formato de campo (rótulo en columna fija, mismo alto de renglón); en tarjetas angostas, todos apilados — pedido de David, `911c719`.
+- Carga con decimales sin cortarse; hilos según las fases — I-36, I-37, `8235454`.
 
-Pruebas: 156 en `PowerNode.Web.Tests`, 6 en `PowerNode.Normativa.Tests`.
+Pruebas: 157 en `PowerNode.Web.Tests`, 6 en `PowerNode.Normativa.Tests`.
 
 ## 2026-09-22 (tercera parte)
 

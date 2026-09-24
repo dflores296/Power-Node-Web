@@ -54,6 +54,8 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-33 · Memoria, sección 4, con capacidad mínima rotulada como In; sin desglose en pantalla | P1 | **Cerrado** | `13b3093` |
 | I-34 · «Agrupados» sin regla de conteo | P3 | **Cerrado** | `3aa1c3a` |
 | I-35 · Sin desglose de los aparatos de un circuito | P2 | **Cerrado** | `e429cbb` |
+| I-36 · Carga con decimales cortada en su campo | P2 | **Cerrado** | `8235454` |
+| I-37 · Hilos que no existen para las fases elegidas | P1 | **Cerrado** | `8235454` |
 | R-01 · Caída del alimentador fija en 5 %, sin verificar la combinada — 215-2(a)(4) NOTA 2 | P1 | **Cerrado** | `2a973ea` |
 | R-02 · Caída del alimentador sin la caída del neutro | P2 | **Cerrado** | `d6cd1c6` |
 | R-03 · La publicación no corre `PowerNode.Web.Tests` | P1 | **Cerrado** | `986c9d7` |
@@ -163,6 +165,10 @@ Formato: **Hecho** (defecto observado) · **Corrección** · **Referencia** · *
 **I-34** — Hecho: «Agrupados» sin regla de conteo. Corrección: tooltip con la Tabla 310-15(b)(3)(a) y 310-15(b)(5), (b)(6).
 
 **I-35** — Hecho (David): un espacio es un circuito, no un aparato; la carga de un circuito con varios aparatos se sumaba a mano. Es la base para contar aparatos (220-53 a 220-56) y para motores (I-15, 430-24 necesita el motor mayor). Corrección: desglose opcional por circuito (▸ en la descripción): aparato, cantidad, unidad, carga c/u, continua, F.P. La carga del circuito es la suma y el F.P. el combinado; Unidad, Continua, No continua y F.P. se bloquean. El desglose va debajo del último espacio del circuito, a todo lo ancho: no se mete entre los espacios de un multipolar. «Contacto» sin carga toma 180 VA (220-14(i)); en calefacción todos son continuos (424-3(b)). Al abrirlo, lo capturado se conserva como los primeros aparatos. Memoria, sección 1: un renglón por aparato. El tipo sigue siendo del circuito. Prueba: `I35_…`.
+
+**I-36** — Hecho (David): el campo de carga medía 62 px; 931.25 VA (745 W ÷ 0.8, desde el desglose) se veía «931.2». Corrección: 80 px.
+
+**I-37** — Hecho (David): «Hilos» ofrecía 2, 3 y 4 con cualquier número de fases; «1 fase, 4 hilos» se calculaba como 1F-3H sin avisar. Corrección: `DatosDelTablero.HilosValidos` (1F: 2 o 3; 2F: 3; 3F: 3 o 4) en el selector, y al cambiar las fases los hilos pasan al sistema más común (1F-2H, 2F-3H, 3F-4H). Prueba: `AlCambiarLasFases_…`.
 
 ### Revisión del 2026-09-23
 
