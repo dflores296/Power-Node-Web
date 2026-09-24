@@ -237,7 +237,9 @@
                                 {
                                     <option value="">—</option>
                                 }
-                                @foreach (var t in Datos.Canalizaciones) { <option value="@t.Id">@t.Nombre</option> }
+                                @* @key: al quitarse un tubo de la lista, Blazor reutilizaba las opciones por posición y la
+                                   seleccionada pasaba a decir otro tubo; el circuito seguía en el suyo (I-45). *@
+                                @foreach (var t in Datos.Canalizaciones) { <option @key="t.Id" value="@t.Id">@t.Nombre</option> }
                                 @if (!c.TieneCarga || c.CanalizacionEfectiva?.Circuitos.Count > 1)
                                 {
                                     <option value="+">+ Nueva</option>
@@ -778,7 +780,7 @@
     /// crezca (David, 2026-09-24). Neutro compartido y tierra común, con dos o más circuitos.
     /// </summary>
     private RenderFragment FilaCanal(CanalizacionDelTablero t, bool alimentador = false) =>
-        @<tr>
+        @<tr @key="t.Id">
             @if (!alimentador)
             {
                 <td class="nombre-canal">
@@ -907,7 +909,7 @@
                         }
                         @foreach (var tam in Motor.Tubos.Tamanos(t.Tubo))
                         {
-                            <option value="@tam.DesignacionMetrica">@(pulgadas ? tam.Pulgadas : tam.Milimetros)</option>
+                            <option @key="tam.DesignacionMetrica" value="@tam.DesignacionMetrica">@(pulgadas ? tam.Pulgadas : tam.Milimetros)</option>
                         }
                     </select>
                     @if (!pulgadas && t.TamanoFijado is not null)

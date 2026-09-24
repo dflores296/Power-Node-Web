@@ -501,7 +501,8 @@ label.suelto input { width: 90px; }
    CANALIZACIONES — decisión canalizaciones-y-agrupamiento (2026-09-24).
    ------------------------------------------------------------------------------------------------ */
 .cuadro td.canal { white-space: nowrap; }
-.cuadro select.canal { width: 92px; }
+/* Crece con el nombre del tubo («Canalización cocina»), sin cortarlo. */
+.cuadro select.canal { field-sizing: content; min-width: 72px; max-width: 220px; }
 .cuadro td.canal .en-va { text-align: center; }
 .cuadro .mas-n { display: flex; align-items: center; justify-content: center; gap: 3px;
                  font-size: 10px; color: var(--tenue); margin-top: 3px; cursor: pointer; }
