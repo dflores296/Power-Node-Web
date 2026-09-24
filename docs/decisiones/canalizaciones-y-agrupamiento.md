@@ -27,23 +27,38 @@ capturarse: es un resultado.
 - **El código va en el motor** (`Calculo` y `Normativa`), para llevarlo al escritorio, que no calcula
   canalizaciones. Se registra en `docs/conocimiento/motor-copiado.md`.
 
-## Cambio · David · 2026-09-24 — cada canalización se decide en su renglón
+## Cambio · David · 2026-09-24 — una sola lista de tubos, cada una se decide en su renglón
 
-Pedido en la sesión, ya con la tarjeta «Canalizaciones» en pantalla: si las canalizaciones se
-gestionan en sus tablas, no tiene sentido pedir el tipo en «Condiciones de cálculo».
+Pedido en la sesión, ya con la tarjeta «Canalizaciones» en pantalla, en dos vueltas.
 
-- **Salen «Canalización» y «Tubo» de Condiciones de cálculo.** Toda canalización —compartida, propia
-  o del alimentador— nace como **tubo conduit EMT** y el ingeniero decide en su renglón.
-- **La propia se guarda con el circuito:** tipo, tubo, medidas, tierra desnuda, azotea y tamaño
-  fijado se conservan al recalcular y al pasar el circuito por una compartida y regresarlo. Neutro
-  compartido y tierra común siguen siendo solo de las compartidas: con un circuito no aplican.
+**Primera:** si las canalizaciones se gestionan en sus tablas, no tiene sentido pedir el tipo en
+«Condiciones de cálculo».
+
+- **Salen «Canalización» y «Tubo» de Condiciones de cálculo.** Toda canalización nace como **tubo
+  conduit EMT** y el ingeniero decide en su renglón.
 - **Nombres editables** («Tubo pasillo», «Bajada cocina»). La clave interna no cambia (T1…,
-  «Circuito 3», «Alimentador»); el nombre sale en el cuadro, el documento y la memoria. Borrado,
-  regresa a «T1» o «Propia».
+  «Alimentador»); el nombre sale en el cuadro, el documento y la memoria. Borrado, regresa a la clave.
+
+**Segunda:** «Propia» no es el nombre de una tubería; es la propiedad «1 circuito = 1 tubo por
+omisión». Y el selector del cuadro elige de la lista de tubos.
+
+- **Una sola lista.** Al capturar la carga de un circuito que no va en ninguna, nace la suya con el
+  número libre más chico (T1, T2…), igual que cualquier otra. En la columna «Canal.» se elige de la
+  lista; «+ Nueva» saca al circuito de una compartida a un tubo para él (solo en el suyo no se
+  ofrece).
+- La que nació sola **se quita sola** cuando se queda sin circuitos con carga (se agrupó el circuito
+  en otra, o se le quitó la carga) y deja libre su número. Las de «+ Nueva» se quedan hasta que el
+  ingeniero las quite. Quitar una: cada uno de sus circuitos recibe un tubo nuevo.
+- **Cada opción en su columna** (neutro compartido, tierra común, tierra desnuda, azotea, paralelos
+  del alimentador): el renglón mide una línea. Neutro compartido y tierra común, con dos o más
+  circuitos.
+- **Tamaño en combo:** mm e in son combos con los tamaños de la Tabla 4, con el que da el cálculo ya
+  elegido. Elegir otro lo fija (se marca, ↺ regresa al cálculo) y el programa verifica que alcance.
 
 Efecto en el cálculo: EMT es acero en la Tabla 9; la reactancia sube respecto a PVC (12 AWG: 0.223
 contra 0.177 Ω/km) y con ella la caída de tensión. Los casos de referencia —el escritorio y el
-documento de pruebas del 2026-09-23— se calcularon en PVC: sus pruebas lo fijan explícitamente.
+documento de pruebas del 2026-09-23— se calcularon en PVC: sus pruebas hacen nacer los tubos en PVC
+(`DatosDelTablero.TuboAlNacer`, que no se captura en pantalla).
 
 ## Portadores por circuito — 310-15(b)(3)(a), (b)(5), (b)(6)
 

@@ -516,15 +516,19 @@ label.suelto input { width: 90px; }
 .canal-tabla td { padding: 6px 10px; vertical-align: middle; }
 /* El nombre se edita en su celda: «T1» o «Propia» al nacer (David, 2026-09-24). */
 /* Crece con el nombre, sin cortarlo: la tabla se desplaza antes que comprimir (David, 2026-09-24). */
-.canal-tabla td.nombre-canal input { field-sizing: content; min-width: 96px; max-width: 260px;
+.canal-tabla .nombre-controles { display: flex; align-items: center; justify-content: center; gap: 2px; }
+.canal-tabla td.nombre-canal input { field-sizing: content; min-width: 64px; max-width: 260px;
                                      font-weight: 600; text-align: center; }
+/* Cada opción en su columna: el renglón mide una línea (David, 2026-09-24). */
+.canal-tabla th.dos-lineas { white-space: normal; min-width: 64px; max-width: 84px; line-height: 1.3; }
+.canal-tabla td.casilla-canal { text-align: center; }
+.canal-tabla .tamano-controles { display: flex; align-items: center; justify-content: center; gap: 4px; }
+.canal-tabla .tamano-controles select { font-weight: 600; }
+/* Tamaño fijado por el ingeniero: se distingue del calculado. */
+.canal-tabla .tamano-controles select.fijado { color: var(--acento, #2563eb); border-color: var(--acento, #2563eb); }
 .canal-tabla .tipo-controles { display: flex; gap: 6px; align-items: center; justify-content: center; }
 .canal-tabla .medidas { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: var(--tenue); }
 .canal-tabla .medidas input { width: 64px; }
-/* Una opción por línea: en fila, la tabla se iba de ancho. */
-.canal-tabla td.opciones { text-align: left; }
-.canal-tabla td.opciones label { display: flex; align-items: center; gap: 6px; padding: 2px 0;
-                                 font-size: 11px; color: var(--tenue); white-space: nowrap; }
 .canal-tabla input.corto { width: 56px; }
 .canal-tabla td.vacia { color: var(--tenue); font-style: italic; }
 .fabricante { margin-top: 14px; max-width: 420px; }

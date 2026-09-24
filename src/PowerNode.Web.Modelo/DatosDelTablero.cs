@@ -1,3 +1,4 @@
+using PowerNode.DesignSuite.Calculo.Canalizaciones;
 using PowerNode.DesignSuite.Calculo.Tableros;
 using PowerNode.DesignSuite.Calculo.Unidades;
 
@@ -282,7 +283,7 @@ public sealed class DatosDelTablero
     // solo para la Tabla 9). Un solo número se aplicaba igual a cada derivado y al alimentador — I-39.
     // Ahora se captura qué circuitos van juntos y el agrupamiento y el material salen de ahí.
 
-    /// <summary>Las canalizaciones compartidas: T1, T2…</summary>
+    /// <summary>Las canalizaciones de los circuitos derivados, en orden de número: T1, T2…</summary>
     public List<CanalizacionDelTablero> Canalizaciones { get; } = [];
 
     /// <summary>La del alimentador, que va solo.</summary>
@@ -302,13 +303,23 @@ public sealed class DatosDelTablero
 
     public static string ClaveDiametro(string aislamiento, string designacion) => $"{aislamiento}|{designacion}";
 
-    /// <summary>Agrega una canalización compartida con el siguiente número libre: tubo conduit EMT.</summary>
-    public CanalizacionDelTablero NuevaCanalizacion()
+    /// <summary>
+    /// El tubo con el que nace cada canalización: EMT (David, 2026-09-24). No se captura en pantalla;
+    /// se decide en cada canalización. Las pruebas de los casos de referencia, calculados con la
+    /// Tabla 9 en PVC, lo fijan en PVC.
+    /// </summary>
+    public TipoTuboConduit TuboAlNacer { get; set; } = TipoTuboConduit.Emt;
+
+    /// <summary>
+    /// Agrega una canalización con el número libre más chico, en su lugar de la lista. Automática: la
+    /// que nace al capturar la carga de un circuito, y se quita sola al quedarse sin circuitos.
+    /// </summary>
+    public CanalizacionDelTablero NuevaCanalizacion(bool automatica = false)
     {
         var n = 1;
         while (Canalizaciones.Any(c => c.Id == $"T{n}")) n++;
-        var nueva = new CanalizacionDelTablero($"T{n}");
-        Canalizaciones.Add(nueva);
+        var nueva = new CanalizacionDelTablero($"T{n}", automatica) { Tubo = TuboAlNacer };
+        Canalizaciones.Insert(n - 1, nueva); // T1…T(n-1) existen y van antes
         return nueva;
     }
 

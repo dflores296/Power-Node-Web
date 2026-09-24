@@ -34,6 +34,8 @@ public sealed record RenglonDeOcupacion(ConductorEnCanalizacion Conductor, decim
 /// área interior capturada en ductos y canales.</param>
 /// <param name="AreaMinimaMm2">Ductos y canales sin dimensiones: el área interior mínima que hace
 /// falta (la suma entre 0.20).</param>
+/// <param name="TamanoCalculado">Tubo y niple: el que elige el cálculo, aunque el diseñador haya
+/// fijado otro. Null si nada alcanza.</param>
 public sealed record ResultadoOcupacion(
     IReadOnlyList<RenglonDeOcupacion> Renglones,
     int NumeroConductores,
@@ -47,7 +49,8 @@ public sealed record ResultadoOcupacion(
     bool Excede,
     IReadOnlyList<string> Faltantes,
     IReadOnlyList<string> Avisos,
-    IReadOnlyList<Cita> Citas);
+    IReadOnlyList<Cita> Citas,
+    TamanoDeTubo? TamanoCalculado = null);
 
 /// <summary>
 /// <b>El tamaño de la canalización</b> — Capítulo 10. NACIDO EN LA WEB (2026-09-24).
@@ -163,6 +166,18 @@ public class CalculadoraOcupacion(ITablaOcupacion ocupacion, ITablaTuboConduit t
         bool Atasca(TamanoDeTubo t) =>
             n == 3 && diametroMayor > 0m && t.DiametroInteriorMm / diametroMayor is >= 2.8m and <= 3.2m;
 
+        // El que elige el cálculo: el más chico que alcanza, y el siguiente si se atasca (Nota 2).
+        // Se calcula también con un tamaño fijado, para que la pantalla diga cuál sería.
+        var calculado = tamanos.FirstOrDefault(t => t.AreaDisponible(pct) >= total);
+        Cita? citaNota2 = null;
+        if (calculado is not null && Atasca(calculado))
+        {
+            var i = tamanos.ToList().IndexOf(calculado);
+            citaNota2 = new Cita("Capítulo 10, Tabla 1, Nota 2",
+                $"{tubo.Corto()} {calculado.Rotulo}: {calculado.DiametroInteriorMm:N2} mm ÷ {diametroMayor:N2} mm = {calculado.DiametroInteriorMm / diametroMayor:N2}, entre 2.8 y 3.2: se sube al tamaño inmediato superior.");
+            calculado = i + 1 < tamanos.Count ? tamanos[i + 1] : null;
+        }
+
         TamanoDeTubo? elegido;
         var nota2 = false;
         if (tamanoFijado is { } fijo)
@@ -174,14 +189,11 @@ public class CalculadoraOcupacion(ITablaOcupacion ocupacion, ITablaTuboConduit t
         }
         else
         {
-            elegido = tamanos.FirstOrDefault(t => t.AreaDisponible(pct) >= total);
-            if (elegido is not null && Atasca(elegido))
+            elegido = calculado;
+            if (citaNota2 is not null)
             {
                 nota2 = true;
-                var i = tamanos.ToList().IndexOf(elegido);
-                citas.Add(new Cita("Capítulo 10, Tabla 1, Nota 2",
-                    $"{tubo.Corto()} {elegido.Rotulo}: {elegido.DiametroInteriorMm:N2} mm ÷ {diametroMayor:N2} mm = {elegido.DiametroInteriorMm / diametroMayor:N2}, entre 2.8 y 3.2: se sube al tamaño inmediato superior."));
-                elegido = i + 1 < tamanos.Count ? tamanos[i + 1] : null;
+                citas.Add(citaNota2);
             }
         }
 
@@ -189,7 +201,7 @@ public class CalculadoraOcupacion(ITablaOcupacion ocupacion, ITablaTuboConduit t
         {
             var mayor = tamanos[^1];
             avisos.Add($"Ningún {tubo.Corto()} de la Tabla 4 alcanza: {total:N0} mm² contra {mayor.AreaDisponible(pct):N0} mm² del {mayor.Rotulo}. Reparte los conductores en más de una canalización.");
-            return new ResultadoOcupacion(renglones, n, total, pct, null, null, null, null, nota2, true, [], avisos, citas);
+            return new ResultadoOcupacion(renglones, n, total, pct, null, null, null, null, nota2, true, [], avisos, citas, calculado);
         }
 
         var disponible = elegido.AreaDisponible(pct);
@@ -200,7 +212,7 @@ public class CalculadoraOcupacion(ITablaOcupacion ocupacion, ITablaTuboConduit t
         if (excede)
             avisos.Add($"{tubo.Corto()} {elegido.Rotulo} fijado: los conductores suman {total:N0} mm² y el tubo admite {disponible:N0} mm² al {pct} % — Tabla 1 del Capítulo 10.");
 
-        return new ResultadoOcupacion(renglones, n, total, pct, elegido, disponible, null, ocupacionPct, nota2, excede, [], avisos, citas);
+        return new ResultadoOcupacion(renglones, n, total, pct, elegido, disponible, null, ocupacionPct, nota2, excede, [], avisos, citas, calculado);
     }
 
     private RenglonDeOcupacion Renglon(ConductorEnCanalizacion c, List<string> faltantes)

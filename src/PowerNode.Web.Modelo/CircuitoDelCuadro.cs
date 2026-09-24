@@ -16,11 +16,7 @@ namespace PowerNode.Web.Modelo;
 /// </summary>
 public sealed class CircuitoDelCuadro
 {
-    public CircuitoDelCuadro(int espacio)
-    {
-        Espacio = espacio;
-        CanalizacionPropia = new($"Circuito {espacio}", esPropia: true);
-    }
+    public CircuitoDelCuadro(int espacio) => Espacio = espacio;
 
     /// <summary>El número de circuito, que es el número de espacio en la barra. Nones a la izquierda, pares a la derecha.</summary>
     public int Espacio { get; }
@@ -136,9 +132,9 @@ public sealed class CircuitoDelCuadro
     public string Fases { get; internal set; } = "A";
 
     /// <summary>
-    /// La canalización compartida por la que va («T1»), o <c>null</c>: va en la suya propia, con la
-    /// configuración por omisión del tablero. Si el circuito pasa por varias, la del tramo más
-    /// desfavorable — 310-15(a)(2).
+    /// La canalización por la que va («T1»). <c>null</c> solo sin carga: al capturarla, el recálculo
+    /// le da un tubo nuevo — 1 circuito, 1 tubo (David, 2026-09-24). Si el circuito pasa por varias,
+    /// la del tramo más desfavorable — 310-15(a)(2).
     /// </summary>
     public string? Canalizacion { get; set; }
 
@@ -155,13 +151,7 @@ public sealed class CircuitoDelCuadro
     /// </summary>
     public bool LlevaNeutro { get; internal set; } = true;
 
-    /// <summary>
-    /// La canalización propia del circuito, guardada con él: su configuración (tipo, tubo, tierra
-    /// desnuda, azotea, tamaño y nombre) sobrevive a cada recálculo — David, 2026-09-24.
-    /// </summary>
-    public CanalizacionDelTablero CanalizacionPropia { get; }
-
-    /// <summary>La canalización con la que se calculó: la compartida o la propia. La mantiene <see cref="CuadroDeCarga"/>.</summary>
+    /// <summary>La canalización con la que se calculó. La mantiene <see cref="CuadroDeCarga"/>.</summary>
     public CanalizacionDelTablero? CanalizacionEfectiva { get; internal set; }
 
     public ResultadoCircuitoDerivado? Resultado { get; internal set; }

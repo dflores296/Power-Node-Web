@@ -172,36 +172,26 @@ public sealed class CuadroDeCarga
     }
 
     /// <summary>
-    /// Las canalizaciones con sus resultados: las compartidas (T1, T2…), después la propia de cada
-    /// circuito con carga y al final la del alimentador.
+    /// Las canalizaciones con sus resultados: las de los derivados (T1, T2…) y al final la del
+    /// alimentador.
     /// </summary>
     public IEnumerable<CanalizacionDelTablero> TodasLasCanalizaciones =>
-        Datos.Canalizaciones
-            .Concat(_circuitos.Where(c => c.TieneCarga && c.Canalizacion is null && c.CanalizacionEfectiva is not null)
-                .Select(c => c.CanalizacionEfectiva!))
-            .Append(Datos.CanalizacionAlimentador);
+        Datos.Canalizaciones.Append(Datos.CanalizacionAlimentador);
 
     /// <summary>Los avisos de todas las canalizaciones, con la canalización al frente.</summary>
     public IEnumerable<string> AvisosDeCanalizaciones =>
         TodasLasCanalizaciones.SelectMany(t => t.Avisos.Select(a => $"{NombreDe(t)}: {a}"));
 
     /// <summary>
-    /// «Canalización T1», «Canalización del circuito 3», «Canalización del alimentador», con el nombre
-    /// que le haya puesto el ingeniero: «Canalización Tubo pasillo», «Canalización Cocina (circuito 3)».
+    /// «Canalización T1», «Canalización del alimentador», con el nombre que le haya puesto el
+    /// ingeniero: «Canalización Tubo pasillo».
     /// </summary>
-    public static string NombreDe(CanalizacionDelTablero t)
-    {
-        if (t.EsAlimentador)
-            return t.TieneNombre ? $"Canalización {t.Nombre} (alimentador)" : "Canalización del alimentador";
-        if (t.EsPropia)
-        {
-            var circuito = t.Id.ToLowerInvariant();
-            return t.TieneNombre ? $"Canalización {t.Nombre} ({circuito})" : $"Canalización del {circuito}";
-        }
-        return $"Canalización {t.Nombre}";
-    }
+    public static string NombreDe(CanalizacionDelTablero t) =>
+        !t.EsAlimentador ? $"Canalización {t.Nombre}"
+        : t.TieneNombre ? $"Canalización {t.Nombre} (alimentador)"
+        : "Canalización del alimentador";
 
-    /// <summary>Quita una canalización compartida; sus circuitos regresan a su canalización propia.</summary>
+    /// <summary>Quita una canalización; cada uno de sus circuitos recibe un tubo nuevo.</summary>
     public void QuitarCanalizacion(CanalizacionDelTablero canalizacion)
     {
         Datos.Canalizaciones.Remove(canalizacion);
@@ -415,33 +405,32 @@ public sealed class CuadroDeCarga
             c.CanalizacionEfectiva = null;
         }
 
-        foreach (var t in Datos.Canalizaciones)
-            t.Limpiar();
+        var derivados = _circuitos.Where(c => !c.EsContinuacion).ToList();
+        foreach (var c in derivados.Where(c => c.Canalizacion is not null && Datos.Canalizacion(c.Canalizacion) is null))
+            c.Canalizacion = null; // la quitaron
 
-        var grupos = new Dictionary<CanalizacionDelTablero, List<CircuitoDelCuadro>>();
-        foreach (var c in _circuitos.Where(c => !c.EsContinuacion))
+        // Una canalización automática que se quedó sin circuitos con carga se va, y deja libre su número.
+        var ocupadas = derivados.Where(c => c.TieneCarga && c.Canalizacion is not null).Select(c => c.Canalizacion!).ToHashSet();
+        foreach (var t in Datos.Canalizaciones.Where(t => t.Automatica && !ocupadas.Contains(t.Id)).ToList())
         {
-            var compartida = Datos.Canalizacion(c.Canalizacion);
-            if (c.Canalizacion is not null && compartida is null)
-                c.Canalizacion = null; // la quitaron
-
-            // Sin compartida, la suya: guardada con el circuito, con su propia configuración.
-            var canal = compartida ?? c.CanalizacionPropia;
-            if (compartida is null)
-                canal.Limpiar();
-            c.CanalizacionEfectiva = canal;
-
-            if (!grupos.TryGetValue(canal, out var lista))
-                grupos[canal] = lista = [];
-            if (c.TieneCarga)
-                lista.Add(c);
+            Datos.Canalizaciones.Remove(t);
+            foreach (var c in derivados.Where(c => c.Canalizacion == t.Id))
+                c.Canalizacion = null;
         }
 
-        foreach (var (canal, circuitos) in grupos)
+        // 1 circuito, 1 tubo (David, 2026-09-24): el que tiene carga y no va en ninguna recibe el suyo.
+        foreach (var c in derivados.Where(c => c.TieneCarga && c.Canalizacion is null))
+            c.Canalizacion = Datos.NuevaCanalizacion(automatica: true).Id;
+
+        foreach (var canal in Datos.Canalizaciones)
         {
-            canal.Circuitos = circuitos;
-            Contar(canal, [.. circuitos.Select(c => new CircuitoEnCanalizacion(
-                $"circuito {c.Espacio}", c.Polos, c.LlevaNeutro, c.Fases.ToCharArray()))]);
+            canal.Limpiar();
+            foreach (var c in derivados.Where(c => c.Canalizacion == canal.Id))
+                c.CanalizacionEfectiva = canal;
+            canal.Circuitos = [.. derivados.Where(c => c.TieneCarga && c.Canalizacion == canal.Id)];
+            if (canal.Circuitos.Count > 0)
+                Contar(canal, [.. canal.Circuitos.Select(c => new CircuitoEnCanalizacion(
+                    $"circuito {c.Espacio}", c.Polos, c.LlevaNeutro, c.Fases.ToCharArray()))]);
         }
     }
 
@@ -482,7 +471,7 @@ public sealed class CuadroDeCarga
             else
                 foreach (var c in enParalelo)
                     canal.Avisos.Add($"El circuito {c.Espacio} salió con {c.Resultado!.NumeroConductoresParalelo} conductores por fase: "
-                        + "cada juego va en su propia canalización y todas iguales — 310-10(h)(3). Sácalo a una canalización propia.");
+                        + "cada juego va en su propia canalización y todas iguales — 310-10(h)(3). Pásalo a una canalización solo para él.");
 
             if (canal.Tipo == TipoCanalizacion.SuperficialMetalica && canal.Ajuste is { Aplica: false } && canal.Ocupacion?.OcupacionPct > 20m)
                 recalcular = true;

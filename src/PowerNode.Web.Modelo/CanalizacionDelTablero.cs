@@ -10,10 +10,10 @@ namespace PowerNode.Web.Modelo;
 /// calcula su tamaño.
 ///
 /// <para>
-/// Un circuito que no se asigna a ninguna va en su <b>canalización propia</b>, que se guarda con el
-/// circuito y se configura en su fila, igual que una compartida (David, 2026-09-24). Si un circuito
-/// pasa por varias, se le asigna la del tramo más desfavorable: manda la ampacidad menor —
-/// 310-15(a)(2).
+/// <b>Una sola lista de tubos</b> (David, 2026-09-24). Por omisión, 1 circuito = 1 tubo: al capturar
+/// la carga de un circuito que no va en ninguna, nace la suya con el siguiente número (T1, T2…), igual
+/// que cualquier otra. En la columna «Canal.» se elige de la lista. Si un circuito pasa por varias, se
+/// le asigna la del tramo más desfavorable: manda la ampacidad menor — 310-15(a)(2).
 /// </para>
 ///
 /// <para>
@@ -21,32 +21,33 @@ namespace PowerNode.Web.Modelo;
 /// una «canalización por omisión» en Condiciones de cálculo (David, 2026-09-24).
 /// </para>
 /// </summary>
-public sealed class CanalizacionDelTablero(string id, bool esPropia = false)
+public sealed class CanalizacionDelTablero(string id, bool automatica = false)
 {
-    /// <summary>La clave con la que un circuito la referencia: «T1», «T2»… en las compartidas; «Circuito 3» en una propia; «Alimentador».</summary>
+    /// <summary>La clave con la que un circuito la referencia: «T1», «T2»…; «Alimentador».</summary>
     public string Id { get; } = id;
 
-    /// <summary>La canalización propia de un circuito: se guarda con él y no se comparte.</summary>
-    public bool EsPropia { get; } = esPropia;
+    /// <summary>
+    /// Nació sola, al capturar la carga de un circuito que no iba en ninguna. Se quita sola cuando se
+    /// queda sin circuitos con carga; las de «+ Nueva» se quedan hasta que el ingeniero las quite.
+    /// </summary>
+    public bool Automatica { get; } = automatica;
 
     public bool EsAlimentador => Id == "Alimentador";
 
     /// <summary>
-    /// El nombre que ve el ingeniero, editable: «T1» o «Propia» al nacer; «Tubo pasillo», «Ducto
-    /// azotea»… después. La clave sigue siendo <see cref="Id"/>. Borrado, regresa al de nacimiento.
+    /// El nombre que ve el ingeniero, editable: «T1» al nacer; «Tubo pasillo», «Bajada cocina»…
+    /// después. La clave sigue siendo <see cref="Id"/>. Borrado, regresa a la clave.
     /// </summary>
     public string Nombre
     {
         get => nombre;
-        set => nombre = string.IsNullOrWhiteSpace(value) ? NombreAlNacer : value.Trim();
+        set => nombre = string.IsNullOrWhiteSpace(value) ? Id : value.Trim();
     }
 
-    private string nombre = esPropia ? "Propia" : id;
-
-    private string NombreAlNacer => EsPropia ? "Propia" : Id;
+    private string nombre = id;
 
     /// <summary>Se le cambió el nombre de nacimiento.</summary>
-    public bool TieneNombre => Nombre != NombreAlNacer;
+    public bool TieneNombre => Nombre != Id;
 
     public TipoCanalizacion Tipo { get; set; } = TipoCanalizacion.TuboConduit;
 

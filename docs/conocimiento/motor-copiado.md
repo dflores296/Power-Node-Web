@@ -104,7 +104,7 @@ Decisión: [`../decisiones/canalizaciones-y-agrupamiento.md`](../decisiones/cana
 | `Calculo/Canalizaciones/EnumsCanalizacion.cs` | `TipoCanalizacion`, `TipoTuboConduit` (11 bloques de la Tabla 4) y la columna de la Tabla 9 de cada una. |
 | `Calculo/Canalizaciones/ConteoDePortadores.cs` | `ContadorDePortadores`: 310-15(b)(3)(a), (b)(5), (b)(6) y neutro compartido (210-4). |
 | `Calculo/Canalizaciones/AjusteDeAgrupamiento.cs` | Si la Tabla 310-15(b)(3)(a) aplica según el tipo: niple, 376-22(b), 378-22, 366-23, 386-22, 388-22. |
-| `Calculo/Canalizaciones/CalculadoraOcupacion.cs` | El tamaño: Tablas 1, 4, 5 y 8 del Capítulo 10, Notas 2 a 5; ductos al 20 %. |
+| `Calculo/Canalizaciones/CalculadoraOcupacion.cs` | El tamaño: Tablas 1, 4, 5 y 8 del Capítulo 10, Notas 2 a 5; ductos al 20 %. `TamanoCalculado`: el que da el cálculo aunque el diseñador fije otro. |
 | `Calculo/TablasNom/ITablasDeCanalizacion.cs` | `ITablaOcupacion`, `ITablaTuboConduit`, `ITablaDimensionesConductor`, `ITablaTemperaturaAzotea`. |
 | `Normativa/TablasDeCanalizacionJson.cs` | Sus lectores. En el escritorio van en `Data/TablasNom` con `TablaGridReader`, igual que las demás. |
 

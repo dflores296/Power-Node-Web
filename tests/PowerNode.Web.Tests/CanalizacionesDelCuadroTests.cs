@@ -136,7 +136,7 @@ public class CanalizacionesDelCuadroTests
         cuadro.Recalcular();
         Assert.Equal(0m, c.CanalizacionEfectiva!.SumadorAzoteaC);
 
-        c.CanalizacionPropia.AlturaSobreTechoMm = 50m; // más de 13 hasta 90 → +22 °C
+        c.CanalizacionEfectiva.AlturaSobreTechoMm = 50m; // más de 13 hasta 90 → +22 °C
         cuadro.Recalcular();
         Assert.Equal(22m, c.CanalizacionEfectiva!.SumadorAzoteaC);
         Assert.Contains(c.Resultado!.Citas, x => x.Referencia == "310-15(b)(2)(a)" && x.Descripcion.Contains("52"));
@@ -162,35 +162,70 @@ public class CanalizacionesDelCuadroTests
     }
 
     [Fact]
-    public void TodaCanalizacionNaceEmt_YLaPropiaSeGuardaConElCircuito()
+    public void CadaCircuitoConCargaNaceEnSuTubo_EMT_YSeGuardaEnLaLista()
     {
-        // David, 2026-09-24: ya no hay canalización por omisión en Condiciones; cada tubo nace EMT y
-        // el ingeniero decide en cada uno. La propia es del circuito: sobrevive al recálculo y a
-        // pasar por un tubo compartido y regresar.
+        // David, 2026-09-24: una sola lista de tubos. Por omisión 1 circuito = 1 tubo, con número como
+        // cualquier otro (no «Propia»), EMT; el ingeniero lo configura y se conserva.
+        var cuadro = Nuevo();
+        var c1 = Carga(cuadro, 1, 10m);
+        var c3 = Carga(cuadro, 3, 10m);
+        cuadro.Recalcular();
+
+        Assert.Equal(["T1", "T2"], cuadro.Datos.Canalizaciones.Select(t => t.Id));
+        var t1 = cuadro.Datos.Canalizacion("T1")!;
+        var t2 = cuadro.Datos.Canalizacion("T2")!;
+        Assert.Same(t1, c1.CanalizacionEfectiva);
+        Assert.Same(t2, c3.CanalizacionEfectiva);
+        Assert.Equal(TipoTuboConduit.Emt, t1.Tubo);
+        Assert.Equal(TipoTuboConduit.Emt, cuadro.Datos.CanalizacionAlimentador.Tubo);
+        Assert.Equal(MaterialCanalizacion.Acero, t1.MaterialParaTabla9);
+
+        t2.Nombre = "Bajada cocina";
+        t2.Tubo = TipoTuboConduit.PvcCedula40;
+        t2.TierraDesnuda = true;
+        cuadro.Recalcular();
+        Assert.Same(t2, c3.CanalizacionEfectiva);
+        Assert.Equal("Bajada cocina", t2.Nombre);
+        Assert.Equal(TipoTuboConduit.PvcCedula40, t2.Tubo);
+        Assert.True(t2.TierraDesnuda);
+        Assert.Equal(MaterialCanalizacion.Pvc, t2.MaterialParaTabla9);
+
+        // Agrupar: el 1 pasa al tubo del 3; su T1 se queda vacío y se va, y deja libre el número.
+        c1.Canalizacion = "T2";
+        cuadro.Recalcular();
+        Assert.Equal(["T2"], cuadro.Datos.Canalizaciones.Select(t => t.Id));
+        Assert.Equal([1, 3], t2.Circuitos.Select(c => c.Espacio));
+        var c5 = Carga(cuadro, 5, 10m);
+        cuadro.Recalcular();
+        Assert.Equal("T1", c5.Canalizacion);
+
+        // Una de «+ Nueva» se queda aunque no lleve circuitos.
+        var nueva = cuadro.Datos.NuevaCanalizacion();
+        cuadro.Recalcular();
+        Assert.Contains(nueva, cuadro.Datos.Canalizaciones);
+        Assert.Equal(["T1", "T2", "T3"], cuadro.Datos.Canalizaciones.Select(t => t.Id));
+
+        // Sin carga, el circuito suelta su tubo.
+        c5.NoContinua = 0m;
+        cuadro.Recalcular();
+        Assert.Null(c5.Canalizacion);
+        Assert.Equal(["T2", "T3"], cuadro.Datos.Canalizaciones.Select(t => t.Id));
+    }
+
+    [Fact]
+    public void TamanoFijado_ElCalculoSigueDiciendoElSuyo()
+    {
         var cuadro = Nuevo();
         var c = Carga(cuadro, 1, 10m);
         cuadro.Recalcular();
-        Assert.Same(c.CanalizacionPropia, c.CanalizacionEfectiva);
-        var t1 = cuadro.Datos.NuevaCanalizacion();
-        Assert.Equal(TipoTuboConduit.Emt, c.CanalizacionPropia.Tubo);
-        Assert.Equal(TipoTuboConduit.Emt, t1.Tubo);
-        Assert.Equal(TipoTuboConduit.Emt, cuadro.Datos.CanalizacionAlimentador.Tubo);
-        Assert.Equal(MaterialCanalizacion.Acero, c.CanalizacionPropia.MaterialParaTabla9);
+        var t = c.CanalizacionEfectiva!;
+        var calculado = t.Ocupacion!.Tamano!;
+        Assert.Equal(calculado, t.Ocupacion.TamanoCalculado);
 
-        c.CanalizacionPropia.Nombre = "Bajada cocina";
-        c.CanalizacionPropia.Tubo = TipoTuboConduit.PvcCedula40;
-        c.CanalizacionPropia.TierraDesnuda = true;
-        c.Canalizacion = t1.Id;
+        t.TamanoFijado = 27;
         cuadro.Recalcular();
-        Assert.Same(t1, c.CanalizacionEfectiva);
-
-        c.Canalizacion = null;
-        cuadro.Recalcular();
-        Assert.Same(c.CanalizacionPropia, c.CanalizacionEfectiva);
-        Assert.Equal("Bajada cocina", c.CanalizacionPropia.Nombre);
-        Assert.Equal(TipoTuboConduit.PvcCedula40, c.CanalizacionPropia.Tubo);
-        Assert.True(c.CanalizacionPropia.TierraDesnuda);
-        Assert.Equal(MaterialCanalizacion.Pvc, c.CanalizacionPropia.MaterialParaTabla9);
+        Assert.Equal(27, t.Ocupacion!.Tamano!.DesignacionMetrica);
+        Assert.Equal(calculado, t.Ocupacion.TamanoCalculado);
     }
 
     [Fact]
@@ -209,18 +244,21 @@ public class CanalizacionesDelCuadroTests
     }
 
     [Fact]
-    public void QuitarUnaCanalizacion_RegresaSusCircuitosASuPropia()
+    public void QuitarUnaCanalizacion_CadaCircuitoRecibeUnTuboNuevo()
     {
         var cuadro = Nuevo();
         var t1 = cuadro.Datos.NuevaCanalizacion();
-        var c = Carga(cuadro, 1, 10m, t1.Id);
+        t1.Tubo = TipoTuboConduit.PvcCedula40;
+        var c1 = Carga(cuadro, 1, 10m, t1.Id);
+        var c3 = Carga(cuadro, 3, 10m, t1.Id);
         cuadro.Recalcular();
-        Assert.Same(t1, c.CanalizacionEfectiva);
+        Assert.Same(t1, c1.CanalizacionEfectiva);
 
         cuadro.QuitarCanalizacion(t1);
-        Assert.Null(c.Canalizacion);
-        Assert.NotSame(t1, c.CanalizacionEfectiva);
-        Assert.Equal("T1", cuadro.Datos.NuevaCanalizacion().Id); // el número se reutiliza
+        Assert.Equal(["T1", "T2"], cuadro.Datos.Canalizaciones.Select(t => t.Id)); // el número se reutiliza
+        Assert.NotSame(t1, c1.CanalizacionEfectiva);
+        Assert.NotSame(c1.CanalizacionEfectiva, c3.CanalizacionEfectiva);
+        Assert.Equal(TipoTuboConduit.Emt, c1.CanalizacionEfectiva!.Tubo);
     }
 
     [Fact]
