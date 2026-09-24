@@ -602,7 +602,7 @@
     private List<CircuitoDelCuadro>[] Lados => [Cuadro.Nones.ToList(), Cuadro.Pares.ToList()];
 
     /// <summary>
-    /// La celda de un conductor: la designación AWG/kcmil y, debajo, su sección en mm². Los hilos en
+    /// La celda de un conductor: la designación con su unidad («12 AWG», «250 kcmil») y, debajo, su sección en mm². Los hilos en
     /// paralelo ya no llevan columna (David, 2026-09-24): si son más de uno, «2 ×» antes del calibre.
     /// Se combina hacia abajo tantos renglones como polos tenga el interruptor.
     /// </summary>
@@ -615,7 +615,7 @@
         builder.AddAttribute(2, "rowspan", polos);
         if (calibre is not null && hilos > 0)
         {
-            var designacion = hilos > 1 ? $"{hilos} × {calibre.Designacion}" : calibre.Designacion;
+            var designacion = hilos > 1 ? $"{hilos} × {calibre.DesignacionConUnidad}" : calibre.DesignacionConUnidad;
             builder.AddContent(3, Ayuda(designacion, porque));
             builder.OpenElement(4, "span");
             builder.AddAttribute(5, "class", "mm2");
