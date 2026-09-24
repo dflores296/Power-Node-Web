@@ -57,6 +57,10 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-36 · Carga con decimales cortada en su campo | P2 | **Cerrado** | `8235454` |
 | I-37 · Hilos que no existen para las fases elegidas | P1 | **Cerrado** | `8235454` |
 | I-38 · En móvil la página se aleja y todo se ve a dos tercios | P1 | **Cerrado** | `6d7eb4b` |
+| I-39 · Un solo «Agrupados» para derivados y alimentador | P1 | **Cerrado** | `6e88585` |
+| I-40 · Sin cálculo de la canalización | P2 | **Cerrado** | `6e88585`, `04a9f9f` |
+| I-41 · Neutro en todos los circuitos multipolares | P2 | **Cerrado** | `6e88585` |
+| M-07 · Errata de la Tabla 5: TW 10 AWG con 55.68 mm² | P1 | **Cerrado** | `6e88585` |
 | R-01 · Caída del alimentador fija en 5 %, sin verificar la combinada — 215-2(a)(4) NOTA 2 | P1 | **Cerrado** | `2a973ea` |
 | R-02 · Caída del alimentador sin la caída del neutro | P2 | **Cerrado** | `d6cd1c6` |
 | R-03 · La publicación no corre `PowerNode.Web.Tests` | P1 | **Cerrado** | `986c9d7` |
@@ -172,6 +176,14 @@ Formato: **Hecho** (defecto observado) · **Corrección** · **Referencia** · *
 **I-37** — Hecho (David): «Hilos» ofrecía 2, 3 y 4 con cualquier número de fases; «1 fase, 4 hilos» se calculaba como 1F-3H sin avisar. Corrección: `DatosDelTablero.HilosValidos` (1F: 2 o 3; 2F: 3; 3F: 3 o 4) en el selector, y al cambiar las fases los hilos pasan al sistema más común (1F-2H, 2F-3H, 3F-4H). Prueba: `AlCambiarLasFases_…`.
 
 **I-38** — Hecho (David): en el teléfono la ficha y el cuadro ocupaban dos tercios de la pantalla y las tarjetas del cierre se salían. Causa: columnas `1fr` en `.cierre` y `.ficha`, que no bajan del ancho mínimo de su contenido; con 412 px de pantalla la tabla del resumen hacía la columna de 554 px y el navegador alejaba toda la página. Corrección: `minmax(0, 1fr)`; en pantalla angosta los rótulos del resumen parten en dos líneas. Verificado con Playwright (Pixel 7): la página mide lo que la pantalla.
+
+**I-39** — Hecho (David): «Agrupados» era un número para todo el tablero y se aplicaba igual a cada derivado y al alimentador; en la obra los circuitos se agrupan en tubos y el alimentador va solo. Corrección: cada circuito va en su canalización propia o en una compartida (columna «Canal.»); `ContadorDePortadores` cuenta con 310-15(b)(3)(a), (b)(5) y (b)(6) —1 polo: el neutro cuenta; 2 fases + N de estrella: cuenta; 3 fases + N: no, salvo carga no lineal; neutro compartido de 210-4—, y `AjusteDeAgrupamientoPorCanalizacion` aplica la regla de cada tipo: tubo, niple (sin ajuste), ductos y canales metálicos (solo arriba de 30, 376-22(b), 366-23(a)), no metálicos, superficiales (386-22, 388-22). Azotea al sol: Tabla 310-15(b)(3)(c). El material para la Tabla 9 sale del tubo. Decisión: [`../decisiones/canalizaciones-y-agrupamiento.md`](../decisiones/canalizaciones-y-agrupamiento.md). Prueba: `I39_…`, `CanalizacionesTests`.
+
+**I-40** — Hecho (David): el programa no calculaba la canalización. Corrección: `CalculadoraOcupacion` con las Tablas 1, 4, 5 y 8 del Capítulo 10 y sus Notas 2 a 5 (se cuentan todos los conductores; Nota 2 de atascamiento); ductos y canales al 20 %; superficiales con el número del fabricante. Tarjeta «Canalizaciones» con tierra común (250-122(c)), tierra desnuda, tamaño fijado, alimentador con un juego por tubo o todos juntos (310-10(h)(3)); diámetro del fabricante para THW-LS y THHW-LS (Nota 5). Documento con columna «Canal.» y tabla; memoria con una hoja por canalización. En la Tabla 4 del DOF el EMT sale como «no metálico» y hay dos bloques «Cédula 80»: el segundo tiene más diámetro que la cédula 40 y no se ofrece. En la Tabla 5 los mm² del bloque THHN están corridos: se lee por AWG. El llenado coincide con el Apéndice C (Tabla C-1). Prueba: `Llenado_…`, `Tabla4_…`, `Tabla5_…`.
+
+**I-41** — Hecho: todos los circuitos salían con neutro, también un bipolar de 220 V o un trifásico balanceado. Corrección: 1 polo siempre con neutro; 2 y 3 polos solo con la casilla «+N»; nunca en 3F-3H. La columna Neutro dice «—». Prueba: `I41_…`, `R09_…`.
+
+**M-07** — Hecho: la Tabla 5 del DOF publica 55.68 mm² para TW/THHW/THW/THW-2 de 10 AWG; la misma fila da 4.470 mm de diámetro (15.69 mm²), el bloque va 11.68 → 55.68 → 28.19 y el NEC da 15.68. Cada conductor de 10 AWG contaba 3.5 veces su área. Corrección: `ErratasDeLaNorma.AreaTw10Awg` (se verifica antes de corregir y se cita en la memoria). Se barrió la Tabla 5 y la Tabla 4 comparando área contra diámetro: no hay otra. Prueba: `Tabla5_…`.
 
 ### Revisión del 2026-09-23
 

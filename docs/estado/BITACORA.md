@@ -58,8 +58,9 @@ Pruebas: 66 en `PowerNode.Web.Tests`, 6 en `PowerNode.Normativa.Tests`.
 - Ficha con un solo formato de campo (rótulo en columna fija, mismo alto de renglón); en tarjetas angostas, todos apilados — pedido de David, `911c719`.
 - Carga con decimales sin cortarse; hilos según las fases — I-36, I-37, `8235454`.
 - Móvil: el cierre ya no ensancha la página — I-38, `6d7eb4b`.
+- Canalizaciones (plan aprobado por David): tablas 1, 4, 5 y 310-15(b)(3)(c) del Capítulo 10 y módulo `Canalizaciones` en el motor — `b526db8`; agrupamiento por canalización, neutro por circuito y tamaño en el cuadro — I-39, I-40, I-41, M-07, `6e88585`; documento y memoria — `04a9f9f`. Propuesta: `97b1555`.
 
-Pruebas: 157 en `PowerNode.Web.Tests`, 6 en `PowerNode.Normativa.Tests`.
+Pruebas: 166 en `PowerNode.Web.Tests`, 22 en `PowerNode.Normativa.Tests`.
 
 ## 2026-09-22 (tercera parte)
 

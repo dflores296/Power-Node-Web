@@ -42,7 +42,7 @@ de pruebas está para atrapar.
 ## De dónde salen los datos
 
 `tools/extraer_tablas.py` lee el repo público `dflores296/NOM-001-SEDE-2012` y emite
-`wwwroot/datos/tablas-nom.json` con **14 tablas y una sección**: las que el cálculo de un cuadro de
+`wwwroot/datos/tablas-nom.json` con **18 tablas y una sección** (14 hasta el 2026-09-24; las del Capítulo 10, abajo): las que el cálculo de un cuadro de
 carga realmente toca, y nada más. Son **39 KB** contra los ~9 MB del corpus completo.
 
 El JSON viaja **crudo**, con las celdas tal como las publica la norma (`t`/`rs`/`cs`). La expansión
@@ -84,3 +84,21 @@ comprobó a mano** contra el PDF del DOF — no contra lo que la implementación
 > ⚠ **La NOM no es el NEC.** La lista de 240-6(a) incluye los valores IEC —**16, 32, 63**— que el
 > NEC no tiene. La prueba del inmediato superior se escribió primero esperando 20 A para 15.1 A, por
 > costumbre, y falló: son **16 A**. Queda fijado a propósito.
+
+## Las tablas del Capítulo 10 (2026-09-24)
+
+Para canalizaciones se agregaron la Tabla 1 (ocupación), la 4 (tubo conduit), la 5 (conductores
+aislados) y la 310-15(b)(3)(c) (azoteas). La 8 ya estaba. Lo que hay que saber al leerlas:
+
+- **Tabla 4:** el primer bloque (EMT) no trae renglón de título en los datos: su título cae en los
+  renglones de encabezado de la tabla y se reconoce por posición. El DOF lo rotula «Tubo conduit no
+  metálico (EMT)»; el Art. 358 es «metálico ligero». Hay **dos** bloques «Cédula 80»: el segundo da
+  56.40 mm interiores en 53 (2), más que la cédula 40, y no se ofrece. «––» = ese tamaño no existe.
+- **Tabla 5:** se lee por la designación AWG/kcmil, nunca por los mm²: en el bloque THHN la columna
+  de mm² está corrida. **Errata:** TW/THHW/THW/THW-2 de 10 AWG publica 55.68 mm² con 4.470 mm de
+  diámetro; se calcula con 15.68 (`ErratasDeLaNorma.AreaTw10Awg`). Se comparó área contra diámetro en
+  toda la Tabla 5 y la Tabla 4: es la única.
+- **THW-LS y THHW-LS no están en la Tabla 5.** Se captura el diámetro del fabricante (Nota 5).
+- **Oráculo:** el Apéndice C (Tabla C-1, EMT) da cuántos conductores iguales caben; el llenado
+  calculado con las Tablas 1, 4 y 5 coincide.
+

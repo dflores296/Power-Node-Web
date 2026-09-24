@@ -78,6 +78,11 @@ inmediato superior (Nota 2 de la Tabla 1). Tierra común por tubo: 250-122(c).
 - **Tabla 5:** en THHN la columna de mm² está corrida («6.63 | 8», «8.37 | 6»). Las áreas del
   conductor aislado son las correctas. Se lee por la designación AWG/kcmil.
 
+## Erratas encontradas al implementar
+
+- **Tabla 5:** TW/THHW/THW/THW-2 de 10 AWG publica 55.68 mm² con 4.470 mm de diámetro (15.69 mm²); se
+  calcula con 15.68 y la memoria lo cita — `ErratasDeLaNorma.AreaTw10Awg` (M-07).
+
 ## Fuera de alcance
 
 Charola (entrega 2). Factores por diversidad del Apéndice (Tabla B.310.15(B)(2)(11)). Cables

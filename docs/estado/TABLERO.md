@@ -1,6 +1,6 @@
 # Tablero
 
-**Actualizado:** 2026-09-23.
+**Actualizado:** 2026-09-24.
 
 ## Alcance
 
@@ -22,8 +22,10 @@ Ejecutar en el navegador (Blazor WebAssembly), sin servidor, publicado en GitHub
 
 - Copiar `Calculo` y `Domain` de `PowerNode-DesignSuite` (commit `29f660f`), sin `Data`, EF Core ni
   SQL Server.
-- Leer las trece tablas de la NOM desde JSON (39 KB) — `PowerNode.DesignSuite.Normativa`.
-- Pruebas: 6 en `PowerNode.Normativa.Tests`.
+- Leer 18 tablas de la NOM desde JSON (77 KB) — `PowerNode.DesignSuite.Normativa`.
+- Canalizaciones (nacido en la web): portadores, ajuste por tipo de canalización y tamaño —
+  `Calculo/Canalizaciones/`. Charola, en una segunda entrega.
+- Pruebas: 22 en `PowerNode.Normativa.Tests`.
 
 ## Interfaz
 
@@ -31,7 +33,8 @@ Ejecutar en el navegador (Blazor WebAssembly), sin servidor, publicado en GitHub
   interior del gabinete.
 - `/documento`: emitir el cuadro de carga (24 columnas) y la memoria de cálculo (nueve secciones).
 - Consultar en tooltip el desglose de la protección y del conductor de cada renglón.
-- Pruebas: 157 en `PowerNode.Web.Tests` (20 del documento de pruebas del 2026-09-23).
+- Asignar cada circuito a su canalización (columna «Canal.») y consultar la tarjeta «Canalizaciones».
+- Pruebas: 166 en `PowerNode.Web.Tests` (20 del documento de pruebas del 2026-09-23).
 
 Requisitos con su referencia NOM y su prueba: [`../../README.md`](../../README.md).
 

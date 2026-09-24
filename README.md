@@ -49,6 +49,10 @@ Cada requisito se relaciona con su referencia normativa y con su verificación e
 | K-8 | Seleccionar el conductor de puesta a tierra con ajuste proporcional. | 250-122, 250-122(b) | — |
 | K-9 | En 2 fases + neutro de estrella, citar el neutro como portador y darle el calibre de la fase. | 310-15(b)(5)(2), 220-61(c)(1) | `R09_…` |
 | K-10 | En 2F-3H 220Y/127, no aplicar la excepción de 220-61(a) (× 140 %) ni la Tabla 310-15(b)(7). | 220-61(a), 310-15(b)(7) | `R10_…` |
+| K-11 | Contar los portadores de cada canalización con los circuitos que van por ella: neutro de 1 polo sí, de 2 fases + N de estrella sí, de 3 fases + N solo con carga no lineal, tierra nunca; neutro compartido. | 310-15(b)(3)(a), 310-15(b)(5), 310-15(b)(6), 210-4 | `CanalizacionesTests`, `I39_…` |
+| K-12 | Aplicar el ajuste por agrupamiento según el tipo de canalización: tubo, niple, ductos, canales auxiliares, superficiales. Sumar la temperatura de azotea al sol. | 310-15(b)(3)(a)(2), 376-22(b), 378-22, 366-23, 386-22, 388-22, 310-15(b)(3)(c) | `Ajuste_…`, `DuctoMetalico_…`, `Azotea_…` |
+| K-13 | Dimensionar la canalización con todos sus conductores; 20 % en ductos y canales. | Capítulo 10, Tablas 1, 4, 5 y 8, Notas 2 a 5; 376-22(a), 366-22 | `Llenado_…` |
+| K-14 | Llevar neutro solo en 1 polo, o en 2 y 3 polos con carga F-N. | 310-15(b)(5) | `I41_…` |
 
 ### Alimentador
 
