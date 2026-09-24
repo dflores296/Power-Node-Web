@@ -170,7 +170,7 @@ de tres aparatos.
 
 **R-05** — Hecho: el documento de pruebas, 4.2 con F.P. 0.8, dice 2.01 %. Cálculo: 0.04 km × 11.81 A × (6.6 × 0.8 + 0.177 × 0.6) Ω/km = 2.544 V → 2.00 %.
 
-**R-06** — Hecho: con circuito y principal fuera de riel DIN el aviso dice «para el circuito 3 (150 A), el principal (175 A) se tomó…».
+**R-06** — Hecho: con circuito y principal fuera de riel DIN el aviso dice «para el circuito 3 (150 A), el principal (175 A) se tomó…». Corrección: «En riel DIN no hay interruptores de más de 125 A. El circuito 2 (175 A) y el principal (175 A) se calcularon con la lista completa de 240-6(a); esos tamaños ya no son de riel DIN.» Singular con un solo tamaño; «Los circuitos 1 y 2 (175 A y 200 A)» con varios; «la protección del alimentador» con zapatas principales. Prueba: `R06_…`.
 
 **R-07** — Hecho: las 20 pruebas del documento del 2026-09-23 no estaban en el repo. Prueba: `PruebasDelDocumento20260923Tests`.
 

@@ -756,6 +756,62 @@ public class CuadroDeCargaTests
         Assert.Contains(cuadro.Alimentador.Avisos, a => a.Contains("riel DIN") && a.Contains("circuito 2") && a.Contains("el principal"));
     }
 
+    // ---- R-06 · El aviso de riel DIN, en singular o plural -------------------------------------------
+
+    /// <summary>Tablero de riel DIN con un trifásico de <paramref name="va"/> no continuos en cada espacio dado.</summary>
+    private static CuadroDeCarga RielDinCon(params (int Espacio, decimal Va)[] trifasicos)
+    {
+        var cuadro = Nuevo();
+        cuadro.Datos.SerieInterruptores = SerieDeInterruptores.RielDinIec;
+        foreach (var (espacio, va) in trifasicos)
+        {
+            Espacio(cuadro, espacio).NoContinua = va;
+            Assert.Null(cuadro.CambiarPolos(Espacio(cuadro, espacio), 3));
+        }
+        cuadro.Recalcular();
+        return cuadro;
+    }
+
+    private static string? AvisoRielDin(CuadroDeCarga cuadro) =>
+        cuadro.Alimentador.Avisos.SingleOrDefault(a => a.StartsWith("En riel DIN"));
+
+    [Fact]
+    public void R06_UnCircuitoYElPrincipal() =>
+        Assert.Equal(
+            "En riel DIN no hay interruptores de más de 125 A. El circuito 2 (175 A) y el principal (175 A) se " +
+            "calcularon con la lista completa de 240-6(a); esos tamaños ya no son de riel DIN.",
+            AvisoRielDin(RielDinCon((2, 60000m)))); // 157 A
+
+    [Fact]
+    public void R06_VariosCircuitosYElPrincipal() =>
+        Assert.Equal(
+            "En riel DIN no hay interruptores de más de 125 A. Los circuitos 1 y 2 (175 A y 200 A) y el principal " +
+            "(350 A) se calcularon con la lista completa de 240-6(a); esos tamaños ya no son de riel DIN.",
+            AvisoRielDin(RielDinCon((1, 60000m), (2, 70000m)))); // 157 A y 184 A
+
+    [Fact]
+    public void R06_SoloElPrincipal() =>
+        Assert.Equal(
+            "En riel DIN no hay interruptores de más de 125 A. El principal (225 A) se calculó con la lista " +
+            "completa de 240-6(a); ese tamaño ya no es de riel DIN.",
+            AvisoRielDin(RielDinCon((1, 40000m), (2, 40000m)))); // 105 A cada uno: 125 A, sí es de riel DIN
+
+    [Fact]
+    public void R06_ConZapatasEsLaProteccionDelAlimentador()
+    {
+        var cuadro = RielDinCon((1, 40000m), (2, 40000m));
+        cuadro.Datos.TipoAcometida = TipoAcometidaTablero.ZapatasPrincipales;
+        cuadro.Recalcular();
+
+        Assert.StartsWith(
+            "En riel DIN no hay interruptores de más de 125 A. La protección del alimentador (225 A) se calculó",
+            AvisoRielDin(cuadro));
+    }
+
+    [Fact]
+    public void R06_SinTamanosFueraDeRielDin_SinAviso() =>
+        Assert.Null(AvisoRielDin(RielDinCon((1, 20000m))));
+
     // ---- El aislamiento decide la columna de la Tabla 310-15(b)(16) ------------------------------
 
     private static CircuitoDelCuadro VeinteAmperesContinuos(CuadroDeCarga cuadro)

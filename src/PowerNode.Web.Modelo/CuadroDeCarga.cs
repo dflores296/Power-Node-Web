@@ -603,16 +603,15 @@ public sealed class CuadroDeCarga
         // se dice, porque ese interruptor ya no es de riel DIN.
         if (Datos.SerieInterruptores == SerieDeInterruptores.RielDinIec)
         {
-            var fuera = _circuitos
+            var circuitos = _circuitos
                 .Where(c => c.Resultado is { ProteccionA: > SeriesDeInterruptores.MaximoRielDinA })
-                .Select(c => $"el circuito {c.Espacio} ({c.Resultado!.ProteccionA:N0} A)")
+                .Select(c => (c.Espacio, c.Resultado!.ProteccionA))
                 .ToList();
-            if (resultado.ProteccionA > SeriesDeInterruptores.MaximoRielDinA)
-                fuera.Add($"el principal ({resultado.ProteccionA:N0} A)");
-            if (fuera.Count > 0)
-                avisos.Add(
-                    $"En riel DIN no hay interruptores de más de {SeriesDeInterruptores.MaximoRielDinA:N0} A: para " +
-                    string.Join(", ", fuera) + " se tomó el tamaño estándar de la NOM, que ya no es de riel DIN.");
+            (string, decimal)? principal = resultado.ProteccionA > SeriesDeInterruptores.MaximoRielDinA
+                ? (Datos.UsaInterruptorPrincipal ? "el principal" : "la protección del alimentador", resultado.ProteccionA)
+                : null;
+            if (AvisoRielDin(circuitos, principal) is { } avisoDin)
+                avisos.Add(avisoDin);
         }
 
         // El mínimo lo pide el proyectista, tablero por tablero. Vacío = no hay mínimo y no se dice
@@ -623,6 +622,41 @@ public sealed class CuadroDeCarga
                 $"{minimo:N0} A que pediste para este tablero.");
 
         return avisos;
+    }
+
+    /// <summary>
+    /// «En riel DIN no hay interruptores de más de 125 A. El circuito 2 (150 A) y el principal (175 A)
+    /// se calcularon con la lista completa de 240-6(a); esos tamaños ya no son de riel DIN.» Singular
+    /// o plural según cuántos sean — R-06. <c>null</c> si no hay ninguno.
+    /// </summary>
+    private static string? AvisoRielDin(IReadOnlyList<(int Espacio, decimal ProteccionA)> circuitos, (string Nombre, decimal ProteccionA)? principal)
+    {
+        var partes = new List<string>();
+        if (circuitos.Count == 1)
+            partes.Add($"el circuito {circuitos[0].Espacio} ({circuitos[0].ProteccionA:N0} A)");
+        else if (circuitos.Count > 1)
+            partes.Add($"los circuitos {Enumerar(circuitos.Select(c => $"{c.Espacio}"))} " +
+                       $"({Enumerar(circuitos.Select(c => $"{c.ProteccionA:N0} A"))})");
+        if (principal is { } p)
+            partes.Add($"{p.Nombre} ({p.ProteccionA:N0} A)");
+
+        var total = circuitos.Count + (principal is null ? 0 : 1);
+        if (total == 0)
+            return null;
+
+        var sujeto = Enumerar(partes);
+        return $"En riel DIN no hay interruptores de más de {SeriesDeInterruptores.MaximoRielDinA:N0} A. " +
+               char.ToUpperInvariant(sujeto[0]) + sujeto[1..] +
+               (total == 1
+                   ? " se calculó con la lista completa de 240-6(a); ese tamaño ya no es de riel DIN."
+                   : " se calcularon con la lista completa de 240-6(a); esos tamaños ya no son de riel DIN.");
+    }
+
+    /// <summary>«a», «a y b», «a, b y c».</summary>
+    private static string Enumerar(IEnumerable<string> elementos)
+    {
+        var lista = elementos.ToList();
+        return lista.Count <= 1 ? string.Concat(lista) : string.Join(", ", lista[..^1]) + " y " + lista[^1];
     }
 
     private static ResumenDeCarga Vacio() =>
