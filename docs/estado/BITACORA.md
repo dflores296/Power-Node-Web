@@ -73,6 +73,7 @@ Pruebas: 66 en `PowerNode.Web.Tests`, 6 en `PowerNode.Normativa.Tests`.
 - «1 polo» en el interruptor principal — I-48, `1cebf41`.
 - Mostrar como máximo dos decimales (el cálculo conserva todos); F.D. y F.P. siempre con dos; VA iguales en todas partes — I-49, `9fe6995`.
 - «÷ 1000» en la fórmula de caída de la memoria — I-50, `9fe6995`.
+- Alinear tipo y uso de contactos en una columna centrada — I-51; F.P. de dos decimales sin cortarse — I-52, `5cdc8bb`.
 
 Pruebas: 167 en `PowerNode.Web.Tests`, 23 en `PowerNode.Normativa.Tests`.
 

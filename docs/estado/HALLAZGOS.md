@@ -71,8 +71,8 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-48 · «1 polos» en el interruptor principal | P3 | **Cerrado** | `1cebf41` |
 | I-49 · Números con más de dos decimales y formatos distintos para el mismo valor | P2 | **Cerrado** | `9fe6995` |
 | I-50 · Fórmula de caída de la memoria sin «÷ 1000» (L en m, R y X en Ω/km) | P2 | **Cerrado** | `9fe6995` |
-| I-51 · Selector de uso de contactos desalineado bajo el de tipo | P3 | **Cerrado** | `pendiente` |
-| I-52 · F.P. cortado en «0.9» tras I-49 | P2 | **Cerrado** | `pendiente` |
+| I-51 · Selector de uso de contactos desalineado bajo el de tipo | P3 | **Cerrado** | `5cdc8bb` |
+| I-52 · F.P. cortado en «0.9» tras I-49 | P2 | **Cerrado** | `5cdc8bb` |
 | R-01 · Caída del alimentador fija en 5 %, sin verificar la combinada — 215-2(a)(4) NOTA 2 | P1 | **Cerrado** | `2a973ea` |
 | R-02 · Caída del alimentador sin la caída del neutro | P2 | **Cerrado** | `d6cd1c6` |
 | R-03 · La publicación no corre `PowerNode.Web.Tests` | P1 | **Cerrado** | `986c9d7` |
