@@ -54,9 +54,9 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-33 · Memoria, sección 4, con capacidad mínima rotulada como In; sin desglose en pantalla | P1 | **Cerrado** | `13b3093` |
 | I-34 · «Agrupados» sin regla de conteo | P3 | **Cerrado** | `3aa1c3a` |
 | R-01 · Caída del alimentador fija en 5 %, sin verificar la combinada — 215-2(a)(4) NOTA 2 | P1 | **Cerrado** | `2a973ea` |
-| R-02 · Caída del alimentador sin la caída del neutro | P2 | Pendiente | — |
+| R-02 · Caída del alimentador sin la caída del neutro | P2 | **Cerrado** | `d6cd1c6` |
 | R-03 · La publicación no corre `PowerNode.Web.Tests` | P1 | **Cerrado** | `986c9d7` |
-| R-04 · Cálculo por fase del alimentador resuelto en la web, no en el motor | P2 | Pendiente | — |
+| R-04 · Cálculo por fase del alimentador resuelto en la web, no en el motor | P2 | **Cerrado** | `d6cd1c6` |
 | R-05 · Documento de pruebas, 4.2 con F.P. 0.8: 2.01 % en vez de 2.00 % | P3 | **Cerrado** | `986c9d7` |
 | R-06 · Aviso de riel DIN > 125 A con la sintaxis rota | P3 | **Cerrado** | `de855ee` |
 | R-07 · Sin las pruebas del documento del 2026-09-23 | P1 | **Cerrado** | `986c9d7` |
