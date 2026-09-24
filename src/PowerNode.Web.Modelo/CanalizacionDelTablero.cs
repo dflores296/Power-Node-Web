@@ -91,9 +91,10 @@ public sealed class CanalizacionDelTablero(string id)
     {
         get
         {
+            // Ducto o canal con medidas: las medidas; sin ellas, el área interior mínima que hace falta.
             var tamano = Ocupacion?.Tamano?.Rotulo
-                ?? (Ocupacion?.AreaMinimaMm2 is { } min ? $"≥ {min:N0} mm²" : null)
                 ?? (Tipo.EsDuctoOCanal() && AnchoMm is { } a && AltoMm is { } h ? $"{a:N0} × {h:N0} mm" : null)
+                ?? (Ocupacion?.AreaMinimaMm2 is { } min ? $"≥ {min:N0} mm²" : null)
                 ?? "—";
             return CanalizacionesIguales > 1 ? $"{CanalizacionesIguales} × {tamano}" : tamano;
         }
