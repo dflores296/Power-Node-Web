@@ -1,4 +1,5 @@
 using PowerNode.DesignSuite.Calculo.Magnitudes;
+using PowerNode.DesignSuite.Calculo.Tableros;
 using PowerNode.DesignSuite.Calculo.Unidades;
 
 namespace PowerNode.Web.Modelo.Memoria;
@@ -68,7 +69,25 @@ public static class MemoriaDeCalculo
             SerieDeInterruptores: cuadro.Datos.SerieInterruptores.Explicacion(),
             Aislamiento: Aislamiento(cuadro.Datos),
             DesgloseConductor: cuadro.Desglose(circuito)?.Conductor,
-            CaidaCombinada: CaidaCombinada(cuadro, circuito));
+            CaidaCombinada: CaidaCombinada(cuadro, circuito),
+            NeutroPortador: NeutroPortador(cuadro, circuito.Polos, alimentador: false));
+    }
+
+    /// <summary>
+    /// R-09. En un tramo de <b>2 fases + neutro de una estrella</b> (220Y/127) el neutro lleva
+    /// aproximadamente la corriente de fase: cuenta como portador — 310-15(b)(5)(2) — y en el
+    /// alimentador no se reduce — 220-61(c)(1). <c>null</c> en cualquier otro tramo: en 1F-3H 120/240
+    /// el neutro lleva solo el desbalance — (b)(5)(1).
+    /// </summary>
+    private static string? NeutroPortador(CuadroDeCarga cuadro, int fases, bool alimentador)
+    {
+        var estrella = SistemaDelTablero.De(cuadro.Datos.Sistema)
+            is ConfiguracionTablero.DosFasesDeEstrella or ConfiguracionTablero.TresFasesCuatroHilos;
+        if (!estrella || fases != 2)
+            return null;
+
+        return "Portador de corriente: en 2 fases + neutro de estrella lleva ≈ la corriente de fase. Contarlo en " +
+               "«Agrupados». Mismo calibre que la fase" + (alimentador ? "; no se reduce — 220-61(c)(1)." : ".");
     }
 
     /// <summary>«Alimentador 4.62 % + circuito 2.31 % = 6.94 % — mayor que 5 %». <c>null</c> sin alimentador.</summary>
@@ -116,7 +135,8 @@ public static class MemoriaDeCalculo
             SerieDeInterruptores: cuadro.Datos.SerieInterruptores.Explicacion(),
             Aislamiento: Aislamiento(cuadro.Datos),
             DesgloseConductor: cuadro.DesgloseDelAlimentador()?.Conductor,
-            Minimo220_52VA: cuadro.Resumen.Minimo220_52VA);
+            Minimo220_52VA: cuadro.Resumen.Minimo220_52VA,
+            NeutroPortador: NeutroPortador(cuadro, cuadro.Alimentador.Polos, alimentador: true));
     }
 
     /// <summary>
@@ -166,7 +186,8 @@ public static class MemoriaDeCalculo
             ("Hilos por fase", hoja.ConductoresPorFase.ToString()),
             ("Longitud del tramo", $"{hoja.LongitudM:N2} m"),
             ("Temperatura del aislamiento", d is null ? null : $"{d.TemperaturaAislamientoC} °C"),
-            ("Temperatura de terminales", d is null ? null : $"{d.TemperaturaTerminalesC} °C — 110-14(c)(1)")]));
+            ("Temperatura de terminales", d is null ? null : $"{d.TemperaturaTerminalesC} °C — 110-14(c)(1)"),
+            ("Neutro — 310-15(b)(5)(2)", hoja.NeutroPortador)]));
 
         // ---- 3
         var articuloProteccion = hoja.Articulo == "215" ? "215-3" : "210-20(a)";

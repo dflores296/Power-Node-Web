@@ -46,6 +46,7 @@ Cada requisito se relaciona con su referencia normativa y con su verificación e
 | K-6 | Limitar la protección de 14, 12 y 10 AWG de cobre a 15, 20 y 30 A. | 240-4(d) | `Serie_EnRielDinNoHay15A_…` |
 | K-7 | Verificar la caída de tensión con la impedancia eficaz. | Tabla 9, 210-19(a)(1) nota 4 | `LasFormulasVienenConSusNumerosSustituidos` |
 | K-8 | Seleccionar el conductor de puesta a tierra con ajuste proporcional. | 250-122, 250-122(b) | — |
+| K-9 | En 2 fases + neutro de estrella, citar el neutro como portador y darle el calibre de la fase. | 310-15(b)(5)(2), 220-61(c)(1) | `R09_…` |
 
 ### Alimentador
 

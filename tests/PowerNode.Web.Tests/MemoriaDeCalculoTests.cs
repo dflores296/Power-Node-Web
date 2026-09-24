@@ -81,6 +81,51 @@ public class MemoriaDeCalculoTests
         Assert.DoesNotContain(MemoriaDeCalculo.Secciones(derivado)[0].Renglones, r => r.Rotulo == "Mínimo 220-52");
     }
 
+    private static string? NotaDeNeutro(HojaDeMemoria hoja) =>
+        MemoriaDeCalculo.Secciones(hoja)[1].Renglones.SingleOrDefault(r => r.Rotulo == "Neutro — 310-15(b)(5)(2)")?.Valor;
+
+    private static CuadroDeCarga Sistema(int fases, int hilos, decimal tension)
+    {
+        var cuadro = new CuadroDeCarga(new MotorNom(Json));
+        cuadro.Datos.NumeroEspacios = 6;
+        cuadro.Datos.Fases = fases;
+        cuadro.Datos.Hilos = hilos;
+        cuadro.Datos.TensionFaseFaseV = tension;
+        cuadro.Circuitos[0].NoContinua = 1000m;
+        cuadro.Recalcular();
+        return cuadro;
+    }
+
+    [Fact]
+    public void R09_En2F3HElAlimentadorCitaElNeutroPortadorY220_61c1()
+    {
+        var nota = NotaDeNeutro(MemoriaDeCalculo.DelAlimentador(Sistema(2, 3, 220m))!);
+
+        Assert.NotNull(nota);
+        Assert.StartsWith("Portador de corriente: en 2 fases + neutro de estrella", nota);
+        Assert.EndsWith("no se reduce — 220-61(c)(1).", nota);
+    }
+
+    [Theory]
+    [InlineData(3, 4, 220)] // 3F-4H: el alimentador es de 3 fases
+    [InlineData(1, 3, 240)] // 1F-3H 120/240: el neutro lleva solo el desbalance — (b)(5)(1)
+    [InlineData(1, 2, 127)] // 1F-2H
+    public void R09_FueraDe2FasesMasNeutroDeEstrella_NoSeCita(int fases, int hilos, decimal tension) =>
+        Assert.Null(NotaDeNeutro(MemoriaDeCalculo.DelAlimentador(Sistema(fases, hilos, tension))!));
+
+    [Fact]
+    public void R09_UnDerivadoDe2PolosEn3F4HTambienLoCita_SinEl220_61()
+    {
+        var cuadro = Sistema(3, 4, 220m);
+        Assert.Null(cuadro.CambiarPolos(cuadro.Circuitos[0], 2));
+
+        var nota = NotaDeNeutro(MemoriaDeCalculo.DeCircuito(cuadro, cuadro.Circuitos[0]));
+
+        Assert.NotNull(nota);
+        Assert.DoesNotContain("220-61", nota);
+        Assert.Null(NotaDeNeutro(MemoriaDeCalculo.DelAlimentador(cuadro)!)); // el alimentador es de 3 fases
+    }
+
     [Fact]
     public void UnDerivadoCitaEl210YElAlimentadorEl215()
     {

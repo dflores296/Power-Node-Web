@@ -474,6 +474,26 @@ public class CuadroDeCargaTests
         return cuadro;
     }
 
+    // ---- R-09 · 2F-3H: el neutro lleva ≈ la corriente de fase — 310-15(b)(5)(2) -----------------------
+
+    [Fact]
+    public void R09_Alimentador2F3HBalanceado_ElNeutroEsDelCalibreDeLaFase()
+    {
+        // 2 fases de una estrella 220Y/127, 1270 VA en cada fase: 10 A por fase. El neutro lleva la
+        // suma fasorial de dos corrientes iguales a 120°, que es otra vez 10 A.
+        var cuadro = Nuevo(espacios: 6, fases: 2, hilos: 3);
+        foreach (var espacio in new[] { 1, 3 })
+            Espacio(cuadro, espacio).NoContinua = 1270m;
+        cuadro.Recalcular();
+
+        Assert.Equal("AB", string.Concat(cuadro.Datos.Barras));
+        Assert.Equal(127.02m, cuadro.Datos.TensionFaseNeutroV, 2);
+        var a = cuadro.Alimentador;
+        Assert.Equal(2, a.Polos);
+        Assert.Equal(10.00m, a.Resultado!.CorrienteDisenoA, 2);
+        Assert.Equal(a.Resultado.CalibreFase, a.Resultado.CalibreNeutro);
+    }
+
     // ---- R-01 · Caída del alimentador: 3 % por tramo, 5 % combinada — 215-2(a)(4) NOTA 2 ---------------
 
     [Fact]

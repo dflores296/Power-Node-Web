@@ -421,7 +421,7 @@
                     <td class="num fuerte">@Ayuda($"{a.ProteccionA:N0} A · {Cuadro.Alimentador.Polos} polos", Cuadro.DesgloseDelAlimentador()?.Proteccion)</td>
                 </tr>
                 <tr><td class="izq">Conductor de fase</td><td class="num">@Ayuda($"{a.CalibreFase.Designacion} AWG/kcmil", Cuadro.DesgloseDelAlimentador()?.Conductor)</td></tr>
-                <tr><td class="izq">Conductor de neutro</td><td class="num">@a.CalibreNeutro.Designacion AWG/kcmil</td></tr>
+                <tr><td class="izq"><span class="ayuda" title="Consultar el conductor de neutro: mismo calibre que la fase. En 2 fases + neutro de estrella lleva ≈ la corriente de fase: contarlo en «Agrupados» — 310-15(b)(5)(2); no reducirlo — 220-61(c)(1).">Conductor de neutro</span></td><td class="num">@a.CalibreNeutro.Designacion AWG/kcmil</td></tr>
                 <tr><td class="izq">Puesta a tierra</td><td class="num">@a.CalibreTierra.Designacion AWG/kcmil</td></tr>
                 <tr>
                     <td class="izq"><span class="ayuda" title="Consultar la caída de tensión del alimentador, con la corriente de la fase que gobierna. Recomendado: 3 % en el alimentador y 5 % combinada con el derivado — 215-2(a)(4), NOTA 2.">Caída de tensión</span></td>

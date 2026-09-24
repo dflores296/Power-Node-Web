@@ -177,7 +177,7 @@ de tres aparatos.
 
 **R-08** — Hecho: decisión abierta en [`../decisiones/interruptor-principal-criterios-del-excel.md`](../decisiones/interruptor-principal-criterios-del-excel.md). Corrección: CONFIRMADA · David · 2026-09-24: aviso, no bloqueo. Prueba: `M03_…`, `P2_1_…`.
 
-**R-09** — Hecho: el tooltip de «Agrupados» ya cita (b)(5)(2) y el neutro ya sale del calibre de la fase; la memoria no lo cita y no hay prueba. Referencia: 310-15(b)(5)(2), 220-61(c)(1).
+**R-09** — Hecho: el tooltip de «Agrupados» ya cita (b)(5)(2) y el neutro ya sale del calibre de la fase; la memoria no lo cita y no hay prueba. Corrección: memoria, sección 2, renglón «Neutro — 310-15(b)(5)(2)» en todo tramo de 2 fases + neutro de estrella (alimentador 2F-3H y derivados de 2 polos en 2F-3H o 3F-4H), con 220-61(c)(1) en el alimentador; tooltip en «Conductor de neutro». No se cita en 1F-3H 120/240, donde el neutro lleva solo el desbalance — (b)(5)(1). Referencia: 310-15(b)(5)(2), 220-61(c)(1). Prueba: `R09_…` (2F-3H, 1270 VA por fase: 10 A, neutro = fase).
 
 **R-10** — Hecho: ninguno se aplica hoy, sin prueba que lo asegure. 220-61(a) excepción: sistemas bifásicos (90°), no 2 fases de estrella. 310-15(b)(7): solo 120/240 V.
 

@@ -36,8 +36,9 @@ Pruebas: 66 en `PowerNode.Web.Tests`, 6 en `PowerNode.Normativa.Tests`.
 - Corregir la cita de `CargaLineal` en `CircuitoDerivado.cs`: numeral 310-15(b)(5)(3), no tabla — R-13, `69a5ed6`.
 - Redactar el aviso de riel DIN > 125 A en singular o plural, con 240-6(a) — R-06, `de855ee`.
 - Quitar el mínimo de 15/20 A por tipo de carga; capturar el uso de los contactos de vivienda (20 A por 210-11(c), 1500 VA por 220-52) — R-14. Confirmar el aviso de M-03 — R-08. `ab9c785`.
+- Citar el neutro portador en 2 fases + neutro de estrella, en la memoria y en el tooltip del neutro — R-09.
 
-Pruebas: 103 en `PowerNode.Web.Tests`, 6 en `PowerNode.Normativa.Tests`.
+Pruebas: 109 en `PowerNode.Web.Tests`, 6 en `PowerNode.Normativa.Tests`.
 
 ## 2026-09-22 (tercera parte)
 
