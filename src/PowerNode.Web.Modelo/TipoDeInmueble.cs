@@ -53,6 +53,15 @@ public static class TiposDeInmueble
         inmueble is TipoDeInmueble.ViviendaUnifamiliar or TipoDeInmueble.ViviendaPopular or TipoDeInmueble.ViviendaMultifamiliar;
 
     /// <summary>
+    /// El uso de los contactos (aparatos pequeños, lavadora, baño) solo cuenta en vivienda:
+    /// 210-11(c) es «Unidades de vivienda» y 220-52 «Cargas de aparatos pequeños y lavadoras en
+    /// unidades de vivienda». Y no en la popular de hasta 60 m²: 210-11(c), Excepción 1, y la
+    /// excepción de 220-52 — I-46.
+    /// </summary>
+    public static bool AplicaUsoDeContactos(this TipoDeInmueble inmueble) =>
+        inmueble is TipoDeInmueble.ViviendaUnifamiliar or TipoDeInmueble.ViviendaMultifamiliar;
+
+    /// <summary>
     /// 230-79: (c) vivienda unifamiliar según la carga conectada —sin número, <c>null</c>—; vivienda
     /// popular hasta 60 m², 30 A; (d) todos los demás, 60 A. Multifamiliar no es unifamiliar: (d).
     /// </summary>

@@ -33,7 +33,7 @@ Cada requisito se relaciona con su referencia normativa y con su verificación e
 | P-1 | Calcular la capacidad mínima: 125 % de la continua + 100 % de la no continua. | 210-20(a), 215-3 | `ElDesgloseDeLaProteccion…` |
 | P-2 | Seleccionar el primer tamaño normalizado mayor o igual a la capacidad mínima. | 240-6(a) | `Serie_…` |
 | P-3 | Seleccionar la familia de interruptores: centro de carga (NEMA), riel DIN (IEC) o NOM completa. | 240-6(a) | `Serie_…` |
-| P-4 | Sin mínimo por tipo de carga. Aplicar 20 A a los contactos de vivienda de cocina (aparatos pequeños), lavadora y baño. | 210-11(c) | `SinMinimoPorTipo_…`, `Vivienda_ElUsoPide20A…` |
+| P-4 | Sin mínimo por tipo de carga. Aplicar 20 A a los contactos de vivienda de cocina (aparatos pequeños), lavadora y baño; no fuera de vivienda ni en vivienda popular de hasta 60 m². | 210-11(c) y su Excepción 1 | `SinMinimoPorTipo_…`, `Vivienda_ElUsoPide20A…`, `I46_…` |
 
 ### Conductor
 
@@ -67,7 +67,7 @@ Cada requisito se relaciona con su referencia normativa y con su verificación e
 | A-7 | Limitar la caída de tensión del alimentador: 2 % por omisión (con el 3 % del derivado, 5 %), capturable. Avisar si los límites suman más de 5 %. | 215-2(a)(4) NOTA 2, 210-19(a)(1) NOTA 4 | `R01_…`, `R15_…` |
 | A-11 | Calcular la caída del alimentador fase por fase, con la caída del neutro (suma fasorial); limitar con la peor fase. | Tabla 9 | `R02_…` |
 | A-8 | Avisar por circuito si la caída del alimentador en su fase más la del derivado excede 5 %. | 215-2(a)(4) NOTA 2, 210-19(a)(1) NOTA 4 | `R01_…` |
-| A-9 | Cargar al alimentador 1500 VA por circuito de aparatos pequeños y de lavadora. | 220-52(a), 220-52(b) | `Vivienda_AparatosPequenosYLavadora…` |
+| A-9 | Cargar al alimentador 1500 VA por circuito de aparatos pequeños y de lavadora, solo en vivienda de más de 60 m². | 220-52(a), 220-52(b) y su excepción | `Vivienda_AparatosPequenosYLavadora…`, `I46_…` |
 | A-10 | Avisar si hay un solo circuito de aparatos pequeños. | 210-11(c)(1) | `Vivienda_UnSoloCircuito…` |
 
 ### Entregable

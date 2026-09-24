@@ -195,9 +195,10 @@
                             <select class="tipo" title="@c.Categoria.Descripcion()" @bind="c.Categoria" @bind:after="Recalcular">
                                 @foreach (var categoria in Enum.GetValues<CategoriaDeCarga>()) { <option value="@categoria">@categoria.Nombre()</option> }
                             </select>
-                            @if (c.Tipo == TipoCarga.Contactos)
+                            @* El uso solo cuenta en vivienda de más de 60 m² — 210-11(c), 220-52 (I-46). *@
+                            @if (c.Tipo == TipoCarga.Contactos && Datos.Inmueble.AplicaUsoDeContactos())
                             {
-                                <select class="tipo uso" title="Seleccionar el uso del circuito de contactos. Vivienda: cocina = aparatos pequeños (cocina, despensa, comedor, desayunador), lavadora y baño llevan 20 A — 210-11(c) — y solo esas salidas — 210-52(b)(2), 210-11(c)(2) y (3). Aparatos pequeños y lavadora cuentan 1500 VA en el alimentador — 220-52. Excepción: vivienda popular de hasta 60 m²."
+                                <select class="tipo uso" title="Seleccionar el uso del circuito de contactos. Cocina = aparatos pequeños (cocina, despensa, comedor, desayunador), lavadora y baño llevan 20 A — 210-11(c) — y solo esas salidas — 210-52(b)(2), 210-11(c)(2) y (3). Aparatos pequeños y lavadora cuentan 1500 VA en el alimentador — 220-52. Solo en vivienda; no en la popular de hasta 60 m² ni fuera de vivienda."
                                         @bind="c.Uso" @bind:after="Recalcular">
                                     @foreach (var uso in Enum.GetValues<UsoDeContactos>()) { <option value="@uso">@uso.NombreCorto()</option> }
                                 </select>
@@ -500,7 +501,7 @@
                 Interruptor principal
                 @if (Cuadro.InterruptorPrincipalA > 0m)
                 {
-                    <strong>@Cuadro.InterruptorPrincipalA.ToString("N0") A · @Cuadro.Alimentador.Polos polos</strong>
+                    <strong>@Cuadro.InterruptorPrincipalA.ToString("N0") A · @Polos(Cuadro.Alimentador.Polos)</strong>
                 }
             </div>
         }
@@ -548,7 +549,7 @@
                 <td class="num">@((Cuadro.Resumen.DemandadaW / 1000m).ToString("N2"))</td>
             </tr>
             <tr>
-                <td class="izq"><span class="ayuda" title="Consultar el factor de potencia del tablero: kW totales ÷ suma vectorial de kVA.">F.P. resultante</span></td>
+                <td class="izq"><span class="ayuda" title="Consultar el factor de potencia de la carga instalada: kW totales ÷ suma vectorial de kVA. El del alimentador, con el que se calcula la caída, lleva además el factor de demanda.">F.P. resultante</span></td>
                 <td class="num">@Cuadro.Resumen.FactorPotencia.ToString("N2")</td>
                 <td></td><td></td>
             </tr>
@@ -615,7 +616,7 @@
         {
             <div class="seleccion">
                 <span class="rotulo">@(Datos.UsaInterruptorPrincipal ? "Interruptor principal" : "Protección del lado de alimentación")</span>
-                <span class="valor">@Ayuda($"{a.ProteccionA:N0} A", Cuadro.DesgloseDelAlimentador()?.Proteccion) <span class="polos">· @Cuadro.Alimentador.Polos polos</span></span>
+                <span class="valor">@Ayuda($"{a.ProteccionA:N0} A", Cuadro.DesgloseDelAlimentador()?.Proteccion) <span class="polos">· @Polos(Cuadro.Alimentador.Polos)</span></span>
             </div>
 
             <div class="cables">
@@ -649,16 +650,17 @@
                         <td class="num">@g.Fase, la más cargada</td>
                     </tr>
                 }
-                <tr><td class="izq">Corriente de diseño</td><td class="num">@a.CorrienteDisenoA.ToString("N2") A</td></tr>
+                <tr><td class="izq"><span class="ayuda" title="Consultar la corriente con la que se dimensionan la protección y el conductor: los VA demandados sumados directamente, entre la tensión. La caída de tensión usa la suma fasorial, que puede ser un poco menor.">Corriente de diseño</span></td><td class="num">@a.CorrienteDisenoA.ToString("N2") A</td></tr>
                 <tr>
-                    <td class="izq"><span class="ayuda" title="Consultar el factor de potencia de las cargas de la fase que gobierna. Aplica a la caída de tensión del alimentador.">Factor de potencia</span></td>
+                    <td class="izq"><span class="ayuda" title="Consultar el factor de potencia de las cargas de la fase que gobierna, con su factor de demanda y el mínimo de 220-52: el de la corriente con la que se calcula la caída de tensión del alimentador.">Factor de potencia</span></td>
                     <td class="num">@Cuadro.Alimentador.FactorPotencia.ToString("N2")</td>
                 </tr>
                 <tr>
                     <td class="izq"><span class="ayuda" title="Consultar la caída de tensión del alimentador: la de la peor fase, con la caída del neutro — Tabla 9. Pasar el cursor sobre el valor para consultar cada fase. Recomendado: 3 % en el alimentador y 5 % combinada con el derivado — 215-2(a)(4), NOTA 2.">Caída de tensión</span></td>
                     <td class="num @(a.CaidaTensionPct > Datos.CaidaMaxAlimentadorPct ? "excede" : null)">@Ayuda(CaidaDelAlimentador(a), CaidaPorFase(a))</td>
                 </tr>
-                @if (a.CorrienteNeutro is { } neutro)
+                @* En 1F-2H el neutro lleva la corriente de la fase: un renglón aparte decía otro número (I-47). *@
+                @if (a.CorrienteNeutro is { } neutro && SistemaDelTablero.De(Datos.Sistema) != ConfiguracionTablero.UnaFaseDosHilos)
                 {
                     <tr><td class="izq"><span class="ayuda" title="Consultar la corriente del neutro: suma fasorial de las corrientes de fase. Entra a la caída de tensión.">Corriente de neutro</span></td><td class="num">@neutro.Magnitud.ToString("N2") A</td></tr>
                 }
@@ -944,6 +946,9 @@
 
     private static string DePapel(CanalizacionDelTablero t, PapelConductor papel) =>
         t.Ocupacion is { } o ? o.Renglones.Where(r => r.Conductor.Papel == papel).Sum(r => r.Conductor.Cantidad).ToString() : "";
+
+    /// <summary>«1 polo», «3 polos».</summary>
+    private static string Polos(int n) => n == 1 ? "1 polo" : $"{n} polos";
 
     /// <summary>El tablero tiene neutro: todos salvo 3F-3H.</summary>
     private bool TieneNeutro => SistemaDelTablero.De(Datos.Sistema) != ConfiguracionTablero.TresFasesTresHilos;

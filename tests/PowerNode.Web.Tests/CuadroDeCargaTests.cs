@@ -209,6 +209,7 @@ public class CuadroDeCargaTests
     public void Vivienda_ElUsoPide20AConSuCita(UsoDeContactos uso, string referencia)
     {
         var cuadro = Nuevo();
+        cuadro.Datos.Inmueble = TipoDeInmueble.ViviendaUnifamiliar; // 210-11(c) y 220-52 son de vivienda — I-46
         var c = Espacio(cuadro, 1);
         c.Tipo = TipoCarga.Contactos;
         c.Uso = uso;
@@ -219,6 +220,57 @@ public class CuadroDeCargaTests
         Assert.Equal("12", c.Resultado.CalibreFase.Designacion); // 240-4(d): 20 A pide 12 AWG
         Assert.Contains(c.Resultado.Citas, x => x.Referencia == referencia);
         Assert.Contains($"Protección mínima del circuito: 20 A — {referencia}", cuadro.Desglose(c)!.Proteccion);
+    }
+
+    [Theory]
+    [InlineData(TipoDeInmueble.Otro)]
+    [InlineData(TipoDeInmueble.Restaurante)]
+    [InlineData(TipoDeInmueble.ViviendaPopular)] // 210-11(c) Excepción 1; 220-52, excepción
+    public void I46_FueraDeViviendaElUsoNoCuenta(TipoDeInmueble inmueble)
+    {
+        // La cocina de David (2026-09-24): inmueble «Otro» y contactos con uso «Cocina». 210-11(c) y
+        // 220-52 son de unidades de vivienda: ni 20 A, ni 1500 VA en el alimentador, ni aviso.
+        var cuadro = Nuevo();
+        cuadro.Datos.Inmueble = inmueble;
+        var c = Espacio(cuadro, 1);
+        c.Tipo = TipoCarga.Contactos;
+        c.Uso = UsoDeContactos.AparatosPequenos; // se queda capturado, pero no aplica
+        c.NoContinua = 500m;
+        cuadro.Recalcular();
+
+        Assert.Equal(UsoDeContactos.General, c.UsoEfectivo);
+        Assert.Equal(15m, c.Resultado!.ProteccionA);
+        Assert.Equal(0m, c.Ajuste220_52VA);
+        Assert.Equal(0m, cuadro.Resumen.Minimo220_52VA);
+        Assert.DoesNotContain(cuadro.Alimentador.Avisos, a => a.Contains("aparatos pequeños"));
+
+        cuadro.Datos.Inmueble = TipoDeInmueble.ViviendaUnifamiliar;
+        cuadro.Recalcular();
+        Assert.Equal(20m, c.Resultado!.ProteccionA);
+        Assert.Equal(1000m, c.Ajuste220_52VA);
+    }
+
+    [Fact]
+    public void I47_ElFpDelAlimentadorEsElDeLaCorrienteDeLaCaida()
+    {
+        // 1F-2H: equipo de 1000 VA a F.P. 1 y contactos de 1000 VA a 0.6 con F.D. 0.5. La caída usa
+        // la corriente con demanda: 1000 + 500∠−53.13° → 1300 W, 400 var → F.P. 0.9558. Con la
+        // carga instalada daba 0.8944, y la pantalla mostraba ese.
+        var cuadro = Nuevo(espacios: 6, fases: 1, hilos: 2, tension: 127m);
+        var equipo = Espacio(cuadro, 1);
+        equipo.Tipo = TipoCarga.Equipo;
+        equipo.NoContinua = 1000m;
+        equipo.FactorPotencia = 1m;
+        var contactos = Espacio(cuadro, 3);
+        contactos.Tipo = TipoCarga.Contactos;
+        contactos.NoContinua = 1000m;
+        contactos.FactorPotencia = 0.6m;
+        cuadro.Datos.CambiarFactorDeDemanda(CategoriaDeCarga.Contactos, 0.5m);
+        cuadro.Recalcular();
+
+        Assert.Equal(0.9558m, cuadro.Alimentador.FactorPotencia);
+        var fase = cuadro.Alimentador.Resultado!.CaidaPorFase!.Single();
+        Assert.Equal(0.9558, Math.Cos((double)fase.Corriente.AnguloGrados * Math.PI / 180.0), 3);
     }
 
     [Fact]
@@ -239,6 +291,7 @@ public class CuadroDeCargaTests
     public void Vivienda_AparatosPequenosYLavadoraCuentan1500VAEnElAlimentador()
     {
         var cuadro = Nuevo();
+        cuadro.Datos.Inmueble = TipoDeInmueble.ViviendaUnifamiliar; // 210-11(c) y 220-52 son de vivienda — I-46
         foreach (var (espacio, uso, va) in new[]
                  {
                      (1, UsoDeContactos.AparatosPequenos, 500m),  // + 1000 VA
@@ -270,6 +323,7 @@ public class CuadroDeCargaTests
     public void Vivienda_UnSoloCircuitoDeAparatosPequenosSeAvisa_DosNo()
     {
         var cuadro = Nuevo();
+        cuadro.Datos.Inmueble = TipoDeInmueble.ViviendaUnifamiliar; // 210-11(c) y 220-52 son de vivienda — I-46
         var cocina = Espacio(cuadro, 1);
         cocina.Tipo = TipoCarga.Contactos;
         cocina.Uso = UsoDeContactos.AparatosPequenos;
@@ -1214,6 +1268,7 @@ public class CuadroDeCargaTests
         // 500 VA de contactos de cocina: el derivado sale en 20 A por 210-11(c)(1), y el
         // alimentador —1500 VA por 220-52(a), 11.81 A— en 15 A.
         var cuadro = Nuevo();
+        cuadro.Datos.Inmueble = TipoDeInmueble.ViviendaUnifamiliar; // 210-11(c) y 220-52 son de vivienda — I-46
         var contactos = Espacio(cuadro, 3);
         contactos.Tipo = TipoCarga.Contactos;
         contactos.Uso = UsoDeContactos.AparatosPequenos;

@@ -48,8 +48,11 @@ public sealed class CircuitoDelCuadro
     /// </summary>
     public UsoDeContactos Uso { get; set; } = UsoDeContactos.General;
 
-    /// <summary>El uso que cuenta: el capturado en Contactos, General en cualquier otro tipo.</summary>
-    public UsoDeContactos UsoEfectivo => Tipo == TipoCarga.Contactos ? Uso : UsoDeContactos.General;
+    /// <summary>
+    /// El uso que cuenta: el capturado, en Contactos y en una vivienda de más de 60 m²; General en
+    /// todo lo demás — 210-11(c) y 220-52 son de vivienda (I-46). Lo pone <see cref="CuadroDeCarga"/>.
+    /// </summary>
+    public UsoDeContactos UsoEfectivo { get; internal set; } = UsoDeContactos.General;
 
     /// <summary>
     /// En qué unidad viene lo que se capturó: VA, W o A, como lo diga la placa. <b>VA por omisión</b>,

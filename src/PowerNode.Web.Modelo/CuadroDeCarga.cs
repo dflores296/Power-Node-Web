@@ -82,8 +82,8 @@ public sealed record CorrienteDeFase(char Fase, decimal ContinuaA, decimal NoCon
 /// <param name="Fases">La corriente de cada barra, en el orden de las barras.</param>
 /// <param name="Gobierna">La fase más cargada, que es con la que se dimensiona. <c>null</c> sin carga.</param>
 /// <param name="FactorPotencia">
-/// El F.P. <b>de las cargas de la fase que gobierna</b>, combinado. Es el que corresponde a la
-/// corriente con la que se calcula la caída de tensión del alimentador.
+/// El F.P. <b>de las cargas de la fase que gobierna</b>, combinado con su factor de demanda y el
+/// mínimo de 220-52: el de la corriente con la que se calcula la caída de tensión del alimentador.
 /// </param>
 public sealed record RenglonDelAlimentador(
     ResultadoAlimentador? Resultado,
@@ -326,6 +326,8 @@ public sealed class CuadroDeCarga
     {
         foreach (var c in _circuitos)
         {
+            // I-46: el uso de los contactos solo cuenta en vivienda (210-11(c), 220-52).
+            c.UsoEfectivo = c.Categoria == CategoriaDeCarga.Contactos && Datos.Inmueble.AplicaUsoDeContactos() ? c.Uso : UsoDeContactos.General;
             if (c.TieneDesglose)
                 SumarDesglose(c);
 
@@ -815,11 +817,13 @@ public sealed class CuadroDeCarga
 
         // EL F.P. DEL ALIMENTADOR NO SE CAPTURA: resulta de las cargas que lleva. Se toman las de la
         // fase que gobierna, porque es la corriente de esa fase la que entra a la caída de tensión.
-        // Cada circuito aporta lo que le cuelga a esa barra (sus VA entre sus polos).
+        // Cada circuito aporta lo que le cuelga a esa barra (sus VA entre sus polos) CON SU FACTOR DE
+        // DEMANDA Y EL MÍNIMO DE 220-52, igual que la corriente de la caída (CorrientesParaElMotor).
+        // Con la carga instalada salía otro (0.98 contra 0.97 en la cocina de 1F-2H) — I-47.
         var fpAlimentador = FactorPotenciaCombinado.De(
             _circuitos
                 .Where(c => c.TieneCarga && c.Fases.Contains(gobierna.Fase))
-                .Select(c => (c.CargaPorFaseVA, c.FactorPotencia)));
+                .Select(c => (c.CargaCalculadaVA / c.Fases.Length * FactorDeDemanda(c), c.FactorPotencia)));
 
         var canal = Datos.CanalizacionAlimentador;
         canal.Limpiar();
@@ -996,13 +1000,12 @@ public sealed class CuadroDeCarga
                 "Escoge en «Resumen de carga» la tabla o sección del Art. 220 que lo sustenta — 220-40.");
 
         // 210-11(c)(1): los circuitos de aparatos pequeños son DOS O MÁS. Con uno solo capturado, se
-        // dice; con ninguno, el tablero puede no ser de vivienda y no hay nada que decir.
+        // dice; con ninguno, no hay nada que decir. Solo en vivienda: fuera de ella el uso no cuenta (I-46).
         var aparatos = _circuitos.Where(c => c.TieneCarga && c.UsoEfectivo == UsoDeContactos.AparatosPequenos).ToList();
         if (aparatos.Count == 1)
             avisos.Add(
-                $"Solo el circuito {aparatos[0].Espacio} es de aparatos pequeños. En vivienda se exigen dos o más circuitos " +
-                "de 20 A para los contactos de cocina, despensa y comedor — 210-11(c)(1). No aplica en vivienda popular de " +
-                "hasta 60 m².");
+                $"Solo el circuito {aparatos[0].Espacio} es de aparatos pequeños. La vivienda exige dos o más circuitos " +
+                "de 20 A para los contactos de cocina, despensa y comedor — 210-11(c)(1).");
 
         return avisos;
     }

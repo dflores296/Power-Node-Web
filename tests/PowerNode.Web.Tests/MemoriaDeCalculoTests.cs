@@ -65,6 +65,7 @@ public class MemoriaDeCalculoTests
     {
         var cuadro = new CuadroDeCarga(new MotorNom(Json));
         cuadro.Datos.NumeroEspacios = 6;
+        cuadro.Datos.Inmueble = TipoDeInmueble.ViviendaUnifamiliar; // 210-11(c) y 220-52 son de vivienda — I-46
         var cocina = cuadro.Circuitos[0];
         cocina.Tipo = PowerNode.DesignSuite.Calculo.Unidades.TipoCarga.Contactos;
         cocina.Uso = UsoDeContactos.AparatosPequenos;
