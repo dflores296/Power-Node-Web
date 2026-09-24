@@ -396,11 +396,12 @@
         </p>
     </section>
 
+    <div class="columna">
     <section class="tarjeta">
         <h2>Resumen de carga</h2>
-        <table class="datos">
+        <table class="datos resumen">
             <tr>
-                <th></th><th>Instalada <span class="simbolo">(kVA)</span></th><th>F.D.</th><th>Demandada <span class="simbolo">(kVA)</span></th>
+                <th class="izq">Tipo de carga</th><th>Instalada <span class="simbolo">(kVA)</span></th><th>F.D.</th><th>Demandada <span class="simbolo">(kVA)</span></th>
             </tr>
             @foreach (var fila in Cuadro.Resumen.PorCategoria ?? [])
             {
@@ -469,21 +470,29 @@
             }
         }
 
-        <h2 class="separado">Balanceo de fases</h2>
-        <table class="datos">
-            <tr>
-                @foreach (var barra in Datos.Barras) { <th><span class="fase-rect fase-rect-@char.ToLowerInvariant(barra)">@barra</span> <span class="simbolo">(VA)</span></th> }
-                <th>Desbalanceo</th>
-            </tr>
-            <tr>
-                @foreach (var barra in Datos.Barras)
-                {
-                    <td class="num">@Cuadro.Resumen.CargaPorFaseVA[barra].ToString("N0")</td>
-                }
-                <td class="num fuerte">@Cuadro.Resumen.DesbalanceoPct.ToString("N1") %</td>
-            </tr>
-        </table>
     </section>
+
+    @* Balanceo en su propia tarjeta, con barras de los colores de fase (David, 2026-09-24). La barra
+       más cargada llena la pista; las demás, en proporción. *@
+    <section class="tarjeta balanceo">
+        <h2>Balanceo de fases</h2>
+        @{ var mayor = Datos.Barras.Max(b => Cuadro.Resumen.CargaPorFaseVA[b]); }
+        @foreach (var barra in Datos.Barras)
+        {
+            var va = Cuadro.Resumen.CargaPorFaseVA[barra];
+            var ancho = mayor > 0m ? va * 100m / mayor : 0m;
+            <div class="fila-fase">
+                <span class="fase-rect fase-rect-@char.ToLowerInvariant(barra)">@barra</span>
+                <div class="pista"><div class="relleno color-@char.ToLowerInvariant(barra)" style="width: @ancho.ToString("0.#", CultureInfo.InvariantCulture)%"></div></div>
+                <span class="num fuerte">@va.ToString("N0") VA</span>
+            </div>
+        }
+        <div class="desbalanceo">
+            <span>Desbalanceo</span>
+            <strong class="num">@Cuadro.Resumen.DesbalanceoPct.ToString("N1") %</strong>
+        </div>
+    </section>
+    </div>
 
     <section class="tarjeta">
         <h2>Alimentador y protección principal</h2>

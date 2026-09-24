@@ -289,6 +289,20 @@ select.uso { display: block; margin-top: 3px; font-size: 11px; }
             white-space: nowrap; }
 .datos tr.total td { font-weight: 600; border-top: 1px solid var(--linea); }
 .datos input.chico { width: 62px; }
+/* Resumen: el tipo a la izquierda; los demás encabezados centrados sobre su columna. */
+.datos.resumen th { text-align: center; }
+.datos.resumen th.izq { text-align: left; }
+
+/* La columna del centro de .cierre lleva dos tarjetas apiladas: resumen y balanceo. */
+.cierre .columna { display: flex; flex-direction: column; gap: 20px; }
+.balanceo .fila-fase { display: grid; grid-template-columns: 26px 1fr 90px; gap: 12px;
+                       align-items: center; padding: 6px 0; }
+.balanceo .fila-fase .num { text-align: right; }
+.balanceo .pista { height: 10px; border-radius: 5px; background: #e8ecf1; overflow: hidden; }
+.balanceo .relleno { height: 100%; border-radius: 5px; }
+.balanceo .desbalanceo { display: flex; justify-content: space-between; margin-top: 10px;
+                         padding-top: 10px; border-top: 1px solid var(--linea); }
+.balanceo .desbalanceo span { color: var(--tenue); }
 label.suelto { display: flex; align-items: center; justify-content: space-between;
                gap: 8px; font-size: 11px; color: var(--tenue); margin-bottom: 10px; }
 label.suelto input { width: 90px; }
