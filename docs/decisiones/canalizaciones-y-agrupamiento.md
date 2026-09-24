@@ -1,7 +1,7 @@
 # Canalizaciones: el agrupamiento se cuenta por tubo y la canalización se calcula
 
-**PROPUESTA · Claude · 2026-09-24** — con las decisiones de David de la misma fecha (abajo). Falta
-que David la marque CONFIRMADA.
+**CONFIRMADA · David · 2026-09-24** — propuesta por Claude el mismo día; David la confirmó en la
+sesión y pidió que se marcara a su nombre.
 
 ## El problema
 
