@@ -24,6 +24,7 @@ Cada requisito se relaciona con su referencia normativa y con su verificación e
 | C-2 | Capturar el factor de potencia por carga (valor inicial 0.9). | Tabla 9, nota 2 | `FP_…` |
 | C-3 | Separar la carga continua (3 h o más) de la no continua. | Art. 100 | `ElMotorDistingueContinuaDeNoContinua_…` |
 | C-4 | Calcular la corriente de diseño sin factor de demanda en el derivado. | 210-19(a)(1), 220-42 | `UnCircuitoDeAlumbrado…` |
+| C-5 | Desglosar los aparatos de un circuito (opcional): la carga es la suma, el F.P. el combinado; «Contacto» sin carga, 180 VA. | 220-14(i), 424-3(b) | `I35_…` |
 
 ### Protección
 

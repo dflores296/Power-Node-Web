@@ -11,6 +11,7 @@ namespace PowerNode.Web.Modelo.Memoria;
 /// <param name="FaseQueGobierna">Solo en el alimentador: cuál barra es la más cargada y con qué
 /// corriente se dimensiona, ya redactado. Sin él, la corriente de diseño no se deduce de la carga
 /// total de la sección 1.</param>
+/// <param name="Desglose">Solo en un circuito desglosado: un renglón por aparato — I-35.</param>
 /// <param name="FactoresDeDemanda">Solo en el alimentador: un renglón por tipo con factor menor que 1,
 /// con su justificación — R-12, R-17.</param>
 /// <param name="CaidaPorFase">Solo en un alimentador con neutro: la caída de cada fase con el
@@ -50,7 +51,8 @@ public sealed record HojaDeMemoria(
     IReadOnlyList<CaidaDeFase>? CaidaPorFase = null,
     PowerNode.DesignSuite.Calculo.Magnitudes.Fasor? CorrienteNeutro = null,
     decimal TensionFaseNeutroV = 0m,
-    IReadOnlyList<RenglonMemoria>? FactoresDeDemanda = null);
+    IReadOnlyList<RenglonMemoria>? FactoresDeDemanda = null,
+    IReadOnlyList<RenglonMemoria>? Desglose = null);
 
 /// <summary>Un renglón «rótulo: valor» de una sección de la memoria.</summary>
 public sealed record RenglonMemoria(string Rotulo, string Valor);

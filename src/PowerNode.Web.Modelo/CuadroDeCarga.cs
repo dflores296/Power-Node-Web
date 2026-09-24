@@ -293,6 +293,9 @@ public sealed class CuadroDeCarga
     {
         foreach (var c in _circuitos)
         {
+            if (c.TieneDesglose)
+                SumarDesglose(c);
+
             // 424-3(b): la calefacción fija de ambiente es carga continua. Lo capturado como no continua
             // pasa a continua — R-18.
             if (c.Categoria == CategoriaDeCarga.CalefaccionFija && c.NoContinua > 0m)
@@ -307,6 +310,36 @@ public sealed class CuadroDeCarga
                 ? Math.Max(0m, UsosDeContactos.CargaMinimaAlimentadorVA - c.CargaInstaladaVA)
                 : 0m;
         }
+    }
+
+    /// <summary>
+    /// <b>La carga del circuito sale de sus aparatos</b> — I-35. Cada uno se convierte a VA con su F.P.
+    /// y la tensión y los polos del circuito; el circuito queda en VA, con la suma de los continuos, la
+    /// de los no continuos y el F.P. combinado (P / √(P² + Q²)). Un «Contacto» sin carga toma 180 VA
+    /// (220-14(i)); en calefacción todos son continuos (424-3(b)).
+    /// </summary>
+    private void SumarDesglose(CircuitoDelCuadro c)
+    {
+        foreach (var a in c.Aparatos)
+        {
+            if (a.EsContactoSinCarga)
+            {
+                a.Unidad = UnidadConsumo.VoltAmperes;
+                a.CargaUnitaria = AparatoDelCircuito.VAPorContacto;
+            }
+            if (c.Categoria == CategoriaDeCarga.CalefaccionFija)
+                a.Continua = true;
+            a.Cantidad = Math.Max(1, a.Cantidad);
+            a.TotalVA = a.Cantidad * ConsumoDePlaca.AVoltAmperes(
+                a.CargaUnitaria, a.Unidad, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV, c.Polos, a.FactorPotencia);
+        }
+
+        c.Unidad = UnidadConsumo.VoltAmperes;
+        c.Continua = c.Aparatos.Where(a => a.Continua).Sum(a => a.TotalVA);
+        c.NoContinua = c.Aparatos.Where(a => !a.Continua).Sum(a => a.TotalVA);
+        c.FactorPotencia = c.Continua + c.NoContinua > 0m
+            ? FactorPotenciaCombinado.De(c.Aparatos.Select(a => (a.TotalVA, a.FactorPotencia)))
+            : CircuitoDelCuadro.FactorPotenciaSupuesto;
     }
 
     private decimal AVoltAmperes(CircuitoDelCuadro c, decimal valor) =>

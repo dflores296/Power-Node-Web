@@ -184,7 +184,17 @@
                 {
                     <tr class="@(c.Resultado is null ? "vacio" : null)">
                         <td class="num">@c.Espacio</td>
-                        <td rowspan="@c.Polos"><input class="desc" @bind="c.Descripcion" @bind:event="oninput" placeholder="—" /></td>
+                        <td rowspan="@c.Polos">
+                            <div class="desc-linea">
+                                <button class="desglosar" title="Desglosar los aparatos que alimenta el circuito. La carga del circuito es la suma."
+                                        @onclick="() => AlternarDesglose(c)">@(Abierto(c) ? "▾" : "▸")</button>
+                                <input class="desc" @bind="c.Descripcion" @bind:event="oninput" placeholder="—" />
+                            </div>
+                            @if (c.TieneDesglose)
+                            {
+                                <span class="en-va izq">(@c.Aparatos.Sum(x => x.Cantidad) aparato@(c.Aparatos.Sum(x => x.Cantidad) == 1 ? "" : "s"))</span>
+                            }
+                        </td>
                         <td rowspan="@c.Polos">
                             <select class="tipo" title="@c.Categoria.Descripcion()" @bind="c.Categoria" @bind:after="Recalcular">
                                 @foreach (var categoria in Enum.GetValues<CategoriaDeCarga>()) { <option value="@categoria">@categoria.Nombre()</option> }
@@ -202,23 +212,24 @@
                             }
                         </td>
                         <td rowspan="@c.Polos">
-                            <select class="unidad" @bind="c.Unidad" @bind:after="Recalcular">
+                            <select class="unidad" @bind="c.Unidad" @bind:after="Recalcular" disabled="@c.TieneDesglose" title="@SumaDelDesglose(c)">
                                 <option value="@UnidadConsumo.VoltAmperes">VA</option>
                                 <option value="@UnidadConsumo.Watts">W</option>
                                 <option value="@UnidadConsumo.Amperes">A</option>
                             </select>
                         </td>
                         <td rowspan="@c.Polos">
-                            <input class="va" type="number" min="0" @bind="c.Continua" @bind:after="Recalcular" />
+                            <input class="va" type="number" min="0" @bind="c.Continua" @bind:after="Recalcular"
+                                   disabled="@c.TieneDesglose" title="@SumaDelDesglose(c)" />
                             @EnVA(c, c.Continua, c.ContinuaVA)
                         </td>
                         <td rowspan="@c.Polos">
                             <input class="va" type="number" min="0" @bind="c.NoContinua" @bind:after="Recalcular"
-                                   disabled="@(c.Categoria == CategoriaDeCarga.CalefaccionFija)"
-                                   title="@(c.Categoria == CategoriaDeCarga.CalefaccionFija ? "Calefacción fija: carga continua — 424-3(b)." : null)" />
+                                   disabled="@(c.TieneDesglose || c.Categoria == CategoriaDeCarga.CalefaccionFija)"
+                                   title="@(c.Categoria == CategoriaDeCarga.CalefaccionFija ? "Calefacción fija: carga continua — 424-3(b)." : SumaDelDesglose(c))" />
                             @EnVA(c, c.NoContinua, c.NoContinuaVA)
                         </td>
-                        <td rowspan="@c.Polos"><input class="va fp" type="number" min="0.1" max="1" step="0.05" title="@AyudaFactorPotencia(c)" @bind="c.FactorPotencia" @bind:after="Recalcular" /></td>
+                        <td rowspan="@c.Polos"><input class="va fp" type="number" min="0.1" max="1" step="0.05" title="@(c.TieneDesglose ? "F.P. combinado de los aparatos: P ÷ √(P² + Q²)." : AyudaFactorPotencia(c))" @bind="c.FactorPotencia" @bind:after="Recalcular" disabled="@c.TieneDesglose" /></td>
                         @foreach (var barra in Datos.Barras)
                         {
                             <td rowspan="@c.Polos" class="num tenue">@(c.TieneCarga && c.Fases.Contains(barra) ? c.CargaPorFaseVA.ToString("N0") : "")</td>
@@ -257,6 +268,66 @@
                         <tr class="fila-error">
                             <td></td>
                             <td colspan="@(Columnas - 1)">@(c.Error ?? _motivo[c.Espacio])</td>
+                        </tr>
+                    }
+
+                    @*
+                        EL DESGLOSE VA DESPUÉS DEL ÚLTIMO ESPACIO DEL CIRCUITO, en un renglón que ocupa todo
+                        el ancho: nunca entre los espacios de un multipolar, y sin mover ninguna columna.
+                    *@
+                    @if (Abierto(c))
+                    {
+                        var calefaccion = c.Categoria == CategoriaDeCarga.CalefaccionFija;
+                        <tr class="fila-desglose">
+                            <td></td>
+                            <td colspan="@(Columnas - 1)">
+                                <table class="desglose">
+                                    <thead>
+                                        <tr>
+                                            <th class="izq">Aparato del circuito @c.Espacio</th>
+                                            <th>Cant.</th>
+                                            <th>Unidad</th>
+                                            <th>Carga c/u</th>
+                                            <th><span class="ayuda" title="Opera 3 h o más: 125 % — 210-19(a)(1). Calefacción: siempre — 424-3(b).">Continua</span></th>
+                                            <th>F.P.</th>
+                                            <th>Total <span class="simbolo">(VA)</span></th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var aparato in c.Aparatos)
+                                        {
+                                            <tr>
+                                                <td class="izq"><input class="desc" @bind="aparato.Descripcion" @bind:after="Recalcular" placeholder="Aparato (Contacto: 180 VA)" /></td>
+                                                <td><input class="va corto" type="number" min="1" step="1" @bind="aparato.Cantidad" @bind:after="Recalcular" /></td>
+                                                <td>
+                                                    <select class="unidad" @bind="aparato.Unidad" @bind:after="Recalcular">
+                                                        <option value="@UnidadConsumo.VoltAmperes">VA</option>
+                                                        <option value="@UnidadConsumo.Watts">W</option>
+                                                        <option value="@UnidadConsumo.Amperes">A</option>
+                                                    </select>
+                                                </td>
+                                                <td><input class="va" type="number" min="0" @bind="aparato.CargaUnitaria" @bind:after="Recalcular" /></td>
+                                                <td><input type="checkbox" @bind="aparato.Continua" @bind:after="Recalcular" disabled="@calefaccion" /></td>
+                                                <td><input class="va fp" type="number" min="0.1" max="1" step="0.05" @bind="aparato.FactorPotencia" @bind:after="Recalcular" /></td>
+                                                <td class="num">@aparato.TotalVA.ToString("N0")</td>
+                                                <td><button class="quitar" title="Quitar el aparato" @onclick="() => QuitarAparato(c, aparato)">✕</button></td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <td class="izq"><button class="agregar" @onclick="() => AgregarAparato(c)">+ Agregar aparato</button></td>
+                                            <td colspan="7" class="num">
+                                                @if (c.TieneDesglose)
+                                                {
+                                                    <text>Total: continua @c.ContinuaVA.ToString("N0") · no continua @c.NoContinuaVA.ToString("N0") VA · F.P. @c.FactorPotencia.ToString("N2")</text>
+                                                }
+                                            </td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </td>
                         </tr>
                     }
                 }
@@ -612,6 +683,31 @@
         a.CaidaPorFase is { Count: > 0 } fases
             ? [.. fases.Select(f => $"Fase {f.Fase}: {f.Corriente.Magnitud:N2} A → {f.CaidaV:N2} V ({f.CaidaPct:N2} %)")]
             : null;
+
+    private readonly HashSet<int> _desgloseAbierto = [];
+
+    private bool Abierto(CircuitoDelCuadro c) => _desgloseAbierto.Contains(c.Espacio);
+
+    private void AlternarDesglose(CircuitoDelCuadro c)
+    {
+        if (!_desgloseAbierto.Remove(c.Espacio))
+            _desgloseAbierto.Add(c.Espacio);
+    }
+
+    private void AgregarAparato(CircuitoDelCuadro c)
+    {
+        c.AgregarAparato();
+        Recalcular();
+    }
+
+    private void QuitarAparato(CircuitoDelCuadro c, AparatoDelCircuito a)
+    {
+        c.Aparatos.Remove(a);
+        Recalcular();
+    }
+
+    private static string? SumaDelDesglose(CircuitoDelCuadro c) =>
+        c.TieneDesglose ? "Suma de los aparatos del desglose (▾ en la descripción)." : null;
 
     private void Justificar(CategoriaDeCarga categoria, JustificacionFactorDemanda j, ChangeEventArgs e)
     {

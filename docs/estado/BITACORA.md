@@ -46,8 +46,9 @@ Pruebas: 66 en `PowerNode.Web.Tests`, 6 en `PowerNode.Normativa.Tests`.
 - Revisar 240-4(b) en cada calibre, no solo en el de la carga: 60 A en 6 AWG, no 4 AWG — R-16, `2da832f`.
 - Factor de demanda también en motores y A/C (430-26) y calefacción (220-51 Excepción); calefacción a continua; tooltips con ejemplos — R-18, `b3020f0`.
 - «Inmueble» global de nueve opciones para 230-79 y para filtrar las justificaciones del F.D. — R-19, `be9985f`.
+- Desglose opcional de aparatos por circuito, debajo del último espacio; la carga es la suma — I-35.
 
-Pruebas: 149 en `PowerNode.Web.Tests`, 6 en `PowerNode.Normativa.Tests`.
+Pruebas: 156 en `PowerNode.Web.Tests`, 6 en `PowerNode.Normativa.Tests`.
 
 ## 2026-09-22 (tercera parte)
 

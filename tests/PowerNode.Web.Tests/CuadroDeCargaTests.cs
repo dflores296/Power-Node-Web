@@ -572,6 +572,115 @@ public class CuadroDeCargaTests
         Assert.Contains("calderas eléctricas", CategoriaDeCarga.CalefaccionFija.Descripcion());
     }
 
+    // ---- I-35 · Desglose de aparatos por circuito --------------------------------------------------------
+
+    [Fact]
+    public void I35_LaCargaDelCircuitoEsLaSumaDeSusAparatos()
+    {
+        var cuadro = Nuevo();
+        var c = Espacio(cuadro, 1);
+        c.Categoria = CategoriaDeCarga.Equipo;
+        var estufa = c.AgregarAparato();
+        estufa.Descripcion = "Estufa";
+        estufa.Unidad = UnidadConsumo.Watts;
+        estufa.CargaUnitaria = 900m;
+        estufa.FactorPotencia = 1m;
+        var refri = c.AgregarAparato();
+        refri.Descripcion = "Refrigerador";
+        refri.CargaUnitaria = 750m;
+        refri.Continua = true;
+        refri.FactorPotencia = 0.8m;
+        var focos = c.AgregarAparato();
+        focos.Descripcion = "Focos";
+        focos.Cantidad = 2;
+        focos.CargaUnitaria = 100m;
+        cuadro.Recalcular();
+
+        Assert.Equal(900m, estufa.TotalVA);
+        Assert.Equal(200m, focos.TotalVA);        // 2 × 100 VA
+        Assert.Equal(UnidadConsumo.VoltAmperes, c.Unidad);
+        Assert.Equal(750m, c.ContinuaVA);
+        Assert.Equal(1100m, c.NoContinuaVA);
+        // P = 900 + 600 + 180 = 1680 W; Q = 450 + 87.2 = 537.2 VAR → 0.9525
+        Assert.Equal(0.95m, c.FactorPotencia, 2);
+        Assert.NotNull(c.Resultado);
+    }
+
+    [Fact]
+    public void I35_AlDesglosarSeConservaLoCapturado()
+    {
+        var cuadro = Nuevo();
+        var c = Espacio(cuadro, 1);
+        c.Descripcion = "Cocina";
+        c.Continua = 500m;
+        c.NoContinua = 800m;
+        c.AgregarAparato();
+        cuadro.Recalcular();
+
+        Assert.Equal(3, c.Aparatos.Count); // la continua, la no continua y el nuevo
+        Assert.Equal(500m, c.ContinuaVA);
+        Assert.Equal(800m, c.NoContinuaVA);
+    }
+
+    [Fact]
+    public void I35_UnContactoSinCargaToma180VA()
+    {
+        var cuadro = Nuevo();
+        var c = Espacio(cuadro, 1);
+        c.Categoria = CategoriaDeCarga.Contactos;
+        var contactos = c.AgregarAparato();
+        contactos.Descripcion = "Contacto doble";
+        contactos.Cantidad = 5;
+        cuadro.Recalcular();
+
+        Assert.Equal(180m, contactos.CargaUnitaria); // 220-14(i)
+        Assert.Equal(900m, c.NoContinuaVA);
+    }
+
+    [Fact]
+    public void I35_EnCalefaccionTodosLosAparatosSonContinuos()
+    {
+        var cuadro = Nuevo();
+        var c = Espacio(cuadro, 1);
+        c.Categoria = CategoriaDeCarga.CalefaccionFija;
+        c.AgregarAparato().CargaUnitaria = 1000m;
+        cuadro.Recalcular();
+
+        Assert.True(c.Aparatos.Single().Continua);
+        Assert.Equal(1000m, c.ContinuaVA);
+        Assert.Equal(0m, c.NoContinuaVA);
+    }
+
+    [Fact]
+    public void I35_EnUnDosPolosLosAmperesSeConviertenConLaTensionFaseFase()
+    {
+        var cuadro = Nuevo();
+        Assert.Null(cuadro.CambiarPolos(Espacio(cuadro, 1), 2));
+        var c = Espacio(cuadro, 1);
+        var a = c.AgregarAparato();
+        a.Unidad = UnidadConsumo.Amperes;
+        a.CargaUnitaria = 10m;
+        cuadro.Recalcular();
+
+        Assert.Equal(2200m, a.TotalVA); // 10 A × 220 V
+        Assert.Equal(10m, c.Resultado!.CorrienteDisenoA, 2);
+    }
+
+    [Fact]
+    public void I35_SinAparatosElCircuitoVuelveASerEditable_ConLaUltimaSuma()
+    {
+        var cuadro = Nuevo();
+        var c = Espacio(cuadro, 1);
+        var a = c.AgregarAparato();
+        a.CargaUnitaria = 600m;
+        cuadro.Recalcular();
+        c.Aparatos.Remove(a);
+        cuadro.Recalcular();
+
+        Assert.False(c.TieneDesglose);
+        Assert.Equal(600m, c.NoContinua);
+    }
+
     // ---- R-19 · Un solo inmueble para 230-79 y para el factor de demanda ------------------------------
 
     [Theory]

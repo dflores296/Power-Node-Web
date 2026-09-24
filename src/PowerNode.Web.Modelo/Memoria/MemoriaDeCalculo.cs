@@ -1,3 +1,4 @@
+using PowerNode.DesignSuite.Calculo.Casos;
 using PowerNode.DesignSuite.Calculo.Magnitudes;
 using PowerNode.DesignSuite.Calculo.Tableros;
 using PowerNode.DesignSuite.Calculo.Unidades;
@@ -70,7 +71,8 @@ public static class MemoriaDeCalculo
             Aislamiento: Aislamiento(cuadro.Datos),
             DesgloseConductor: cuadro.Desglose(circuito)?.Conductor,
             CaidaCombinada: CaidaCombinada(cuadro, circuito),
-            NeutroPortador: NeutroPortador(cuadro, circuito.Polos, alimentador: false));
+            NeutroPortador: NeutroPortador(cuadro, circuito.Polos, alimentador: false),
+            Desglose: Desglose(circuito));
     }
 
     /// <summary>
@@ -143,6 +145,22 @@ public static class MemoriaDeCalculo
             FactoresDeDemanda: FactoresDeDemanda(datos));
     }
 
+    /// <summary>«Estufa: 1 × 3,000 W = 3,000 VA · no continua · F.P. 1.00». Un renglón por aparato — I-35.</summary>
+    private static IReadOnlyList<RenglonMemoria> Desglose(CircuitoDelCuadro circuito) =>
+    [
+        .. circuito.Aparatos.Select((a, i) => new RenglonMemoria(
+            $"Aparato {i + 1}: {(string.IsNullOrWhiteSpace(a.Descripcion) ? "—" : a.Descripcion.Trim())}",
+            $"{a.Cantidad} × {a.CargaUnitaria:N0} {Simbolo(a.Unidad)} = {a.TotalVA:N0} VA · " +
+            $"{(a.Continua ? "continua" : "no continua")} · F.P. {a.FactorPotencia:N2}")),
+    ];
+
+    private static string Simbolo(UnidadConsumo unidad) => unidad switch
+    {
+        UnidadConsumo.Watts => "W",
+        UnidadConsumo.Amperes => "A",
+        _ => "VA",
+    };
+
     /// <summary>
     /// «F.D. alumbrado — 220-40: 0.80 · Tabla 220-42 — alumbrado general». Un renglón por tipo con
     /// factor menor que 1 — R-12, R-17. Sin justificación lo dice en mayúsculas: la memoria no la
@@ -196,9 +214,10 @@ public static class MemoriaDeCalculo
                 ? $"{hoja.FactorPotencia:N2} — resulta de combinar las cargas de la fase que gobierna"
                 : $"{hoja.FactorPotencia:N2}"),
             ("Fases / hilos", $"{hoja.NumeroFases} / {hoja.NumeroHilos}")]);
-        bloques.Add(hoja.FactoresDeDemanda is { Count: > 0 } factores
-            ? seccion1 with { Renglones = [.. seccion1.Renglones, .. factores] }
-            : seccion1);
+        bloques.Add(seccion1 with
+        {
+            Renglones = [.. seccion1.Renglones, .. hoja.Desglose ?? [], .. hoja.FactoresDeDemanda ?? []],
+        });
 
         // ---- 2
         bloques.Add(Seccion("2. CONSIDERACIONES", [

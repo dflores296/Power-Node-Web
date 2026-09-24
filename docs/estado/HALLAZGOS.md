@@ -53,6 +53,7 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-32 · Aislamiento fijo en THHN | P0 | **Cerrado** | `b1a84d6` |
 | I-33 · Memoria, sección 4, con capacidad mínima rotulada como In; sin desglose en pantalla | P1 | **Cerrado** | `13b3093` |
 | I-34 · «Agrupados» sin regla de conteo | P3 | **Cerrado** | `3aa1c3a` |
+| I-35 · Sin desglose de los aparatos de un circuito | P2 | Pendiente | — |
 | R-01 · Caída del alimentador fija en 5 %, sin verificar la combinada — 215-2(a)(4) NOTA 2 | P1 | **Cerrado** | `2a973ea` |
 | R-02 · Caída del alimentador sin la caída del neutro | P2 | **Cerrado** | `d6cd1c6` |
 | R-03 · La publicación no corre `PowerNode.Web.Tests` | P1 | **Cerrado** | `986c9d7` |
@@ -160,6 +161,8 @@ Formato: **Hecho** (defecto observado) · **Corrección** · **Referencia** · *
 **I-33** — Hecho: la memoria, sección 4, sustituía la capacidad mínima en «Icm = In / (FT × FA)»; sin desglose en pantalla. Corrección: `DesgloseDeSeleccion` en tooltip y en la sección 4; cita 310-15(b)(16) con «capacidad mínima». Prueba: `LaSeccion4CuadraConElConductorElegido`.
 
 **I-34** — Hecho: «Agrupados» sin regla de conteo. Corrección: tooltip con la Tabla 310-15(b)(3)(a) y 310-15(b)(5), (b)(6).
+
+**I-35** — Hecho (David): un espacio es un circuito, no un aparato; la carga de un circuito con varios aparatos se sumaba a mano. Es la base para contar aparatos (220-53 a 220-56) y para motores (I-15, 430-24 necesita el motor mayor). Corrección: desglose opcional por circuito (▸ en la descripción): aparato, cantidad, unidad, carga c/u, continua, F.P. La carga del circuito es la suma y el F.P. el combinado; Unidad, Continua, No continua y F.P. se bloquean. El desglose va debajo del último espacio del circuito, a todo lo ancho: no se mete entre los espacios de un multipolar. «Contacto» sin carga toma 180 VA (220-14(i)); en calefacción todos son continuos (424-3(b)). Al abrirlo, lo capturado se conserva como los primeros aparatos. Memoria, sección 1: un renglón por aparato. El tipo sigue siendo del circuito. Prueba: `I35_…`.
 
 ### Revisión del 2026-09-23
 

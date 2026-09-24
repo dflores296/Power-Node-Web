@@ -57,6 +57,34 @@ public sealed class CircuitoDelCuadro
     /// </summary>
     public UnidadConsumo Unidad { get; set; } = UnidadConsumo.VoltAmperes;
 
+    /// <summary>
+    /// Los aparatos que alimenta, si se desglosa — I-35. Con al menos uno, la carga, la unidad y el
+    /// F.P. del circuito salen de ellos (la suma, y el F.P. combinado) y no se capturan.
+    /// </summary>
+    public List<AparatoDelCircuito> Aparatos { get; } = [];
+
+    public bool TieneDesglose => Aparatos.Count > 0;
+
+    /// <summary>
+    /// Abre el desglose. Si el circuito ya traía carga, se convierte en los primeros aparatos —
+    /// continua y no continua por separado— para no perder lo capturado.
+    /// </summary>
+    public AparatoDelCircuito AgregarAparato()
+    {
+        if (!TieneDesglose)
+        {
+            var nombre = string.IsNullOrWhiteSpace(Descripcion) ? "Carga capturada" : Descripcion.Trim();
+            if (Continua > 0m)
+                Aparatos.Add(new AparatoDelCircuito { Descripcion = nombre, Unidad = Unidad, CargaUnitaria = Continua, Continua = true, FactorPotencia = FactorPotencia });
+            if (NoContinua > 0m)
+                Aparatos.Add(new AparatoDelCircuito { Descripcion = nombre, Unidad = Unidad, CargaUnitaria = NoContinua, FactorPotencia = FactorPotencia });
+        }
+
+        var nuevo = new AparatoDelCircuito();
+        Aparatos.Add(nuevo);
+        return nuevo;
+    }
+
     /// <summary>La carga continua <b>tal como viene en la placa</b>, en <see cref="Unidad"/>.</summary>
     public decimal Continua { get; set; }
 

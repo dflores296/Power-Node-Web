@@ -170,6 +170,24 @@ public class MemoriaDeCalculoTests
     }
 
     [Fact]
+    public void I35_LaMemoriaDelCircuitoListaSusAparatos()
+    {
+        var cuadro = new CuadroDeCarga(new MotorNom(Json));
+        cuadro.Datos.NumeroEspacios = 6;
+        var c = cuadro.Circuitos[0];
+        var estufa = c.AgregarAparato();
+        estufa.Descripcion = "Estufa";
+        estufa.Unidad = PowerNode.DesignSuite.Calculo.Casos.UnidadConsumo.Watts;
+        estufa.CargaUnitaria = 900m;
+        estufa.FactorPotencia = 1m;
+        cuadro.Recalcular();
+
+        var seccion1 = MemoriaDeCalculo.Secciones(MemoriaDeCalculo.DeCircuito(cuadro, c))[0];
+        Assert.Equal("1 × 900 W = 900 VA · no continua · F.P. 1.00",
+            seccion1.Renglones.Single(r => r.Rotulo == "Aparato 1: Estufa").Valor);
+    }
+
+    [Fact]
     public void UnDerivadoCitaEl210YElAlimentadorEl215()
     {
         var cuadro = ConUnCircuito();

@@ -89,7 +89,7 @@ select, input { font: inherit; padding: 5px 8px; border: 1px solid var(--linea);
    combinado le faltara el borde.
 */
 .cuadro th.ultima, .cuadro td.ultima { border-right: 0; }
-.cuadro tr.separador td, .cuadro tr.fila-error td + td { border-right: 0; }
+.cuadro tr.separador td, .cuadro tr.fila-error td + td, .cuadro tr.fila-desglose td + td { border-right: 0; }
 
 /* Cada espacio ocupa el mismo alto, tenga interruptor propio o venga combinado desde arriba: un
    multipolar de 3 polos mide exactamente lo que miden 3 renglones, como en un directorio de
@@ -380,3 +380,18 @@ label.suelto input { width: 90px; }
              color: var(--tenue); background: #eef2f7; border: 1px solid var(--linea);
              border-radius: var(--radio-sm); }
 .principal strong { color: var(--tinta); }
+
+/* Desglose de aparatos del circuito — I-35 */
+.cuadro .desc-linea { display: flex; align-items: center; gap: 4px; }
+.cuadro button.desglosar { border: 0; background: none; cursor: pointer; color: var(--tenue); font-size: 11px; padding: 0 2px; }
+.cuadro .en-va.izq { text-align: left; }
+.cuadro tr.fila-desglose td { background: var(--fondo-suave, #f7f8fa); padding: 6px 8px 10px; text-align: left; }
+.cuadro table.desglose { border-collapse: collapse; width: auto; margin: 0; }
+.cuadro table.desglose th { font-size: 10px; font-weight: 600; text-transform: uppercase; color: var(--tenue); padding: 4px 8px; border: 0; }
+.cuadro table.desglose td { padding: 3px 8px; border: 0; background: none; text-align: center; }
+.cuadro table.desglose td.izq, .cuadro table.desglose th.izq { text-align: left; }
+.cuadro table.desglose td.num { text-align: right; min-width: 70px; }
+.cuadro table.desglose input.desc { width: 220px; }
+.cuadro table.desglose tfoot td { padding-top: 6px; font-size: 11px; color: var(--tenue); }
+.cuadro button.agregar, .cuadro button.quitar { border: 0; background: none; cursor: pointer; color: var(--acento, #2563eb); font-size: 11px; padding: 2px 4px; }
+.cuadro button.quitar { color: var(--tenue); }
