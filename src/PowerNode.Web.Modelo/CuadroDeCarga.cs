@@ -1,8 +1,10 @@
+using System.Globalization;
 using PowerNode.DesignSuite.Calculo.Canalizaciones;
 using PowerNode.DesignSuite.Calculo.Casos;
 using PowerNode.DesignSuite.Calculo.Magnitudes;
 using PowerNode.DesignSuite.Calculo.Tableros;
 using PowerNode.DesignSuite.Calculo.Validaciones;
+using PowerNode.Web.Modelo.Archivo;
 
 namespace PowerNode.Web.Modelo;
 
@@ -159,6 +161,23 @@ public sealed class CuadroDeCarga
 
     public int EspaciosLibres => Datos.NumeroEspacios - EspaciosOcupados;
 
+    /// <summary>
+    /// Los espacios que se come el interruptor principal montado en espacios, en orden. Vacío con
+    /// zócalo, con zapatas o si no se pudo montar (<see cref="AvisoDelPrincipal"/>).
+    /// </summary>
+    public IReadOnlyList<int> EspaciosDelPrincipal { get; private set; } = [];
+
+    /// <summary>Por qué el principal no se montó en sus espacios, ya redactado. <c>null</c> = montado o no aplica.</summary>
+    public string? AvisoDelPrincipal { get; private set; }
+
+    /// <summary>
+    /// El primer espacio del principal en espacios: el capturado si cabe; si no, el de omisión. Con
+    /// dos o tres barras, la regla del escritorio (<see cref="AcomodoEnGabinete.UltimoHuecoDeLaColumnaPar"/>):
+    /// los últimos pares, y si ahí hay un circuito, sube por la misma columna. Con una barra, el primer
+    /// espacio libre desde el 1 (David, 2026-09-25).
+    /// </summary>
+    public int EspacioInicialDelPrincipal { get; private set; }
+
     /// <summary>El interruptor principal del tablero, en amperes. 0 mientras no haya carga capturada.</summary>
     public decimal InterruptorPrincipalA => Alimentador.Resultado?.ProteccionA ?? 0m;
 
@@ -275,9 +294,11 @@ public sealed class CuadroDeCarga
             return $"Este tablero tiene {Datos.Barras.Count} barra(s), así que un interruptor de {polos} polos repetiría fase.";
 
         var ocupados = _circuitos
-            .Where(c => c != circuito && !c.EsContinuacion && c.Polos > 1)
+            .Where(c => c != circuito && !c.EsContinuacion && !c.EsDelPrincipal && c.Polos > 1)
             .Select(c => new MontajeEnGabinete(c.Espacio, c.Polos, $"el circuito {c.Espacio}"))
             .ToList();
+        if (EspaciosDelPrincipal.Count > 0)
+            ocupados.Add(new MontajeEnGabinete(EspaciosDelPrincipal[0], EspaciosDelPrincipal.Count, "el interruptor principal"));
 
         var motivo = AcomodoEnGabinete.MotivoNoCabe(circuito.Espacio, polos, Datos.NumeroEspacios, ocupados);
         if (motivo is not null)
@@ -324,6 +345,267 @@ public sealed class CuadroDeCarga
 
             foreach (var ocupado in DistribucionBarras.EspaciosQueOcupa(c.Espacio, c.Polos).Skip(1))
                 _circuitos[ocupado - 1].ContinuacionDe = c.Espacio;
+        }
+
+        MontarPrincipal();
+    }
+
+    /// <summary>
+    /// El interruptor principal en espacios se come los suyos — decisión
+    /// <c>montaje-del-interruptor-principal.md</c>. <b>Nunca borra lo capturado</b>: si un circuito
+    /// ya está ahí, el principal no se monta y se avisa, hasta que se mueva uno de los dos.
+    /// </summary>
+    private void MontarPrincipal()
+    {
+        foreach (var c in _circuitos)
+            c.EsDelPrincipal = false;
+        EspaciosDelPrincipal = [];
+        AvisoDelPrincipal = null;
+        if (!Datos.PrincipalEnEspacios)
+            return;
+
+        var polos = Datos.PolosDelPrincipal;
+        var inicio = EspacioInicialDelPrincipal = ResolverEspacioDelPrincipal(polos);
+        if (!DistribucionBarras.CabeEnElTablero(inicio, polos, Datos.NumeroEspacios))
+        {
+            AvisoDelPrincipal = $"El interruptor principal de {polos} polos no cabe en un tablero de {Datos.NumeroEspacios} espacios.";
+            return;
+        }
+
+        var espacios = DistribucionBarras.EspaciosQueOcupa(inicio, polos);
+        var choque = espacios
+            .Select(e => _circuitos[e - 1])
+            .Select(r => r.ContinuacionDe is { } dueno ? _circuitos[dueno - 1] : r)
+            .Where(c => c.TieneCaptura)
+            .Select(c => c.Espacio)
+            .Distinct()
+            .Order()
+            .ToList();
+        if (choque.Count > 0)
+        {
+            var quien = choque.Count == 1
+                ? $"el circuito {choque[0]} ya está"
+                : $"los circuitos {string.Join(", ", choque[..^1])} y {choque[^1]} ya están";
+            AvisoDelPrincipal = $"El interruptor principal no se montó en los espacios {string.Join("-", espacios)}: {quien} ahí. Mover el principal o el circuito.";
+            return;
+        }
+
+        foreach (var e in espacios)
+        {
+            var r = _circuitos[e - 1];
+            r.EsDelPrincipal = true;
+            r.ContinuacionDe = e == inicio ? null : inicio;
+        }
+        EspaciosDelPrincipal = espacios;
+    }
+
+    private int ResolverEspacioDelPrincipal(int polos)
+    {
+        if (Datos.EspacioDelPrincipal is { } elegido && Datos.EspaciosValidosDelPrincipal.Contains(elegido))
+            return elegido;
+
+        var capturados = MontajesCapturados(excepto: null);
+        if (Datos.Barras.Count == 1)
+            return Enumerable.Range(1, Datos.NumeroEspacios)
+                .FirstOrDefault(e => AcomodoEnGabinete.MotivoNoCabe(e, polos, Datos.NumeroEspacios, capturados) is null, 1);
+
+        var ultimoArranque = Datos.NumeroEspacios - 2 * (polos - 1);
+        if (ultimoArranque % 2 == 1)
+            ultimoArranque--;
+        return AcomodoEnGabinete.UltimoHuecoDeLaColumnaPar(polos, Datos.NumeroEspacios, capturados)
+            ?? Math.Max(2, ultimoArranque);
+    }
+
+    /// <summary>Los interruptores con algo capturado, como montajes: lo que un movimiento no puede pisar.</summary>
+    private List<MontajeEnGabinete> MontajesCapturados(CircuitoDelCuadro? excepto) =>
+        [.. _circuitos
+            .Where(c => c != excepto && !c.EsContinuacion && !c.EsDelPrincipal && c.TieneCaptura)
+            .Select(c => new MontajeEnGabinete(c.Espacio, c.Polos, $"el circuito {c.Espacio}"))];
+
+    // ---- Mover circuitos (I-69) ------------------------------------------------------------------
+
+    /// <summary>El «espacio» del zócalo del principal al arrastrar: no es un espacio numerado (I-70).</summary>
+    public const int Zocalo = 0;
+
+    /// <summary>Lo que había antes del último movimiento u optimización: todo el tablero, para deshacer.</summary>
+    private (List<CircuitoJson> Circuitos, int? EspacioDelPrincipal, MontajeDelPrincipal Montaje)? _antes;
+
+    /// <summary>Cómo quedó el tablero justo después del último movimiento: si ya cambió, no se deshace.</summary>
+    private string? _firmaDespues;
+
+    /// <summary>
+    /// ¿Hay un movimiento u optimización que deshacer? <b>Solo mientras nada más haya cambiado</b>:
+    /// deshacer después de capturar otra cosa se llevaría esa captura.
+    /// </summary>
+    public bool PuedeDeshacer => _antes is not null && Firma() == _firmaDespues;
+
+    private string Firma() =>
+        string.Join("|", _circuitos.Select(c => System.Text.Json.JsonSerializer.Serialize(CircuitoJson.De(c), ContextoDelArchivo.Legible.CircuitoJson)))
+        + "|" + Datos.EspacioDelPrincipal + "|" + Datos.MontajePrincipal;
+
+    /// <summary>
+    /// Lleva el interruptor del espacio <paramref name="origen"/> —con todo lo capturado: carga,
+    /// aparatos, polos, canalización— a <paramref name="destino"/>, y el origen queda libre. Si el
+    /// origen es del principal en espacios, mueve el principal. <b>Si no cabe, no cambia nada</b> y
+    /// dice por qué: la regla del arrastre del escritorio (<see cref="AcomodoEnGabinete.MotivoNoCabe"/>).
+    /// </summary>
+    public ResultadoDelMovimiento MoverCircuito(int origen, int destino)
+    {
+        if (origen < Zocalo || origen > _circuitos.Count || destino < Zocalo || destino > _circuitos.Count)
+            return ResultadoDelMovimiento.NoValida("Ese espacio no existe en el tablero.");
+
+        // El zócalo del principal (I-70): solo el principal entra o sale de ahí.
+        if (origen == Zocalo)
+            return SacarDelZocalo(destino);
+        var renglon = _circuitos[origen - 1];
+        if (destino == Zocalo)
+            return renglon.EsDelPrincipal
+                ? MeterAlZocalo()
+                : ResultadoDelMovimiento.NoValida("El zócalo es solo del interruptor principal.");
+        if (renglon.EsDelPrincipal)
+            return MoverPrincipal(destino);
+
+        var c = renglon.ContinuacionDe is { } dueno ? _circuitos[dueno - 1] : renglon;
+        if (!c.TieneCaptura)
+            return ResultadoDelMovimiento.NoValida($"En el espacio {origen} no hay circuito que mover.");
+        if (destino == c.Espacio)
+            return ResultadoDelMovimiento.SinCambio;
+
+        var ocupados = MontajesCapturados(excepto: c);
+        if (EspaciosDelPrincipal.Count > 0)
+            ocupados.Add(new MontajeEnGabinete(EspaciosDelPrincipal[0], EspaciosDelPrincipal.Count, "el interruptor principal"));
+        if (AcomodoEnGabinete.MotivoNoCabe(destino, c.Polos, Datos.NumeroEspacios, ocupados) is { } motivo)
+            // Si cabe en el tablero y aun así no se puede, es que alguien está ahí.
+            return DistribucionBarras.CabeEnElTablero(destino, c.Polos, Datos.NumeroEspacios)
+                ? ResultadoDelMovimiento.Ocupada(motivo)
+                : ResultadoDelMovimiento.NoValida(motivo);
+
+        Recordar();
+        Reubicar([(c.Espacio, destino)]);
+        Recalcular();
+        _firmaDespues = Firma();
+        return ResultadoDelMovimiento.Hecho($"El circuito {c.Espacio} pasó al espacio {DistribucionBarras.EspaciosQueOcupa(destino, c.Polos)[0]}{(c.Polos > 1 ? $" ({string.Join("-", DistribucionBarras.EspaciosQueOcupa(destino, c.Polos))})" : "")}.");
+    }
+
+    /// <summary>Del zócalo a los espacios: «En espacios del gabinete» desde <paramref name="destino"/>.</summary>
+    private ResultadoDelMovimiento SacarDelZocalo(int destino)
+    {
+        if (!Datos.UsaInterruptorPrincipal || Datos.Barras.Count < 2 || Datos.MontajePrincipal != MontajeDelPrincipal.Zocalo)
+            return ResultadoDelMovimiento.NoValida("No hay interruptor principal en el zócalo.");
+        if (destino == Zocalo)
+            return ResultadoDelMovimiento.SinCambio;
+
+        var polos = Datos.PolosDelPrincipal;
+        if (AcomodoEnGabinete.MotivoNoCabe(destino, polos, Datos.NumeroEspacios, MontajesCapturados(excepto: null)) is { } motivo)
+            return DistribucionBarras.CabeEnElTablero(destino, polos, Datos.NumeroEspacios)
+                ? ResultadoDelMovimiento.Ocupada(motivo)
+                : ResultadoDelMovimiento.NoValida(motivo);
+
+        Recordar();
+        Datos.MontajePrincipal = MontajeDelPrincipal.EnEspacios;
+        Datos.EspacioDelPrincipal = destino;
+        Recalcular();
+        _firmaDespues = Firma();
+        return ResultadoDelMovimiento.Hecho($"El interruptor principal pasó del zócalo a los espacios {string.Join("-", EspaciosDelPrincipal)}.");
+    }
+
+    /// <summary>De los espacios al zócalo: «Zócalo propio», y sus espacios quedan libres.</summary>
+    private ResultadoDelMovimiento MeterAlZocalo()
+    {
+        if (Datos.Barras.Count < 2)
+            return ResultadoDelMovimiento.NoValida("Con una sola barra no hay zócalo para el principal.");
+
+        var libres = string.Join("-", EspaciosDelPrincipal);
+        Recordar();
+        Datos.MontajePrincipal = MontajeDelPrincipal.Zocalo;
+        Recalcular();
+        _firmaDespues = Firma();
+        return ResultadoDelMovimiento.Hecho($"El interruptor principal pasó al zócalo propio; los espacios {libres} quedan libres.");
+    }
+
+    private ResultadoDelMovimiento MoverPrincipal(int destino)
+    {
+        var polos = EspaciosDelPrincipal.Count;
+        if (destino == EspaciosDelPrincipal[0])
+            return ResultadoDelMovimiento.SinCambio;
+        var ocupados = MontajesCapturados(excepto: null);
+        if (AcomodoEnGabinete.MotivoNoCabe(destino, polos, Datos.NumeroEspacios, ocupados) is { } motivo)
+            return DistribucionBarras.CabeEnElTablero(destino, polos, Datos.NumeroEspacios)
+                ? ResultadoDelMovimiento.Ocupada(motivo)
+                : ResultadoDelMovimiento.NoValida(motivo);
+
+        Recordar();
+        Datos.EspacioDelPrincipal = destino;
+        Recalcular();
+        _firmaDespues = Firma();
+        return ResultadoDelMovimiento.Hecho($"El interruptor principal pasó a los espacios {string.Join("-", EspaciosDelPrincipal)}.");
+    }
+
+    /// <summary>
+    /// Reacomoda los circuitos para el menor desbalanceo que se alcance moviendo lo menos posible —
+    /// <see cref="BalanceoDeFases.Proponer"/>, el del escritorio: intercambios entre circuitos de los
+    /// mismos polos y mudanzas a espacios libres, con la misma fórmula que el porcentaje de la tarjeta.
+    /// El principal y los renglones capturados sin carga no se mueven.
+    /// </summary>
+    public PropuestaDeBalanceo OptimizarBalanceo()
+    {
+        var conCarga = _circuitos.Where(c => c.TieneCarga && c.Resultado is not null).ToList();
+        var fijos = MontajesCapturados(excepto: null)
+            .Where(m => !conCarga.Any(c => c.Espacio == m.EspacioInicial))
+            .ToList();
+        if (EspaciosDelPrincipal.Count > 0)
+            fijos.Add(new MontajeEnGabinete(EspaciosDelPrincipal[0], EspaciosDelPrincipal.Count, "el interruptor principal"));
+
+        var propuesta = BalanceoDeFases.Proponer(
+            [.. conCarga.Select(c => new CircuitoBalanceable(c.Espacio.ToString(CultureInfo.InvariantCulture), c.Espacio, c.Polos, c.Resultado!.CorrienteDisenoA))],
+            fijos, Datos.NumeroEspacios, Datos.Sistema);
+
+        if (propuesta.Mejora)
+        {
+            Recordar();
+            Reubicar([.. propuesta.Movimientos.Select(m => (m.De, m.A))]);
+            Recalcular();
+            _firmaDespues = Firma();
+        }
+        return propuesta;
+    }
+
+    /// <summary>Regresa el tablero a como estaba antes del último movimiento u optimización.</summary>
+    public void Deshacer()
+    {
+        if (!PuedeDeshacer || _antes is not { } antes)
+            return;
+        for (var i = 0; i < _circuitos.Count; i++)
+        {
+            var nuevo = new CircuitoDelCuadro(i + 1);
+            if (i < antes.Circuitos.Count)
+                antes.Circuitos[i].Aplicar(nuevo, Datos);
+            _circuitos[i] = nuevo;
+        }
+        Datos.EspacioDelPrincipal = antes.EspacioDelPrincipal;
+        Datos.MontajePrincipal = antes.Montaje;
+        _antes = null;
+        _firmaDespues = null;
+        Recalcular();
+    }
+
+    private void Recordar() =>
+        _antes = ([.. _circuitos.Select(CircuitoJson.De)], Datos.EspacioDelPrincipal, Datos.MontajePrincipal);
+
+    /// <summary>
+    /// Mueve varios circuitos a la vez —un intercambio incluido—: primero se toman todos, luego se
+    /// vacían sus orígenes y al final se ponen en sus destinos.
+    /// </summary>
+    private void Reubicar(IReadOnlyList<(int De, int A)> movimientos)
+    {
+        var tomados = movimientos.Select(m => (m.A, Datos: CircuitoJson.De(_circuitos[m.De - 1]))).ToList();
+        foreach (var (de, _) in movimientos)
+            _circuitos[de - 1] = new CircuitoDelCuadro(de);
+        foreach (var (a, datos) in tomados)
+        {
+            var nuevo = new CircuitoDelCuadro(a);
+            datos.Aplicar(nuevo, Datos);
+            _circuitos[a - 1] = nuevo;
         }
     }
 
@@ -634,6 +916,16 @@ public sealed class CuadroDeCarga
                 .Where(c => !c.EsContinuacion)
                 .Select(c =>
                 {
+                    if (c.EsDelPrincipal)
+                        return new BloqueDelGabinete(
+                            Circuito: c,
+                            Fila: UnaSolaBarra ? c.Espacio : (c.Espacio + 1) / 2,
+                            Columna: UnaSolaBarra || c.Espacio % 2 == 1 ? 1 : 2,
+                            Espacios: EspaciosDelPrincipal.Count,
+                            Numeros: string.Join("-", EspaciosDelPrincipal),
+                            Barras: DistribucionBarras.FasesQueOcupa(c.Espacio, EspaciosDelPrincipal.Count, Datos.Sistema),
+                            EsPrincipal: true);
+
                     var espacios = DistribucionBarras.EspaciosQueOcupa(c.Espacio, c.Polos);
 
                     return new BloqueDelGabinete(

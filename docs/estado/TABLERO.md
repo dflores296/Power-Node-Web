@@ -30,7 +30,11 @@ Ejecutar en el navegador (Blazor WebAssembly), sin servidor, publicado en GitHub
 ## Interfaz
 
 - `/`: capturar la ficha del tablero, los circuitos, el resumen de carga y el alimentador. Dibujar el
-  interior del gabinete.
+  interior del gabinete en multifilar: barras, conexión y número de cada espacio, interruptores NEMA tipo QO,
+  directorio y el principal en zócalo, en espacios o zapatas (I-68).
+- Mover circuitos arrastrándolos, en la tabla (del número) o en el gabinete (del interruptor), con
+  deshacer; «Optimizar acomodo» para el menor desbalanceo — I-69. El principal, entre el zócalo y los
+  espacios — I-70.
 - `/documento`: emitir el cuadro de carga (24 columnas) y la memoria de cálculo (nueve secciones).
 - Consultar en tooltip el desglose de la protección y del conductor de cada renglón.
 - Teclado (`wwwroot/js/teclado.js`): Enter/Shift+Enter bajan y suben, ↑↓ cambian de renglón, Esc deshace,
@@ -42,7 +46,7 @@ Ejecutar en el navegador (Blazor WebAssembly), sin servidor, publicado en GitHub
   siempre en claro.
 - Canalizaciones: cada circuito con carga nace en su tubo (T1, T2…, EMT); agrupar en la columna
   «Canal.»; configurar nombre, tipo, opciones y tamaño en la tarjeta «Canalizaciones».
-- Pruebas: 194 en `PowerNode.Web.Tests` (20 del documento de pruebas del 2026-09-23).
+- Pruebas: 218 en `PowerNode.Web.Tests` (20 del documento de pruebas del 2026-09-23).
 
 Requisitos con su referencia NOM y su prueba: [`../../README.md`](../../README.md).
 
@@ -58,3 +62,4 @@ Requisitos con su referencia NOM y su prueba: [`../../README.md`](../../README.m
 |---|---|
 | Entregable impreso desde el navegador | [`../decisiones/documento-imprimible-en-vez-de-archivo.md`](../decisiones/documento-imprimible-en-vez-de-archivo.md) |
 | Guardar y abrir el tablero en un archivo | [`../decisiones/archivo-del-tablero.md`](../decisiones/archivo-del-tablero.md) |
+| Dónde va el interruptor principal dentro del gabinete | [`../decisiones/montaje-del-interruptor-principal.md`](../decisiones/montaje-del-interruptor-principal.md) |

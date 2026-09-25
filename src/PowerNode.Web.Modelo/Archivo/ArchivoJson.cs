@@ -43,6 +43,8 @@ public sealed class DatosJson
     public string? GabineteNema { get; set; }
     public int? NumeroEspacios { get; set; }
     public TipoAcometidaTablero? TipoAcometida { get; set; }
+    public MontajeDelPrincipal? MontajePrincipal { get; set; }
+    public int? EspacioDelPrincipal { get; set; }
     public decimal? CapacidadBarraA { get; set; }
     public bool? EsEquipoDeAcometida { get; set; }
     public TipoDeInmueble? Inmueble { get; set; }

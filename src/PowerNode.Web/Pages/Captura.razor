@@ -55,6 +55,30 @@
             <option value="@TipoAcometidaTablero.InterruptorPrincipal">Interruptor principal</option>
             <option value="@TipoAcometidaTablero.ZapatasPrincipales">Zapatas principales</option>
         </select></label>
+        @* Dónde va el principal — decisión montaje-del-interruptor-principal (I-68). Con una barra no
+           hay zócalo: siempre va en un espacio. *@
+        @if (Datos.UsaInterruptorPrincipal && Datos.Barras.Count > 1)
+        {
+            <label><span class="ayuda" title="Zócalo propio: abajo de las barras, sin ocupar espacios numerados. En espacios: como un derivado, se come tantos espacios como polos; por omisión, los últimos pares.">Montaje del principal</span>
+                <select @bind="Datos.MontajePrincipal" @bind:after="Recalcular">
+                    <option value="@MontajeDelPrincipal.Zocalo">Zócalo propio</option>
+                    <option value="@MontajeDelPrincipal.EnEspacios">En espacios del gabinete</option>
+                </select></label>
+        }
+        @if (Datos.PrincipalEnEspacios)
+        {
+            <label><span class="ayuda" title="Los espacios que se come el interruptor principal. Es un valor por omisión: se puede mover a donde quepa sin pisar un circuito.">Espacios del principal</span>
+                <select value="@Cuadro.EspacioInicialDelPrincipal" @onchange="CambiarEspacioDelPrincipal">
+                    @foreach (var e in Datos.EspaciosValidosDelPrincipal)
+                    {
+                        <option value="@e">@string.Join("-", DistribucionBarras.EspaciosQueOcupa(e, Datos.PolosDelPrincipal))</option>
+                    }
+                </select></label>
+        }
+        @if (Cuadro.AvisoDelPrincipal is { } avisoPrincipal)
+        {
+            <p class="aviso"><Icono Nombre="aviso" Clase="aviso-icono" /><span>@avisoPrincipal</span></p>
+        }
         <label>Montaje <select @bind="Datos.Montaje">
             <option value="Sobreponer">Sobreponer</option>
             <option value="Empotrar">Empotrar</option>
@@ -180,8 +204,23 @@
 
                 @foreach (var c in lado.Where(x => !x.EsContinuacion))
                 {
+                    @* El interruptor principal en espacios: un renglón que dice lo que es, sin captura (I-68). *@
+                    if (c.EsDelPrincipal)
+                    {
+                        <tr class="fila-principal" data-espacio="@c.Espacio">
+                            <td class="num asa" data-arrastre="@c.Espacio" data-destino="@c.Espacio" data-etiqueta="Interruptor principal" data-principal="1" title="Arrastrar para mover el interruptor principal, también al zócalo">@c.Espacio</td>
+                            <td colspan="@(Columnas - 1)" rowspan="@Cuadro.EspaciosDelPrincipal.Count">
+                                <strong>Interruptor principal</strong>@(Cuadro.InterruptorPrincipalA > 0m ? $" · {Cuadro.InterruptorPrincipalA:N0} A" : "") · @Polos(Datos.PolosDelPrincipal) · @(Datos.Barras.Count == 1 ? "alimenta la barra" : "alimenta las barras")
+                            </td>
+                        </tr>
+                        @foreach (var seguido in lado.Where(x => x.ContinuacionDe == c.Espacio))
+                        {
+                            <tr class="fila-principal"><td class="num asa" data-arrastre="@seguido.Espacio" data-destino="@seguido.Espacio" data-etiqueta="Interruptor principal" data-principal="1" title="Arrastrar para mover el interruptor principal, también al zócalo">@seguido.Espacio</td></tr>
+                        }
+                        continue;
+                    }
                     <tr class="@(c.Resultado is null ? "vacio" : null)" data-espacio="@c.Espacio">
-                        <td class="num">@c.Espacio</td>
+                        <td class="num @(c.TieneCaptura ? "asa" : null)" data-destino="@c.Espacio" data-arrastre="@(c.TieneCaptura ? c.Espacio : null)" data-etiqueta="@EtiquetaDeArrastre(c)" title="@(c.TieneCaptura ? "Arrastrar para mover el circuito a otro espacio" : null)">@c.Espacio</td>
                         <td rowspan="@c.Polos">
                             <div class="desc-linea">
                                 <button class="desglosar" tabindex="-1" aria-label="Desglose del circuito @c.Espacio" aria-expanded="@(Abierto(c) ? "true" : "false")" title="Desglosar los aparatos que alimenta el circuito. La carga del circuito es la suma. Con el teclado: Ctrl+Enter."
@@ -295,7 +334,7 @@
                     @foreach (var seguido in lado.Where(x => x.ContinuacionDe == c.Espacio))
                     {
                         <tr class="@(c.Resultado is null ? "vacio" : null)">
-                            <td class="num">@seguido.Espacio</td>
+                            <td class="num @(c.TieneCaptura ? "asa" : null)" data-destino="@seguido.Espacio" data-arrastre="@(c.TieneCaptura ? seguido.Espacio : null)" data-etiqueta="@EtiquetaDeArrastre(c)">@seguido.Espacio</td>
                         </tr>
                     }
 
@@ -462,64 +501,36 @@
     }
 </section>
 
+@if (_aviso is { } flotante)
+{
+    <div class="aviso-flotante @flotante.Clase" role="status" aria-live="polite">
+        <span>@flotante.Texto</span>
+        @if (flotante.Clase == "bien" && Cuadro.PuedeDeshacer)
+        {
+            <button class="boton" @onclick="DeshacerMovimiento">Deshacer</button>
+        }
+    </div>
+}
+
 <div class="cierre">
     @*
-        El interior del tablero, calcado del editor de gabinete de escritorio: UNA celda por
-        interruptor —tan alta como polos tiene—, no una por espacio. Un trifásico dibujado como tres
-        celdas sueltas con una flecha de "continúa" fue justo lo que David señaló allá el
-        2026-08-20: en un directorio de tablero real, un interruptor es una sola celda.
+        El interior del tablero: la tapa muerta con las barras en multifilar, los interruptores a sus
+        lados y el directorio afuera — Layout/InteriorDelGabinete.razor (I-67).
     *@
     <section class="tarjeta">
-        <h2>Gabinete · convención NEMA</h2>
+        <div class="encabezado-tarjeta">
+            <h2>Gabinete · convención NEMA · @Datos.EtiquetaSistema</h2>
+            @if (Cuadro.PuedeDeshacer)
+            {
+                <button class="boton con-icono" @onclick="DeshacerMovimiento" title="Regresar al acomodo de antes del último movimiento u optimización"><Icono Nombre="deshacer" Clase="boton-icono" />Deshacer movimiento</button>
+            }
+        </div>
         <p class="derivado sin-margen">
             <strong>@Cuadro.EspaciosOcupados</strong> de @Datos.NumeroEspacios espacios ocupados ·
             @Cuadro.EspaciosLibres libres
         </p>
 
-        <div class="interior @(Cuadro.UnaSolaBarra ? "una-columna" : null)">
-            @foreach (var bloque in Cuadro.Gabinete)
-            {
-                <div class="bloque @(bloque.Ocupado ? "ocupado" : "vacante")"
-                     style="grid-column: @bloque.Columna; grid-row: @bloque.Fila / span @bloque.Espacios"
-                     title="@Titulo(bloque)">
-                    <span class="numeros">@bloque.Numeros</span>
-                    <span class="pastillas">
-                        @foreach (var barra in bloque.Barras)
-                        {
-                            <span class="fase-rect fase-rect-@char.ToLowerInvariant(barra)">@barra</span>
-                        }
-                    </span>
-                    <span class="etiqueta">
-                        @(bloque.Ocupado
-                            ? (string.IsNullOrWhiteSpace(bloque.Circuito.Descripcion)
-                                ? MemoriaDeCalculo.Etiqueta(bloque.Circuito)
-                                : bloque.Circuito.Descripcion)
-                            : "libre")
-                    </span>
-                    @if (bloque.Ocupado)
-                    {
-                        <span class="amperes">@bloque.Circuito.Resultado?.ProteccionA.ToString("N0") A</span>
-                    }
-                </div>
-            }
-        </div>
-
-        @*
-            El principal va abajo y centrado, fuera de las dos columnas: sin catálogo no se sabe si
-            su marco es el de un derivado (y entonces se comería espacios numerados) o si trae
-            alojamiento propio, y suponerlo sería inventar espacios que no se pueden usar. Se dibuja
-            como lo que es seguro: existe y protege al tablero.
-        *@
-        @if (Datos.UsaInterruptorPrincipal)
-        {
-            <div class="principal">
-                Interruptor principal
-                @if (Cuadro.InterruptorPrincipalA > 0m)
-                {
-                    <strong>@Cuadro.InterruptorPrincipalA.ToString("N0") A · @Polos(Cuadro.Alimentador.Polos)</strong>
-                }
-            </div>
-        }
+        <InteriorDelGabinete Cuadro="Cuadro" />
     </section>
 
     <div class="columna">
@@ -601,7 +612,13 @@
     @* Balanceo en su propia tarjeta, con barras de los colores de fase (David, 2026-09-24). La barra
        más cargada llena la pista; las demás, en proporción. *@
     <section class="tarjeta balanceo">
-        <h2>Balanceo de fases</h2>
+        <div class="encabezado-tarjeta">
+            <h2>Balanceo de fases</h2>
+            @if (Datos.Barras.Count > 1)
+            {
+                <button class="boton" @onclick="OptimizarAcomodo" title="Reacomodar los circuitos para el menor desbalanceo, moviendo los menos posibles. Se puede deshacer.">Optimizar acomodo</button>
+            }
+        </div>
         @{ var mayor = Datos.Barras.Max(b => Cuadro.Resumen.CargaPorFaseVA[b]); }
         @foreach (var barra in Datos.Barras)
         {
@@ -743,6 +760,71 @@
 
     private void Recalcular() => Cuadro.Recalcular();
 
+    // ---- Mover circuitos y optimizar el acomodo (I-69) -------------------------------------------
+
+    private DotNetObjectReference<Captura>? _arrastre;
+
+    /// <summary>Lo que dice el fantasma mientras se arrastra: «7 · Alumbrado planta baja».</summary>
+    private static string? EtiquetaDeArrastre(CircuitoDelCuadro c) =>
+        !c.TieneCaptura ? null
+        : string.IsNullOrWhiteSpace(c.Descripcion) ? $"Circuito {c.Espacio}" : $"{c.Espacio} · {c.Descripcion.Trim()}";
+
+    /// <summary>Lo llama js/arrastre.js al soltar un interruptor sobre un espacio.</summary>
+    [JSInvokable]
+    public void Soltar(int origen, int destino)
+    {
+        var r = Cuadro.MoverCircuito(origen, destino);
+        if (r.Mensaje is { } mensaje)
+            Avisar(mensaje, r.Movio);
+        StateHasChanged();
+    }
+
+    private void OptimizarAcomodo()
+    {
+        var p = Cuadro.OptimizarBalanceo();
+        if (p.Mejora)
+        {
+            var movs = string.Join(" · ", p.Movimientos.Select(m => $"{m.De} → {m.A}"));
+            Avisar($"Desbalanceo de {p.DesbalanceoAntesPct:N1} % a {p.DesbalanceoDespuesPct:N1} %: " +
+                   $"{(p.Movimientos.Count == 1 ? "se movió 1 circuito" : $"se movieron {p.Movimientos.Count} circuitos")} ({movs}).", true);
+        }
+        else
+            Avisar(p.DesbalanceoAntesPct == 0m
+                ? "No hay desbalanceo que corregir."
+                : "El acomodo ya tiene el menor desbalanceo que se alcanza moviendo circuitos.", false, neutro: true);
+    }
+
+    private void DeshacerMovimiento()
+    {
+        Cuadro.Deshacer();
+        Avisar("Se deshizo el último movimiento.", true);
+    }
+
+    // El aviso temporal: arriba, debajo de la barra, y se va solo.
+    private (string Texto, string Clase, int Id)? _aviso;
+    private int _avisos;
+
+    private void Avisar(string texto, bool bien, bool neutro = false)
+    {
+        var id = ++_avisos;
+        _aviso = (texto, neutro ? "neutro" : bien ? "bien" : "mal", id);
+        _ = Task.Delay(bien || neutro ? 4500 : 5500).ContinueWith(_ => InvokeAsync(() =>
+        {
+            if (_aviso?.Id == id)
+            {
+                _aviso = null;
+                StateHasChanged();
+            }
+        }));
+    }
+
+    private void CambiarEspacioDelPrincipal(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var espacio))
+            Datos.EspacioDelPrincipal = espacio;
+        Recalcular();
+    }
+
     private void NuevaCanalizacion()
     {
         var nueva = Datos.NuevaCanalizacion();
@@ -767,6 +849,11 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (firstRender)
+        {
+            _arrastre = DotNetObjectReference.Create(this);
+            await JS.InvokeVoidAsync("powerNode.arrastre.conectar", _arrastre);
+        }
         if (_enfocar is { } selector)
         {
             _enfocar = null;
@@ -785,7 +872,12 @@
         StateHasChanged();
     }
 
-    public void Dispose() => Proyecto.Cambio -= AlAbrirOtroTablero;
+    public void Dispose()
+    {
+        Proyecto.Cambio -= AlAbrirOtroTablero;
+        _ = JS.InvokeVoidAsync("powerNode.arrastre.desconectar").AsTask();
+        _arrastre?.Dispose();
+    }
 
     private static string DescripcionDeAparato(int espacio, int n) =>
         $"table.desglose[data-circuito=\"{espacio}\"] > tbody > tr:nth-child({n}) input[data-col=\"ap-desc\"]";
@@ -1158,11 +1250,6 @@
         ? "Capturada en W: VA = W ÷ F.P. Modifica corriente, protección, conductor, caída de tensión y kW."
         : $"Capturada en {(c.Unidad == UnidadConsumo.Amperes ? "A" : "VA")}: el F.P. no modifica la corriente ni la protección. " +
           "Modifica la caída de tensión (y el conductor, si excede el límite) y los kW.";
-
-    private static string Titulo(BloqueDelGabinete bloque) =>
-        bloque.Ocupado
-            ? $"Espacio(s) {bloque.Numeros} · barra(s) {bloque.Barras} · {bloque.Espacios} polo(s)"
-            : $"Espacio {bloque.Numeros} · barra {bloque.Barras} · libre";
 
     /// <summary>«6.77 % (fase C)»: la caída del alimentador y la fase que la da.</summary>
     private static string CaidaDelAlimentador(ResultadoAlimentador a) =>

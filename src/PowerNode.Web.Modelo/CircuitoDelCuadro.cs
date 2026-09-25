@@ -131,6 +131,13 @@ public sealed class CircuitoDelCuadro
     /// </summary>
     public int? ContinuacionDe { get; internal set; }
 
+    /// <summary>
+    /// El renglón es del interruptor principal montado en espacios, no de un circuito: no captura
+    /// nada. El primero de sus espacios lo lleva sin <see cref="ContinuacionDe"/>; los demás, con él.
+    /// Lo mantiene <see cref="CuadroDeCarga"/> — decisión <c>montaje-del-interruptor-principal.md</c>.
+    /// </summary>
+    public bool EsDelPrincipal { get; internal set; }
+
     /// <summary>Las barras que toca, en el orden en que las toca: «A», «AB», «ABC». La resuelve la geometría del tablero, no se captura.</summary>
     public string Fases { get; internal set; } = "A";
 
@@ -195,7 +202,14 @@ public sealed class CircuitoDelCuadro
     /// </summary>
     public decimal PotenciaActivaW => CargaInstaladaVA * FactorPotencia;
 
-    public bool TieneCarga => !EsContinuacion && CargaInstaladaVA > 0m;
+    public bool TieneCarga => !EsContinuacion && !EsDelPrincipal && CargaInstaladaVA > 0m;
+
+    /// <summary>
+    /// Algo capturado: descripción, carga, aparatos o más de un polo. Un renglón así no se lo come el
+    /// interruptor principal: se avisa y el principal espera a que uno de los dos se mueva.
+    /// </summary>
+    public bool TieneCaptura =>
+        !string.IsNullOrWhiteSpace(Descripcion) || Continua > 0m || NoContinua > 0m || TieneDesglose || Polos > 1;
 
     /// <summary>
     /// Lo que este circuito le carga a cada una de sus barras, en VA — la banda «BALANCEO DE FASES»

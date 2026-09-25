@@ -106,7 +106,8 @@ public static class ArchivoDelCuadro
                 Tablero = d.Tablero, Clave = d.Clave, Ubicacion = d.Ubicacion, Proyecto = d.Proyecto, Cliente = d.Cliente,
                 Diseno = d.Diseno, Reviso = d.Reviso, Aprobo = d.Aprobo, Fecha = d.Fecha, Revision = d.Revision,
                 Montaje = d.Montaje, MaterialBarras = d.MaterialBarras, GabineteNema = d.GabineteNema,
-                NumeroEspacios = d.NumeroEspacios, TipoAcometida = d.TipoAcometida, CapacidadBarraA = d.CapacidadBarraA,
+                NumeroEspacios = d.NumeroEspacios, TipoAcometida = d.TipoAcometida,
+                MontajePrincipal = d.MontajePrincipal, EspacioDelPrincipal = d.EspacioDelPrincipal, CapacidadBarraA = d.CapacidadBarraA,
                 EsEquipoDeAcometida = d.EsEquipoDeAcometida, Inmueble = d.Inmueble, SerieInterruptores = d.SerieInterruptores,
                 TensionFaseFaseV = d.TensionFaseFaseV, Fases = d.Fases, Hilos = d.Hilos, FrecuenciaHz = d.FrecuenciaHz,
                 FactoresDeDemanda = CategoriasDeCarga.Todas.ToDictionary(c => c, d.FactorDeDemanda),
@@ -155,7 +156,6 @@ public static class ArchivoDelCuadro
             d.Montaje = a.Montaje ?? d.Montaje;
             d.MaterialBarras = a.MaterialBarras ?? d.MaterialBarras;
             d.GabineteNema = a.GabineteNema ?? d.GabineteNema;
-            d.TipoAcometida = a.TipoAcometida ?? d.TipoAcometida;
             d.CapacidadBarraA = a.CapacidadBarraA;
             d.EsEquipoDeAcometida = a.EsEquipoDeAcometida ?? d.EsEquipoDeAcometida;
             d.Inmueble = a.Inmueble ?? d.Inmueble;
@@ -189,6 +189,11 @@ public static class ArchivoDelCuadro
                     avisos.Add($"Un gabinete de {espacios} espacios no se ofrece para {d.EtiquetaSistema}; se abrió con {d.NumeroEspacios}.");
                 }
             }
+
+            // Después de las fases: entrar a 1F-2H pone zapatas, y lo del archivo va encima.
+            d.TipoAcometida = a.TipoAcometida ?? d.TipoAcometida;
+            d.MontajePrincipal = a.MontajePrincipal ?? d.MontajePrincipal;
+            d.EspacioDelPrincipal = a.EspacioDelPrincipal;
 
             foreach (var (categoria, factor) in a.FactoresDeDemanda ?? [])
                 d.CambiarFactorDeDemanda(categoria, factor);
