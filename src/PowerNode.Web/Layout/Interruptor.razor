@@ -1,12 +1,12 @@
 @*
     EL INTERRUPTOR TERMOMAGNÉTICO NEMA, TIPO QO, DUOTONO (I-66). Mismo trazo que Icono.razor —1.5 px,
     remate redondo, relleno del acento al 16 %—. Genérico: sin marca, logotipo ni rótulo
-    (sin-catalogo-square-d.md). Canvas «Iconos de termomagnético», segunda propuesta.
+    (sin-catalogo-square-d.md). Canvas «Iconos de termomagnético», tercera propuesta (David).
 
-    Visto de frente con la manija arriba (encendido), de arriba abajo: la pinza que entra a la barra,
-    el cuerpo, el cuello que sale por la tapa, la manija en su ranura, la ventana de disparo y la
-    zapata de carga con su tornillo, una por polo. En 2 y 3 polos, UNA manija ancha —así es el QO de
-    varios polos—, no manijas sueltas unidas por una barra.
+    Visto de frente con la manija arriba (encendido): arriba, la pinza de cada polo que entra a la
+    barra; al centro, la tapa; abajo, la zapata de carga con su tornillo, una por polo. UNA manija, de
+    ancho normal, con la ventana de disparo debajo: en el único polo del de 1, en el derecho del de 2,
+    en el central del de 3. La tapa de los otros polos va lisa.
 
     Cada polo mide 34 de ancho (el renglón de 30 del gabinete más su hueco de 4); el cuerpo se
     recorta 5 por lado, así que un interruptor de n polos mide 34n − 10 y cabe justo en los n
@@ -14,26 +14,29 @@
 *@
 <svg class="interruptor @Clase" viewBox="0 0 @AnchoEnPantalla @AltoEnPantalla" width="@AnchoEnPantalla" height="@AltoEnPantalla" role="img" aria-label="@Nombre">
     <g transform="@Giro">
-        <path class="relleno" d="@Pinza" />
-        <path class="trazo" d="@Pinza" />
-        <rect class="relleno" x="0.75" y="4" width="@N(Ancho - 1.5m)" height="41.25" rx="2.5" />
-        <rect class="trazo" x="0.75" y="4" width="@N(Ancho - 1.5m)" height="41.25" rx="2.5" />
+        @foreach (var y in new[] { 0.75m, Largo - 11.75m })
+        {
+            <rect class="relleno" x="2.5" y="@N(y)" width="@(Ancho - 5)" height="11" rx="2" />
+            <rect class="trazo" x="2.5" y="@N(y)" width="@(Ancho - 5)" height="11" rx="2" />
+        }
         @for (var k = 1; k < Polos; k++)
         {
-            <path class="trazo" d="@($"M{Paso * k - 5} 4v4M{Paso * k - 5} 34v11.25")" />
+            <path class="trazo" d="@($"M{Paso * k - 5} 0.75v11M{Paso * k - 5} {N(Largo - 11.75m)}v11")" />
         }
-        <rect class="relleno" x="4.5" y="8" width="@(Ancho - 9)" height="26" rx="2" />
-        <rect class="trazo" x="4.5" y="8" width="@(Ancho - 9)" height="26" rx="2" />
-        <rect class="trazo" x="6.5" y="11" width="@(Ancho - 13)" height="14" rx="1.5" />
-        <rect class="manija" x="8" y="12.5" width="@(Ancho - 16)" height="6.5" rx="1" />
-        <path class="ranura" d="@($"M9.5 15.75h{Ancho - 19}")" />
-        <rect class="trazo" x="@N(Ancho / 2m - 2.5m)" y="28" width="5" height="3" rx="0.8" />
         @for (var k = 0; k < Polos; k++)
         {
             var x = Paso * k + 12;
-            <circle class="trazo" cx="@x" cy="39.5" r="2.3" />
-            <path class="trazo" d="@($"M{N(x - 1.1m)} 40.6l2.2-2.2")" />
+            <path class="trazo" d="@($"M{x - 3} 6h6")" />
+            <circle class="trazo" cx="@x" cy="@N(Largo - 6.25m)" r="2.2" />
+            <path class="trazo" d="@($"M{N(x - 1.1m)} {N(Largo - 5.15m)}l2.2-2.2")" />
         }
+        <rect class="fondo" x="0.75" y="9.5" width="@N(Ancho - 1.5m)" height="@(Largo - 19)" rx="3" />
+        <rect class="relleno" x="0.75" y="9.5" width="@N(Ancho - 1.5m)" height="@(Largo - 19)" rx="3" />
+        <rect class="trazo" x="0.75" y="9.5" width="@N(Ancho - 1.5m)" height="@(Largo - 19)" rx="3" />
+        <rect class="trazo" x="@(Manija - 6)" y="15" width="12" height="17" rx="1.5" />
+        <rect class="manija" x="@N(Manija - 4.5m)" y="16.5" width="9" height="8.5" rx="1" />
+        <path class="ranura" d="@($"M{Manija - 3} 20.75h6")" />
+        <rect class="trazo" x="@N(Manija - 2.5m)" y="38" width="5" height="3.5" rx="0.8" />
     </g>
 </svg>
 
@@ -41,8 +44,8 @@
     /// <summary>De un polo al siguiente: el renglón del gabinete (30 px) más su hueco (4 px).</summary>
     private const int Paso = 34;
 
-    /// <summary>Largo del interruptor, de la pinza a la zapata.</summary>
-    private const int Largo = 46;
+    /// <summary>Largo del interruptor, de la pinza a la zapata: 2.6 veces el ancho de un polo, cerca del QO real (David: «muy anchos»).</summary>
+    private const int Largo = 62;
 
     /// <summary>1, 2 o 3.</summary>
     [Parameter] public int Polos { get; set; } = 1;
@@ -67,7 +70,8 @@
         _ => null,
     };
 
-    private string Pinza => $"M5 4V1.75a1 1 0 0 1 1-1h{Ancho - 12}a1 1 0 0 1 1 1V4";
+    /// <summary>El centro del polo que lleva la manija: el único, el derecho (de 2) o el central (de 3).</summary>
+    private int Manija => Paso * (Polos == 1 ? 0 : 1) + 12;
 
     private string Nombre => $"Interruptor de {Polos} {(Polos == 1 ? "polo" : "polos")}";
 

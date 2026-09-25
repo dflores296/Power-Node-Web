@@ -708,6 +708,7 @@ label.suelto input { width: 90px; }
 .interruptor { flex: none; display: block; overflow: visible; color: var(--tinta); }
 .interruptor .trazo { fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
 .interruptor .relleno { fill: var(--acento); fill-opacity: var(--icono-relleno); stroke: none; }
+.interruptor .fondo { fill: var(--papel); }   /* la tapa tapa a los módulos de arriba y abajo */
 .interruptor .manija { fill: currentColor; fill-opacity: .85; }
 .interruptor .ranura { fill: none; stroke: var(--papel); stroke-width: 1; stroke-linecap: round; }
 
