@@ -83,6 +83,7 @@ Pruebas: 66 en `PowerNode.Web.Tests`, 6 en `PowerNode.Normativa.Tests`.
 - Tema oscuro (Automático → Claro → Oscuro, impreso siempre en claro) e iconos de la pestaña renombrados a `powernode-carta-*` — I-57, `f84d575`.
 - Barra superior fija con el patrón de la NOM y de msa-toolkit: Captura · Cuadro de carga · Memoria de cálculo, tema Sistema | Claro | Oscuro, Imprimir en el documento — I-58, `af8e83b`.
 - Logo más grande (80 px en la carga, 40 en la barra) y la carta que se dibuja: con el avance real de la descarga en la pantalla de carga, al pasar el cursor en la barra; sin tooltip — I-59, `04a2e56`.
+- La carta de la carga se ve completa aunque la carga sea rápida (capa encima de la app, 1.6 s mínimo, sin brincos tras la congelación del arranque); encabezado del documento sin hueco; resumen a 360 px; tema e Imprimir con símbolos en el celular — I-60, `da669de`.
 
 Pruebas: 179 en `PowerNode.Web.Tests`, 23 en `PowerNode.Normativa.Tests`.
 
