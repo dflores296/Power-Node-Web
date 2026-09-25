@@ -73,6 +73,7 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-50 · Fórmula de caída de la memoria sin «÷ 1000» (L en m, R y X en Ω/km) | P2 | **Cerrado** | `9fe6995` |
 | I-51 · Selector de uso de contactos desalineado bajo el de tipo | P3 | **Cerrado** | `5cdc8bb` |
 | I-52 · F.P. cortado en «0.9» tras I-49 | P2 | **Cerrado** | `5cdc8bb` |
+| I-53 · Tensión sin rótulo correcto ni aviso: 1F-2H a 220 V F-N, 1F-3H a 220/110 V | P1 | **Cerrado** | `pendiente` |
 | R-01 · Caída del alimentador fija en 5 %, sin verificar la combinada — 215-2(a)(4) NOTA 2 | P1 | **Cerrado** | `2a973ea` |
 | R-02 · Caída del alimentador sin la caída del neutro | P2 | **Cerrado** | `d6cd1c6` |
 | R-03 · La publicación no corre `PowerNode.Web.Tests` | P1 | **Cerrado** | `986c9d7` |
@@ -220,6 +221,8 @@ Formato: **Hecho** (defecto observado) · **Corrección** · **Referencia** · *
 **I-51** — Hecho (David): en un circuito de contactos de vivienda, el selector de uso («Cocina») salía en bloque pegado a la izquierda de la celda y con otra letra, debajo del de tipo centrado; la nota «Alimentador: 1,500 VA — 220-52(a)» también a la izquierda. Se veía chueco. Corrección: tipo, uso y nota en una columna centrada (`.tipo-uso`), los dos selectores de 108 × 23 px con el mismo borde. Prueba: navegador (mismas coordenadas y medidas; nota centrada bajo el tipo).
 
 **I-52** — Hecho (Claude, revisando I-51): I-49 puso el F.P. siempre con dos decimales («0.90») y el campo de 52 px lo cortaba en «0.9». Corrección: 60 px. Prueba: navegador, ningún campo con el texto más ancho que su caja, en un caso con W, A, desglose y F.P. de tres decimales.
+
+**I-53** — Hecho (David, con dos capturas): con 220 V de un 3F-4H pasó a 1F-2H y el tablero calculó **220 V de fase a neutro**; a 1F-3H, **110 V**. Ninguna es tensión de la NOM (110-4: 120, 127, 120/240, 220Y/127, 208Y/120, 240, 480Y/277…). El campo decía «Tensión F-F» también en 1F-2H, que no tiene dos fases, y el programa usaba ese número como F-N; al cambiar de configuración la tensión se quedaba y nada avisaba. David preguntó además si 1F-3H era «fase, neutro y tierra»: no, los hilos son fases más neutro y la tierra no se cuenta; 1F-3H es «120/240 volts, 1 fase, 3 hilos», dos vivos en oposición con derivación central, y el «bifásico» es 2F-3H, «220Y/127 volts, derivado de un sistema de 3 fases, 4 hilos». Corrección: `DatosDelTablero.TensionesNominales` por configuración; al cambiar de configuración una tensión que no es nominal pasa a la de la NOM (127, 240, 220), y una que sí lo es se queda (3F-4H a 480 → 3F-3H sigue en 480); `AvisoTension` en la ficha si la capturada no es nominal, con la F-N que resulta; el campo dice «Tensión F-N» en 1F-2H; ayudas en Fases e Hilos (la tierra no es hilo); «2F-3H (dos fases de estrella)» en vez de «2F de estrella»; el documento no imprime «V F-F» en 1F-2H. Prueba: `I53_AlCambiarDeConfiguracion_…`, `I53_UnaTensionQueNoEsDeLaNom_SeAvisa`; navegador.
 
 ### Revisión del 2026-09-23
 

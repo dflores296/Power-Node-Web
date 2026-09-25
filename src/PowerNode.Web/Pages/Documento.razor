@@ -35,7 +35,7 @@
                 <div><dt>Proyecto</dt><dd>@Texto(Datos.Proyecto)</dd></div>
                 <div><dt>Cliente</dt><dd>@Texto(Datos.Cliente)</dd></div>
                 <div><dt>Sistema</dt><dd>@Datos.EtiquetaSistema</dd></div>
-                <div><dt>Tensión</dt><dd>@Datos.TensionFaseFaseV.ToString("#,0.##") V F-F · @Datos.TensionFaseNeutroV.ToString("N1") V F-N · @Datos.FrecuenciaHz Hz</dd></div>
+                <div><dt>Tensión</dt><dd>@(Datos.Barras.Count > 1 ? $"{Datos.TensionFaseFaseV:#,0.##} V F-F · " : "")@Datos.TensionFaseNeutroV.ToString("N1") V F-N · @Datos.FrecuenciaHz Hz</dd></div>
                 <div><dt>Int. ppal.</dt><dd>@(Cuadro.InterruptorPrincipalA > 0m ? $"{Cuadro.InterruptorPrincipalA:N0} A" : "—")</dd></div>
                 <div><dt>Acometida</dt><dd>@(Datos.UsaInterruptorPrincipal ? "Interruptor principal" : "Zapatas principales")</dd></div>
                 <div><dt>Inmueble</dt><dd>@Datos.Inmueble.Nombre()</dd></div>

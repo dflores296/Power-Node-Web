@@ -1826,4 +1826,45 @@ public class CuadroDeCargaTests
         Assert.Equal(4, datos.Hilos); // de regreso a 3F-4H, no a un 3F-3H que nadie pidió
         Assert.Equal([3, 4], datos.HilosValidos);
     }
+
+    [Fact]
+    public void I53_AlCambiarDeConfiguracion_LaTensionPasaALaNominalDeLaNom()
+    {
+        // David, 2026-09-25: con 220 V de un 3F-4H pasó a 1F-2H y el tablero calculó 220 V de fase a
+        // neutro; a 1F-3H, 110 V. Ninguna es tensión de la NOM (110-4).
+        var datos = new DatosDelTablero(); // 3F-4H, 220 V
+        Assert.Null(datos.AvisoTension);
+
+        datos.Fases = 1; // 1F-2H: fase y neutro
+        Assert.Equal(127m, datos.TensionFaseNeutroV);
+
+        datos.Hilos = 3; // 1F-3H: 120/240
+        Assert.Equal(240m, datos.TensionFaseFaseV);
+        Assert.Equal(120m, datos.TensionFaseNeutroV);
+
+        datos.Fases = 2; // 2F-3H: 220/127
+        Assert.Equal(220m, datos.TensionFaseFaseV);
+
+        datos.Fases = 3;
+        datos.TensionFaseFaseV = 480m; // 480Y/277
+        datos.Hilos = 3; // 3F-3H: 480 sigue siendo nominal, se queda
+        Assert.Equal(480m, datos.TensionFaseFaseV);
+        Assert.Null(datos.AvisoTension);
+    }
+
+    [Fact]
+    public void I53_UnaTensionQueNoEsDeLaNom_SeAvisa()
+    {
+        var datos = new DatosDelTablero();
+        datos.Fases = 1;
+        datos.Hilos = 3;
+        datos.TensionFaseFaseV = 220m; // la captura de David en 1F-3H
+        Assert.Contains("120/240 V", datos.AvisoTension);
+        Assert.Contains("110 V", datos.AvisoTension);
+
+        datos.Hilos = 2; // 1F-2H: 220 no es nominal, pasa a 127
+        Assert.Equal(127m, datos.TensionFaseFaseV);
+        datos.TensionFaseFaseV = 220m;
+        Assert.Contains("1F-2H (fase y neutro): 127 o 120 V", datos.AvisoTension);
+    }
 }

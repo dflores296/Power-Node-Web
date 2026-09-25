@@ -96,7 +96,12 @@ public sealed class DatosDelTablero
 
     // ---- Sistema (Excel T22:T26) ---------------------------------------------------------------
 
+    /// <summary>
+    /// La tensión del sistema: entre fases, salvo en 1F-2H, que no tiene dos fases y es la de fase a
+    /// neutro (127 V). Por eso la pantalla la rotula «Tensión F-N» en 1F-2H — I-53.
+    /// </summary>
     public decimal TensionFaseFaseV { get; set; } = 220m;
+
     /// <summary>
     /// Al cambiar las fases, los hilos pasan a los del sistema más común de esas fases: «1 fase,
     /// 4 hilos» no es nada — el motor lo leía como 1F-3H sin avisar. Siempre al más común, y no solo
@@ -111,12 +116,74 @@ public sealed class DatosDelTablero
             if (value == _fases)
                 return;
             _fases = value;
-            Hilos = HilosPorOmision(value);
+            _hilos = HilosPorOmision(value);
+            AjustarTension();
         }
     }
     private int _fases = 3;
 
-    public int Hilos { get; set; } = 4;
+    /// <summary>Fases más neutro. La tierra no se cuenta: 1F-2H es fase, neutro y tierra.</summary>
+    public int Hilos
+    {
+        get => _hilos;
+        set
+        {
+            if (value == _hilos)
+                return;
+            _hilos = value;
+            AjustarTension();
+        }
+    }
+    private int _hilos = 4;
+
+    /// <summary>
+    /// Las tensiones nominales de la NOM para la configuración — 110-4 y 220-5(a). En 1F-2H, de fase
+    /// a neutro; en las demás, entre fases. 1F-3H es 120/240: con 220 V calculaba 110 V fase-neutro,
+    /// que no existe (I-53). La primera es la que se propone al cambiar de configuración.
+    /// </summary>
+    public IReadOnlyList<decimal> TensionesNominales => SistemaDelTablero.De(Sistema) switch
+    {
+        ConfiguracionTablero.UnaFaseDosHilos => [127m, 120m],
+        ConfiguracionTablero.UnaFaseTresHilos => [240m],
+        ConfiguracionTablero.DosFasesDeEstrella => [220m, 208m],
+        ConfiguracionTablero.TresFasesTresHilos => [220m, 208m, 240m, 440m, 460m, 480m, 600m],
+        _ => [220m, 208m, 480m, 600m],
+    };
+
+    /// <summary>
+    /// Al cambiar de configuración, una tensión que no es nominal para la nueva pasa a la que sí lo
+    /// es: 127 V de un 1F-2H no son 127 V entre fases de un 2F-3H. Una que ya es nominal se queda:
+    /// de 3F-4H a 480 V a 3F-3H, sigue en 480.
+    /// </summary>
+    private void AjustarTension()
+    {
+        if (!TensionesNominales.Contains(TensionFaseFaseV))
+            TensionFaseFaseV = TensionesNominales[0];
+    }
+
+    /// <summary>La tensión capturada no es nominal de la NOM para la configuración — 110-4.</summary>
+    public string? AvisoTension
+    {
+        get
+        {
+            if (TensionesNominales.Contains(TensionFaseFaseV))
+                return null;
+            var configuracion = SistemaDelTablero.De(Sistema);
+            if (configuracion == ConfiguracionTablero.UnaFaseDosHilos)
+                return $"{TensionFaseFaseV:0.##} V no es una tensión nominal de la NOM para 1F-2H (fase y neutro): 127 o 120 V — 110-4.";
+            var nominales = configuracion switch
+            {
+                ConfiguracionTablero.UnaFaseTresHilos => "120/240 V",
+                ConfiguracionTablero.DosFasesDeEstrella => "220/127 o 208/120 V",
+                ConfiguracionTablero.TresFasesTresHilos => "220, 208, 240, 440, 460, 480 o 600 V entre fases",
+                _ => "220Y/127, 208Y/120, 480Y/277 o 600Y/347 V",
+            };
+            var fn = configuracion == ConfiguracionTablero.TresFasesTresHilos
+                ? ""
+                : $" Con {TensionFaseFaseV:0.##} V entre fases, la de fase a neutro queda en {TensionFaseNeutroV:0.##} V.";
+            return $"{TensionFaseFaseV:0.##} V no es una tensión nominal de la NOM para {EtiquetaSistema}: {nominales} — 110-4.{fn}";
+        }
+    }
 
     /// <summary>
     /// Los hilos que admite cada número de fases: 1F-2H o 1F-3H; 2F de estrella solo con neutro,
@@ -168,7 +235,7 @@ public sealed class DatosDelTablero
     {
         ConfiguracionTablero.UnaFaseDosHilos => "1F-2H",
         ConfiguracionTablero.UnaFaseTresHilos => "1F-3H (derivación central)",
-        ConfiguracionTablero.DosFasesDeEstrella => "2F de estrella",
+        ConfiguracionTablero.DosFasesDeEstrella => "2F-3H (dos fases de estrella)",
         ConfiguracionTablero.TresFasesTresHilos => "3F-3H (delta, sin neutro)",
         _ => "3F-4H (estrella)",
     };

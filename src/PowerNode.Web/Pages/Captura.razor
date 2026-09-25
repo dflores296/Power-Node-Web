@@ -32,15 +32,23 @@
 
     <div class="grupo">
         <h2>Sistema</h2>
-        <label>Tensión F-F (V) <input type="number" min="100" step="1" value="@Numero(Datos.TensionFaseFaseV)" @onchange="e => { Datos.TensionFaseFaseV = Leer(e, Datos.TensionFaseFaseV); Recalcular(); }" /></label>
-        <label>Fases <select @bind="Datos.Fases" @bind:after="Recalcular">@foreach (var f in new[] { 1, 2, 3 }) { <option value="@f">@f</option> }</select></label>
-        <label>Hilos <select @bind="Datos.Hilos" @bind:after="Recalcular">@foreach (var h in Datos.HilosValidos) { <option value="@h">@h</option> }</select></label>
+        @* En 1F-2H no hay dos fases: la tensión es de fase a neutro (I-53). *@
+        <label><span class="ayuda" title="@(EsUnaFaseDosHilos ? "Capturar la tensión de fase a neutro: 127 V (o 120 V) — 110-4." : "Capturar la tensión entre fases. 1F-3H: 240 V (120/240). 2F-3H y 3F-4H: 220 V (220Y/127) o 208 V (208Y/120). 3F-3H: 220, 240, 480 V… — 110-4.")">@(EsUnaFaseDosHilos ? "Tensión F-N (V)" : "Tensión F-F (V)")</span>
+            <input type="number" min="100" step="1" value="@Numero(Datos.TensionFaseFaseV)" @onchange="e => { Datos.TensionFaseFaseV = Leer(e, Datos.TensionFaseFaseV); Recalcular(); }" /></label>
+        <label><span class="ayuda" title="Seleccionar los conductores energizados. 1: una fase y neutro (1F-2H) o monofásico con derivación central, 120/240 V (1F-3H). 2: dos fases de un sistema en estrella, 220/127 V (2F-3H, el «bifásico»). 3: trifásico.">Fases</span>
+            <select @bind="Datos.Fases" @bind:after="Recalcular">@foreach (var f in new[] { 1, 2, 3 }) { <option value="@f">@f</option> }</select></label>
+        <label><span class="ayuda" title="Hilos = fases + neutro. La tierra no se cuenta: fase, neutro y tierra es 1F-2H. 1F-3H es otro sistema: dos vivos en oposición y neutro, 120/240 V.">Hilos</span>
+            <select @bind="Datos.Hilos" @bind:after="Recalcular">@foreach (var h in Datos.HilosValidos) { <option value="@h">@h</option> }</select></label>
         <label>Frecuencia (Hz) <input type="number" min="50" step="10" @bind="Datos.FrecuenciaHz" /></label>
         <p class="derivado">
             @Datos.EtiquetaSistema ·
             Tensión F-N <strong>@Datos.TensionFaseNeutroV.ToString("N1") V</strong> ·
             barras <strong>@string.Join(" ", Datos.Barras)</strong>
         </p>
+        @if (Datos.AvisoTension is { } avisoTension)
+        {
+            <p class="aviso">@avisoTension</p>
+        }
     </div>
     </div>
 
@@ -968,6 +976,8 @@
 
     /// <summary>«1 polo», «3 polos».</summary>
     private static string Polos(int n) => n == 1 ? "1 polo" : $"{n} polos";
+
+    private bool EsUnaFaseDosHilos => SistemaDelTablero.De(Datos.Sistema) == ConfiguracionTablero.UnaFaseDosHilos;
 
     /// <summary>El tablero tiene neutro: todos salvo 3F-3H.</summary>
     private bool TieneNeutro => SistemaDelTablero.De(Datos.Sistema) != ConfiguracionTablero.TresFasesTresHilos;
