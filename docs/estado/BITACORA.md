@@ -98,6 +98,7 @@ Pruebas: 66 en `PowerNode.Web.Tests`, 6 en `PowerNode.Normativa.Tests`.
 - El interruptor principal en el gabinete: zócalo, espacios o zapatas; 1F-2H arranca con zapatas. Decisión propuesta: `montaje-del-interruptor-principal.md` — I-68, `4db6997`.
 - Arrastrar circuitos en la tabla y en el gabinete, deshacer y «Optimizar acomodo» (con el desempate por dispersión en `BalanceoDeFases`) — I-69, `1c573d1`.
 - Arrastrar el principal entre el zócalo y los espacios; la franja se vuelve el zócalo al arrastrarlo; deshacer regresa el montaje — I-70, `ddffb03`.
+- El gabinete en su propio renglón; rótulos del principal y la acometida en una línea; en el celular, todo en la lista de abajo — I-71, `HASH`.
 
 Pruebas: 218 en `PowerNode.Web.Tests`, 23 en `PowerNode.Normativa.Tests`.
 

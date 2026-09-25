@@ -519,10 +519,12 @@ select.tipo { width: 108px; padding: 2px 4px 2px 6px; border-radius: var(--radio
 /* minmax(0, …) y no 1fr a secas: 1fr no baja del ancho mínimo de su contenido (la tabla del
    resumen, sin cortes de línea), y en un teléfono la columna salía más ancha que la pantalla. El
    navegador alejaba entonces TODA la página para que cupiera, y el resto se veía a dos tercios. */
-/* El gabinete, más ancho (1.5): el multifilar fija 256 px al centro y el directorio necesita el resto (I-67). */
-.cierre { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1fr);
+/* El gabinete en su propio renglón, a lo ancho (David, 2026-09-25 — I-71): el multifilar fija 256 px
+   al centro y los nombres del directorio y del principal necesitan el resto. Debajo, resumen y
+   balanceo junto al alimentador. */
+.cierre { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
           gap: 20px; margin-top: 22px; align-items: stretch; }
-@media (max-width: 1540px) { .cierre { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.cierre > .gabinete-tarjeta { grid-column: 1 / -1; }
 @media (max-width: 900px) { .cierre { grid-template-columns: minmax(0, 1fr); } }
 /* En pantalla angosta los rótulos largos del resumen parten en dos líneas en vez de empujar; también
    las cifras («0.00 / 0.00»). A 360 px, el Android más común, no bastaba: la tabla se salía 22 px de
@@ -685,7 +687,7 @@ label.suelto input { width: 90px; }
 
 .sin-margen { margin-top: 0; }
 
-.gabinete { container-type: inline-size; }
+.gabinete { container-type: inline-size; max-width: 1080px; margin: 0 auto; }
 .multifilar { display: grid; grid-template-columns: minmax(0, 1fr) 76px 104px 76px minmax(0, 1fr);
               margin: 14px 0 4px; }
 .multifilar .tapa-muerta { grid-column: 2 / 5; margin: -6px 0; background: var(--encabezado);
@@ -743,11 +745,12 @@ circle.union { stroke: var(--encabezado); }
 .directorio-lista { display: none; margin: 12px 0 0; padding: 0; list-style: none; }
 .directorio-lista li { display: flex; align-items: baseline; gap: 8px; padding: 5px 2px;
                        border-bottom: 1px solid var(--linea-suave); font-size: 12px; }
-.directorio-lista .num { min-width: 44px; font-weight: 700; color: var(--tenue); font-variant-numeric: tabular-nums; }
+.directorio-lista .num { min-width: 64px; font-weight: 700; color: var(--tenue); font-variant-numeric: tabular-nums; }
 .directorio-lista .nom { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .directorio-lista .amp { font-weight: 700; color: var(--tenue); font-variant-numeric: tabular-nums; }
-@container (max-width: 560px) {
-    .multifilar .directorio, .multifilar .cabeza { display: none; }
+@container (max-width: 640px) {
+    /* Angosto: nada de texto a los lados del multifilar; todo va en la lista de abajo (I-71). */
+    .gabinete .multifilar .directorio, .gabinete .multifilar .cabeza, .gabinete .multifilar .nota-abajo { display: none; }
     .directorio-lista { display: block; }
 }
 
@@ -790,8 +793,8 @@ polygon.riel-a { fill: var(--barra-a); } polygon.riel-b { fill: var(--barra-b); 
 .multifilar .nota-abajo { display: flex; flex-direction: column; justify-content: center; gap: 2px; padding: 0 8px; }
 .multifilar .nota-abajo.izq { grid-column: 1; align-items: flex-end; text-align: right; }
 .multifilar .nota-abajo.der { grid-column: 5; }
-.multifilar .nota-abajo .t { font-size: 12px; font-weight: 700; }
-.multifilar .nota-abajo .s { font-size: 11px; color: var(--tenue); }
+.multifilar .nota-abajo .t { font-size: 13px; font-weight: 700; white-space: nowrap; }
+.multifilar .nota-abajo .s { font-size: 11.5px; color: var(--tenue); white-space: nowrap; }
 .gabinete .acento { color: var(--acento); }
 .multifilar .directorio.principal .nom, .multifilar .directorio.principal .amp,
 .multifilar-1 .principal .nom, .multifilar-1 .principal .amp,

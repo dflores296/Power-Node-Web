@@ -232,7 +232,7 @@ else
         </p>
     }
 
-    @* Angosto (celular, o dos columnas en pantallas medianas): el directorio no cabe a los lados
+    @* Angosto (celular; menos de 640 px de tarjeta): el directorio no cabe a los lados
        del multifilar y baja aquí, en orden de espacio. *@
     <ol class="directorio-lista">
         @foreach (var bloque in Cuadro.Gabinete.Where(b => b.Ocupado).OrderBy(b => b.Circuito.Espacio))
@@ -241,6 +241,23 @@ else
                 <span class="num">@bloque.Numeros</span>
                 <span class="nom">@Nombre(bloque)</span>
                 <span class="amp">@Amperes(bloque)</span>
+            </li>
+        }
+        @* Lo que en escritorio va a los lados del zócalo (I-71). *@
+        @if (abajo)
+        {
+            @if (zocalo)
+            {
+                <li class="principal">
+                    <span class="num">Zócalo</span>
+                    <span class="nom">Interruptor principal · @PolosTexto(Datos.PolosDelPrincipal)</span>
+                    <span class="amp">@(Cuadro.InterruptorPrincipalA > 0m ? $"{Cuadro.InterruptorPrincipalA:N0} A" : null)</span>
+                </li>
+            }
+            <li>
+                <span class="num">Acometida</span>
+                <span class="nom">@(zocalo ? "Entra por abajo, al interruptor principal" : "Entra por abajo, a las zapatas principales")</span>
+                <span class="amp"></span>
             </li>
         }
     </ol>
