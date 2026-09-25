@@ -6,7 +6,10 @@
 // el gabinete se redibujan juntos porque salen del mismo cuadro.
 //
 //   [data-arrastre="n"]   asa: el interruptor del espacio n (data-etiqueta, lo que dice el fantasma).
-//   [data-destino="n"]    donde se puede soltar: el espacio n.
+//   [data-destino="n"]    donde se puede soltar: el espacio n. El 0 es el zócalo del principal (I-70).
+//   [data-principal]      el asa es el interruptor principal: solo él activa el zócalo.
+//   [data-solo-principal] un destino que solo se marca si lo que se arrastra es el principal; un
+//                         circuito soltado ahí regresa, y el modelo lo avisa.
 //
 // Eventos de puntero y no el arrastre nativo del navegador: el nativo no funciona con el dedo en la
 // mayoría de los celulares, y se lleva mal con los redibujados de Blazor. Esc cancela.
@@ -31,6 +34,7 @@
         sesion.fantasma = f;
         sesion.asa.classList.add('arrastre-origen');
         document.body.classList.add('arrastrando');
+        if (sesion.principal) document.body.classList.add('arrastrando-principal');
     }
 
     function seguir(x, y) {
@@ -38,7 +42,8 @@
         const d = destinoEn(x, y);
         if (d !== sesion.destino) {
             sesion.destino?.classList.remove('destino-activo');
-            d?.classList.add('destino-activo');
+            if (d && (sesion.principal || !d.dataset.soloPrincipal))
+                d.classList.add('destino-activo');
             sesion.destino = d;
         }
         // Cerca de la orilla, la página se recorre sola: el cuadro es más alto que la pantalla.
@@ -51,7 +56,7 @@
         sesion.fantasma?.remove();
         sesion.destino?.classList.remove('destino-activo');
         sesion.asa.classList.remove('arrastre-origen');
-        document.body.classList.remove('arrastrando');
+        document.body.classList.remove('arrastrando', 'arrastrando-principal');
         sesion = null;
     }
 
@@ -62,6 +67,7 @@
         sesion = {
             origen: Number(asa.dataset.arrastre),
             etiqueta: asa.dataset.etiqueta || `Circuito ${asa.dataset.arrastre}`,
+            principal: asa.dataset.principal === '1',
             asa, id: e.pointerId, x0: e.clientX, y0: e.clientY, activo: false, destino: null,
         };
     });

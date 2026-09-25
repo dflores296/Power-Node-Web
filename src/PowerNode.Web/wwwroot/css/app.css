@@ -979,3 +979,14 @@ body.arrastrando, body.arrastrando * { cursor: grabbing !important; user-select:
 @media (prefers-reduced-motion: reduce) { .aviso-flotante { animation: none; } }
 @media print { .aviso-flotante { display: none; } }
 
+/* EL ZÓCALO COMO DESTINO — I-70. La franja del principal en espacios se vuelve el zócalo solo
+   mientras se arrastra el principal: punteada y con la invitación a soltar. */
+.zona-zocalo .al-arrastrar { display: none; }
+/* Mismo alto que en reposo (1 px más de borde, 1 px menos de relleno): la tarjeta no brinca. */
+body.arrastrando-principal .zona-zocalo { border: 2px dashed var(--acento); background: var(--acento-suave);
+                                          color: var(--tinta); padding: 7px 9px; }
+body.arrastrando-principal .zona-zocalo .en-reposo { display: none; }
+body.arrastrando-principal .zona-zocalo .al-arrastrar { display: inline; }
+.zona-zocalo.destino-activo { outline: none; border-style: solid; }
+.multifilar .zocalo.asa:hover .interruptor { filter: drop-shadow(0 0 3px var(--acento)); }
+

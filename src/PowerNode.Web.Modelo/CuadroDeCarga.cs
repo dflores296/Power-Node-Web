@@ -424,8 +424,11 @@ public sealed class CuadroDeCarga
 
     // ---- Mover circuitos (I-69) ------------------------------------------------------------------
 
+    /// <summary>El «espacio» del zócalo del principal al arrastrar: no es un espacio numerado (I-70).</summary>
+    public const int Zocalo = 0;
+
     /// <summary>Lo que había antes del último movimiento u optimización: todo el tablero, para deshacer.</summary>
-    private (List<CircuitoJson> Circuitos, int? EspacioDelPrincipal)? _antes;
+    private (List<CircuitoJson> Circuitos, int? EspacioDelPrincipal, MontajeDelPrincipal Montaje)? _antes;
 
     /// <summary>Cómo quedó el tablero justo después del último movimiento: si ya cambió, no se deshace.</summary>
     private string? _firmaDespues;
@@ -438,7 +441,7 @@ public sealed class CuadroDeCarga
 
     private string Firma() =>
         string.Join("|", _circuitos.Select(c => System.Text.Json.JsonSerializer.Serialize(CircuitoJson.De(c), ContextoDelArchivo.Legible.CircuitoJson)))
-        + "|" + Datos.EspacioDelPrincipal;
+        + "|" + Datos.EspacioDelPrincipal + "|" + Datos.MontajePrincipal;
 
     /// <summary>
     /// Lleva el interruptor del espacio <paramref name="origen"/> —con todo lo capturado: carga,
@@ -448,10 +451,17 @@ public sealed class CuadroDeCarga
     /// </summary>
     public ResultadoDelMovimiento MoverCircuito(int origen, int destino)
     {
-        if (origen < 1 || origen > _circuitos.Count || destino < 1 || destino > _circuitos.Count)
+        if (origen < Zocalo || origen > _circuitos.Count || destino < Zocalo || destino > _circuitos.Count)
             return ResultadoDelMovimiento.NoValida("Ese espacio no existe en el tablero.");
 
+        // El zócalo del principal (I-70): solo el principal entra o sale de ahí.
+        if (origen == Zocalo)
+            return SacarDelZocalo(destino);
         var renglon = _circuitos[origen - 1];
+        if (destino == Zocalo)
+            return renglon.EsDelPrincipal
+                ? MeterAlZocalo()
+                : ResultadoDelMovimiento.NoValida("El zócalo es solo del interruptor principal.");
         if (renglon.EsDelPrincipal)
             return MoverPrincipal(destino);
 
@@ -475,6 +485,42 @@ public sealed class CuadroDeCarga
         Recalcular();
         _firmaDespues = Firma();
         return ResultadoDelMovimiento.Hecho($"El circuito {c.Espacio} pasó al espacio {DistribucionBarras.EspaciosQueOcupa(destino, c.Polos)[0]}{(c.Polos > 1 ? $" ({string.Join("-", DistribucionBarras.EspaciosQueOcupa(destino, c.Polos))})" : "")}.");
+    }
+
+    /// <summary>Del zócalo a los espacios: «En espacios del gabinete» desde <paramref name="destino"/>.</summary>
+    private ResultadoDelMovimiento SacarDelZocalo(int destino)
+    {
+        if (!Datos.UsaInterruptorPrincipal || Datos.Barras.Count < 2 || Datos.MontajePrincipal != MontajeDelPrincipal.Zocalo)
+            return ResultadoDelMovimiento.NoValida("No hay interruptor principal en el zócalo.");
+        if (destino == Zocalo)
+            return ResultadoDelMovimiento.SinCambio;
+
+        var polos = Datos.PolosDelPrincipal;
+        if (AcomodoEnGabinete.MotivoNoCabe(destino, polos, Datos.NumeroEspacios, MontajesCapturados(excepto: null)) is { } motivo)
+            return DistribucionBarras.CabeEnElTablero(destino, polos, Datos.NumeroEspacios)
+                ? ResultadoDelMovimiento.Ocupada(motivo)
+                : ResultadoDelMovimiento.NoValida(motivo);
+
+        Recordar();
+        Datos.MontajePrincipal = MontajeDelPrincipal.EnEspacios;
+        Datos.EspacioDelPrincipal = destino;
+        Recalcular();
+        _firmaDespues = Firma();
+        return ResultadoDelMovimiento.Hecho($"El interruptor principal pasó del zócalo a los espacios {string.Join("-", EspaciosDelPrincipal)}.");
+    }
+
+    /// <summary>De los espacios al zócalo: «Zócalo propio», y sus espacios quedan libres.</summary>
+    private ResultadoDelMovimiento MeterAlZocalo()
+    {
+        if (Datos.Barras.Count < 2)
+            return ResultadoDelMovimiento.NoValida("Con una sola barra no hay zócalo para el principal.");
+
+        var libres = string.Join("-", EspaciosDelPrincipal);
+        Recordar();
+        Datos.MontajePrincipal = MontajeDelPrincipal.Zocalo;
+        Recalcular();
+        _firmaDespues = Firma();
+        return ResultadoDelMovimiento.Hecho($"El interruptor principal pasó al zócalo propio; los espacios {libres} quedan libres.");
     }
 
     private ResultadoDelMovimiento MoverPrincipal(int destino)
@@ -537,13 +583,14 @@ public sealed class CuadroDeCarga
             _circuitos[i] = nuevo;
         }
         Datos.EspacioDelPrincipal = antes.EspacioDelPrincipal;
+        Datos.MontajePrincipal = antes.Montaje;
         _antes = null;
         _firmaDespues = null;
         Recalcular();
     }
 
     private void Recordar() =>
-        _antes = ([.. _circuitos.Select(CircuitoJson.De)], Datos.EspacioDelPrincipal);
+        _antes = ([.. _circuitos.Select(CircuitoJson.De)], Datos.EspacioDelPrincipal, Datos.MontajePrincipal);
 
     /// <summary>
     /// Mueve varios circuitos a la vez —un intercambio incluido—: primero se toman todos, luego se

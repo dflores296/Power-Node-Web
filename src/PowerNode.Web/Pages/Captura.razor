@@ -208,14 +208,14 @@
                     if (c.EsDelPrincipal)
                     {
                         <tr class="fila-principal" data-espacio="@c.Espacio">
-                            <td class="num asa" data-arrastre="@c.Espacio" data-destino="@c.Espacio" data-etiqueta="Interruptor principal" title="Arrastrar para mover el interruptor principal">@c.Espacio</td>
+                            <td class="num asa" data-arrastre="@c.Espacio" data-destino="@c.Espacio" data-etiqueta="Interruptor principal" data-principal="1" title="Arrastrar para mover el interruptor principal, también al zócalo">@c.Espacio</td>
                             <td colspan="@(Columnas - 1)" rowspan="@Cuadro.EspaciosDelPrincipal.Count">
                                 <strong>Interruptor principal</strong>@(Cuadro.InterruptorPrincipalA > 0m ? $" · {Cuadro.InterruptorPrincipalA:N0} A" : "") · @Polos(Datos.PolosDelPrincipal) · @(Datos.Barras.Count == 1 ? "alimenta la barra" : "alimenta las barras")
                             </td>
                         </tr>
                         @foreach (var seguido in lado.Where(x => x.ContinuacionDe == c.Espacio))
                         {
-                            <tr class="fila-principal"><td class="num asa" data-arrastre="@seguido.Espacio" data-destino="@seguido.Espacio" data-etiqueta="Interruptor principal" title="Arrastrar para mover el interruptor principal">@seguido.Espacio</td></tr>
+                            <tr class="fila-principal"><td class="num asa" data-arrastre="@seguido.Espacio" data-destino="@seguido.Espacio" data-etiqueta="Interruptor principal" data-principal="1" title="Arrastrar para mover el interruptor principal, también al zócalo">@seguido.Espacio</td></tr>
                         }
                         continue;
                     }

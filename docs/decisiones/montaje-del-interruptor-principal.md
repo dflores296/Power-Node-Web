@@ -34,6 +34,13 @@ Con interruptor principal, un dato más, **«Montaje del principal»**:
   «Interruptor principal» y no se captura carga ahí. Si al elegir el montaje ya había un circuito en
   los espacios que se eligieron, no se borra: se avisa y el principal no se monta hasta que se mueva uno
   de los dos. Se arrastra como un circuito (I-69).
+- **Del zócalo a los espacios, y de regreso, arrastrando** (David, 2026-09-25 — I-70). El principal en
+  zócalo se agarra y se suelta en un espacio: queda «En espacios» desde ahí. Con el principal en
+  espacios, la franja de abajo («Acometida al interruptor principal en los espacios…») es el zócalo:
+  solo mientras se arrastra el principal se pone punteada y dice «Suelta aquí para cambiar a zócalo
+  propio», sin cambiar de alto; soltarlo ahí lo pasa a «Zócalo propio» y libera sus espacios. El
+  selector sigue lo que resulte. Un circuito soltado en la franja regresa: «Posición no válida. El
+  zócalo es solo del interruptor principal.» Todo se deshace, montaje incluido.
 - **Las cuentas del gabinete lo incluyen**: «16 de 24 espacios ocupados» cuenta los del principal.
 - **1F-2H arranca con zapatas principales** (David): un centro de carga de una barra casi siempre
   viene protegido desde otro tablero. Los demás sistemas siguen arrancando con interruptor principal.

@@ -161,7 +161,9 @@ else
             @if (zocalo)
             {
                 @* De frente, la pinza arriba: a 1.2 un polo mide 24, lo que separa a las barras. *@
-                <div class="zocalo" style="left: @(XDe(barras[0], barras) - 12)px; top: @(altoBarras + 8)px">
+                <div class="zocalo asa" style="left: @(XDe(barras[0], barras) - 12)px; top: @(altoBarras + 8)px"
+                     data-arrastre="@CuadroDeCarga.Zocalo" data-principal="1" data-etiqueta="Interruptor principal"
+                     title="Arrastrar a un espacio para montarlo en los espacios del gabinete">
                     <Interruptor Polos="Datos.PolosDelPrincipal" Escala="1.2m" Clase="principal" />
                 </div>
             }
@@ -204,6 +206,7 @@ else
             </div>
             <div class="hueco @(nones ? "izq" : "der") @(bloque.Ocupado ? "asa" : null)" style="@lugar"
                  data-arrastre="@(bloque.Ocupado ? bloque.Circuito.Espacio : null)" data-etiqueta="@Etiqueta(bloque)"
+                 data-principal="@(bloque.EsPrincipal ? "1" : null)"
                  title="@(bloque.Ocupado ? "Arrastrar para mover" : null)">
                 @if (bloque.Ocupado && bloque.Espacios is >= 1 and <= 3)
                 {
@@ -218,10 +221,14 @@ else
         }
     </div>
 
+    @* La franja del principal en espacios es también el zócalo (I-70): al arrastrar el principal se
+       vuelve el lugar donde soltarlo para pasarlo a «Zócalo propio». Un circuito soltado aquí regresa
+       con aviso. Nada aparece ni crece durante el arrastre: solo cambia cómo se ve la franja. *@
     @if (Cuadro.EspaciosDelPrincipal.Count > 0)
     {
-        <p class="nota-principal">
-            <span>Acometida al <strong class="acento">interruptor principal</strong> en los espacios @string.Join("-", Cuadro.EspaciosDelPrincipal)</span>
+        <p class="nota-principal zona-zocalo" data-destino="@CuadroDeCarga.Zocalo" data-solo-principal="1">
+            <span class="en-reposo">Acometida al <strong class="acento">interruptor principal</strong> en los espacios @string.Join("-", Cuadro.EspaciosDelPrincipal)</span>
+            <span class="al-arrastrar">Suelta aquí para cambiar a <strong>zócalo propio</strong></span>
         </p>
     }
 

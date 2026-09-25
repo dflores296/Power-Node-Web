@@ -171,4 +171,69 @@ public class MoverCircuitosTests
         Assert.False(propuesta.Mejora);
         Assert.False(cuadro.PuedeDeshacer);
     }
+
+    // ---- El zócalo del principal (I-70) ----------------------------------------------------------
+
+    [Fact]
+    public void DelZocaloAUnEspacio_QuedaEnEspacios_YSeDeshaceConTodoYMontaje()
+    {
+        var cuadro = Nuevo();
+        Assert.Equal(MontajeDelPrincipal.Zocalo, cuadro.Datos.MontajePrincipal);
+
+        var r = cuadro.MoverCircuito(CuadroDeCarga.Zocalo, 2);
+
+        Assert.True(r.Movio);
+        Assert.Equal("El interruptor principal pasó del zócalo a los espacios 2-4-6.", r.Mensaje);
+        Assert.Equal(MontajeDelPrincipal.EnEspacios, cuadro.Datos.MontajePrincipal);
+        Assert.Equal([2, 4, 6], cuadro.EspaciosDelPrincipal);
+
+        cuadro.Deshacer();
+        Assert.Equal(MontajeDelPrincipal.Zocalo, cuadro.Datos.MontajePrincipal);
+        Assert.Empty(cuadro.EspaciosDelPrincipal);
+    }
+
+    [Fact]
+    public void DeLosEspaciosAlZocalo_QuedaEnZocalo_YLiberaSusEspacios()
+    {
+        var cuadro = Nuevo();
+        cuadro.Datos.MontajePrincipal = MontajeDelPrincipal.EnEspacios;
+        cuadro.Recalcular();
+
+        var r = cuadro.MoverCircuito(10, CuadroDeCarga.Zocalo);
+
+        Assert.True(r.Movio);
+        Assert.Equal("El interruptor principal pasó al zócalo propio; los espacios 8-10-12 quedan libres.", r.Mensaje);
+        Assert.Equal(MontajeDelPrincipal.Zocalo, cuadro.Datos.MontajePrincipal);
+        Assert.Empty(cuadro.EspaciosDelPrincipal);
+        Assert.Equal(0, cuadro.EspaciosOcupados);
+        Assert.True(cuadro.PuedeDeshacer);
+    }
+
+    [Fact]
+    public void UnCircuitoAlZocalo_NoCambiaNada_YDiceQueEsDelPrincipal()
+    {
+        var cuadro = Nuevo();
+        Capturar(cuadro, 1, "Alumbrado", 900m);
+
+        var r = cuadro.MoverCircuito(1, CuadroDeCarga.Zocalo);
+
+        Assert.Equal(ResultadoDelMovimiento.Tipo.NoValida, r.Clase);
+        Assert.Equal("Posición no válida. El zócalo es solo del interruptor principal.", r.Mensaje);
+        Assert.Equal("Alumbrado", E(cuadro, 1).Descripcion);
+        Assert.False(cuadro.PuedeDeshacer);
+    }
+
+    [Fact]
+    public void DelZocaloAUnEspacioOcupado_SeQuedaEnElZocalo()
+    {
+        var cuadro = Nuevo();
+        Capturar(cuadro, 4, "Contactos", 1200m);
+
+        var r = cuadro.MoverCircuito(CuadroDeCarga.Zocalo, 2);
+
+        Assert.Equal(ResultadoDelMovimiento.Tipo.Ocupada, r.Clase);
+        Assert.Equal("Posición ocupada. El espacio 4 lo ocupa el circuito 4.", r.Mensaje);
+        Assert.Equal(MontajeDelPrincipal.Zocalo, cuadro.Datos.MontajePrincipal);
+        Assert.Equal(ResultadoDelMovimiento.Tipo.SinCambio, cuadro.MoverCircuito(CuadroDeCarga.Zocalo, CuadroDeCarga.Zocalo).Clase);
+    }
 }
