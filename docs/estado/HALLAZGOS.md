@@ -87,7 +87,7 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-64 · Interfaz plana, con poco contraste entre fondo, tarjetas y títulos | P3 | **Cerrado** | `3ed4e44` |
 | I-65 · Líneas de tabla tibias junto al relieve; en oscuro el relieve no se veía | P3 | **Cerrado** | `7ade4dc` |
 | I-66 · El gabinete dibujaba cada interruptor como texto («20 A»), sin el aparato | P3 | **Cerrado** | `4782c6e` |
-| I-67 · El gabinete no enseñaba las barras ni de qué barra sale cada espacio; el directorio se cortaba | P3 | **Cerrado** | `HASH` |
+| I-67 · El gabinete no enseñaba las barras ni de qué barra sale cada espacio; el directorio se cortaba | P3 | **Cerrado** | `eb6d52c` |
 | R-01 · Caída del alimentador fija en 5 %, sin verificar la combinada — 215-2(a)(4) NOTA 2 | P1 | **Cerrado** | `2a973ea` |
 | R-02 · Caída del alimentador sin la caída del neutro | P2 | **Cerrado** | `d6cd1c6` |
 | R-03 · La publicación no corre `PowerNode.Web.Tests` | P1 | **Cerrado** | `986c9d7` |
