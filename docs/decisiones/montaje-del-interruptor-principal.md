@@ -24,15 +24,16 @@ Con interruptor principal, un dato más, **«Montaje del principal»**:
 
 | Barras | Opciones | Por omisión |
 |---|---|---|
-| 2 o 3 | **Zócalo propio**, abajo: no ocupa espacios numerados. **En espacios del gabinete**: se come tantos espacios como polos, como un derivado. | **Zócalo.** Al pasarlo a espacios, arranca en los últimos pares: 20-22-24 en un tablero de 24 y 3 barras; 22-24 con 2 barras. |
-| 1 (1F-2H) | Solo **en un espacio**. No hay zócalo. | El espacio 1. |
+| 2 o 3 | **Zócalo propio**, abajo: no ocupa espacios numerados. **En espacios del gabinete**: se come tantos espacios como polos, como un derivado. | **Zócalo.** Al pasarlo a espacios, arranca en los últimos pares: 20-22-24 en un tablero de 24 y 3 barras; 22-24 con 2 barras. Si ahí hay un circuito, sube por la misma columna (`AcomodoEnGabinete.UltimoHuecoDeLaColumnaPar`, la regla del escritorio; I-69). |
+| 1 (1F-2H) | Solo **en un espacio**. No hay zócalo. | El espacio 1, o el primero libre. |
 
 - **La posición en espacios es un valor por omisión, no una regla**: se puede mover al espacio que
   sea, con las mismas reglas de un derivado (que quepa, que no pise otro interruptor, que caiga en
   barras distintas).
 - **Los espacios del principal no admiten circuito.** El renglón del cuadro de carga dice
   «Interruptor principal» y no se captura carga ahí. Si al elegir el montaje ya había un circuito en
-  esos espacios, no se borra: se avisa y el principal no se monta hasta que se mueva uno de los dos.
+  los espacios que se eligieron, no se borra: se avisa y el principal no se monta hasta que se mueva uno
+  de los dos. Se arrastra como un circuito (I-69).
 - **Las cuentas del gabinete lo incluyen**: «16 de 24 espacios ocupados» cuenta los del principal.
 - **1F-2H arranca con zapatas principales** (David): un centro de carga de una barra casi siempre
   viene protegido desde otro tablero. Los demás sistemas siguen arrancando con interruptor principal.

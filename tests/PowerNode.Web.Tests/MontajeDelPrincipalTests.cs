@@ -110,12 +110,27 @@ public class MontajeDelPrincipalTests
     }
 
     [Fact]
-    public void UnCircuitoCapturadoEnSusEspacios_NoSeBorra_ElPrincipalNoSeMontaYSeAvisa()
+    public void PorOmision_SiAbajoHayUnCircuito_SubePorLaMismaColumna()
+    {
+        // La regla del escritorio (AcomodoEnGabinete.UltimoHuecoDeLaColumnaPar).
+        var cuadro = Nuevo();
+        Espacio(cuadro, 22).Descripcion = "Bomba";
+        Espacio(cuadro, 22).Continua = 1000m;
+        cuadro.Datos.MontajePrincipal = MontajeDelPrincipal.EnEspacios;
+        cuadro.Recalcular();
+
+        Assert.Equal([16, 18, 20], cuadro.EspaciosDelPrincipal);
+        Assert.Null(cuadro.AvisoDelPrincipal);
+    }
+
+    [Fact]
+    public void UnCircuitoCapturadoDondeSeEligio_NoSeBorra_ElPrincipalNoSeMontaYSeAvisa()
     {
         var cuadro = Nuevo();
         Espacio(cuadro, 22).Descripcion = "Bomba";
         Espacio(cuadro, 22).Continua = 1000m;
         cuadro.Datos.MontajePrincipal = MontajeDelPrincipal.EnEspacios;
+        cuadro.Datos.EspacioDelPrincipal = 20;
         cuadro.Recalcular();
 
         Assert.Empty(cuadro.EspaciosDelPrincipal);

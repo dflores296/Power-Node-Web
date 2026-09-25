@@ -946,3 +946,36 @@ body.con-ayuda { padding-bottom: 72px; }
 @media print {
     * { box-shadow: none !important; }
 }
+
+/* ------------------------------------------------------------------------------------------------
+   ARRASTRAR CIRCUITOS — I-69, js/arrastre.js. Se agarra del número (cuadro) o del interruptor
+   (gabinete) y se suelta en un espacio. Mientras se arrastra, el espacio bajo el puntero se marca.
+   ------------------------------------------------------------------------------------------------ */
+.asa { cursor: grab; touch-action: none; user-select: none; }
+.cuadro td.num.asa:hover { color: var(--acento); box-shadow: inset 2px 0 0 var(--acento), 1px 0 0 var(--linea); }
+.hueco.asa:hover .interruptor, .multifilar-1 .asa:hover .interruptor { filter: drop-shadow(0 0 3px var(--acento)); }
+body.arrastrando, body.arrastrando * { cursor: grabbing !important; user-select: none; }
+.arrastre-origen { opacity: .45; }
+.arrastre-fantasma { position: fixed; left: 0; top: 0; z-index: 60; pointer-events: none;
+                     padding: 4px 10px; border-radius: var(--radio-xs); font-size: 12px; font-weight: 600;
+                     background: var(--acento); color: var(--sobre-acento);
+                     box-shadow: 0 4px 12px var(--sombra); white-space: nowrap; }
+.multifilar .destino { grid-column: 1 / 3; border-radius: 4px; }
+.multifilar .destino.der { grid-column: 4 / 6; }
+.destino-activo { outline: 2px dashed var(--acento); outline-offset: -2px; background: var(--acento-suave) !important; }
+.cuadro td.num.destino-activo { outline-offset: -3px; }
+.multifilar-1 .espacio-1.destino-activo { border-radius: 6px; }
+
+/* El aviso temporal de arriba: qué pasó al soltar, al optimizar o al deshacer. */
+.aviso-flotante { position: fixed; top: 76px; left: 50%; transform: translateX(-50%); z-index: 50;
+                  display: flex; align-items: center; gap: 12px; max-width: min(640px, calc(100vw - 32px));
+                  padding: 10px 14px; border-radius: var(--radio-sm); font-size: 13px;
+                  background: var(--papel); color: var(--tinta); border: 1px solid var(--linea);
+                  border-left-width: 1px; box-shadow: 0 6px 20px var(--sombra); animation: aparecer .18s ease-out; }
+.aviso-flotante.bien { border-color: var(--acento); }
+.aviso-flotante.mal { border-color: var(--alerta); background: var(--alerta-fondo); }
+.aviso-flotante .boton { flex: none; }
+@keyframes aparecer { from { opacity: 0; transform: translate(-50%, -6px); } to { opacity: 1; transform: translate(-50%, 0); } }
+@media (prefers-reduced-motion: reduce) { .aviso-flotante { animation: none; } }
+@media print { .aviso-flotante { display: none; } }
+

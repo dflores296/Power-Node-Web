@@ -92,8 +92,8 @@ public sealed class DatosDelTablero
     public MontajeDelPrincipal MontajePrincipal { get; set; } = MontajeDelPrincipal.Zocalo;
 
     /// <summary>
-    /// El primer espacio del principal cuando va en espacios. <c>null</c> = el de omisión
-    /// (<see cref="EspacioPorOmisionDelPrincipal"/>): es un valor por omisión, no una regla.
+    /// El primer espacio del principal cuando va en espacios. <c>null</c> = el de omisión, que resuelve
+    /// <see cref="CuadroDeCarga.EspacioInicialDelPrincipal"/>: es un valor por omisión, no una regla.
     /// </summary>
     public int? EspacioDelPrincipal { get; set; }
 
@@ -104,28 +104,9 @@ public sealed class DatosDelTablero
     public bool PrincipalEnEspacios =>
         UsaInterruptorPrincipal && (Barras.Count == 1 || MontajePrincipal == MontajeDelPrincipal.EnEspacios);
 
-    /// <summary>
-    /// Con una barra, el espacio 1 (junto a la acometida en el dibujo); con dos o tres, los últimos
-    /// pares: 20-22-24 en un tablero de 24 y 3 barras, 22-24 con 2 (David, 2026-09-25).
-    /// </summary>
-    public int EspacioPorOmisionDelPrincipal
-    {
-        get
-        {
-            if (Barras.Count == 1)
-                return 1;
-            var ultimoPar = NumeroEspacios % 2 == 0 ? NumeroEspacios : NumeroEspacios - 1;
-            return Math.Max(2, ultimoPar - 2 * (PolosDelPrincipal - 1));
-        }
-    }
-
     /// <summary>Los espacios donde puede empezar el principal: donde caben sus polos.</summary>
     public IReadOnlyList<int> EspaciosValidosDelPrincipal =>
         [.. Enumerable.Range(1, NumeroEspacios).Where(e => DistribucionBarras.CabeEnElTablero(e, PolosDelPrincipal, NumeroEspacios))];
-
-    /// <summary>El primer espacio del principal: el capturado si cabe, si no el de omisión.</summary>
-    public int EspacioInicialDelPrincipal =>
-        EspacioDelPrincipal is { } e && EspaciosValidosDelPrincipal.Contains(e) ? e : EspacioPorOmisionDelPrincipal;
 
     /// <summary>
     /// Al entrar a 1F-2H, zapatas; al salir de 1F-2H, interruptor principal. Solo en el cambio: lo

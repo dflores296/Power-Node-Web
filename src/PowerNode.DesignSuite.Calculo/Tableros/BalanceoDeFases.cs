@@ -53,6 +53,14 @@ public sealed record PropuestaDeBalanceo(
 /// está rotulado en la tapa y escrito en el plano. Mover tres circuitos y ganar ocho puntos vale más
 /// que mover cuarenta y ganar nueve.
 /// </para>
+///
+/// <para>
+/// <b>El empate se rompe por dispersión</b> (Power Node Web, 2026-09-25, I-69). Con toda la carga en
+/// una barra, ningún movimiento solo baja el (máx − mín) / máx: la otra barra sigue en cero y el
+/// porcentaje en 100 %. La búsqueda se detenía ahí, aunque dos movimientos seguidos llegaban a 0 %.
+/// Ahora, a igual porcentaje, gana el acomodo con las corrientes más parejas (la suma de los
+/// cuadrados de su diferencia con el promedio), y la búsqueda sigue.
+/// </para>
 /// </summary>
 public static class BalanceoDeFases
 {
@@ -83,18 +91,18 @@ public static class BalanceoDeFases
         var origen = circuitos.Select(c => c.EspacioInicial).ToArray();
         var actual = (int[])origen.Clone();
 
-        var antes = Desbalanceo(circuitos, actual, sistema, barras);
+        var antes = Evaluar(circuitos, actual, sistema, barras);
         var mejor = antes;
 
         for (var vuelta = 0; vuelta < MaximoIteraciones; vuelta++)
         {
-            var (candidato, desbalanceo) = MejorMovimiento(circuitos, actual, fijos, numeroEspacios, sistema, barras, mejor);
+            var (candidato, nota) = MejorMovimiento(circuitos, actual, fijos, numeroEspacios, sistema, barras, mejor);
 
-            if (candidato is null || mejor - desbalanceo < MejoraMinimaPct)
+            if (candidato is null)
                 break;
 
             actual = candidato;
-            mejor = desbalanceo;
+            mejor = nota;
         }
 
         var movimientos = circuitos
@@ -103,24 +111,24 @@ public static class BalanceoDeFases
             .Select(m => new Reacomodo(m.Etiqueta, m.De, m.A))
             .ToList();
 
-        return new PropuestaDeBalanceo(antes, mejor, movimientos);
+        return new PropuestaDeBalanceo(antes.Pct, mejor.Pct, movimientos);
     }
 
     /// <summary>
     /// El mejor cambio de una vuelta: el intercambio o la mudanza que más baja el desbalanceo.
     /// Devuelve <c>null</c> si ninguno mejora.
     /// </summary>
-    private static (int[]? Acomodo, decimal Desbalanceo) MejorMovimiento(
+    private static (int[]? Acomodo, Nota Nota) MejorMovimiento(
         IReadOnlyList<CircuitoBalanceable> circuitos,
         int[] actual,
         IReadOnlyList<MontajeEnGabinete> fijos,
         int numeroEspacios,
         SistemaTablero sistema,
         IReadOnlyList<char> barras,
-        decimal mejorConocido)
+        Nota mejorConocida)
     {
         int[]? mejorAcomodo = null;
-        var mejorDesbalanceo = mejorConocido;
+        var mejorNota = mejorConocida;
 
         // 1. INTERCAMBIOS entre circuitos del mismo número de polos. Son válidos por construcción:
         //    ocupan exactamente la misma forma, así que no hace falta comprobar si caben.
@@ -133,9 +141,9 @@ public static class BalanceoDeFases
                 var prueba = (int[])actual.Clone();
                 (prueba[i], prueba[j]) = (prueba[j], prueba[i]);
 
-                var d = Desbalanceo(circuitos, prueba, sistema, barras);
-                if (d < mejorDesbalanceo)
-                    (mejorAcomodo, mejorDesbalanceo) = (prueba, d);
+                var d = Evaluar(circuitos, prueba, sistema, barras);
+                if (d.MejorQue(mejorNota))
+                    (mejorAcomodo, mejorNota) = (prueba, d);
             }
 
         // 2. MUDANZAS a un espacio libre. Aquí sí hay que preguntar si cabe, porque el hueco puede
@@ -155,13 +163,13 @@ public static class BalanceoDeFases
                 var prueba = (int[])actual.Clone();
                 prueba[i] = destino;
 
-                var d = Desbalanceo(circuitos, prueba, sistema, barras);
-                if (d < mejorDesbalanceo)
-                    (mejorAcomodo, mejorDesbalanceo) = (prueba, d);
+                var d = Evaluar(circuitos, prueba, sistema, barras);
+                if (d.MejorQue(mejorNota))
+                    (mejorAcomodo, mejorNota) = (prueba, d);
             }
         }
 
-        return (mejorAcomodo, mejorDesbalanceo);
+        return (mejorAcomodo, mejorNota);
     }
 
     /// <summary>
@@ -169,7 +177,7 @@ public static class BalanceoDeFases
     /// que es el mismo que produce el número que el usuario ve en la pantalla del tablero: proponer
     /// con una fórmula y diagnosticar con otra daría movimientos que no mejoran lo que se mide.
     /// </summary>
-    private static decimal Desbalanceo(
+    private static Nota Evaluar(
         IReadOnlyList<CircuitoBalanceable> circuitos,
         int[] acomodo,
         SistemaTablero sistema,
@@ -185,7 +193,22 @@ public static class BalanceoDeFases
                 circuitos[i].CorrienteA));
         }
 
-        return CalculadoraDesbalanceo.Porcentaje(corrientes, barras);
+        var porFase = CalculadoraDesbalanceo.CorrientePorFase(corrientes, barras).Values.ToList();
+        var promedio = porFase.Average();
+        return new Nota(
+            CalculadoraDesbalanceo.Porcentaje(corrientes, barras),
+            porFase.Sum(i => (i - promedio) * (i - promedio)));
+    }
+
+    /// <summary>
+    /// Qué tan bueno es un acomodo: primero el desbalanceo que se ve en pantalla; a igual desbalanceo,
+    /// la dispersión de las corrientes por barra.
+    /// </summary>
+    private readonly record struct Nota(decimal Pct, decimal Dispersion)
+    {
+        public bool MejorQue(Nota otra) =>
+            Pct < otra.Pct - MejoraMinimaPct
+            || (Math.Abs(Pct - otra.Pct) < MejoraMinimaPct && Dispersion < otra.Dispersion * 0.9999m);
     }
 
     /// <summary>Lo que ocupa espacio para el circuito <paramref name="excepto"/>: los fijos y sus compañeros.</summary>

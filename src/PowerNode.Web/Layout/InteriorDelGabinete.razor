@@ -52,7 +52,8 @@
         {
             var ocupado = bloque.Ocupado;
             var ultimo = bloque.Fila == Cuadro.Gabinete.Max(b => b.Fila);
-            <div class="espacio-1 @(ocupado ? null : "vacio") @(bloque.EsPrincipal ? "principal" : null)" title="@Titulo(bloque)">
+            <div class="espacio-1 @(ocupado ? null : "vacio") @(bloque.EsPrincipal ? "principal" : null)" title="@Titulo(bloque)"
+                 data-destino="@bloque.Circuito.Espacio">
                 <div class="conector">
                     <svg width="48" height="64" viewBox="0 0 48 64" aria-hidden="true">
                         <line class="riel riel-a" x1="0" y1="10" x2="@(ultimo ? 24 : 48)" y2="10" />
@@ -67,7 +68,9 @@
                 </div>
                 @if (ocupado)
                 {
-                    <Interruptor Polos="1" Escala="1.2m" Clase="@(bloque.EsPrincipal ? "principal" : null)" />
+                    <span class="asa" data-arrastre="@bloque.Circuito.Espacio" data-etiqueta="@Etiqueta(bloque)" title="Arrastrar para mover">
+                        <Interruptor Polos="1" Escala="1.2m" Clase="@(bloque.EsPrincipal ? "principal" : null)" />
+                    </span>
                 }
                 else
                 {
@@ -184,6 +187,12 @@ else
             </div>
         }
 
+        @* Un destino por espacio, debajo de todo: el renglón de su lado, del directorio a la tapa (I-69). *@
+        @for (var n = 1; n <= Datos.NumeroEspacios; n++)
+        {
+            <div class="destino @(n % 2 == 1 ? "izq" : "der")" data-destino="@n" style="grid-row: @((n + 1) / 2 + 1)"></div>
+        }
+
         @foreach (var bloque in Cuadro.Gabinete)
         {
             var nones = bloque.Columna == 1;
@@ -193,7 +202,9 @@ else
                 <span class="nom">@Nombre(bloque)</span>
                 <span class="amp">@Amperes(bloque)</span>
             </div>
-            <div class="hueco @(nones ? "izq" : "der")" style="@lugar">
+            <div class="hueco @(nones ? "izq" : "der") @(bloque.Ocupado ? "asa" : null)" style="@lugar"
+                 data-arrastre="@(bloque.Ocupado ? bloque.Circuito.Espacio : null)" data-etiqueta="@Etiqueta(bloque)"
+                 title="@(bloque.Ocupado ? "Arrastrar para mover" : null)">
                 @if (bloque.Ocupado && bloque.Espacios is >= 1 and <= 3)
                 {
                     <Interruptor Polos="bloque.Espacios" Escala="1.2m" Clase="@(bloque.EsPrincipal ? "principal" : null)"
@@ -261,6 +272,12 @@ else
     }
 
     private static string N(decimal valor) => valor.ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+    /// <summary>Lo que dice el fantasma al arrastrar: «7 · Alumbrado», o el principal.</summary>
+    private string? Etiqueta(BloqueDelGabinete bloque) =>
+        !bloque.Ocupado ? null
+        : bloque.EsPrincipal ? "Interruptor principal"
+        : $"{bloque.Circuito.Espacio} · {Nombre(bloque)}";
 
     private static string PolosTexto(int n) => n == 1 ? "1 polo" : $"{n} polos";
 
