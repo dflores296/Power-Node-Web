@@ -91,7 +91,7 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-68 · El principal no tenía lugar en el gabinete: una franja abajo, sin espacios ni zócalo; 1F-2H arrancaba con principal | P3 | **Cerrado** | `4db6997` |
 | I-69 · Un circuito capturado en el espacio equivocado había que borrarlo y capturarlo de nuevo; sin forma de mejorar el balanceo | P3 | **Cerrado** | `1c573d1` |
 | I-70 · El principal no se podía pasar del zócalo a los espacios ni de regreso arrastrándolo; deshacer no regresaba el montaje | P3 | **Cerrado** | `ddffb03` |
-| I-71 · Los nombres del gabinete (circuitos, interruptor principal, acometida) se veían desordenados | P3 | **Cerrado** | `HASH` |
+| I-71 · Los nombres del gabinete (circuitos, interruptor principal, acometida) se veían desordenados | P3 | **Cerrado** | `6eabed1` |
 | R-01 · Caída del alimentador fija en 5 %, sin verificar la combinada — 215-2(a)(4) NOTA 2 | P1 | **Cerrado** | `2a973ea` |
 | R-02 · Caída del alimentador sin la caída del neutro | P2 | **Cerrado** | `d6cd1c6` |
 | R-03 · La publicación no corre `PowerNode.Web.Tests` | P1 | **Cerrado** | `986c9d7` |
