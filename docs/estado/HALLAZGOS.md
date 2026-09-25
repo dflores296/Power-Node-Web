@@ -23,7 +23,7 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-02 · `NumeroFases` tomado del tablero y no del circuito | P0 | **Cerrado** | `c46954f` |
 | I-03 · Sin piso práctico de calibre | P1 | **Revertido** (decisión de David) | — |
 | I-04 · Sin resumen de carga ni balanceo por fase | P2 | **Cerrado** | `cc92ad5` |
-| I-05 · Sin guardar ni abrir el proyecto | P1 | Pendiente | — |
+| I-05 · Sin guardar ni abrir el proyecto | P1 | **Cerrado** | `0169b78` |
 | I-06 · Pantalla de arranque sin estilos e icono de Blazor | P2 | **Cerrado** | `7cf69c5` |
 | I-07 · Sin `favicon.ico` | P1 | **Cerrado** | `c19cca6` |
 | I-08 · Selector de tipo con texto cortado | P2 | **Cerrado** | `1b53276` |
@@ -139,7 +139,7 @@ Formato: **Hecho** (defecto observado) · **Corrección** · **Referencia** · *
 
 **I-04** — Hecho: sin resumen de carga ni balanceo. Corrección: resumen, balanceo por fase y desbalanceo.
 
-**I-05** — Pendiente: guardar y abrir el proyecto como archivo.
+**I-05** — Hecho (David: «que te permita exportar el avance en un archivo y lea archivos de vuelta… con circuitos, configuración, tablero», y «que tenga el nombre del tablero - Power Node» en la pestaña): sin servidor ni base de datos, lo capturado se perdía al cerrar la pestaña, y todas las pestañas se llamaban «Cuadro de carga». Corrección, decisión propuesta en `docs/decisiones/archivo-del-tablero.md`: archivo `.powernode.json`, JSON legible con formato y versión, solo lo capturado (al abrir se recalcula), solo los renglones con captura, todo opcional al leer (`Modelo/Archivo/`, serializador generado al compilar). Abrir y Guardar en la barra superior de la captura; Guardar pregunta dónde cada vez en Chrome y Edge (sin sobrescribir solo) y descarga en Firefox y Safari; abrir con cambios sin guardar pregunta, y cerrar la pestaña también. La pestaña se llama «<tablero> — Power Node»; varios tableros a la vez, uno por pestaña. Defectos vistos al probar, ya corregidos: el escritor escapaba acentos y el «+» de la zona horaria (`\u002B`), y el lector legible tronaba por el orden de inicialización estática. Prueba: 15 pruebas (`I05_…`: lo que se abre calcula igual que lo guardado —protección, calibre, caída, alimentador y canalizaciones—, archivo legible sin resultados, solo renglones con captura, huella sin la hora, archivo con menos campos, cinco archivos que no se abren, gabinete y circuito que no caben, nombre del archivo); navegador, en el servidor de desarrollo y en la publicación Release servida como estática — título al teclear el nombre, guardar, cerrar con cambios pregunta, abrir en otra pestaña con los mismos datos y el mismo principal, confirmación al abrir con cambios y cancelar los conserva, archivo ajeno con error, el documento con el mismo título y sin Abrir ni Guardar, descarga sin el diálogo, barra de 90 px a 360 y 412 px; sin errores en la consola.
 
 **I-06** — Hecho: círculo negro en la carga y favicon de Blazor. Corrección: estilos de arranque y marca Power Node.
 
