@@ -55,7 +55,7 @@
     <div class="grupo">
         <h2>Gabinete</h2>
         <label>Espacios <select @bind="Datos.NumeroEspacios" @bind:after="Recalcular">
-            @foreach (var e in new[] { 6, 12, 18, 24, 30, 36, 42 }) { <option value="@e">@e</option> }
+            @foreach (var e in Datos.EspaciosValidos) { <option value="@e">@e</option> }
         </select></label>
         <label>Acometida <select @bind="Datos.TipoAcometida" @bind:after="Recalcular">
             <option value="@TipoAcometidaTablero.InterruptorPrincipal">Interruptor principal</option>
@@ -134,7 +134,7 @@
                 va en el tooltip, no en una segunda línea.
             *@
             <tr>
-                <th rowspan="2"><span class="ayuda" title="Identificar el circuito por su espacio en la barra. Nones arriba, pares abajo.">N.º</span></th>
+                <th rowspan="2"><span class="ayuda" title="@(Cuadro.UnaSolaBarra ? "Identificar el circuito por su espacio en la barra. Una sola barra: en orden." : "Identificar el circuito por su espacio en la barra. Nones arriba, pares abajo.")">N.º</span></th>
                 <th rowspan="2" class="izq descripcion">Descripción</th>
                 <th rowspan="2"><span class="ayuda" title="Seleccionar el tipo de carga. Determina el factor de demanda del resumen — Art. 220.&#10;&#10;Alumbrado: luminarias y alumbrado general.&#10;Contactos: contactos de uso general; en vivienda, seleccionar el uso (cocina, lavadora, baño).&#10;Equipo: hornos, estufas, parrillas, secadoras, calentadores de agua, equipo electrónico.&#10;Motor / A/C: todo lo que funciona con motor o compresor: aire acondicionado, refrigeración, bombas, ventiladores, bombas de calor e inverter frío/calor.&#10;Calefacción: calefacción por resistencia eléctrica: calefactores, cables calefactores, calderas eléctricas; carga continua — 424-3(b).&#10;&#10;Motor / A/C y calefacción se calculan como carga de placa (Art. 430 pendiente). 240-4(b) no aplica en contactos.">Tipo</span></th>
                 <th colspan="4"><span class="ayuda" title="Capturar la carga de placa en VA, W o A y su factor de potencia. Continua (3 h o más): 125 % — 210-19(a)(1), 210-20(a). No continua: 100 %. En W o A, consultar abajo el VA de cálculo.">Carga</span></th>
@@ -471,7 +471,7 @@
             @Cuadro.EspaciosLibres libres
         </p>
 
-        <div class="interior">
+        <div class="interior @(Cuadro.UnaSolaBarra ? "una-columna" : null)">
             @foreach (var bloque in Cuadro.Gabinete)
             {
                 <div class="bloque @(bloque.Ocupado ? "ocupado" : "vacante")"
@@ -1036,7 +1036,7 @@
     private int Columnas => 17 + Datos.Barras.Count;
 
     /// <summary>Los dos bloques del cuadro, ya materializados: cada uno se recorre más de una vez.</summary>
-    private List<CircuitoDelCuadro>[] Lados => [Cuadro.Nones.ToList(), Cuadro.Pares.ToList()];
+    private IReadOnlyList<IReadOnlyList<CircuitoDelCuadro>> Lados => Cuadro.Lados;
 
     /// <summary>
     /// La celda de un conductor: la designación con su unidad («12 AWG», «250 kcmil») y, debajo, su sección en mm². Los hilos en

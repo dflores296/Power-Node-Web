@@ -449,6 +449,8 @@ label.suelto input { width: 90px; }
 .sin-margen { margin-top: 0; }
 
 .interior { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin: 10px 0 4px; }
+/* 1F-2H: una sola barra, una sola columna en orden (I-54). */
+.interior.una-columna { grid-template-columns: 1fr; }
 
 .bloque { display: flex; align-items: center; gap: 6px; min-height: 30px;
           border: 1px solid var(--linea); border-radius: var(--radio-xs);

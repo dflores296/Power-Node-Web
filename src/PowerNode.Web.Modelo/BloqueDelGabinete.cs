@@ -14,7 +14,7 @@ namespace PowerNode.Web.Modelo;
 /// <para>Las coordenadas se cuentan desde 1, listas para una rejilla CSS.</para>
 /// </summary>
 /// <param name="Fila">Renglón donde empieza: el espacio 1 y el 2 están en el primero, el 3 y el 4 en el segundo…</param>
-/// <param name="Columna">1 = nones (izquierda), 2 = pares (derecha).</param>
+/// <param name="Columna">1 = nones (izquierda), 2 = pares (derecha). Con una sola barra (1F-2H), todos en la 1.</param>
 /// <param name="Espacios">Cuántos renglones abarca: sus polos.</param>
 /// <param name="Numeros">Los espacios que se come: «1» o «1-3-5», como en un directorio de tablero.</param>
 /// <param name="Barras">Las barras que toca, en orden: «A», «AB», «ABC».</param>

@@ -1853,6 +1853,41 @@ public class CuadroDeCargaTests
     }
 
     [Fact]
+    public void I54_1F2H_OfreceDe1a8Espacios_YAjustaAlCambiarDeConfiguracion()
+    {
+        // David, 2026-09-25: en 1F-2H hay centros de carga de 1 a 8 espacios; de 12 en adelante no.
+        var datos = new DatosDelTablero(); // 3F-4H, 24 espacios
+        datos.Fases = 1; // 1F-2H
+        Assert.Equal([1, 2, 3, 4, 5, 6, 7, 8], datos.EspaciosValidos);
+        Assert.Equal(8, datos.NumeroEspacios);
+
+        datos.NumeroEspacios = 5;
+        datos.Fases = 3; // de regreso a 3F: 5 no existe, pasa a 6
+        Assert.Equal([6, 12, 18, 24, 30, 36, 42], datos.EspaciosValidos);
+        Assert.Equal(6, datos.NumeroEspacios);
+
+        datos.Fases = 1;
+        datos.NumeroEspacios = 8;
+        datos.Hilos = 3; // 1F-3H, dos barras: 8 no existe, pasa a 12
+        Assert.Equal(12, datos.NumeroEspacios);
+    }
+
+    [Fact]
+    public void I54_ConUnaSolaBarra_LosRenglonesYElGabineteVanEnOrden()
+    {
+        var una = Nuevo(espacios: 6, fases: 1, hilos: 2, tension: 127m);
+        Assert.True(una.UnaSolaBarra);
+        Assert.Equal([1, 2, 3, 4, 5, 6], una.Lados.Single().Select(c => c.Espacio));
+        Assert.All(una.Gabinete, b => Assert.Equal(1, b.Columna));
+        Assert.Equal([1, 2, 3, 4, 5, 6], una.Gabinete.Select(b => b.Fila));
+
+        var tres = Nuevo(espacios: 6); // 3F-4H: nones arriba, pares abajo, dos columnas
+        Assert.Equal(2, tres.Lados.Count);
+        Assert.Equal([1, 3, 5], tres.Lados[0].Select(c => c.Espacio));
+        Assert.Equal(2, tres.Gabinete.Single(b => b.Circuito.Espacio == 2).Columna);
+    }
+
+    [Fact]
     public void I53_UnaTensionQueNoEsDeLaNom_SeAvisa()
     {
         var datos = new DatosDelTablero();

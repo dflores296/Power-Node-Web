@@ -380,7 +380,7 @@ else
     private IReadOnlyList<HojaDeMemoria> Hojas => MemoriaDeCalculo.Hojas(Cuadro);
 
     /// <summary>Los dos bloques del cuadro, ya materializados: cada uno se recorre más de una vez.</summary>
-    private List<CircuitoDelCuadro>[] Lados => [Cuadro.Nones.ToList(), Cuadro.Pares.ToList()];
+    private IReadOnlyList<IReadOnlyList<CircuitoDelCuadro>> Lados => Cuadro.Lados;
 
     private async Task Imprimir() => await Js.InvokeVoidAsync("window.print");
 

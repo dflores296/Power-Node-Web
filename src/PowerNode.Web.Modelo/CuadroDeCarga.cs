@@ -132,6 +132,17 @@ public sealed class CuadroDeCarga
     public IEnumerable<CircuitoDelCuadro> Nones => _circuitos.Where(c => c.Espacio % 2 == 1);
     public IEnumerable<CircuitoDelCuadro> Pares => _circuitos.Where(c => c.Espacio % 2 == 0);
 
+    /// <summary>Una sola barra: 1F-2H.</summary>
+    public bool UnaSolaBarra => Datos.Barras.Count == 1;
+
+    /// <summary>
+    /// Cómo se listan los renglones del cuadro: nones arriba y pares abajo, como el Excel, que es lo
+    /// que dice qué columna del gabinete es cada uno. Con una sola barra esa división no dice nada:
+    /// van en orden, 1, 2, 3… (David, 2026-09-25 — I-54).
+    /// </summary>
+    public IReadOnlyList<IReadOnlyList<CircuitoDelCuadro>> Lados =>
+        UnaSolaBarra ? [[.. _circuitos]] : [[.. Nones], [.. Pares]];
+
     public ResumenDeCarga Resumen { get; private set; } = Vacio();
 
     public RenglonDelAlimentador Alimentador { get; private set; } = new(null, null, [], 3);
@@ -628,8 +639,9 @@ public sealed class CuadroDeCarga
                     return new BloqueDelGabinete(
                         Circuito: c,
                         // El espacio 1 y el 2 están en el primer renglón; el 3 y el 4, en el segundo.
-                        Fila: (c.Espacio + 1) / 2,
-                        Columna: c.Espacio % 2 == 1 ? 1 : 2,
+                        // Con una sola barra, una sola columna en orden (I-54).
+                        Fila: UnaSolaBarra ? c.Espacio : (c.Espacio + 1) / 2,
+                        Columna: UnaSolaBarra || c.Espacio % 2 == 1 ? 1 : 2,
                         Espacios: c.Polos,
                         Numeros: string.Join("-", espacios),
                         Barras: c.Fases);

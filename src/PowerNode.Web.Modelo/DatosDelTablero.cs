@@ -57,6 +57,27 @@ public sealed class DatosDelTablero
     /// </summary>
     public int NumeroEspacios { get; set; } = 24;
 
+    /// <summary>
+    /// Los tamaños de gabinete que se ofrecen. 1F-2H tiene una sola barra: centros de carga de 1 a
+    /// 8 espacios; de 12 en adelante no existen para 1F-2H (David, 2026-09-25 — I-54). Los demás, de
+    /// 6 a 42 como el Excel.
+    /// </summary>
+    public IReadOnlyList<int> EspaciosValidos =>
+        SistemaDelTablero.De(Sistema) == ConfiguracionTablero.UnaFaseDosHilos
+            ? [1, 2, 3, 4, 5, 6, 7, 8]
+            : [6, 12, 18, 24, 30, 36, 42];
+
+    /// <summary>
+    /// Al cambiar de configuración, un gabinete que no existe para la nueva pasa al más cercano: de
+    /// 24 espacios a 1F-2H, 8; de 5 en 1F-2H a 3F, 6.
+    /// </summary>
+    private void AjustarEspacios()
+    {
+        var validos = EspaciosValidos;
+        if (!validos.Contains(NumeroEspacios))
+            NumeroEspacios = validos.FirstOrDefault(e => e >= NumeroEspacios, validos[^1]);
+    }
+
     /// <summary>Zapatas principales o interruptor principal propio. Decide qué dice el 408-36.</summary>
     public TipoAcometidaTablero TipoAcometida { get; set; } = TipoAcometidaTablero.InterruptorPrincipal;
 
@@ -118,6 +139,7 @@ public sealed class DatosDelTablero
             _fases = value;
             _hilos = HilosPorOmision(value);
             AjustarTension();
+            AjustarEspacios();
         }
     }
     private int _fases = 3;
@@ -132,6 +154,7 @@ public sealed class DatosDelTablero
                 return;
             _hilos = value;
             AjustarTension();
+            AjustarEspacios();
         }
     }
     private int _hilos = 4;

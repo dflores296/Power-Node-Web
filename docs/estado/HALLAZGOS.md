@@ -74,6 +74,7 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-51 · Selector de uso de contactos desalineado bajo el de tipo | P3 | **Cerrado** | `5cdc8bb` |
 | I-52 · F.P. cortado en «0.9» tras I-49 | P2 | **Cerrado** | `5cdc8bb` |
 | I-53 · Tensión sin rótulo correcto ni aviso: 1F-2H a 220 V F-N, 1F-3H a 220/110 V | P1 | **Cerrado** | `317110e` |
+| I-54 · 1F-2H con nones y pares y gabinetes de 12 a 42 espacios | P3 | **Cerrado** | `pendiente` |
 | R-01 · Caída del alimentador fija en 5 %, sin verificar la combinada — 215-2(a)(4) NOTA 2 | P1 | **Cerrado** | `2a973ea` |
 | R-02 · Caída del alimentador sin la caída del neutro | P2 | **Cerrado** | `d6cd1c6` |
 | R-03 · La publicación no corre `PowerNode.Web.Tests` | P1 | **Cerrado** | `986c9d7` |
@@ -223,6 +224,8 @@ Formato: **Hecho** (defecto observado) · **Corrección** · **Referencia** · *
 **I-52** — Hecho (Claude, revisando I-51): I-49 puso el F.P. siempre con dos decimales («0.90») y el campo de 52 px lo cortaba en «0.9». Corrección: 60 px. Prueba: navegador, ningún campo con el texto más ancho que su caja, en un caso con W, A, desglose y F.P. de tres decimales.
 
 **I-53** — Hecho (David, con dos capturas): con 220 V de un 3F-4H pasó a 1F-2H y el tablero calculó **220 V de fase a neutro**; a 1F-3H, **110 V**. Ninguna es tensión de la NOM (110-4: 120, 127, 120/240, 220Y/127, 208Y/120, 240, 480Y/277…). El campo decía «Tensión F-F» también en 1F-2H, que no tiene dos fases, y el programa usaba ese número como F-N; al cambiar de configuración la tensión se quedaba y nada avisaba. David preguntó además si 1F-3H era «fase, neutro y tierra»: no, los hilos son fases más neutro y la tierra no se cuenta; 1F-3H es «120/240 volts, 1 fase, 3 hilos», dos vivos en oposición con derivación central, y el «bifásico» es 2F-3H, «220Y/127 volts, derivado de un sistema de 3 fases, 4 hilos». Corrección: `DatosDelTablero.TensionesNominales` por configuración; al cambiar de configuración una tensión que no es nominal pasa a la de la NOM (127, 240, 220), y una que sí lo es se queda (3F-4H a 480 → 3F-3H sigue en 480); `AvisoTension` en la ficha si la capturada no es nominal, con la F-N que resulta; el campo dice «Tensión F-N» en 1F-2H; ayudas en Fases e Hilos (la tierra no es hilo); «2F-3H (dos fases de estrella)» en vez de «2F de estrella»; el documento no imprime «V F-F» en 1F-2H. Prueba: `I53_AlCambiarDeConfiguracion_…`, `I53_UnaTensionQueNoEsDeLaNom_SeAvisa`; navegador.
+
+**I-54** — Hecho (David): en 1F-2H, con una sola barra, el cuadro seguía separando nones arriba y pares abajo, y el gabinete en dos columnas; y se ofrecían gabinetes de 6 a 42 espacios, cuando en 1F-2H hay centros de carga de 1 a 8 y de 12 en adelante no existen. Corrección: `DatosDelTablero.EspaciosValidos` (1F-2H: 1 a 8; las demás: 6 a 42); al cambiar de configuración, un gabinete que no existe pasa al más cercano (24 → 8 al pasar a 1F-2H; 5 → 6 al regresar a 3F; 8 → 12 a 1F-3H); `CuadroDeCarga.Lados` lista en orden 1, 2, 3… con una sola barra, en la captura y en el documento; el gabinete en una columna. Prueba: `I54_1F2H_OfreceDe1a8Espacios_…`, `I54_ConUnaSolaBarra_…`; navegador.
 
 ### Revisión del 2026-09-23
 
