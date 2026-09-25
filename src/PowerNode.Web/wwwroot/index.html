@@ -55,35 +55,40 @@
       vez y después queda en caché, así que esto se ve unos segundos y conviene que diga de qué
       programa se trata.
     -->
-    <div id="app">
-        <!--
-          La carta va en línea, no en <img>: se dibuja con el avance real de la descarga (I-59). Es copia
-          de marca/powernode-icono.svg con currentColor; si el logo cambia, cambiarla también aquí y en
-          Layout/BarraSuperior.razor.
-        -->
-        <div class="arranque" style="--p: 0">
-            <svg class="arranque-logo carta-animada" viewBox="0 0 64 64" width="80" height="80" aria-hidden="true">
-                <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-                    <g class="finas" stroke-width="1.8">
-                        <circle cx="40.667" cy="32" r="17.333" style="--t: .10" />
-                        <circle cx="45" cy="32" r="13" style="--t: .20" />
-                        <circle cx="49.333" cy="32" r="8.667" style="--t: .30" />
-                        <path d="M58,32 A52,52 0 0 1 16.4,11.2" style="--t: .40" />
-                        <path d="M58,32 A52,52 0 0 0 16.4,52.8" style="--t: .45" />
-                        <path d="M58,32 A26,26 0 0 1 32,6" style="--t: .55" />
-                        <path d="M58,32 A26,26 0 0 0 32,58" style="--t: .60" />
-                        <path d="M58,32 A13,13 0 0 1 47.6,11.2" style="--t: .70" />
-                        <path d="M58,32 A13,13 0 0 0 47.6,52.8" style="--t: .75" />
-                        <path d="M6,32 L58,32" style="--t: .82" />
-                    </g>
-                    <circle class="borde" cx="32" cy="32" r="26" stroke-width="3.5" pathLength="100" />
+    <!--
+      Una capa encima de #app, no dentro: Blazor reemplaza lo que hay en #app en cuanto arranca, y en
+      caché eso pasa antes de que la carta termine de dibujarse (David: «la carga es muy rápida y no
+      muestra la animación»). Así la capa se queda hasta el final del dibujo y luego se desvanece
+      (I-60); la aplicación ya está lista debajo.
+    -->
+    <!--
+      La carta va en línea, no en <img>: se dibuja con el avance real de la descarga (I-59). Es copia
+      de marca/powernode-icono.svg con currentColor; si el logo cambia, cambiarla también aquí y en
+      Layout/BarraSuperior.razor.
+    -->
+    <div id="arranque" class="arranque" style="--p: 0">
+        <svg class="arranque-logo carta-animada" viewBox="0 0 64 64" width="80" height="80" aria-hidden="true">
+            <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                <g class="finas" stroke-width="1.8">
+                    <circle cx="40.667" cy="32" r="17.333" style="--t: .10" />
+                    <circle cx="45" cy="32" r="13" style="--t: .20" />
+                    <circle cx="49.333" cy="32" r="8.667" style="--t: .30" />
+                    <path d="M58,32 A52,52 0 0 1 16.4,11.2" style="--t: .40" />
+                    <path d="M58,32 A52,52 0 0 0 16.4,52.8" style="--t: .45" />
+                    <path d="M58,32 A26,26 0 0 1 32,6" style="--t: .55" />
+                    <path d="M58,32 A26,26 0 0 0 32,58" style="--t: .60" />
+                    <path d="M58,32 A13,13 0 0 1 47.6,11.2" style="--t: .70" />
+                    <path d="M58,32 A13,13 0 0 0 47.6,52.8" style="--t: .75" />
+                    <path d="M6,32 L58,32" style="--t: .82" />
                 </g>
-                <circle class="nodo" cx="32" cy="32" r="4.5" fill="#0B6E99" />
-            </svg>
-            <p class="arranque-nombre">Power Node</p>
-            <p class="arranque-nota">Cargando el cálculo y las tablas de la norma… <span class="arranque-pct"></span></p>
-        </div>
+                <circle class="borde" cx="32" cy="32" r="26" stroke-width="3.5" pathLength="100" />
+            </g>
+            <circle class="nodo" cx="32" cy="32" r="4.5" fill="#0B6E99" />
+        </svg>
+        <p class="arranque-nombre">Power Node</p>
+        <p class="arranque-nota">Cargando el cálculo y las tablas de la norma… <span class="arranque-pct"></span></p>
     </div>
+    <div id="app"></div>
 
     <div id="blazor-error-ui">
         Algo falló y la página no puede seguir.
@@ -91,29 +96,55 @@
         <a class="dismiss">🗙</a>
     </div>
     <!--
-      EL AVANCE DE LA DESCARGA (I-59). Blazor lo publica en <html style="--blazor-load-percentage: 42%">
-      por cada recurso que baja (onDownloadResourceProgress). Aquí se pasa a --p, de 0 a 1, que es lo
-      que dibuja la carta, y al texto. Va antes de blazor.webassembly.js para no perderse el primero.
-      Si en 1.5 s no llega ningún avance, la carta se muestra completa: nunca se queda en blanco.
+      EL AVANCE DE LA DESCARGA (I-59, I-60). Blazor lo publica en <html style="--blazor-load-percentage:
+      42%"> por cada recurso que baja (onDownloadResourceProgress). La carta lo sigue sin adelantarlo,
+      pero a una velocidad máxima: dibujarla completa toma por lo menos DIBUJO_MS de cuadros pintados,
+      aunque la descarga (en caché) acabe antes. Cuando la aplicación ya pintó algo en #app y la carta está completa, la
+      capa se desvanece. Va antes de blazor.webassembly.js para no perderse el primer avance. Si en
+      1.5 s no llega ninguno, se da por descargado: nunca se queda en blanco.
     -->
     <script>
         (() => {
-            const arranque = document.querySelector('.arranque');
+            const DIBUJO_MS = 1600;   // lo mínimo que tarda la carta en dibujarse completa
+            const PAUSA_MS = 350;     // ya completa, antes de desvanecerse: que se vea el punto azul
+            const arranque = document.getElementById('arranque');
             const texto = arranque.querySelector('.arranque-pct');
+            const app = document.getElementById('app');
             const raiz = document.documentElement;
-            let recibido = false;
-            const observador = new MutationObserver(() => {
-                if (!arranque.isConnected)
-                    return observador.disconnect(); // ya arrancó la aplicación
-                const avance = parseFloat(raiz.style.getPropertyValue('--blazor-load-percentage'));
-                if (Number.isNaN(avance))
-                    return;
-                recibido = true;
-                arranque.style.setProperty('--p', Math.min(avance, 100) / 100);
-                texto.textContent = Math.floor(avance) + ' %';
+            const quieto = matchMedia('(prefers-reduced-motion: reduce)').matches;
+            let real = 0, mostrado = 0, lista = false, recibido = false, antes = performance.now();
+
+            const avance = new MutationObserver(() => {
+                const v = parseFloat(raiz.style.getPropertyValue('--blazor-load-percentage'));
+                if (!Number.isNaN(v)) {
+                    recibido = true;
+                    real = Math.max(real, Math.min(v, 100) / 100);
+                }
             });
-            observador.observe(raiz, { attributes: true, attributeFilter: ['style'] });
-            setTimeout(() => { if (!recibido) arranque.style.setProperty('--p', 1); }, 1500);
+            avance.observe(raiz, { attributes: true, attributeFilter: ['style'] });
+            new MutationObserver((_, o) => {
+                if (app.childElementCount) { lista = true; real = 1; o.disconnect(); }
+            }).observe(app, { childList: true });
+            setTimeout(() => { if (!recibido) real = 1; }, 1500);
+
+            requestAnimationFrame(function cuadro(ahora) {
+                // Cada cuadro avanza a lo más 1/30 s: mientras arranca .NET el navegador se congela
+                // (~1.5 s en caché) y, al volver, la carta brincaba de golpe al final. Así sigue
+                // desde donde iba y se ve completa.
+                mostrado = quieto ? real : Math.min(real, mostrado + Math.min(ahora - antes, 1000 / 30) / DIBUJO_MS);
+                antes = ahora;
+                arranque.style.setProperty('--p', mostrado);
+                texto.textContent = Math.floor(mostrado * 100) + ' %';
+                if (lista && mostrado >= 1)
+                    return setTimeout(salir, quieto ? 0 : PAUSA_MS);
+                requestAnimationFrame(cuadro);
+            });
+
+            function salir() {
+                avance.disconnect();
+                arranque.classList.add('saliendo');
+                setTimeout(() => arranque.remove(), quieto ? 0 : 400);
+            }
         })();
     </script>
     <script src="_framework/blazor.webassembly.js"></script>

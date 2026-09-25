@@ -144,6 +144,8 @@ html { scroll-padding-top: calc(var(--alto-barra) + 8px); }
 .tema-opciones button:hover { color: var(--tinta); }
 .tema-opciones button.activo { background: var(--papel); color: var(--tinta); font-weight: 600;
                                box-shadow: 0 1px 2px var(--sombra); }
+.tema-simbolo { display: none; }
+.icono-imprimir { display: none; }
 
 /* En el celular no cabe en un renglón: las páginas bajan a un segundo renglón, a lo ancho, y se
    recorren de lado si no caben. */
@@ -152,14 +154,21 @@ html { scroll-padding-top: calc(var(--alto-barra) + 8px); }
     .barra-superior-interior { flex-wrap: wrap; row-gap: 6px; column-gap: 10px; padding: 8px 14px; }
     .barra-superior .espaciador { display: none; }
     .tema-opciones { margin-left: auto; }
+    /* El tema con símbolos (◐ ☀ ☾): con el nombre no cabía junto a Imprimir y la barra se iba a tres
+       renglones en el documento. El nombre se queda para el lector de pantalla (I-60). */
+    .tema-simbolo { display: inline; font-size: 14px; line-height: 1; }
+    .tema-nombre { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    .tema-opciones button { padding: 4px 9px; }
+    .icono-imprimir { display: block; }
+    .imprimir-texto { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    .boton.imprimir { padding: 7px 10px; }
     .marca-texto small, .barra-superior .vsep { display: none; }
     .paginas { order: 3; flex-basis: 100%; overflow-x: auto; }
     html { scroll-padding-top: 108px; }
 }
-/* 360 px, el Android más común: un poco más apretado para que el tema no baje a otro renglón. */
+/* 360 px, el Android más común: un poco más apretado para que Imprimir no baje a otro renglón. */
 @media (max-width: 400px) {
     .marca-texto { font-size: 15px; }
-    .tema-opciones button { padding: 4px 6px; }
 }
 
 /* Para lectores de pantalla: existe, pero no se ve. */
@@ -319,15 +328,22 @@ input.desc:focus, input.va:focus {
 .pie { margin-top: 26px; color: var(--tenue); font-size: 11px; line-height: 1.6; }
 .pie a { color: var(--acento); }
 
+/* Una capa sobre la aplicación, no dentro de #app (I-60): se queda hasta que la carta termina de
+   dibujarse y se desvanece; debajo, la aplicación ya arrancó. */
 .arranque {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    background: var(--fondo);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    min-height: 100vh;
     gap: 2px;
     animation: aparecer .4s ease-out;
+    transition: opacity .35s ease-out;
 }
+.arranque.saliendo { opacity: 0; pointer-events: none; }
 .arranque-nota .arranque-pct { font-variant-numeric: tabular-nums; }
 
 /* ------------------------------------------------------------------------------------------------
@@ -445,14 +461,24 @@ select.tipo { width: 108px; padding: 2px 4px 2px 6px; border-radius: var(--radio
           gap: 20px; margin-top: 22px; align-items: stretch; }
 @media (max-width: 1400px) { .cierre { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 900px) { .cierre { grid-template-columns: minmax(0, 1fr); } }
-/* En pantalla angosta los rótulos largos del resumen parten en dos líneas en vez de empujar. */
+/* En pantalla angosta los rótulos largos del resumen parten en dos líneas en vez de empujar; también
+   las cifras («0.00 / 0.00»). A 360 px, el Android más común, no bastaba: la tabla se salía 22 px de
+   su tarjeta. Ahí va en 12 px y el lienzo y las tarjetas con menos margen (I-60). */
 @media (max-width: 640px) {
-    .datos.resumen td.izq, .datos.resumen th { white-space: normal; }
+    .datos.resumen td, .datos.resumen th { white-space: normal; }
     .datos.resumen td, .datos.resumen th { padding-left: 3px; padding-right: 3px; }
+}
+@media (max-width: 400px) {
+    .lienzo { padding-left: 12px; padding-right: 12px; }
+    .datos.resumen { font-size: 12px; }
+    .datos.resumen th { letter-spacing: 0; }
+    .datos.resumen input.chico { width: 56px; }
 }
 
 .tarjeta { background: var(--papel); border: 1px solid var(--linea);
            border-radius: var(--radio-lg); padding: 16px 20px; }
+@media (max-width: 640px) { .tarjeta { padding: 14px; } }
+@media (max-width: 400px) { .tarjeta { padding: 12px; } }
 .tarjeta.avisos { margin-top: 20px; }
 .justificaciones { display: flex; flex-direction: column; gap: 4px; font-size: 11px; }
 .justificaciones label { display: flex; align-items: flex-start; gap: 6px; }
@@ -520,11 +546,16 @@ label.suelto input { width: 90px; }
 
 .documento { background: var(--papel); border: 1px solid var(--linea);
              border-radius: var(--radio-md); padding: 22px 24px 26px; }
-.doc-encabezado { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px;
+/* Encabezado del documento (I-60): la firma y el nombre del documento en un renglón a todo lo ancho,
+   los datos debajo en dos columnas. Antes la firma ocupaba una columna entera de tres, casi vacía. */
+.doc-encabezado { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 32px; row-gap: 12px;
                   border-bottom: 2px solid var(--tinta); padding-bottom: 12px; margin-bottom: 14px; }
-@media (max-width: 900px) { .doc-encabezado { grid-template-columns: 1fr; } }
+@media (max-width: 900px) { .doc-encabezado { grid-template-columns: minmax(0, 1fr); } }
+.doc-marca { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 16px;
+             padding-bottom: 10px; border-bottom: 1px solid var(--linea-suave); }
 .doc-marca img { display: block; }
-.doc-norma { margin: 8px 0 0; font-size: 11px; color: var(--tenue); }
+.doc-norma { margin: 0; text-align: right; font-size: 11px; color: var(--tenue); }
+.doc-norma strong { display: block; font-size: 16px; font-weight: 650; letter-spacing: -0.01em; color: var(--tinta); }
 .doc-datos { margin: 0; font-size: 11px; }
 .doc-datos > div { display: flex; gap: 8px; padding: 2px 0; border-bottom: 1px dotted var(--linea-suave); }
 .doc-datos dt { color: var(--tenue); min-width: 84px; }

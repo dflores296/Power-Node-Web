@@ -4,16 +4,18 @@
    tras clics. js/tema.js guarda la elección y la aplica en <html data-tema>; aquí solo se muestra. *@
 <div class="tema-opciones" role="group" aria-label="Tema de la pantalla"
      title="Sistema sigue la configuración del equipo; claro y oscuro la fijan. Impreso sale siempre en claro.">
-    @foreach (var (valor, nombre) in Opciones)
+    @foreach (var (valor, nombre, simbolo) in Opciones)
     {
         <button type="button" class="@(valor == _eleccion ? "activo" : null)" aria-pressed="@(valor == _eleccion ? "true" : "false")"
-                @onclick="() => Fijar(valor)">@nombre</button>
+                @onclick="() => Fijar(valor)"><span class="tema-simbolo" aria-hidden="true">@simbolo</span><span class="tema-nombre">@nombre</span></button>
     }
 </div>
 
 @code {
-    private static readonly (string Valor, string Nombre)[] Opciones =
-        [("automatico", "Sistema"), ("claro", "Claro"), ("oscuro", "Oscuro")];
+    // El símbolo es para el celular, donde el nombre no cabe (I-60); lleva el selector de variación de
+    // texto (U+FE0E) para que ☀ no salga como emoji.
+    private static readonly (string Valor, string Nombre, string Simbolo)[] Opciones =
+        [("automatico", "Sistema", "◐\uFE0E"), ("claro", "Claro", "☀\uFE0E"), ("oscuro", "Oscuro", "☾\uFE0E")];
 
     private string _eleccion = "automatico";
 

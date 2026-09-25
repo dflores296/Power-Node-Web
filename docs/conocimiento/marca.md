@@ -89,7 +89,9 @@ papel y una línea abajo; 64 px de alto (56 hasta I-59).
 - Las páginas: **Captura · Cuadro de carga · Memoria de cálculo** (`NavLink`, con `aria-current`).
   La memoria tiene ruta propia, `/documento/memoria`; antes era una pestaña sin dirección.
 - Derecha: el tema y, en el documento, **Imprimir / PDF**.
-- En el celular (≤ 760 px) las páginas bajan a un segundo renglón.
+- En el celular (≤ 760 px) las páginas bajan a un segundo renglón, y el tema e Imprimir quedan como
+  símbolos (◐ ☀ ☾ y una impresora) con el nombre para el lector de pantalla: con texto, la barra del
+  documento se iba a tres renglones (I-60).
 - `html { scroll-padding-top }`: Enter, las flechas y Alt+1…5 mueven el foco con `scrollIntoView`, y
   sin esto el campo quedaba debajo de la barra.
 - Impreso no sale (`no-imprime`). Vive en `Layout/BarraSuperior.razor`, dentro de `MainLayout`.
@@ -104,10 +106,18 @@ papel y una línea abajo; 64 px de alto (56 hasta I-59).
 - `--p`, de 0 a 1, dibuja la carta: el borde avanza (`pathLength="100"`, `stroke-dasharray`), cada
   línea aparece en su umbral (`--t`, de .10 a .82) y el punto azul crece al final (de .9 a 1).
   `@property --p` (número, valor inicial 1): sin nadie que lo mueva, la carta está completa.
-- **En la pantalla de carga, `--p` es el avance real.** Blazor lo publica en
+- **En la pantalla de carga, `--p` sigue el avance real.** Blazor lo publica en
   `<html style="--blazor-load-percentage: 42%">` por cada recurso que baja
   (`onDownloadResourceProgress` en `blazor.webassembly.js`); un script de `index.html` lo pasa a `--p`
-  y al texto («… 42 %»). Si en 1.5 s no llega ningún avance, la carta se muestra completa.
+  y al texto («… 42 %»). Si en 1.5 s no llega ningún avance, se da por descargado.
+- **Se ve completa aunque la carga sea rápida** (I-60, David: «la carga es muy rápida y no muestra la
+  animación»). La pantalla de carga es una **capa encima de `#app`**, no su contenido: Blazor ya no la
+  borra al arrancar. El dibujo nunca adelanta al avance real, pero avanza a lo más a una velocidad
+  (`DIBUJO_MS` = 1.6 s para la carta completa); cuando la app ya pintó y la carta está completa, espera
+  0.35 s y se desvanece.
+- **La trampa:** mientras arranca .NET el navegador se congela (~1.5 s en caché) y no pinta nada. Al
+  volver, la carta brincaba de 42 % a 100 % porque el script compensaba el tiempo perdido. Cada cuadro
+  avanza a lo más 1/30 s, así que después de la congelación sigue desde donde iba.
 - **En la barra**, `@keyframes dibujar` anima `--p` de 0 a 1 en 1.2 s, una vez, al pasar el cursor o
   con el foco del teclado.
 - Con «reducir movimiento» (`prefers-reduced-motion`) la carta queda quieta y completa.

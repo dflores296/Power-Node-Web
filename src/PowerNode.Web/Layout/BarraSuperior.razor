@@ -44,7 +44,16 @@
         <TemaDePantalla />
         @if (EnDocumento)
         {
-            <button class="boton primario" type="button" @onclick="Imprimir">Imprimir / PDF</button>
+            @* En el celular, solo el icono: con el texto la barra se iba a tres renglones (I-60). *@
+            <button class="boton primario imprimir" type="button" @onclick="Imprimir">
+                <svg class="icono-imprimir" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor"
+                     stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M4 6V2h8v4" />
+                    <path d="M4 12H2.5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h11a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H12" />
+                    <path d="M4 9.5h8V14H4z" />
+                </svg>
+                <span class="imprimir-texto">Imprimir / PDF</span>
+            </button>
         }
     </div>
 </header>
