@@ -64,7 +64,7 @@
                         }
                         <circle class="union riel-a @(ocupado ? null : "libre")" cx="24" cy="10" r="4.5" />
                     </svg>
-                    <span class="etq etq-a @(ocupado ? null : "libre")">@bloque.Numeros</span>
+                    <span class="etq etq-a @(ocupado ? null : "libre")"><span>@bloque.Numeros</span></span>
                 </div>
                 @if (ocupado)
                 {
@@ -156,7 +156,7 @@ else
             {
                 var c = Conexion(n, barras);
                 <span class="etq etq-@c.Clase @(c.Usado ? null : "libre")"
-                      style="left: @(c.Nones ? 0 : AnchoBarras - 22)px; top: @N(c.Y - 7.5m)px">@n</span>
+                      style="left: @(c.Nones ? 0 : AnchoBarras - 22)px; top: @N(c.Y - 7.5m)px"><span>@n</span></span>
             }
             @if (zocalo)
             {

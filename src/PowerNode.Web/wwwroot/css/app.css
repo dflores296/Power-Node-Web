@@ -133,7 +133,7 @@ body {
 :root { --alto-barra: 64px; }
 /* Enter, las flechas y Alt+1…5 llevan el foco con scrollIntoView: sin esto, lo que queda arriba se
    esconde debajo de la barra. */
-html { scroll-padding-top: calc(var(--alto-barra) + 8px); }
+html { scroll-padding-top: calc(var(--alto-barra) + 8px); -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 
 .barra-superior {
     position: sticky; top: 0; z-index: 50;
@@ -736,6 +736,11 @@ circle.union { stroke: var(--encabezado); }
        width: 22px; height: 15px; box-sizing: border-box; border: 1px solid; border-radius: 4px;
        background: var(--papel); color: var(--tinta); font-size: 9.5px; font-weight: 700;
        line-height: 1; font-variant-numeric: tabular-nums; }
+/* Centrado de verdad (I-72): la caja de la letra trae aire arriba y abajo que cambia con la fuente
+   —en Android no es Segoe UI— y corría los números. Recortada a la altura de los dígitos, el flex
+   centra el número y no la caja. El alto impar (15, 13 por dentro) le da al dígito, de 7, el mismo
+   aire arriba y abajo; con alto par queda medio píxel arriba. */
+.etq > span { display: block; text-box: trim-both cap alphabetic; }
 .etq.libre { opacity: .45; }
 .etq-a { border-color: var(--barra-a); }
 .etq-b { border-color: var(--barra-b); }
