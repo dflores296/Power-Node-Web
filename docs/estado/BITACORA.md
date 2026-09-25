@@ -87,6 +87,7 @@ Pruebas: 66 en `PowerNode.Web.Tests`, 6 en `PowerNode.Normativa.Tests`.
 - Guardar y abrir el tablero en un archivo `.powernode.json` (lo capturado, se recalcula al abrir); la pestaña lleva el nombre del tablero; varios tableros, uno por pestaña. Decisión propuesta: `archivo-del-tablero.md` — I-05, `0169b78`.
 - Botón de GitHub con las estrellas en la barra, como el de gitdiagram.com — I-61, `005be3c`.
 - Propuestas de tipografía e iconos en un canvas; David eligió Segoe UI y duotono: iconos duotono en toda la aplicación, firma en Segoe UI — I-62, `5518836`.
+- Iconos de tipo de carga en el resumen y junto al selector «Tipo»; el resumen ya no se sale de su tarjeta en pantallas anchas — I-63, `a7e6219`.
 
 Pruebas: 194 en `PowerNode.Web.Tests`, 23 en `PowerNode.Normativa.Tests`.
 
