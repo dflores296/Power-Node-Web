@@ -88,10 +88,11 @@ papel y una línea abajo; 64 px de alto (56 hasta I-59).
   tooltip: David lo pidió quitar.
 - Las páginas: **Captura · Cuadro de carga · Memoria de cálculo** (`NavLink`, con `aria-current`).
   La memoria tiene ruta propia, `/documento/memoria`; antes era una pestaña sin dirección.
-- Derecha: el tema y, en el documento, **Imprimir / PDF**.
+- Derecha: en la captura, **Abrir** y **Guardar** (I-05); el tema; en el documento, **Imprimir / PDF**.
 - En el celular (≤ 760 px) las páginas bajan a un segundo renglón, y el tema e Imprimir quedan como
-  símbolos (◐ ☀ ☾ y una impresora) con el nombre para el lector de pantalla: con texto, la barra del
-  documento se iba a tres renglones (I-60).
+  símbolos (◐ ☀ ☾, una carpeta, un disquete y una impresora) con el nombre para el lector de pantalla:
+  con texto, la barra del documento se iba a tres renglones (I-60). A 400 px o menos, en la captura, el
+  logo va sin «Power Node» junto a Abrir y Guardar; el nombre sigue en la pestaña.
 - `html { scroll-padding-top }`: Enter, las flechas y Alt+1…5 mueven el foco con `scrollIntoView`, y
   sin esto el campo quedaba debajo de la barra.
 - Impreso no sale (`no-imprime`). Vive en `Layout/BarraSuperior.razor`, dentro de `MainLayout`.

@@ -145,7 +145,18 @@ html { scroll-padding-top: calc(var(--alto-barra) + 8px); }
 .tema-opciones button.activo { background: var(--papel); color: var(--tinta); font-weight: 600;
                                box-shadow: 0 1px 2px var(--sombra); }
 .tema-simbolo { display: none; }
-.icono-imprimir { display: none; }
+/* Botones con icono (Abrir, Guardar, Imprimir): en el celular queda solo el icono (I-60, I-05). */
+.boton.con-icono { display: inline-flex; align-items: center; gap: 6px; }
+.boton-icono { flex: none; }
+
+/* El aviso de abrir y guardar, bajo la barra, a la derecha. Se va solo. */
+.nota-archivo { position: absolute; right: 20px; top: calc(100% + 8px); max-width: min(560px, calc(100vw - 28px));
+                display: flex; align-items: flex-start; gap: 10px; padding: 8px 10px 8px 12px; font-size: 12.5px;
+                background: var(--papel); color: var(--tinta); border: 1px solid var(--linea);
+                border-left: 3px solid var(--acento); border-radius: var(--radio-sm); box-shadow: 0 6px 20px var(--sombra); }
+.nota-archivo.error { border-left-color: var(--alerta); }
+.nota-archivo .cerrar { border: 0; background: none; cursor: pointer; color: var(--tenue); font-size: 17px; line-height: 1; padding: 0 2px; }
+.nota-archivo .cerrar:hover { color: var(--tinta); }
 
 /* En el celular no cabe en un renglón: las páginas bajan a un segundo renglón, a lo ancho, y se
    recorren de lado si no caben. */
@@ -153,22 +164,23 @@ html { scroll-padding-top: calc(var(--alto-barra) + 8px); }
     /* Sin el espaciador y con menos hueco, el tema cabe junto a la marca de 40 px (I-59). */
     .barra-superior-interior { flex-wrap: wrap; row-gap: 6px; column-gap: 10px; padding: 8px 14px; }
     .barra-superior .espaciador { display: none; }
-    .tema-opciones { margin-left: auto; }
+    .marca { margin-right: auto; } /* lo demás del renglón, a la derecha */
     /* El tema con símbolos (◐ ☀ ☾): con el nombre no cabía junto a Imprimir y la barra se iba a tres
        renglones en el documento. El nombre se queda para el lector de pantalla (I-60). */
     .tema-simbolo { display: inline; font-size: 14px; line-height: 1; }
     .tema-nombre { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
     .tema-opciones button { padding: 4px 9px; }
-    .icono-imprimir { display: block; }
-    .imprimir-texto { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-    .boton.imprimir { padding: 7px 10px; }
+    .boton-texto { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    .boton.con-icono { padding: 7px 10px; }
+    .nota-archivo { right: 14px; }
     .marca-texto small, .barra-superior .vsep { display: none; }
     .paginas { order: 3; flex-basis: 100%; overflow-x: auto; }
     html { scroll-padding-top: 108px; }
 }
-/* 360 px, el Android más común: un poco más apretado para que Imprimir no baje a otro renglón. */
+/* 360 px, el Android más común: con Abrir y Guardar no cabe el nombre junto al logo, y queda el logo
+   solo; el nombre sigue en la pestaña (I-05). */
 @media (max-width: 400px) {
-    .marca-texto { font-size: 15px; }
+    .marca-texto { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 }
 
 /* Para lectores de pantalla: existe, pero no se ve. */

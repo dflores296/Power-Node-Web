@@ -77,6 +77,8 @@ Cada requisito se relaciona con su referencia normativa y con su verificación e
 | E-1 | Emitir el cuadro de carga con 24 columnas y el resumen de carga. | — | Navegador |
 | E-2 | Emitir la memoria de cálculo con nueve secciones y fórmulas sustituidas. | — | `LasNueveSecciones…` |
 | E-3 | Mostrar el desglose de la protección y del conductor en tooltip y en la memoria, sección 4. | — | `LaSeccion4CuadraConElConductorElegido` |
+| E-4 | Guardar el tablero en un archivo (`.powernode.json`) y abrirlo de vuelta: lo capturado, sin resultados; se recalcula al abrir. Rechazar lo que no es de Power Node o es de una versión más nueva. | — | `I05_…` |
+| E-5 | Nombrar la pestaña con el tablero: «Tablero cocina — Power Node». | — | Navegador |
 
 ## Datos
 

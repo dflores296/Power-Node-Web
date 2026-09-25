@@ -3,9 +3,11 @@
 @inject MotorNom Motor
 @inject NavigationManager Navegacion
 @inject IJSRuntime JS
+@implements IDisposable
 @using System.Globalization
 
-<PageTitle>Cuadro de carga — Power Node</PageTitle>
+@* La pestaña lleva el nombre del tablero: con varias abiertas, dice cuál es cuál (I-05). *@
+<PageTitle>@Proyecto.TituloDeVentana</PageTitle>
 
 @* El título de la página va para los lectores de pantalla (y para FocusOnNavigate): a la vista, la
    barra superior ya dice dónde se está (I-58). *@
@@ -759,7 +761,20 @@
             _enfocar = null;
             await JS.InvokeVoidAsync("powerNode.enfocar", selector);
         }
+        // Con cambios sin guardar, el navegador pregunta antes de cerrar la pestaña (I-05).
+        await JS.InvokeVoidAsync("powerNode.archivo.marcarSinGuardar", Proyecto.SinGuardar);
     }
+
+    // Al abrir un archivo, el tablero es otro: se dibuja de nuevo, sin desgloses abiertos del anterior.
+    protected override void OnInitialized() => Proyecto.Cambio += AlAbrirOtroTablero;
+
+    private void AlAbrirOtroTablero()
+    {
+        _desgloseAbierto.Clear();
+        StateHasChanged();
+    }
+
+    public void Dispose() => Proyecto.Cambio -= AlAbrirOtroTablero;
 
     private static string DescripcionDeAparato(int espacio, int n) =>
         $"table.desglose[data-circuito=\"{espacio}\"] > tbody > tr:nth-child({n}) input[data-col=\"ap-desc\"]";

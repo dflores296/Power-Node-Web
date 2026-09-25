@@ -1,5 +1,6 @@
 @inject NavigationManager Navegacion
 @inject IJSRuntime JS
+@inject ProyectoActual Proyecto
 @implements IDisposable
 
 @*
@@ -41,21 +42,51 @@
             <NavLink href="documento/memoria" Match="NavLinkMatch.All">Memoria de cálculo</NavLink>
         </nav>
         <span class="espaciador"></span>
+        @* Abrir y guardar el tablero (I-05), en la captura: es donde se edita. En el celular, solo los
+           iconos, igual que Imprimir (I-60). *@
+        @if (!EnDocumento)
+        {
+            <button class="boton con-icono" type="button" @onclick="Abrir"
+                    title="Abrir un tablero guardado (.powernode.json). Para tener varios a la vez, uno por pestaña.">
+                <svg class="boton-icono" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor"
+                     stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M1.5 4.5a1 1 0 0 1 1-1h3.2l1.5 1.5h6.3a1 1 0 0 1 1 1v6.5a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1z" />
+                </svg>
+                <span class="boton-texto">Abrir</span>
+            </button>
+            <button class="boton con-icono" type="button" @onclick="Guardar"
+                    title="Guardar el tablero en un archivo de este equipo: la captura completa, para abrirla después.">
+                <svg class="boton-icono" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor"
+                     stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M2.5 1.5h9l3 3v9a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1v-11a1 1 0 0 1 1-1z" />
+                    <path d="M4.5 1.5v4h6v-4" />
+                    <path d="M4.5 14.5v-5h7v5" />
+                </svg>
+                <span class="boton-texto">Guardar</span>
+            </button>
+        }
         <TemaDePantalla />
         @if (EnDocumento)
         {
             @* En el celular, solo el icono: con el texto la barra se iba a tres renglones (I-60). *@
-            <button class="boton primario imprimir" type="button" @onclick="Imprimir">
-                <svg class="icono-imprimir" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor"
+            <button class="boton primario con-icono" type="button" @onclick="Imprimir">
+                <svg class="boton-icono" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor"
                      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <path d="M4 6V2h8v4" />
                     <path d="M4 12H2.5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h11a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H12" />
                     <path d="M4 9.5h8V14H4z" />
                 </svg>
-                <span class="imprimir-texto">Imprimir / PDF</span>
+                <span class="boton-texto">Imprimir / PDF</span>
             </button>
         }
     </div>
+    @if (_nota is { } nota)
+    {
+        <div class="nota-archivo @(_notaEsError ? "error" : null)" role="status">
+            <span>@nota</span>
+            <button type="button" class="cerrar" aria-label="Cerrar el aviso" @onclick="() => _nota = null">×</button>
+        </div>
+    }
 </header>
 
 @code {
@@ -67,5 +98,80 @@
 
     private async Task Imprimir() => await JS.InvokeVoidAsync("window.print");
 
-    public void Dispose() => Navegacion.LocationChanged -= AlCambiarDePagina;
+    // ---- Abrir y guardar (I-05) ---------------------------------------------------------------------
+
+    private sealed record ArchivoLeido(string Nombre, string Texto);
+
+    private async Task Guardar()
+    {
+        var (nombre, texto) = Proyecto.ParaGuardar();
+        string? escrito;
+        try
+        {
+            escrito = await JS.InvokeAsync<string?>("powerNode.archivo.guardar", nombre, texto);
+        }
+        catch (JSException e)
+        {
+            Avisar($"No se pudo guardar: {e.Message}", error: true);
+            return;
+        }
+        if (escrito is null)
+            return; // canceló el diálogo
+        Proyecto.Guardado();
+        await JS.InvokeVoidAsync("powerNode.archivo.marcarSinGuardar", false);
+        Avisar($"Guardado: «{escrito}».");
+    }
+
+    private async Task Abrir()
+    {
+        var archivo = await JS.InvokeAsync<ArchivoLeido?>("powerNode.archivo.abrir");
+        if (archivo is null)
+            return;
+        if (Proyecto.SinGuardar &&
+            !await JS.InvokeAsync<bool>("powerNode.archivo.confirmar",
+                $"El tablero de esta pestaña tiene cambios sin guardar. ¿Abrir «{archivo.Nombre}» en su lugar y perderlos?\n\nPara tener los dos, cancela, guarda este y abre el otro en una pestaña nueva."))
+            return;
+
+        var apertura = Proyecto.Abrir(archivo.Texto);
+        if (apertura.Error is { } error)
+        {
+            Avisar($"No se abrió «{archivo.Nombre}». {error}", error: true);
+            return;
+        }
+        await JS.InvokeVoidAsync("powerNode.archivo.marcarSinGuardar", false);
+        Avisar(apertura.Avisos.Count == 0
+            ? $"Abierto: «{archivo.Nombre}»."
+            : $"Abierto: «{archivo.Nombre}». {string.Join(" ", apertura.Avisos)}", error: false, largo: apertura.Avisos.Count > 0);
+    }
+
+    private string? _nota;
+    private bool _notaEsError;
+    private CancellationTokenSource? _borrarNota;
+
+    /// <summary>El aviso bajo la barra: se va solo a los 5 s (a los 12 si es error o trae avisos).</summary>
+    private void Avisar(string nota, bool error = false, bool largo = false)
+    {
+        _nota = nota;
+        _notaEsError = error;
+        _borrarNota?.Cancel();
+        var cancelar = _borrarNota = new CancellationTokenSource();
+        _ = BorrarDespues(error || largo ? 12000 : 5000, cancelar.Token);
+    }
+
+    private async Task BorrarDespues(int ms, CancellationToken token)
+    {
+        try
+        {
+            await Task.Delay(ms, token);
+            _nota = null;
+            StateHasChanged();
+        }
+        catch (TaskCanceledException) { }
+    }
+
+    public void Dispose()
+    {
+        Navegacion.LocationChanged -= AlCambiarDePagina;
+        _borrarNota?.Cancel();
+    }
 }
