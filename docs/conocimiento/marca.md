@@ -1,9 +1,23 @@
 # La marca en la web, y en qué se aparta del escritorio
 
-El logo sale de `Recursos/Marca/` del repo de escritorio (`PowerNode-DesignSuite`): un unifilar de
-**nodo, barra y tres derivaciones**. Tinta `#101418`, azul del nodo `#0B6E99`, gris de apoyo
-`#5A6570` — los tres son los colores reales de la marca, no aproximaciones, y la interfaz se alineó
-a ellos.
+## El logo es una carta de Smith
+
+> **CONFIRMADA · David · 2026-09-25.** De tres niveles de detalle, eligió la variante **B («media»)**
+> para todo: encabezado, pestaña, `.ico`, PNG y firma.
+
+La carta se **dibuja con sus ecuaciones**, no se calca de ninguna imagen: es geometría y queda libre
+de derechos de terceros (`tools/marca_carta_smith.py`). Todas las curvas son tangentes en (1, 0):
+
+- **resistencia constante *r***: círculo con centro en (r/(1+r), 0) y radio 1/(1+r) — r = 0.5, 1, 2;
+- **reactancia constante *x***: arco con centro en (1, 1/x) y radio 1/|x|, recortado al círculo
+  unidad — x = ±0.5, ±1, ±2;
+- el eje real, y **el punto azul al centro**: z = 1, la adaptación perfecta. Es el nodo.
+
+Tinta `#101418`, azul del nodo `#0B6E99`, gris de apoyo `#5A6570` — los colores reales de la marca.
+
+Antes el logo salía de `Recursos/Marca/` del repo de escritorio (`PowerNode-DesignSuite`): un
+unifilar de **nodo, barra y tres derivaciones**. ⚠ **El escritorio sigue con el unifilar**; si se
+quiere una sola marca, hay que llevar la carta allá.
 
 ## La diferencia deliberada: remates redondos
 
@@ -11,7 +25,7 @@ a ellos.
 > el original**, «bordes redondeados, menos cuadrado», y pidió llevarlo al estilo general.
 
 El escritorio dibuja el logo con `stroke-linecap="square"`. **Aquí es `round`** (con
-`stroke-linejoin="round"`), en las cuatro variantes. La diferencia es de un atributo y cambia el
+`stroke-linejoin="round"`), en todos los archivos — también en la carta de Smith. La diferencia es de un atributo y cambia el
 carácter entero: las líneas rematan en semicírculo en vez de en escuadra.
 
 ⚠ **El repo de escritorio sigue con la versión cuadrada.** Si se quiere una sola marca, hay que
@@ -45,12 +59,19 @@ cambiándoles el nombre, o no se versionan.
 
 | Archivo | Para qué |
 |---|---|
-| `marca/powernode-icono.svg` | El del encabezado de la aplicación |
-| `marca/powernode-icono-16.svg` | Trazo grueso, para tamaños chicos. Es la fuente de los PNG y del `.ico` |
+| `marca/powernode-icono.svg` | El del encabezado y la pantalla de carga. Trazo normal: borde 3.5, líneas 1.8 (lienzo 64) |
+| `marca/powernode-icono-16.svg` | Trazo grueso (borde 5, líneas 2.6), para tamaños chicos. Fuente de los PNG chicos y del `.ico` |
 | `marca/powernode-icono-mono.svg` | `currentColor`, para heredar el color del contexto |
-| `marca/powernode-firma.svg` | Logo con el texto «Power Node · Design Suite» |
-| `marca/powernode-favicon.svg` | El del navegador, con `prefers-color-scheme` adentro |
-| `favicon.ico`, `favicon.png` (raíz) | Ver I-07: los que el navegador pide solo |
+| `marca/powernode-firma.svg` | Logo con el texto «Power Node · Design Suite» — el del documento |
+| `marca/powernode-favicon.svg` | El del navegador: trazo grueso, con `prefers-color-scheme` adentro |
+| `marca/powernode-16.png`, `-32.png`, `-48.png` | Los tamaños chicos; 16, 32 y 48 van dentro del `.ico` |
+| `marca/powernode-180.png`, `-192.png`, `-512.png` | iOS (180) y tamaños grandes, del trazo normal |
+| `favicon.ico`, `favicon.png` (raíz) | Ver I-07: los que el navegador pide solo. `favicon.png` va sobre blanco |
 
-**Los PNG y el `.ico` se generan**, no se editan: salen de `powernode-icono-16.svg` renderizado con
-Playwright. Si cambia el logo, hay que regenerarlos.
+**Nada de esto se edita a mano; se genera:**
+
+```bash
+python3 tools/marca_carta_smith.py            # los SVG, con las ecuaciones
+node tools/marca_png.mjs                      # los PNG, con Playwright (NODE_PATH si no es global)
+python3 tools/marca_carta_smith.py --ico      # favicon.ico con los PNG de 16, 32 y 48
+```

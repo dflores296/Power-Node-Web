@@ -558,6 +558,9 @@ label.suelto input { width: 90px; }
 /* Foco uniforme con el color de acento; con ratón, los botones no muestran el contorno. */
 :where(input, select, button, a):focus { outline: none; }
 :where(input, select, button, a):focus-visible { outline: 2px solid var(--acento); outline-offset: 1px; }
+/* FocusOnNavigate (App.razor) pone el foco en el h1 al cargar, para lectores de pantalla; sin
+   contorno, como en la plantilla de Blazor: se veía un recuadro alrededor de «Cuadro de carga». */
+h1:focus { outline: none; }
 /* Barra de ayuda: la del campo con el foco y las teclas. No tapa el final de la página. */
 #barra-ayuda { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; display: flex; gap: 16px;
                align-items: flex-start; justify-content: space-between; padding: 8px 16px;
