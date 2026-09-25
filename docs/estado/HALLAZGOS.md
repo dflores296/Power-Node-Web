@@ -86,6 +86,7 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-63 · Sin iconos de tipo de carga; el resumen se salía de su tarjeta arriba de 1400 px | P3 | **Cerrado** | `a7e6219` |
 | I-64 · Interfaz plana, con poco contraste entre fondo, tarjetas y títulos | P3 | **Cerrado** | `3ed4e44` |
 | I-65 · Líneas de tabla tibias junto al relieve; en oscuro el relieve no se veía | P3 | **Cerrado** | `7ade4dc` |
+| I-66 · El gabinete dibujaba cada interruptor como texto («20 A»), sin el aparato | P3 | **Cerrado** | `HASH` |
 | R-01 · Caída del alimentador fija en 5 %, sin verificar la combinada — 215-2(a)(4) NOTA 2 | P1 | **Cerrado** | `2a973ea` |
 | R-02 · Caída del alimentador sin la caída del neutro | P2 | **Cerrado** | `d6cd1c6` |
 | R-03 · La publicación no corre `PowerNode.Web.Tests` | P1 | **Cerrado** | `986c9d7` |
@@ -259,6 +260,8 @@ Formato: **Hecho** (defecto observado) · **Corrección** · **Referencia** · *
 **I-64** — Hecho (David: «lo siento muy plano… algo intermedio» entre la app y gitdiagram; en el canvas «Power Node — relieve y contraste» eligió B, relieve marcado): fondo gris claro, títulos en gris, tarjetas blancas sin sombra. Corrección, solo en pantalla: tarjetas con borde de 1.5 px y sombra sólida desplazada 4 px; botones y tema con borde oscuro y sombra de 2 px que se hunden al presionarlos; barra con línea de 2 px; títulos en tinta; fondo #e6ebf1, rótulos #45505c, encabezados de tabla #dfe6ee; en oscuro el fondo baja a #0b0e12. Prueba: navegador, claro y oscuro con carga capturada — la página no se ensancha a 1500 px; impreso, el documento sin sombra ni borde; sin errores en la consola.
 
 **I-65** — Hecho (David, con capturas y gitdiagram en oscuro de ejemplo): las líneas internas de las tablas se veían tibias junto al borde marcado de las tarjetas, y en oscuro la sombra casi negra caía sobre un fondo casi negro y el relieve no se veía. Corrección: `--linea` #c2cbd6 y `--linea-suave` #d8dfe7 en claro; en oscuro fondo #161b21, tarjetas #1f262d, líneas más claras, bordes y sombras negros y campos un tono más hundidos. Prueba: navegador, claro y oscuro con carga capturada; página sin ensancharse a 1500 px; impreso sin sombra; sin errores en la consola.
+
+**I-66** — Hecho (David, con fotos de interruptores NEMA y DIN y captura del gabinete): el gabinete ponía el valor del interruptor como texto a la derecha de la celda. Corrección: `Layout/Interruptor.razor`, duotono como `Icono.razor` (trazo de 1.5 px, relleno del acento al 16 %), genérico, sin marca ni logotipo. NEMA: de lado, polos apilados cada 34 px (renglón de 30 + hueco de 4) unidos por una sola manija con el valor calado; en el gabinete, cada polo queda frente a su espacio. DIN: de pie, módulos de 18 lado a lado, bornes arriba y abajo, «C16» en el frente; hecho pero sin usar, porque el único gabinete es NEMA. Valores: los de la serie (`SerieDeInterruptores`). Propuesta en el canvas «Iconos de termomagnético». Prueba: navegador, claro y oscuro, circuitos de 1, 2 y 3 polos — bloque de 30/64/98 px con icono de 24/58/92 px; sin desborde a 390 px; sin errores en la consola salvo la API de GitHub sin red.
 
 ### Revisión del 2026-09-23
 

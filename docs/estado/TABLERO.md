@@ -30,7 +30,7 @@ Ejecutar en el navegador (Blazor WebAssembly), sin servidor, publicado en GitHub
 ## Interfaz
 
 - `/`: capturar la ficha del tablero, los circuitos, el resumen de carga y el alimentador. Dibujar el
-  interior del gabinete.
+  interior del gabinete, con cada interruptor dibujado (NEMA; el DIN, hecho y sin usar).
 - `/documento`: emitir el cuadro de carga (24 columnas) y la memoria de cálculo (nueve secciones).
 - Consultar en tooltip el desglose de la protección y del conductor de cada renglón.
 - Teclado (`wwwroot/js/teclado.js`): Enter/Shift+Enter bajan y suben, ↑↓ cambian de renglón, Esc deshace,

@@ -699,6 +699,19 @@ label.suelto input { width: 90px; }
    color perdería justo el dato que el color existe para enseñar. Los colores son los de .fase-rect. */
 .bloque .fase-rect { min-width: 18px; height: 16px; padding: 0 4px; }
 
+/* EL INTERRUPTOR DIBUJADO (I-66), Layout/Interruptor.razor. Mismo duotono que .icono. El bloque
+   lleva 2 px arriba y abajo —no 3—: con 1 px de borde, un NEMA de n polos (24 + 34·(n−1) px) cabe
+   justo en los n renglones que abarca y cada polo queda frente a su espacio. */
+.bloque:has(> .interruptor) { padding-top: 2px; padding-bottom: 2px; }
+.interruptor { flex: none; display: block; overflow: visible; color: var(--tinta); }
+.interruptor .trazo { fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.interruptor .relleno { fill: var(--acento); fill-opacity: var(--icono-relleno); stroke: none; }
+.interruptor .manija { fill: currentColor; fill-opacity: .85; }
+.interruptor .valor, .interruptor .valor-frente { font-family: inherit; font-weight: 700; text-anchor: middle;
+                                                  font-variant-numeric: tabular-nums; }
+.interruptor .valor { fill: var(--papel); }           /* calado en la manija */
+.interruptor .valor-frente { fill: currentColor; }   /* DIN: en el frente, fuera de la palanca */
+
 .principal { margin-top: 8px; padding: 8px 10px; text-align: center; font-size: 11px;
              color: var(--tenue); background: var(--encabezado); border: 1px solid var(--linea);
              border-radius: var(--radio-sm); }
