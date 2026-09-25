@@ -77,6 +77,7 @@ Pruebas: 66 en `PowerNode.Web.Tests`, 6 en `PowerNode.Normativa.Tests`.
 - Tensión nominal por configuración (110-4), «Tensión F-N» en 1F-2H y aviso de tensión no nominal; la tierra no es hilo — I-53, `317110e`.
 - 1F-2H: renglones en orden sin nones y pares, gabinete en una columna, de 1 a 8 espacios — I-54, `e7af563`.
 - 1F-2H solo con 1, 2, 4, 6 y 8 espacios — I-54, `5f74680`.
+- Campos numéricos: 0 como marca de agua en cargas, vaciar un obligatorio recupera su valor, seleccionar todo al entrar — I-55, `dbc8f70`.
 
 Pruebas: 167 en `PowerNode.Web.Tests`, 23 en `PowerNode.Normativa.Tests`.
 
