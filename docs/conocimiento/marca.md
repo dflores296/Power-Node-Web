@@ -134,6 +134,28 @@ papel y una línea abajo; 64 px de alto (56 hasta I-59).
   cambia el logo, hay que cambiarlas también. Al ir en línea, ya no necesitan la versión oscura: toman
   la tinta del tema.
 
+## Tipografía e iconos
+
+> **CONFIRMADA · David · 2026-09-25** (I-62). En el canvas «Power Node — tipografía e iconos» se
+> compararon la actual contra IBM Plex, Barlow, Atkinson Hyperlegible y Chivo, y tres estilos de
+> iconos (trazo redondo, duotono, técnico). David eligió **Segoe UI** y **duotono**.
+
+- **Segoe UI se queda**, la del sistema (`"Segoe UI", system-ui, -apple-system, sans-serif`): sin
+  fuentes que descargar. En Mac sale San Francisco y en Android Roboto, a propósito. La firma del
+  documento pedía IBM Plex Sans, que nunca se cargó; ahora pide la misma pila que la aplicación.
+- **Iconos duotono** (`Layout/Icono.razor`): rejilla de 24, trazo de 1.5 px con remates redondos (el
+  de la carta de Smith) y color del texto, sobre un relleno del acento al 16 % (26 % en oscuro); los
+  avisos, en ámbar; en un botón primario, el relleno es del color del trazo. Doce: abrir, guardar,
+  imprimir, agregar, quitar, deshacer, desglose (cerrado y abierto), aviso, y sistema, claro y oscuro
+  para el tema en el celular. Se usan con `<Icono Nombre="guardar" />` (`Tamano` en px, 16 por
+  omisión; 14 dentro del cuadro).
+- **Reemplazaron a los caracteres que hacían de icono** (▸ ▾ ✕ ↺ + ◐ ☀ ☾): cada sistema los dibujaba
+  con su fuente, a su tamaño, y ☀ a veces como emoji. Los avisos llevan su triángulo al frente.
+- El GitHub de la barra es su marca, no un icono de este juego: se queda como está.
+- Pendiente, si se quiere: iconos por tipo de carga (alumbrado, contactos, motor, tierra). Estaban en
+  la propuesta, pero hoy no hay dónde ponerlos: el tipo se escoge en un selector, y un `<option>` no
+  lleva iconos.
+
 ## Qué archivo es cuál
 
 | Archivo | Para qué |
@@ -142,7 +164,7 @@ papel y una línea abajo; 64 px de alto (56 hasta I-59).
 | `marca/powernode-icono-oscuro.svg` | El mismo con tinta clara, para usarlo en `<img>` sobre fondo oscuro |
 | `marca/powernode-icono-16.svg` | Trazo grueso (borde 5, líneas 2.6), para tamaños chicos. Fuente de los PNG chicos y del `.ico` |
 | `marca/powernode-icono-mono.svg` | `currentColor`, para heredar el color del contexto |
-| `marca/powernode-firma.svg`, `powernode-firma-oscura.svg` | Logo con el texto «Power Node · Design Suite» — el del documento, en claro y en oscuro |
+| `marca/powernode-firma.svg`, `powernode-firma-oscura.svg` | Logo con el texto «Power Node · Design Suite», en Segoe UI — el del documento, en claro y en oscuro |
 | `marca/powernode-carta-favicon.svg` | El de la pestaña: trazo grueso, con `prefers-color-scheme` adentro |
 | `marca/powernode-carta.ico` | El `.ico` que declara `index.html`: PNG de 16, 32 y 48 adentro |
 | `marca/powernode-carta-16.png`, `-32.png`, `-48.png` | Los tamaños chicos, del trazo grueso |

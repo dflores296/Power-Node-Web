@@ -1,0 +1,81 @@
+@*
+    LOS ICONOS, DUOTONO (David, 2026-09-25 — I-62). Elegidos en el canvas «Power Node — tipografía e
+    iconos» (propuesta B): trazo de 1.5 px con remates redondos, el de la carta de Smith del logo, sobre
+    un relleno del acento al 16 %. Los avisos llevan el relleno en ámbar. Rejilla de 24; el color del
+    trazo es el del texto (currentColor), así que siguen al tema y al botón en el que van.
+
+    Reemplazan a los caracteres que hacían de icono (▸ ▾ ✕ ↺ + ◐ ☀ ☾): cada sistema los dibujaba con
+    su fuente, a su tamaño y a veces como emoji.
+*@
+<svg class="icono @Clase" viewBox="0 0 24 24" width="@Tamano" height="@Tamano" aria-hidden="true" focusable="false">
+    @switch (Nombre)
+    {
+        case "abrir":
+            <path class="relleno" d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+            <path class="trazo" d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+            break;
+        case "guardar":
+            <path class="relleno" d="M5 3h11l5 5v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" />
+            <path class="trazo" d="M5 3h11l5 5v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" />
+            <path class="trazo" d="M7 3v5h8V3M7 21v-7h10v7" />
+            break;
+        case "imprimir":
+            <rect class="relleno" x="2" y="9" width="20" height="9" rx="2" />
+            <path class="trazo" d="M6 9V3h12v6" />
+            <path class="trazo" d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+            <rect class="trazo" x="6" y="14" width="12" height="7" rx="1" />
+            break;
+        case "agregar":
+            <circle class="relleno" cx="12" cy="12" r="10" />
+            <path class="trazo" d="M12 7v10M7 12h10" />
+            break;
+        case "quitar":
+            <path class="relleno" d="M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13z" />
+            <path class="trazo" d="M4 7h16M9 7V4h6v3M10 11v6M14 11v6" />
+            <path class="trazo" d="M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13" />
+            break;
+        case "deshacer":
+            <circle class="relleno" cx="12" cy="12" r="9" />
+            <path class="trazo" d="M3 12a9 9 0 1 0 2.6-6.4L3 8" />
+            <path class="trazo" d="M3 3v5h5" />
+            break;
+        case "desglose":
+            <rect class="relleno" x="3" y="3" width="18" height="18" rx="5" />
+            <path class="trazo" d="M10 7l5 5-5 5" />
+            break;
+        case "desglose-abierto":
+            <rect class="relleno" x="3" y="3" width="18" height="18" rx="5" />
+            <path class="trazo" d="M7 10l5 5 5-5" />
+            break;
+        case "aviso":
+            <path class="relleno aviso" d="M10.3 4.2a2 2 0 0 1 3.4 0l7.5 13a2 2 0 0 1-1.7 2.8h-15a2 2 0 0 1-1.7-2.8z" />
+            <path class="trazo" d="M10.3 4.2a2 2 0 0 1 3.4 0l7.5 13a2 2 0 0 1-1.7 2.8h-15a2 2 0 0 1-1.7-2.8z" />
+            <path class="trazo" d="M12 9.5v4M12 16.8h.01" />
+            break;
+        case "sistema":
+            <path class="relleno lleno" d="M12 4a8 8 0 0 1 0 16z" />
+            <circle class="trazo" cx="12" cy="12" r="8" />
+            break;
+        case "claro":
+            <circle class="relleno" cx="12" cy="12" r="4.5" />
+            <circle class="trazo" cx="12" cy="12" r="4.5" />
+            <path class="trazo" d="M12 2v2.5M12 19.5V22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M2 12h2.5M19.5 12H22M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8" />
+            break;
+        case "oscuro":
+            <path class="relleno" d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5z" />
+            <path class="trazo" d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5z" />
+            break;
+        default:
+            throw new ArgumentException($"No hay icono «{Nombre}».", nameof(Nombre));
+    }
+</svg>
+
+@code {
+    /// <summary>abrir, guardar, imprimir, agregar, quitar, deshacer, desglose, desglose-abierto, aviso, sistema, claro, oscuro.</summary>
+    [Parameter, EditorRequired] public string Nombre { get; set; } = "";
+
+    /// <summary>En px; 16 en botones, 14 dentro del cuadro.</summary>
+    [Parameter] public int Tamano { get; set; } = 16;
+
+    [Parameter] public string? Clase { get; set; }
+}

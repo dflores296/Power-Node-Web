@@ -31,6 +31,7 @@
     --sombra: rgba(0, 0, 0, .06);
     --foco: rgb(11 110 153 / .12); /* halo del campo con el foco */
     --estrella: #bf8700;        /* la ★ del botón de GitHub, la de GitHub */
+    --icono-relleno: .16;       /* la opacidad del relleno de los iconos duotono */
     color-scheme: light;
 
     /* Escala de redondeo. Nace del logo: sus líneas rematan en semicírculo
@@ -77,6 +78,7 @@
         --sombra: rgba(0, 0, 0, .4);
         --foco: rgb(74 163 209 / .22);
         --estrella: #e3b341;
+        --icono-relleno: .26;
         color-scheme: dark;
     }
 }
@@ -147,7 +149,17 @@ html { scroll-padding-top: calc(var(--alto-barra) + 8px); }
 .tema-opciones button:hover { color: var(--tinta); }
 .tema-opciones button.activo { background: var(--papel); color: var(--tinta); font-weight: 600;
                                box-shadow: 0 1px 2px var(--sombra); }
-.tema-simbolo { display: none; }
+.tema-opciones .tema-simbolo { display: none; } /* con más peso que .icono: solo en el celular */
+/* LOS ICONOS, DUOTONO (David, 2026-09-25 — I-62): trazo de 1.5 px con remates redondos sobre un
+   relleno del acento. El trazo es del color del texto; en un botón primario el relleno también. */
+.icono { flex: none; display: block; overflow: visible; }
+.icono .trazo { fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.icono .relleno { fill: var(--acento); fill-opacity: var(--icono-relleno); stroke: none; }
+.icono .relleno.aviso { fill: var(--aviso-borde); fill-opacity: .35; }
+.icono .relleno.lleno { fill: currentColor; fill-opacity: .8; }  /* la mitad del «Sistema» */
+.boton.primario .icono .relleno { fill: currentColor; fill-opacity: .24; }
+.aviso.error .icono .relleno.aviso { fill: var(--alerta); fill-opacity: .2; }
+
 /* Botones con icono (Abrir, Guardar, Imprimir): en el celular queda solo el icono (I-60, I-05). */
 .boton.con-icono { display: inline-flex; align-items: center; gap: 6px; }
 .boton-icono { flex: none; }
@@ -178,7 +190,7 @@ html { scroll-padding-top: calc(var(--alto-barra) + 8px); }
     .marca { margin-right: auto; } /* lo demás del renglón, a la derecha */
     /* El tema con símbolos (◐ ☀ ☾): con el nombre no cabía junto a Imprimir y la barra se iba a tres
        renglones en el documento. El nombre se queda para el lector de pantalla (I-60). */
-    .tema-simbolo { display: inline; font-size: 14px; line-height: 1; }
+    .tema-opciones .tema-simbolo { display: block; }
     .tema-nombre { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
     .tema-opciones button { padding: 4px 9px; }
     .boton-texto { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
@@ -564,7 +576,8 @@ label.suelto input { width: 90px; }
 
 .aviso { margin: 10px 0 0; font-size: 11px; line-height: 1.5; color: var(--aviso-texto);
          background: var(--aviso-fondo); border-left: 3px solid var(--aviso-borde);
-         border-radius: var(--radio-xs); padding: 8px 10px; }
+         border-radius: var(--radio-xs); padding: 8px 10px;
+         display: flex; align-items: flex-start; gap: 8px; }
 .aviso.error { color: var(--alerta); background: var(--alerta-fondo); border-left-color: var(--alerta); }
 
 /* ------------------------------------------------------------------------------------------------
@@ -675,7 +688,7 @@ label.suelto input { width: 90px; }
 
 /* Desglose de aparatos del circuito — I-35 */
 .cuadro .desc-linea { display: flex; align-items: center; gap: 4px; }
-.cuadro button.desglosar { border: 0; background: none; cursor: pointer; color: var(--tenue); font-size: 11px; padding: 0 2px; }
+.cuadro button.desglosar { display: inline-flex; align-items: center; border: 0; background: none; cursor: pointer; color: var(--tenue); padding: 0; }
 .cuadro .en-va.izq { text-align: left; }
 .cuadro tr.fila-desglose td { background: var(--fondo-suave); padding: 8px 12px 12px; text-align: left; }
 /* El desglose es una lista dentro del circuito (David, 2026-09-24): tarjeta blanca a todo el ancho
@@ -698,7 +711,7 @@ label.suelto input { width: 90px; }
 .cuadro table.desglose input.desc { width: 100%; }
 .cuadro table.desglose tfoot td { padding: 8px 10px; font-size: 11px; color: var(--tenue);
                                   border-top: 1px solid var(--linea); border-bottom: 0; }
-.cuadro button.agregar, .cuadro button.quitar { border: 0; background: none; cursor: pointer; color: var(--acento); font-size: 11px; padding: 2px 4px; }
+.cuadro button.agregar, .cuadro button.quitar { display: inline-flex; align-items: center; gap: 5px; border: 0; background: none; cursor: pointer; color: var(--acento); font-size: 11px; padding: 2px 4px; }
 .cuadro button.quitar { color: var(--tenue); }
 
 /* ------------------------------------------------------------------------------------------------

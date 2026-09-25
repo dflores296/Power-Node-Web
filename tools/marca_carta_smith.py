@@ -83,9 +83,9 @@ def svg(contenido, ancho=64, alto=64, estilo=""):
 def firma(tinta, gris):
     return svg(
         carta(f'stroke="{tinta}"', AZUL, **NORMAL)
-        + f'\n  <text x="76" y="30" font-family="IBM Plex Sans, Segoe UI, sans-serif" font-size="21" '
+        + f'\n  <text x="76" y="30" font-family="Segoe UI, system-ui, -apple-system, sans-serif" font-size="21" '
           f'font-weight="600" fill="{tinta}" letter-spacing="-0.2">Power Node</text>'
-          f'\n  <text x="76" y="47" font-family="IBM Plex Sans, Segoe UI, sans-serif" font-size="11" '
+          f'\n  <text x="76" y="47" font-family="Segoe UI, system-ui, -apple-system, sans-serif" font-size="11" '
           f'font-weight="500" fill="{gris}" letter-spacing="1.6">DESIGN SUITE</text>',
         ancho=260)
 

@@ -49,20 +49,12 @@
         {
             <button class="boton con-icono" type="button" @onclick="Abrir"
                     title="Abrir un tablero guardado (.powernode.json). Para tener varios a la vez, uno por pestaña.">
-                <svg class="boton-icono" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor"
-                     stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M1.5 4.5a1 1 0 0 1 1-1h3.2l1.5 1.5h6.3a1 1 0 0 1 1 1v6.5a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1z" />
-                </svg>
+                <Icono Nombre="abrir" Clase="boton-icono" />
                 <span class="boton-texto">Abrir</span>
             </button>
             <button class="boton con-icono" type="button" @onclick="Guardar"
                     title="Guardar el tablero en un archivo de este equipo: la captura completa, para abrirla después.">
-                <svg class="boton-icono" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor"
-                     stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M2.5 1.5h9l3 3v9a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1v-11a1 1 0 0 1 1-1z" />
-                    <path d="M4.5 1.5v4h6v-4" />
-                    <path d="M4.5 14.5v-5h7v5" />
-                </svg>
+                <Icono Nombre="guardar" Clase="boton-icono" />
                 <span class="boton-texto">Guardar</span>
             </button>
         }
@@ -70,12 +62,7 @@
         {
             @* En el celular, solo el icono: con el texto la barra se iba a tres renglones (I-60). *@
             <button class="boton primario con-icono" type="button" @onclick="Imprimir">
-                <svg class="boton-icono" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor"
-                     stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M4 6V2h8v4" />
-                    <path d="M4 12H2.5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h11a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H12" />
-                    <path d="M4 9.5h8V14H4z" />
-                </svg>
+                <Icono Nombre="imprimir" Clase="boton-icono" />
                 <span class="boton-texto">Imprimir / PDF</span>
             </button>
         }

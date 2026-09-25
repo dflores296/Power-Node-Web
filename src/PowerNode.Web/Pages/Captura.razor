@@ -41,7 +41,7 @@
         </p>
         @if (Datos.AvisoTension is { } avisoTension)
         {
-            <p class="aviso">@avisoTension</p>
+            <p class="aviso"><Icono Nombre="aviso" Clase="aviso-icono" /><span>@avisoTension</span></p>
         }
     </div>
     </div>
@@ -113,7 +113,7 @@
         <label><span class="ayuda" title="Capturar el límite de caída del alimentador. Valor inicial: 2 %, para que con el 3 % del derivado sumen el 5 % combinado — 215-2(a)(4), NOTA 2; 210-19(a)(1), NOTA 4.">e% máx. alimentador</span> <input data-requerido type="number" min="0.5" max="10" step="0.5" value="@Numero(Datos.CaidaMaxAlimentadorPct)" @onchange="e => { Datos.CaidaMaxAlimentadorPct = Leer(e, Datos.CaidaMaxAlimentadorPct); Recalcular(); }" /></label>
         @if (Datos.AvisoLimitesDeCaida is { } avisoLimites)
         {
-            <p class="aviso">@avisoLimites</p>
+            <p class="aviso"><Icono Nombre="aviso" Clase="aviso-icono" /><span>@avisoLimites</span></p>
         }
     </div>
 </section>
@@ -185,7 +185,7 @@
                         <td rowspan="@c.Polos">
                             <div class="desc-linea">
                                 <button class="desglosar" tabindex="-1" aria-label="Desglose del circuito @c.Espacio" aria-expanded="@(Abierto(c) ? "true" : "false")" title="Desglosar los aparatos que alimenta el circuito. La carga del circuito es la suma. Con el teclado: Ctrl+Enter."
-                                        @onclick="() => AlternarDesglose(c)">@(Abierto(c) ? "▾" : "▸")</button>
+                                        @onclick="() => AlternarDesglose(c)"><Icono Nombre="@(Abierto(c) ? "desglose-abierto" : "desglose")" Tamano="14" /></button>
                                 <input class="desc" data-col="desc" aria-label="Circuito @c.Espacio · Descripción" @bind="c.Descripcion" @bind:event="oninput" placeholder="—" />
                             </div>
                             @if (c.TieneDesglose)
@@ -336,13 +336,13 @@
                                                 <td><input type="checkbox" data-col="ap-continua" aria-label="Circuito @c.Espacio, aparato @n · Continua" @bind="aparato.Continua" @bind:after="Recalcular" disabled="@calefaccion" /></td>
                                                 <td><input data-requerido class="va fp" type="number" min="0.1" max="1" step="0.05" data-col="ap-fp" aria-label="Circuito @c.Espacio, aparato @n · F.P." value="@Factor(aparato.FactorPotencia)" @onchange="e => { aparato.FactorPotencia = Leer(e, aparato.FactorPotencia); Recalcular(); }" /></td>
                                                 <td class="num">@aparato.TotalVA.ToString("#,0.##")</td>
-                                                <td><button class="quitar" title="Quitar el aparato" aria-label="Quitar el aparato @n del circuito @c.Espacio" @onclick="() => QuitarAparato(c, aparato, n)">✕</button></td>
+                                                <td><button class="quitar" title="Quitar el aparato" aria-label="Quitar el aparato @n del circuito @c.Espacio" @onclick="() => QuitarAparato(c, aparato, n)"><Icono Nombre="quitar" Tamano="14" /></button></td>
                                             </tr>
                                         }
                                     </tbody>
                                     <tfoot>
                                         <tr>
-                                            <td class="izq"><button class="agregar" data-agregar="@c.Espacio" @onclick="() => AgregarAparato(c)">+ Agregar aparato</button></td>
+                                            <td class="izq"><button class="agregar" data-agregar="@c.Espacio" @onclick="() => AgregarAparato(c)"><Icono Nombre="agregar" Tamano="14" />Agregar aparato</button></td>
                                             <td colspan="7" class="num">
                                                 @if (c.TieneDesglose)
                                                 {
@@ -370,7 +370,7 @@
 <section class="tarjeta canalizaciones" id="sec-canalizaciones">
     <div class="encabezado-tarjeta">
         <h2>Canalizaciones</h2>
-        <button class="boton" id="nueva-canalizacion" @onclick="NuevaCanalizacion">+ Nueva canalización</button>
+        <button class="boton con-icono" id="nueva-canalizacion" @onclick="NuevaCanalizacion"><Icono Nombre="agregar" Clase="boton-icono" />Nueva canalización</button>
     </div>
 
     @* Una sola lista de tubos: por omisión cada circuito con carga recibe el suyo (T1, T2…) y en la
@@ -677,7 +677,7 @@
             </label>
             @if (Cuadro.Alimentador.Error is { } error)
             {
-                <p class="aviso error">@error</p>
+                <p class="aviso error"><Icono Nombre="aviso" Clase="aviso-icono" /><span>@error</span></p>
             }
             else
             {
@@ -701,16 +701,16 @@
         {
             @foreach (var aviso in Cuadro.Alimentador.Avisos)
             {
-                <p class="aviso">@aviso</p>
+                <p class="aviso"><Icono Nombre="aviso" Clase="aviso-icono" /><span>@aviso</span></p>
             }
         }
         @foreach (var c in Cuadro.ConCaidaCombinadaExcedida)
         {
-            <p class="aviso">@c.AvisoCaidaCombinada</p>
+            <p class="aviso"><Icono Nombre="aviso" Clase="aviso-icono" /><span>@c.AvisoCaidaCombinada</span></p>
         }
         @foreach (var aviso in Cuadro.AvisosDeCanalizaciones)
         {
-            <p class="aviso">@aviso</p>
+            <p class="aviso"><Icono Nombre="aviso" Clase="aviso-icono" /><span>@aviso</span></p>
         }
     </section>
 }
@@ -861,7 +861,7 @@
                         <input type="text" maxlength="40" data-col="cn-nombre" aria-label="@CuadroDeCarga.NombreDe(t) · Nombre" value="@t.Nombre" title="Editar el nombre. Borrado, regresa a @t.Id." @onchange="e => { t.Nombre = e.Value?.ToString() ?? string.Empty; Recalcular(); }" />
                         @if (!t.Automatica || t.Circuitos.Count > 1)
                         {
-                            <button class="quitar" title="Quitar la canalización: cada uno de sus circuitos recibe un tubo nuevo, EMT." aria-label="Quitar @CuadroDeCarga.NombreDe(t)" @onclick="() => QuitarCanalizacion(t)">✕</button>
+                            <button class="quitar" title="Quitar la canalización: cada uno de sus circuitos recibe un tubo nuevo, EMT." aria-label="Quitar @CuadroDeCarga.NombreDe(t)" @onclick="() => QuitarCanalizacion(t)"><Icono Nombre="quitar" Tamano="14" /></button>
                         }
                     </div>
                 </td>
@@ -987,7 +987,7 @@
                     </select>
                     @if (!pulgadas && t.TamanoFijado is not null)
                     {
-                        <button class="quitar" aria-label="Regresar al tamaño calculado" title="Regresar al cálculo: @(calculado?.Rotulo ?? "ninguno alcanza")" @onclick="() => FijarTamano(t, null)">↺</button>
+                        <button class="quitar" aria-label="Regresar al tamaño calculado" title="Regresar al cálculo: @(calculado?.Rotulo ?? "ninguno alcanza")" @onclick="() => FijarTamano(t, null)"><Icono Nombre="deshacer" Tamano="14" /></button>
                     }
                 </div>
             }
@@ -1196,7 +1196,7 @@
     }
 
     private static string? SumaDelDesglose(CircuitoDelCuadro c) =>
-        c.TieneDesglose ? "Suma de los aparatos del desglose (▾ en la descripción)." : null;
+        c.TieneDesglose ? "Suma de los aparatos del desglose (la flecha junto a la descripción)." : null;
 
     private void Justificar(CategoriaDeCarga categoria, JustificacionFactorDemanda j, ChangeEventArgs e)
     {
