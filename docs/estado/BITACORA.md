@@ -76,6 +76,7 @@ Pruebas: 66 en `PowerNode.Web.Tests`, 6 en `PowerNode.Normativa.Tests`.
 - Alinear tipo y uso de contactos en una columna centrada — I-51; F.P. de dos decimales sin cortarse — I-52, `5cdc8bb`.
 - Tensión nominal por configuración (110-4), «Tensión F-N» en 1F-2H y aviso de tensión no nominal; la tierra no es hilo — I-53, `317110e`.
 - 1F-2H: renglones en orden sin nones y pares, gabinete en una columna, de 1 a 8 espacios — I-54, `e7af563`.
+- 1F-2H solo con 1, 2, 4, 6 y 8 espacios — I-54, `5f74680`.
 
 Pruebas: 167 en `PowerNode.Web.Tests`, 23 en `PowerNode.Normativa.Tests`.
 
