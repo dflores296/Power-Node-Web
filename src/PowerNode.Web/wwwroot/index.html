@@ -58,6 +58,30 @@
         <a class="dismiss">🗙</a>
     </div>
     <script src="_framework/blazor.webassembly.js"></script>
+    <!--
+      CAMPOS NUMÉRICOS (David, 2026-09-25 — I-55).
+      - Al entrar, se selecciona todo: lo que se teclea reemplaza. Con el cursor a un lado del «20»,
+        teclear 5 daba «520» o «205». El mouseup del mismo clic deshacía la selección: se cancela.
+      - Un campo obligatorio (data-requerido: F.P., tensión, longitud…) que se vacía recupera su
+        valor ANTES de que Blazor lea el cambio. Sin esto el campo quedaba en blanco mientras el
+        cálculo seguía con el valor anterior. Se escucha en captura para correr antes que Blazor.
+      Los campos de carga no son obligatorios: vacío es 0 (lo resuelve la página).
+    -->
+    <script>
+        document.addEventListener('focusin', e => {
+            const el = e.target;
+            if (!(el instanceof HTMLInputElement) || el.type !== 'number') return;
+            el.dataset.previo = el.value;
+            el.select();
+            el.addEventListener('mouseup', ev => ev.preventDefault(), { once: true });
+        });
+        document.addEventListener('change', e => {
+            const el = e.target;
+            if (el instanceof HTMLInputElement && el.type === 'number' && el.hasAttribute('data-requerido')
+                && el.value.trim() === '' && el.dataset.previo)
+                el.value = el.dataset.previo;
+        }, true);
+    </script>
 </body>
 
 </html>
