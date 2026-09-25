@@ -89,6 +89,7 @@ Pruebas: 66 en `PowerNode.Web.Tests`, 6 en `PowerNode.Normativa.Tests`.
 - Propuestas de tipografía e iconos en un canvas; David eligió Segoe UI y duotono: iconos duotono en toda la aplicación, firma en Segoe UI — I-62, `5518836`.
 - Iconos de tipo de carga en el resumen y junto al selector «Tipo»; el resumen ya no se sale de su tarjeta en pantallas anchas — I-63, `a7e6219`.
 - Relieve marcado y más contraste (propuesta B del canvas) — I-64, `3ed4e44`.
+- Líneas de tabla más firmes; relieve visible en oscuro, como gitdiagram — I-65, `7ade4dc`.
 
 Pruebas: 194 en `PowerNode.Web.Tests`, 23 en `PowerNode.Normativa.Tests`.
 
