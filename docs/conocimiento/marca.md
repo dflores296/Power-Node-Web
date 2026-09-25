@@ -152,9 +152,9 @@ papel y una línea abajo; 64 px de alto (56 hasta I-59).
 - **Reemplazaron a los caracteres que hacían de icono** (▸ ▾ ✕ ↺ + ◐ ☀ ☾): cada sistema los dibujaba
   con su fuente, a su tamaño, y ☀ a veces como emoji. Los avisos llevan su triángulo al frente.
 - El GitHub de la barra es su marca, no un icono de este juego: se queda como está.
-- Pendiente, si se quiere: iconos por tipo de carga (alumbrado, contactos, motor, tierra). Estaban en
-  la propuesta, pero hoy no hay dónde ponerlos: el tipo se escoge en un selector, y un `<option>` no
-  lleva iconos.
+- **Tipos de carga** (I-63): alumbrado, contactos, equipo, motor y calefacción, en el resumen de carga
+  (uno por renglón) y junto al selector «Tipo» del cuadro, solo en los renglones con carga. No en la
+  puesta a tierra (ya lleva la muestra verde de la NOM) ni en el documento impreso, que se firma.
 
 ## Qué archivo es cuál
 

@@ -435,6 +435,12 @@ select.tipo { width: 108px; padding: 2px 4px 2px 6px; border-radius: var(--radio
 /* Tipo y uso, uno bajo otro, centrados y del mismo tamaño; la nota de 220-52 centrada debajo. El
    uso iba en bloque pegado a la izquierda y con otra letra: se veía chueco (David, 2026-09-24). */
 .cuadro .tipo-uso { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+/* El icono del tipo de carga junto al selector (I-63); el hueco del mismo ancho en los renglones vacíos
+   mantiene los selectores alineados. */
+.cuadro .tipo-con-icono { display: flex; align-items: center; gap: 6px; }
+.cuadro .icono-carga { width: 16px; height: 16px; flex: none; color: var(--tenue); }
+.con-icono-carga { display: inline-flex; align-items: center; gap: 7px; }
+.con-icono-carga .icono { color: var(--tenue); }
 .cuadro .tipo-uso .en-va { text-align: center; padding-right: 0; }
 
 /* ------------------------------------------------------------------------------------------------
@@ -537,6 +543,9 @@ select.tipo { width: 108px; padding: 2px 4px 2px 6px; border-radius: var(--radio
 /* Resumen: el tipo a la izquierda; los demás encabezados centrados sobre su columna. */
 .datos.resumen th { text-align: center; }
 .datos.resumen th.izq { text-align: left; }
+/* El tipo de carga y los encabezados parten en dos líneas en vez de empujar: con tres tarjetas en fila
+   (arriba de 1400 px) la tabla se salía de la suya hasta 103 px, y el icono del tipo le sumaba 23 (I-63). */
+.datos.resumen td.izq, .datos.resumen th { white-space: normal; }
 
 /* La columna del centro de .cierre lleva dos tarjetas apiladas: resumen y balanceo. */
 .cierre .columna { display: flex; flex-direction: column; gap: 20px; }

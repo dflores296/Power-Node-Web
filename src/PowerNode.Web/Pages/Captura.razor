@@ -195,9 +195,20 @@
                         </td>
                         <td rowspan="@c.Polos">
                             <div class="tipo-uso">
+                            @* El icono del tipo, solo en los renglones con carga: en los vacíos sería ruido (I-63). *@
+                            <div class="tipo-con-icono">
+                            @if (c.TieneCarga)
+                            {
+                                <Icono Nombre="@Icono.De(c.Categoria)" Tamano="16" Clase="icono-carga" />
+                            }
+                            else
+                            {
+                                <span class="icono-carga" aria-hidden="true"></span>
+                            }
                             <select class="tipo" data-col="tipo" aria-label="Circuito @c.Espacio · Tipo" title="@c.Categoria.Descripcion()" @bind="c.Categoria" @bind:after="Recalcular">
                                 @foreach (var categoria in Enum.GetValues<CategoriaDeCarga>()) { <option value="@categoria">@categoria.Nombre()</option> }
                             </select>
+                            </div>
                             @* El uso solo cuenta en vivienda de más de 60 m² — 210-11(c), 220-52 (I-46). *@
                             @if (c.Tipo == TipoCarga.Contactos && Datos.Inmueble.AplicaUsoDeContactos())
                             {
@@ -521,7 +532,7 @@
             @foreach (var fila in Cuadro.Resumen.PorCategoria ?? [])
             {
                 <tr>
-                    <td class="izq">@fila.Categoria.NombreCompleto()</td>
+                    <td class="izq"><span class="con-icono-carga"><Icono Nombre="@Icono.De(fila.Categoria)" Tamano="16" />@fila.Categoria.NombreCompleto()</span></td>
                     <td class="num">@((fila.InstaladaVA / 1000m).ToString("N2"))</td>
                     <td class="num">
                         <input data-requerido data-col="fd" aria-label="F.D. · @fila.Categoria.NombreCompleto()" class="va chico" type="number" min="0" max="1" step="0.05"
