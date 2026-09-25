@@ -59,3 +59,4 @@ Requisitos con su referencia NOM y su prueba: [`../../README.md`](../../README.m
 |---|---|
 | Entregable impreso desde el navegador | [`../decisiones/documento-imprimible-en-vez-de-archivo.md`](../decisiones/documento-imprimible-en-vez-de-archivo.md) |
 | Guardar y abrir el tablero en un archivo | [`../decisiones/archivo-del-tablero.md`](../decisiones/archivo-del-tablero.md) |
+| Dónde va el interruptor principal dentro del gabinete | [`../decisiones/montaje-del-interruptor-principal.md`](../decisiones/montaje-del-interruptor-principal.md) |
