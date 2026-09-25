@@ -8,43 +8,43 @@
     ancho normal, con la ventana de disparo debajo: en el único polo del de 1, en el derecho del de 2,
     en el central del de 3. La tapa de los otros polos va lisa.
 
-    Cada polo mide 34 de ancho (el renglón de 30 del gabinete más su hueco de 4); el cuerpo se
-    recorta 5 por lado, así que un interruptor de n polos mide 34n − 10 y cabe justo en los n
-    renglones que abarca. En el gabinete va acostado, con la pinza hacia la barra del centro.
+    Proporción del QO real: 20 por polo y 62 de largo, casi 1 : 3 (David: «muy anchos»; la versión
+    que llenaba el renglón del gabinete, 34 por polo, se veía chata). En el gabinete va acostado,
+    centrado en su celda y con la pinza hacia la barra del centro.
 *@
 <svg class="interruptor @Clase" viewBox="0 0 @AnchoEnPantalla @AltoEnPantalla" width="@AnchoEnPantalla" height="@AltoEnPantalla" role="img" aria-label="@Nombre">
     <g transform="@Giro">
         @foreach (var y in new[] { 0.75m, Largo - 11.75m })
         {
-            <rect class="relleno" x="2.5" y="@N(y)" width="@(Ancho - 5)" height="11" rx="2" />
-            <rect class="trazo" x="2.5" y="@N(y)" width="@(Ancho - 5)" height="11" rx="2" />
+            <rect class="relleno" x="2.25" y="@N(y)" width="@N(Ancho - 4.5m)" height="11" rx="2" />
+            <rect class="trazo" x="2.25" y="@N(y)" width="@N(Ancho - 4.5m)" height="11" rx="2" />
         }
         @for (var k = 1; k < Polos; k++)
         {
-            <path class="trazo" d="@($"M{Paso * k - 5} 0.75v11M{Paso * k - 5} {N(Largo - 11.75m)}v11")" />
+            <path class="trazo" d="@($"M{Polo * k} 0.75v11M{Polo * k} {N(Largo - 11.75m)}v11")" />
         }
         @for (var k = 0; k < Polos; k++)
         {
-            var x = Paso * k + 12;
-            <path class="trazo" d="@($"M{x - 3} 6h6")" />
+            var x = Polo * k + Polo / 2;
+            <path class="trazo" d="@($"M{N(x - 2.5m)} 6h5")" />
             <circle class="trazo" cx="@x" cy="@N(Largo - 6.25m)" r="2.2" />
             <path class="trazo" d="@($"M{N(x - 1.1m)} {N(Largo - 5.15m)}l2.2-2.2")" />
         }
-        <rect class="fondo" x="0.75" y="9.5" width="@N(Ancho - 1.5m)" height="@(Largo - 19)" rx="3" />
-        <rect class="relleno" x="0.75" y="9.5" width="@N(Ancho - 1.5m)" height="@(Largo - 19)" rx="3" />
-        <rect class="trazo" x="0.75" y="9.5" width="@N(Ancho - 1.5m)" height="@(Largo - 19)" rx="3" />
-        <rect class="trazo" x="@(Manija - 6)" y="15" width="12" height="17" rx="1.5" />
-        <rect class="manija" x="@N(Manija - 4.5m)" y="16.5" width="9" height="8.5" rx="1" />
-        <path class="ranura" d="@($"M{Manija - 3} 20.75h6")" />
-        <rect class="trazo" x="@N(Manija - 2.5m)" y="38" width="5" height="3.5" rx="0.8" />
+        <rect class="fondo" x="0.75" y="9.5" width="@N(Ancho - 1.5m)" height="@(Largo - 19)" rx="2.5" />
+        <rect class="relleno" x="0.75" y="9.5" width="@N(Ancho - 1.5m)" height="@(Largo - 19)" rx="2.5" />
+        <rect class="trazo" x="0.75" y="9.5" width="@N(Ancho - 1.5m)" height="@(Largo - 19)" rx="2.5" />
+        <rect class="trazo" x="@(Manija - 5)" y="15" width="10" height="17" rx="1.5" />
+        <rect class="manija" x="@N(Manija - 3.5m)" y="16.5" width="7" height="8.5" rx="1" />
+        <path class="ranura" d="@($"M{Manija - 2} 20.75h4")" />
+        <rect class="trazo" x="@(Manija - 2)" y="38" width="4" height="3.5" rx="0.8" />
     </g>
 </svg>
 
 @code {
-    /// <summary>De un polo al siguiente: el renglón del gabinete (30 px) más su hueco (4 px).</summary>
-    private const int Paso = 34;
+    /// <summary>El ancho de un polo.</summary>
+    private const int Polo = 20;
 
-    /// <summary>Largo del interruptor, de la pinza a la zapata: 2.6 veces el ancho de un polo, cerca del QO real (David: «muy anchos»).</summary>
+    /// <summary>Largo del interruptor, de la pinza a la zapata: 3.1 veces un polo.</summary>
     private const int Largo = 62;
 
     /// <summary>1, 2 o 3.</summary>
@@ -57,7 +57,7 @@
 
     public enum HaciaLaBarra { Arriba, Derecha, Izquierda }
 
-    private int Ancho => Paso * Polos - 10;
+    private int Ancho => Polo * Polos;
 
     private bool Acostado => Barra != HaciaLaBarra.Arriba;
     private int AnchoEnPantalla => Acostado ? Largo : Ancho;
@@ -71,7 +71,7 @@
     };
 
     /// <summary>El centro del polo que lleva la manija: el único, el derecho (de 2) o el central (de 3).</summary>
-    private int Manija => Paso * (Polos == 1 ? 0 : 1) + 12;
+    private int Manija => Polo * (Polos == 1 ? 0 : 1) + Polo / 2;
 
     private string Nombre => $"Interruptor de {Polos} {(Polos == 1 ? "polo" : "polos")}";
 
