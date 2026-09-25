@@ -1,0 +1,44 @@
+@inject NavigationManager Navegacion
+@inject IJSRuntime JS
+@implements IDisposable
+
+@*
+    LA BARRA SUPERIOR (David, 2026-09-25 — I-58), con el patrón de las otras dos herramientas de la casa:
+    el sitio de la NOM (header.top) y msa-toolkit (header.toolbar). A todo lo ancho, fija arriba y con
+    una línea abajo: la marca a la izquierda, las páginas, y a la derecha el tema y la acción de la
+    página. Fija porque lo que vive aquí se usa mientras se captura: bajar 24 renglones y tener que
+    subir para ir al documento es lo que se quería quitar.
+*@
+<header class="barra-superior no-imprime">
+    <div class="barra-superior-interior">
+        <a class="marca" href="" title="NOM-001-SEDE-2012 · Art. 210, 215, 220, 240, 250, 310, 408">
+            <img class="solo-claro" src="marca/powernode-icono.svg" alt="" width="28" height="28" />
+            <img class="solo-oscuro" src="marca/powernode-icono-oscuro.svg" alt="" width="28" height="28" />
+            <span class="marca-texto">Power Node<small>NOM-001-SEDE-2012</small></span>
+        </a>
+        <span class="vsep" aria-hidden="true"></span>
+        <nav class="paginas" aria-label="Páginas">
+            <NavLink href="" Match="NavLinkMatch.All">Captura</NavLink>
+            <NavLink href="documento" Match="NavLinkMatch.All">Cuadro de carga</NavLink>
+            <NavLink href="documento/memoria" Match="NavLinkMatch.All">Memoria de cálculo</NavLink>
+        </nav>
+        <span class="espaciador"></span>
+        <TemaDePantalla />
+        @if (EnDocumento)
+        {
+            <button class="boton primario" type="button" @onclick="Imprimir">Imprimir / PDF</button>
+        }
+    </div>
+</header>
+
+@code {
+    private bool EnDocumento => Navegacion.ToBaseRelativePath(Navegacion.Uri).StartsWith("documento", StringComparison.Ordinal);
+
+    protected override void OnInitialized() => Navegacion.LocationChanged += AlCambiarDePagina;
+
+    private void AlCambiarDePagina(object? sender, LocationChangedEventArgs e) => StateHasChanged();
+
+    private async Task Imprimir() => await JS.InvokeVoidAsync("window.print");
+
+    public void Dispose() => Navegacion.LocationChanged -= AlCambiarDePagina;
+}

@@ -1,14 +1,20 @@
 @inject IJSRuntime JS
 
-@* El botón del tema (I-57): automático → claro → oscuro. js/tema.js guarda la elección y la aplica
-   en <html data-tema>; aquí solo se muestra y se pide la siguiente. *@
-<button class="boton tema" type="button" @onclick="Siguiente"
-        title="Tema de la pantalla. Automático sigue al sistema; claro y oscuro lo fijan. Impreso sale siempre en claro."
-        aria-label="@($"Tema: {Nombre}. Cambiar")">
-    <span class="tema-simbolo" aria-hidden="true">@Simbolo</span> @Nombre
-</button>
+@* El tema (I-57), segmentado como en msa-toolkit (I-58): las tres opciones a la vista, no escondidas
+   tras clics. js/tema.js guarda la elección y la aplica en <html data-tema>; aquí solo se muestra. *@
+<div class="tema-opciones" role="group" aria-label="Tema de la pantalla"
+     title="Sistema sigue la configuración del equipo; claro y oscuro la fijan. Impreso sale siempre en claro.">
+    @foreach (var (valor, nombre) in Opciones)
+    {
+        <button type="button" class="@(valor == _eleccion ? "activo" : null)" aria-pressed="@(valor == _eleccion ? "true" : "false")"
+                @onclick="() => Fijar(valor)">@nombre</button>
+    }
+</div>
 
 @code {
+    private static readonly (string Valor, string Nombre)[] Opciones =
+        [("automatico", "Sistema"), ("claro", "Claro"), ("oscuro", "Oscuro")];
+
     private string _eleccion = "automatico";
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -19,10 +25,5 @@
         StateHasChanged();
     }
 
-    private async Task Siguiente() => _eleccion = await JS.InvokeAsync<string>("powerNode.tema.siguiente");
-
-    private string Nombre => _eleccion switch { "claro" => "Claro", "oscuro" => "Oscuro", _ => "Automático" };
-
-    // Con el selector de variación de texto (U+FE0E): sin él, algunos sistemas pintan ☀ como emoji.
-    private string Simbolo => _eleccion switch { "claro" => "☀︎", "oscuro" => "☾︎", _ => "◐︎" };
+    private async Task Fijar(string valor) => _eleccion = await JS.InvokeAsync<string>("powerNode.tema.fijar", valor);
 }

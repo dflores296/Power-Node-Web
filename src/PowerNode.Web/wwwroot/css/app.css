@@ -106,15 +106,61 @@ body {
    overflow-x del cuadro. */
 .lienzo { max-width: 1720px; margin: 0 auto; padding: 24px 20px 48px; }
 
-.encabezado {
-    display: flex; justify-content: space-between; align-items: flex-end;
-    gap: 24px; flex-wrap: wrap;
-    border-bottom: 2px solid var(--tinta); padding-bottom: 12px;
+/* ------------------------------------------------------------------------------------------------
+   LA BARRA SUPERIOR (David, 2026-09-25 — I-58), con el patrón del sitio de la NOM (header.top) y de
+   msa-toolkit (header.toolbar): a todo lo ancho, fija arriba, línea abajo; la marca a la izquierda,
+   las páginas, y a la derecha el tema y la acción de la página.
+   ------------------------------------------------------------------------------------------------ */
+:root { --alto-barra: 56px; }
+/* Enter, las flechas y Alt+1…5 llevan el foco con scrollIntoView: sin esto, lo que queda arriba se
+   esconde debajo de la barra. */
+html { scroll-padding-top: calc(var(--alto-barra) + 8px); }
+
+.barra-superior {
+    position: sticky; top: 0; z-index: 50;
+    background: var(--papel); border-bottom: 1px solid var(--linea);
 }
+.barra-superior-interior {
+    display: flex; align-items: center; gap: 14px;
+    min-height: var(--alto-barra); padding: 8px 20px;
+}
+.marca { display: flex; align-items: center; gap: 10px; color: var(--tinta); text-decoration: none; white-space: nowrap; }
+.marca img { flex: none; }
+.marca-texto { font-size: 15px; font-weight: 650; letter-spacing: -0.01em; line-height: 1.2; }
+.marca-texto small { display: block; font-size: 11px; font-weight: 400; color: var(--tenue); letter-spacing: .02em; }
+.vsep { width: 1px; height: 22px; background: var(--linea); flex: none; }
+.paginas { display: flex; align-items: center; gap: 4px; }
+.paginas a { padding: 6px 10px; border-radius: var(--radio-sm); color: var(--tenue);
+             font-size: 13px; text-decoration: none; white-space: nowrap; }
+.paginas a:hover { color: var(--acento); background: var(--hover); }
+.paginas a.active { color: var(--acento); background: var(--acento-suave); font-weight: 600; }
+.espaciador { flex: 1 1 auto; }
+
+/* El tema, segmentado como el de msa-toolkit: las tres opciones en un riel, la elegida resaltada. */
+.tema-opciones { display: flex; padding: 2px; border-radius: var(--radio-sm);
+                 background: var(--encabezado); border: 1px solid var(--linea); }
+.tema-opciones button { font: inherit; font-size: 12px; border: 0; padding: 4px 10px; cursor: pointer;
+                        border-radius: 7px; background: transparent; color: var(--tenue); }
+.tema-opciones button:hover { color: var(--tinta); }
+.tema-opciones button.activo { background: var(--papel); color: var(--tinta); font-weight: 600;
+                               box-shadow: 0 1px 2px var(--sombra); }
+
+/* En el celular no cabe en un renglón: las páginas bajan a un segundo renglón, a lo ancho, y se
+   recorren de lado si no caben. */
+@media (max-width: 760px) {
+    .barra-superior-interior { flex-wrap: wrap; row-gap: 6px; padding: 8px 14px; }
+    .marca-texto small, .barra-superior .vsep { display: none; }
+    .paginas { order: 3; flex-basis: 100%; overflow-x: auto; }
+    html { scroll-padding-top: 108px; }
+}
+
+/* Para lectores de pantalla: existe, pero no se ve. */
+.solo-lector { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden;
+               clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
 h1 { font-size: 21px; margin: 0 0 3px; font-weight: 600; }
 h2 { font-size: 13px; margin: 0 0 8px; font-weight: 600; color: var(--tenue);
      text-transform: uppercase; letter-spacing: .04em; }
-.meta { margin: 0; color: var(--tenue); font-size: 12px; }
 
 .sistema { display: flex; gap: 14px; }
 .sistema label { display: flex; flex-direction: column; gap: 3px; font-size: 11px; color: var(--tenue); }
@@ -286,9 +332,6 @@ input.desc:focus, input.va:focus {
 
 @keyframes aparecer { from { opacity: 0; } to { opacity: 1; } }
 
-/* La marca en el encabezado: el icono al lado del título, no encima. */
-.titulo { display: flex; align-items: center; gap: 11px; }
-.titulo img { flex: none; }
 
 #blazor-error-ui { background: var(--alerta-fondo); border-top: 2px solid var(--alerta);
                    bottom: 0; display: none; left: 0; padding: 10px 16px; position: fixed;
@@ -314,7 +357,7 @@ select.tipo { width: 108px; padding: 2px 4px 2px 6px; border-radius: var(--radio
 
 /* Tres columnas y no cuatro (David, 2026-09-24): Identificación y Sistema, que son cortas, van
    apiladas en la primera; así las tres miden parecido y no quedan tarjetas medio vacías. */
-.ficha { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 18px; }
+.ficha { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
 @media (max-width: 1100px) { .ficha { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 640px) { .ficha { grid-template-columns: minmax(0, 1fr); } }
 .ficha .pila { display: flex; flex-direction: column; gap: 14px; }
@@ -339,7 +382,6 @@ select.tipo { width: 108px; padding: 2px 4px 2px 6px; border-radius: var(--radio
 }
 .derivado { margin: 10px 0 0; font-size: 11px; color: var(--tenue); line-height: 1.5; }
 
-.acciones { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .boton { font: inherit; font-size: 12px; padding: 6px 12px; cursor: pointer;
          border: 1px solid var(--linea); border-radius: var(--radio-sm);
          background: var(--papel); color: var(--tinta); }
@@ -347,10 +389,6 @@ select.tipo { width: 108px; padding: 2px 4px 2px 6px; border-radius: var(--radio
 .boton.primario { background: var(--acento); border-color: var(--acento); color: var(--sobre-acento); }
 .boton.primario:hover { color: var(--sobre-acento); filter: brightness(1.08); }
 .boton.activo { border-color: var(--acento); color: var(--acento); font-weight: 600; }
-/* El del tema (I-57): ancho fijo, para que el botón de junto no brinque al cambiar la palabra. */
-.boton.tema { min-width: 120px; text-align: left; }
-.tema-simbolo { display: inline-block; width: 1.1em; text-align: center; }
-@media print { .boton.tema { display: none; } }
 
 /* El corte entre los nones y los pares: el renglón en blanco de 6 pt que el Excel tiene en la
    fila 55. No lleva rótulo — el número de circuito ya dice de qué columna del gabinete es. */
@@ -449,9 +487,6 @@ label.suelto input { width: 90px; }
    reglas finas y tipografía chica. En papel desaparece todo lo que no sea el documento.
    ------------------------------------------------------------------------------------------------ */
 
-.barra { display: flex; align-items: center; justify-content: space-between; gap: 12px;
-         flex-wrap: wrap; margin-bottom: 16px; }
-.pestanas { display: flex; gap: 6px; }
 
 .documento { background: var(--papel); border: 1px solid var(--linea);
              border-radius: var(--radio-md); padding: 22px 24px 26px; }

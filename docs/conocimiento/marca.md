@@ -57,11 +57,11 @@ cambiándoles el nombre, o no se versionan.
 
 ## Tema oscuro
 
-> **Pedido de David · 2026-09-25** (I-57). Botón en el encabezado de la captura y del documento:
-> **Automático → Claro → Oscuro**.
+> **Pedido de David · 2026-09-25** (I-57). En la barra superior (I-58), segmentado como el de
+> msa-toolkit: **Sistema | Claro | Oscuro**.
 
 - `wwwroot/js/tema.js` resuelve la elección y escribe `<html data-tema="claro|oscuro">`: es lo único
-  que lee la hoja de estilos. Automático sigue a `prefers-color-scheme`, también si el sistema cambia
+  que lee la hoja de estilos. Sistema sigue a `prefers-color-scheme`, también si el sistema cambia
   con la página abierta. Claro y oscuro se recuerdan en `localStorage` (`powernode.tema`).
 - Va en el `<head>` y sin `defer`, para que la página no destelle en claro mientras carga.
 - Todos los colores de `app.css` son variables de `:root`; la paleta oscura se escribe **una sola vez**,
@@ -75,11 +75,30 @@ cambiándoles el nombre, o no se versionan.
   y salían las dos firmas.
 - Tinta oscura del logo `#E8ECEF`; el azul del nodo es el mismo en los dos temas.
 
+## La barra superior
+
+> **Pedido de David · 2026-09-25** (I-58): «métete a nom y a msa-toolkit, conviértelo en una barra
+> superior».
+
+El mismo patrón que las otras dos herramientas: `header.top` del sitio de la NOM y
+`header.toolbar` de msa-toolkit. A todo lo ancho, **fija arriba** (`position: sticky`), fondo de
+papel y una línea abajo; 56 px de alto.
+
+- Izquierda: el icono (28 px), «Power Node» y, debajo, «NOM-001-SEDE-2012»; los artículos van en el
+  `title`.
+- Las páginas: **Captura · Cuadro de carga · Memoria de cálculo** (`NavLink`, con `aria-current`).
+  La memoria tiene ruta propia, `/documento/memoria`; antes era una pestaña sin dirección.
+- Derecha: el tema y, en el documento, **Imprimir / PDF**.
+- En el celular (≤ 760 px) las páginas bajan a un segundo renglón.
+- `html { scroll-padding-top }`: Enter, las flechas y Alt+1…5 mueven el foco con `scrollIntoView`, y
+  sin esto el campo quedaba debajo de la barra.
+- Impreso no sale (`no-imprime`). Vive en `Layout/BarraSuperior.razor`, dentro de `MainLayout`.
+
 ## Qué archivo es cuál
 
 | Archivo | Para qué |
 |---|---|
-| `marca/powernode-icono.svg` | El del encabezado y la pantalla de carga. Trazo normal: borde 3.5, líneas 1.8 (lienzo 64) |
+| `marca/powernode-icono.svg` | El de la barra superior y la pantalla de carga. Trazo normal: borde 3.5, líneas 1.8 (lienzo 64) |
 | `marca/powernode-icono-oscuro.svg` | El mismo con tinta clara, para el tema oscuro |
 | `marca/powernode-icono-16.svg` | Trazo grueso (borde 5, líneas 2.6), para tamaños chicos. Fuente de los PNG chicos y del `.ico` |
 | `marca/powernode-icono-mono.svg` | `currentColor`, para heredar el color del contexto |

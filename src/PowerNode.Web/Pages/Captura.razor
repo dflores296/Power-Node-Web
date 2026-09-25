@@ -7,20 +7,9 @@
 
 <PageTitle>Cuadro de carga — Power Node</PageTitle>
 
-<header class="encabezado">
-    <div class="titulo">
-        <img class="solo-claro" src="marca/powernode-icono.svg" alt="Power Node" width="38" height="38" />
-        <img class="solo-oscuro" src="marca/powernode-icono-oscuro.svg" alt="Power Node" width="38" height="38" />
-        <div>
-            <h1>Cuadro de carga</h1>
-            <p class="meta">NOM-001-SEDE-2012 · Art. 210, 215, 220, 240, 250, 310, 408</p>
-        </div>
-    </div>
-    <div class="acciones">
-        <TemaDePantalla />
-        <button class="boton" @onclick="@(() => Navegacion.NavigateTo("documento"))">Documento y memoria</button>
-    </div>
-</header>
+@* El título de la página va para los lectores de pantalla (y para FocusOnNavigate): a la vista, la
+   barra superior ya dice dónde se está (I-58). *@
+<h1 class="solo-lector">Captura del cuadro de carga</h1>
 
 <section class="ficha" id="sec-ficha">
     <div class="pila">

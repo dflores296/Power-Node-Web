@@ -1,23 +1,10 @@
 @page "/documento"
+@page "/documento/{Pagina}"
 @inject ProyectoActual Proyecto
-@inject NavigationManager Navegacion
-@inject IJSRuntime Js
 
 <PageTitle>Cuadro de carga y memoria — Power Node</PageTitle>
 
-<div class="barra no-imprime">
-    <button class="boton" @onclick="@(() => Navegacion.NavigateTo(""))">← Volver a la captura</button>
-    <div class="pestanas">
-        <button class="boton @(_hoja == Hoja.Cuadro ? "activo" : null)" @onclick="() => _hoja = Hoja.Cuadro">Cuadro de carga</button>
-        <button class="boton @(_hoja == Hoja.Memoria ? "activo" : null)" @onclick="() => _hoja = Hoja.Memoria">Memoria de cálculo</button>
-    </div>
-    <div class="acciones">
-        <TemaDePantalla />
-        <button class="boton primario" @onclick="@(async () => await Imprimir())">Imprimir / PDF</button>
-    </div>
-</div>
-
-@if (_hoja == Hoja.Cuadro)
+@if (HojaVisible == Hoja.Cuadro)
 {
     <article class="documento">
         <header class="doc-encabezado">
@@ -378,7 +365,11 @@ else
 @code {
     private enum Hoja { Cuadro, Memoria }
 
-    private Hoja _hoja = Hoja.Cuadro;
+    /// <summary>Cuadro o memoria: la dice la ruta (/documento, /documento/memoria), para que la barra
+    /// superior lleve a cada una (I-58).</summary>
+    [Parameter] public string? Pagina { get; set; }
+
+    private Hoja HojaVisible => Pagina == "memoria" ? Hoja.Memoria : Hoja.Cuadro;
 
     private CuadroDeCarga Cuadro => Proyecto.Cuadro;
     private DatosDelTablero Datos => Cuadro.Datos;
@@ -387,7 +378,6 @@ else
     /// <summary>Los dos bloques del cuadro, ya materializados: cada uno se recorre más de una vez.</summary>
     private IReadOnlyList<IReadOnlyList<CircuitoDelCuadro>> Lados => Cuadro.Lados;
 
-    private async Task Imprimir() => await Js.InvokeVoidAsync("window.print");
 
     private static string Texto(string valor) => string.IsNullOrWhiteSpace(valor) ? "—" : valor;
 

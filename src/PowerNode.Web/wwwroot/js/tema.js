@@ -1,9 +1,9 @@
 // EL TEMA — I-57 (David, 2026-09-25).
 //
-// Tres elecciones: «automático» sigue al sistema (prefers-color-scheme), «claro» y «oscuro» lo fijan
-// y se recuerdan en localStorage. Aquí se resuelve cuál manda y se escribe en <html data-tema>, con
-// "claro" u "oscuro": es lo único que lee la hoja de estilos. Así la paleta oscura se escribe una
-// sola vez en app.css.
+// Tres elecciones: «automatico» (en pantalla, «Sistema») sigue al sistema (prefers-color-scheme);
+// «claro» y «oscuro» lo fijan y se recuerdan en localStorage. Aquí se resuelve cuál manda y se
+// escribe en <html data-tema>, con "claro" u "oscuro": es lo único que lee la hoja de estilos. Así
+// la paleta oscura se escribe una sola vez en app.css.
 //
 // Va en el <head> y sin defer: si corriera después, la página se pintaría un instante en claro.
 (() => {
@@ -29,9 +29,11 @@
 
     (window.powerNode ??= {}).tema = {
         eleccion: () => eleccion,
-        /** Automático → Claro → Oscuro → Automático. Devuelve la elección nueva. */
-        siguiente() {
-            eleccion = elecciones[(elecciones.indexOf(eleccion) + 1) % elecciones.length];
+        /** Fija la elección (automatico, claro u oscuro) y devuelve la que quedó. */
+        fijar(nueva) {
+            if (!elecciones.includes(nueva))
+                return eleccion;
+            eleccion = nueva;
             try {
                 if (eleccion === 'automatico')
                     localStorage.removeItem(clave);
