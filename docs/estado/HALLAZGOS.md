@@ -76,7 +76,7 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-53 · Tensión sin rótulo correcto ni aviso: 1F-2H a 220 V F-N, 1F-3H a 220/110 V | P1 | **Cerrado** | `317110e` |
 | I-54 · 1F-2H con nones y pares y gabinetes de 12 a 42 espacios | P3 | **Cerrado** | `e7af563`, `5f74680` |
 | I-55 · Campo numérico: el «0» se sumaba a lo tecleado; un campo vaciado dejaba el valor anterior en el cálculo | P1 | **Cerrado** | `dbc8f70` |
-| I-56 · Navegación con teclado: Enter sin moverse, flechas que cambiaban valores, ayudas solo con ratón | P2 | **Cerrado** | `pendiente` |
+| I-56 · Navegación con teclado: Enter sin moverse, flechas que cambiaban valores, ayudas solo con ratón | P2 | **Cerrado** | `a5e5b3d` |
 | R-01 · Caída del alimentador fija en 5 %, sin verificar la combinada — 215-2(a)(4) NOTA 2 | P1 | **Cerrado** | `2a973ea` |
 | R-02 · Caída del alimentador sin la caída del neutro | P2 | **Cerrado** | `d6cd1c6` |
 | R-03 · La publicación no corre `PowerNode.Web.Tests` | P1 | **Cerrado** | `986c9d7` |
