@@ -85,6 +85,7 @@ Pruebas: 66 en `PowerNode.Web.Tests`, 6 en `PowerNode.Normativa.Tests`.
 - Logo más grande (80 px en la carga, 40 en la barra) y la carta que se dibuja: con el avance real de la descarga en la pantalla de carga, al pasar el cursor en la barra; sin tooltip — I-59, `04a2e56`.
 - La carta de la carga se ve completa aunque la carga sea rápida (capa encima de la app, 1.6 s mínimo, sin brincos tras la congelación del arranque); encabezado del documento sin hueco; resumen a 360 px; tema e Imprimir con símbolos en el celular — I-60, `da669de`.
 - Guardar y abrir el tablero en un archivo `.powernode.json` (lo capturado, se recalcula al abrir); la pestaña lleva el nombre del tablero; varios tableros, uno por pestaña. Decisión propuesta: `archivo-del-tablero.md` — I-05, `0169b78`.
+- Botón de GitHub con las estrellas en la barra, como el de gitdiagram.com — I-61, `005be3c`.
 
 Pruebas: 194 en `PowerNode.Web.Tests`, 23 en `PowerNode.Normativa.Tests`.
 
