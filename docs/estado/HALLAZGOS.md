@@ -73,7 +73,7 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-50 · Fórmula de caída de la memoria sin «÷ 1000» (L en m, R y X en Ω/km) | P2 | **Cerrado** | `9fe6995` |
 | I-51 · Selector de uso de contactos desalineado bajo el de tipo | P3 | **Cerrado** | `5cdc8bb` |
 | I-52 · F.P. cortado en «0.9» tras I-49 | P2 | **Cerrado** | `5cdc8bb` |
-| I-53 · Tensión sin rótulo correcto ni aviso: 1F-2H a 220 V F-N, 1F-3H a 220/110 V | P1 | **Cerrado** | `pendiente` |
+| I-53 · Tensión sin rótulo correcto ni aviso: 1F-2H a 220 V F-N, 1F-3H a 220/110 V | P1 | **Cerrado** | `317110e` |
 | R-01 · Caída del alimentador fija en 5 %, sin verificar la combinada — 215-2(a)(4) NOTA 2 | P1 | **Cerrado** | `2a973ea` |
 | R-02 · Caída del alimentador sin la caída del neutro | P2 | **Cerrado** | `d6cd1c6` |
 | R-03 · La publicación no corre `PowerNode.Web.Tests` | P1 | **Cerrado** | `986c9d7` |
