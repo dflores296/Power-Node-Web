@@ -5,7 +5,7 @@
     --acento: #0B6E99;
     --tenue: #45505c;           /* más oscuro desde I-64: los rótulos grises casi no se leían */
 
-    --linea: #d8dee6;
+    --linea: #c2cbd6;           /* más oscura desde I-65: junto al borde de las tarjetas se veía tibia */
     --fondo: #e6ebf1;           /* un tono abajo del papel: las tarjetas se separan del fondo (I-64) */
     --papel: #fff;
     --alerta: #b3261e;
@@ -13,7 +13,7 @@
     /* Tonos de apoyo (I-57): antes eran colores sueltos en cada regla; con el tema oscuro cada uno
        necesita su pareja. */
     --encabezado: #dfe6ee;      /* encabezados de tabla, chips, pistas */
-    --linea-suave: #eef1f5;     /* divisiones interiores */
+    --linea-suave: #d8dfe7;     /* divisiones interiores */
     --punteado: #9aa6b2;        /* subrayado de las ayudas, borde del chip de neutro */
     --hover: #f8fafc;           /* renglón bajo el cursor */
     --vacio: #b9c2cc;           /* renglones y espacios libres */
@@ -59,18 +59,18 @@
         --acento: #4aa3d1;
         --tenue: #9aa6b2;
 
-        --linea: #2e3640;
-        --fondo: #0b0e12;
-        --papel: #171c21;
+        --linea: #3b4653;
+        --fondo: #161b21;           /* más claro que la sombra negra: si no, el relieve no se ve (I-65) */
+        --papel: #1f262d;
         --alerta: #f2877e;
 
-        --encabezado: #1e252c;
-        --linea-suave: #232a31;
+        --encabezado: #29313a;
+        --linea-suave: #323b45;
         --punteado: #5a6570;
-        --hover: #1b2127;
+        --hover: #262e36;
         --vacio: #4e5864;
-        --codigo: #232a31;
-        --fondo-suave: #13181d;
+        --codigo: #29313a;
+        --fondo-suave: #1a2026;
         --acento-suave: #0f2a38;
         --acento-borde: #1f5470;
         --sobre-acento: #0b1116;
@@ -84,10 +84,10 @@
         --foco: rgb(74 163 209 / .22);
         --estrella: #e3b341;
         --icono-relleno: .26;
-        --relieve-borde: #3d4955;
-        --relieve-sombra: #05080b;
-        --trazo-fuerte: #8595a5;
-        --acento-hondo: #123a4f;
+        --relieve-borde: #05070a;   /* como gitdiagram en oscuro: borde y sombra negros */
+        --relieve-sombra: #000000;
+        --trazo-fuerte: #05070a;
+        --acento-hondo: #000000;
         color-scheme: dark;
     }
 }
@@ -835,6 +835,10 @@ body.con-ayuda { padding-bottom: 72px; }
                     box-shadow: 3px 3px 0 var(--trazo-fuerte); }
 
     h2 { color: var(--tinta); font-weight: 700; }
+}
+@media screen {
+    :root[data-tema="oscuro"] select, :root[data-tema="oscuro"] input:not([type="checkbox"]) { background: #181e24; }
+    :root[data-tema="oscuro"] .cuadro input.desc:not(:focus), :root[data-tema="oscuro"] .cuadro input.va:not(:focus) { background: transparent; }
 }
 @media print {
     * { box-shadow: none !important; }

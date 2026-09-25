@@ -169,6 +169,10 @@ papel y una línea abajo; 64 px de alto (56 hasta I-59).
 - Más contraste: fondo `#e6ebf1` (un tono abajo del papel), `--tenue` más oscuro, títulos de tarjeta en
   tinta y negrita, encabezados de tabla `#dfe6ee`. En oscuro, el fondo baja a `#0b0e12`.
 - Solo en pantalla (`@media screen`): el documento impreso sigue plano.
+- **I-65:** las líneas internas de las tablas más oscuras (`--linea` #c2cbd6, `--linea-suave` #d8dfe7):
+  junto al borde de las tarjetas se veían tibias. En oscuro, como gitdiagram: fondo #161b21, tarjetas
+  #1f262d, bordes y sombras negros, campos un tono más hundidos. Antes la sombra casi negra caía sobre
+  un fondo casi negro y el relieve no se veía.
 
 ## Qué archivo es cuál
 
