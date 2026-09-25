@@ -92,7 +92,7 @@ Pruebas: 66 en `PowerNode.Web.Tests`, 6 en `PowerNode.Normativa.Tests`.
 - Líneas de tabla más firmes; relieve visible en oscuro, como gitdiagram — I-65, `7ade4dc`.
 - Iconos de interruptor termomagnético NEMA y DIN de 1, 2 y 3 polos con su valor; los NEMA, dentro del gabinete — I-66, `4782c6e`.
 - El interruptor NEMA rehecho como un QO genérico de frente, con una manija ancha en 2 y 3 polos y sin rótulo; en el gabinete, acostado con la pinza hacia la barra; DIN retirado — I-66, `f850580`.
-- El interruptor NEMA con una manija de ancho normal en su polo (único, derecho o central), tapa lisa en los demás y más esbelto — I-66, `HASH`.
+- El interruptor NEMA con una manija de ancho normal en su polo (único, derecho o central), tapa lisa en los demás y más esbelto — I-66, `3a70aea`.
 
 Pruebas: 194 en `PowerNode.Web.Tests`, 23 en `PowerNode.Normativa.Tests`.
 
