@@ -80,8 +80,9 @@ Pruebas: 66 en `PowerNode.Web.Tests`, 6 en `PowerNode.Normativa.Tests`.
 - Campos numéricos: 0 como marca de agua en cargas, vaciar un obligatorio recupera su valor, seleccionar todo al entrar — I-55, `dbc8f70`.
 - Navegación con teclado: Enter/Shift+Enter, ↑↓ de renglón, Esc, Ctrl+Enter, Alt+1…5, foco tras acciones, barra de ayuda, aria-label — I-56, `a5e5b3d`.
 - Logo nuevo: carta de Smith (variante B), dibujada con sus ecuaciones; SVG, PNG, .ico y firma generados — `docs/conocimiento/marca.md`, `7e0a36d`.
+- Tema oscuro (Automático → Claro → Oscuro, impreso siempre en claro) e iconos de la pestaña renombrados a `powernode-carta-*` — I-57, `f84d575`.
 
-Pruebas: 167 en `PowerNode.Web.Tests`, 23 en `PowerNode.Normativa.Tests`.
+Pruebas: 179 en `PowerNode.Web.Tests`, 23 en `PowerNode.Normativa.Tests`.
 
 ## 2026-09-22 (tercera parte)
 
