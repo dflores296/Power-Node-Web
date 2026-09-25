@@ -79,6 +79,7 @@ Pruebas: 66 en `PowerNode.Web.Tests`, 6 en `PowerNode.Normativa.Tests`.
 - 1F-2H solo con 1, 2, 4, 6 y 8 espacios — I-54, `5f74680`.
 - Campos numéricos: 0 como marca de agua en cargas, vaciar un obligatorio recupera su valor, seleccionar todo al entrar — I-55, `dbc8f70`.
 - Navegación con teclado: Enter/Shift+Enter, ↑↓ de renglón, Esc, Ctrl+Enter, Alt+1…5, foco tras acciones, barra de ayuda, aria-label — I-56, `a5e5b3d`.
+- Logo nuevo: carta de Smith (variante B), dibujada con sus ecuaciones; SVG, PNG, .ico y firma generados — `docs/conocimiento/marca.md`, `7e0a36d`.
 
 Pruebas: 167 en `PowerNode.Web.Tests`, 23 en `PowerNode.Normativa.Tests`.
 
