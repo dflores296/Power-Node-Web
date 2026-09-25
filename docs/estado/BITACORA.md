@@ -99,6 +99,7 @@ Pruebas: 66 en `PowerNode.Web.Tests`, 6 en `PowerNode.Normativa.Tests`.
 - Arrastrar circuitos en la tabla y en el gabinete, deshacer y «Optimizar acomodo» (con el desempate por dispersión en `BalanceoDeFases`) — I-69, `1c573d1`.
 - Arrastrar el principal entre el zócalo y los espacios; la franja se vuelve el zócalo al arrastrarlo; deshacer regresa el montaje — I-70, `ddffb03`.
 - El gabinete en su propio renglón; rótulos del principal y la acometida en una línea; en el celular, todo en la lista de abajo — I-71, `6eabed1`.
+- Los números de circuito, centrados en su recuadro con cualquier fuente — I-72, `bd5ee08`.
 
 Pruebas: 218 en `PowerNode.Web.Tests`, 23 en `PowerNode.Normativa.Tests`.
 
