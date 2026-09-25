@@ -11,9 +11,27 @@
 *@
 <header class="barra-superior no-imprime">
     <div class="barra-superior-interior">
-        <a class="marca" href="" title="NOM-001-SEDE-2012 · Art. 210, 215, 220, 240, 250, 310, 408">
-            <img class="solo-claro" src="marca/powernode-icono.svg" alt="" width="28" height="28" />
-            <img class="solo-oscuro" src="marca/powernode-icono-oscuro.svg" alt="" width="28" height="28" />
+        @* La carta en línea, para que se dibuje al pasar el cursor (I-59): copia de
+           marca/powernode-icono.svg con currentColor, igual que la de la pantalla de carga (index.html). *@
+        <a class="marca" href="">
+            <svg class="carta-animada" viewBox="0 0 64 64" width="40" height="40" aria-hidden="true">
+                <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <g class="finas" stroke-width="1.8">
+                        <circle cx="40.667" cy="32" r="17.333" style="--t: .10" />
+                        <circle cx="45" cy="32" r="13" style="--t: .20" />
+                        <circle cx="49.333" cy="32" r="8.667" style="--t: .30" />
+                        <path d="M58,32 A52,52 0 0 1 16.4,11.2" style="--t: .40" />
+                        <path d="M58,32 A52,52 0 0 0 16.4,52.8" style="--t: .45" />
+                        <path d="M58,32 A26,26 0 0 1 32,6" style="--t: .55" />
+                        <path d="M58,32 A26,26 0 0 0 32,58" style="--t: .60" />
+                        <path d="M58,32 A13,13 0 0 1 47.6,11.2" style="--t: .70" />
+                        <path d="M58,32 A13,13 0 0 0 47.6,52.8" style="--t: .75" />
+                        <path d="M6,32 L58,32" style="--t: .82" />
+                    </g>
+                    <circle class="borde" cx="32" cy="32" r="26" stroke-width="3.5" pathLength="100" />
+                </g>
+                <circle class="nodo" cx="32" cy="32" r="4.5" fill="#0B6E99" />
+            </svg>
             <span class="marca-texto">Power Node<small>NOM-001-SEDE-2012</small></span>
         </a>
         <span class="vsep" aria-hidden="true"></span>

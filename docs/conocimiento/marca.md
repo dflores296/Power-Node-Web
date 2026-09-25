@@ -82,10 +82,10 @@ cambiándoles el nombre, o no se versionan.
 
 El mismo patrón que las otras dos herramientas: `header.top` del sitio de la NOM y
 `header.toolbar` de msa-toolkit. A todo lo ancho, **fija arriba** (`position: sticky`), fondo de
-papel y una línea abajo; 56 px de alto.
+papel y una línea abajo; 64 px de alto (56 hasta I-59).
 
-- Izquierda: el icono (28 px), «Power Node» y, debajo, «NOM-001-SEDE-2012»; los artículos van en el
-  `title`.
+- Izquierda: el icono (40 px desde I-59; era de 28), «Power Node» y, debajo, «NOM-001-SEDE-2012». Sin
+  tooltip: David lo pidió quitar.
 - Las páginas: **Captura · Cuadro de carga · Memoria de cálculo** (`NavLink`, con `aria-current`).
   La memoria tiene ruta propia, `/documento/memoria`; antes era una pestaña sin dirección.
 - Derecha: el tema y, en el documento, **Imprimir / PDF**.
@@ -94,12 +94,34 @@ papel y una línea abajo; 56 px de alto.
   sin esto el campo quedaba debajo de la barra.
 - Impreso no sale (`no-imprime`). Vive en `Layout/BarraSuperior.razor`, dentro de `MainLayout`.
 
+## La carta que se dibuja
+
+> **Pedido de David · 2026-09-25** (I-59). De cuatro propuestas (se dibuja con la descarga, el punto
+> busca la adaptación, tres fases, latido del nodo) eligió **la primera**: en la pantalla de carga, y
+> en la barra solo al pasar el cursor. Y el logo más grande: **80 px** en la carga (era 56) y **40 px**
+> en la barra (era 28).
+
+- `--p`, de 0 a 1, dibuja la carta: el borde avanza (`pathLength="100"`, `stroke-dasharray`), cada
+  línea aparece en su umbral (`--t`, de .10 a .82) y el punto azul crece al final (de .9 a 1).
+  `@property --p` (número, valor inicial 1): sin nadie que lo mueva, la carta está completa.
+- **En la pantalla de carga, `--p` es el avance real.** Blazor lo publica en
+  `<html style="--blazor-load-percentage: 42%">` por cada recurso que baja
+  (`onDownloadResourceProgress` en `blazor.webassembly.js`); un script de `index.html` lo pasa a `--p`
+  y al texto («… 42 %»). Si en 1.5 s no llega ningún avance, la carta se muestra completa.
+- **En la barra**, `@keyframes dibujar` anima `--p` de 0 a 1 en 1.2 s, una vez, al pasar el cursor o
+  con el foco del teclado.
+- Con «reducir movimiento» (`prefers-reduced-motion`) la carta queda quieta y completa.
+- Para poder animarla, la carta va **en línea** (SVG dentro de la página, con `currentColor`), no en
+  `<img>`: en `index.html` y en `Layout/BarraSuperior.razor`. Son copias de `powernode-icono.svg`; si
+  cambia el logo, hay que cambiarlas también. Al ir en línea, ya no necesitan la versión oscura: toman
+  la tinta del tema.
+
 ## Qué archivo es cuál
 
 | Archivo | Para qué |
 |---|---|
-| `marca/powernode-icono.svg` | El de la barra superior y la pantalla de carga. Trazo normal: borde 3.5, líneas 1.8 (lienzo 64) |
-| `marca/powernode-icono-oscuro.svg` | El mismo con tinta clara, para el tema oscuro |
+| `marca/powernode-icono.svg` | El logo. La barra superior y la pantalla de carga llevan una copia en línea (ver arriba). Trazo normal: borde 3.5, líneas 1.8 (lienzo 64) |
+| `marca/powernode-icono-oscuro.svg` | El mismo con tinta clara, para usarlo en `<img>` sobre fondo oscuro |
 | `marca/powernode-icono-16.svg` | Trazo grueso (borde 5, líneas 2.6), para tamaños chicos. Fuente de los PNG chicos y del `.ico` |
 | `marca/powernode-icono-mono.svg` | `currentColor`, para heredar el color del contexto |
 | `marca/powernode-firma.svg`, `powernode-firma-oscura.svg` | Logo con el texto «Power Node · Design Suite» — el del documento, en claro y en oscuro |

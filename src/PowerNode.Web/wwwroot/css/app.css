@@ -111,7 +111,7 @@ body {
    msa-toolkit (header.toolbar): a todo lo ancho, fija arriba, línea abajo; la marca a la izquierda,
    las páginas, y a la derecha el tema y la acción de la página.
    ------------------------------------------------------------------------------------------------ */
-:root { --alto-barra: 56px; }
+:root { --alto-barra: 64px; }
 /* Enter, las flechas y Alt+1…5 llevan el foco con scrollIntoView: sin esto, lo que queda arriba se
    esconde debajo de la barra. */
 html { scroll-padding-top: calc(var(--alto-barra) + 8px); }
@@ -125,9 +125,9 @@ html { scroll-padding-top: calc(var(--alto-barra) + 8px); }
     min-height: var(--alto-barra); padding: 8px 20px;
 }
 .marca { display: flex; align-items: center; gap: 10px; color: var(--tinta); text-decoration: none; white-space: nowrap; }
-.marca img { flex: none; }
-.marca-texto { font-size: 15px; font-weight: 650; letter-spacing: -0.01em; line-height: 1.2; }
-.marca-texto small { display: block; font-size: 11px; font-weight: 400; color: var(--tenue); letter-spacing: .02em; }
+.marca svg { flex: none; }
+.marca-texto { font-size: 17px; font-weight: 650; letter-spacing: -0.01em; line-height: 1.2; }
+.marca-texto small { display: block; font-size: 12px; font-weight: 400; color: var(--tenue); letter-spacing: .02em; }
 .vsep { width: 1px; height: 22px; background: var(--linea); flex: none; }
 .paginas { display: flex; align-items: center; gap: 4px; }
 .paginas a { padding: 6px 10px; border-radius: var(--radio-sm); color: var(--tenue);
@@ -148,10 +148,18 @@ html { scroll-padding-top: calc(var(--alto-barra) + 8px); }
 /* En el celular no cabe en un renglón: las páginas bajan a un segundo renglón, a lo ancho, y se
    recorren de lado si no caben. */
 @media (max-width: 760px) {
-    .barra-superior-interior { flex-wrap: wrap; row-gap: 6px; padding: 8px 14px; }
+    /* Sin el espaciador y con menos hueco, el tema cabe junto a la marca de 40 px (I-59). */
+    .barra-superior-interior { flex-wrap: wrap; row-gap: 6px; column-gap: 10px; padding: 8px 14px; }
+    .barra-superior .espaciador { display: none; }
+    .tema-opciones { margin-left: auto; }
     .marca-texto small, .barra-superior .vsep { display: none; }
     .paginas { order: 3; flex-basis: 100%; overflow-x: auto; }
     html { scroll-padding-top: 108px; }
+}
+/* 360 px, el Android más común: un poco más apretado para que el tema no baje a otro renglón. */
+@media (max-width: 400px) {
+    .marca-texto { font-size: 15px; }
+    .tema-opciones button { padding: 4px 6px; }
 }
 
 /* Para lectores de pantalla: existe, pero no se ve. */
@@ -320,7 +328,29 @@ input.desc:focus, input.va:focus {
     gap: 2px;
     animation: aparecer .4s ease-out;
 }
-.arranque-logo { opacity: .9; }
+.arranque-nota .arranque-pct { font-variant-numeric: tabular-nums; }
+
+/* ------------------------------------------------------------------------------------------------
+   LA CARTA QUE SE DIBUJA (David, 2026-09-25 — I-59). --p va de 0 a 1: el borde avanza (pathLength
+   = 100), las líneas aparecen cada una en su umbral (--t) y el punto azul llega al final. En la
+   pantalla de carga --p es el avance real de la descarga (el script de index.html); en la barra,
+   una animación al pasar el cursor. Sin --p, la carta está completa.
+   ------------------------------------------------------------------------------------------------ */
+@property --p { syntax: '<number>'; inherits: true; initial-value: 1; }
+.carta-animada { color: var(--tinta); }
+.carta-animada .borde { stroke-dasharray: calc(var(--p, 1) * 100) 100; }
+.carta-animada .finas > * { opacity: clamp(0, calc((var(--p, 1) - var(--t)) * 8), 1); }
+.carta-animada .nodo { transform-box: fill-box; transform-origin: center;
+                       transform: scale(clamp(0, calc((var(--p, 1) - .9) * 10), 1)); }
+
+@keyframes dibujar { from { --p: 0; } to { --p: 1; } }
+.marca:hover .carta-animada, .marca:focus-visible .carta-animada { animation: dibujar 1.2s cubic-bezier(.3, .1, .3, 1); }
+
+/* Con «reducir movimiento», la carta quieta y completa, como antes. */
+@media (prefers-reduced-motion: reduce) {
+    .carta-animada { --p: 1; }
+    .marca:hover .carta-animada, .marca:focus-visible .carta-animada { animation: none; }
+}
 .arranque-nombre {
     margin: 12px 0 0;
     font-size: 17px;
