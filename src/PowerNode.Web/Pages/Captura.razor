@@ -2,6 +2,7 @@
 @inject ProyectoActual Proyecto
 @inject MotorNom Motor
 @inject NavigationManager Navegacion
+@inject IJSRuntime JS
 @using System.Globalization
 
 <PageTitle>Cuadro de carga — Power Node</PageTitle>
@@ -19,7 +20,7 @@
     </div>
 </header>
 
-<section class="ficha">
+<section class="ficha" id="sec-ficha">
     <div class="pila">
     <div class="grupo">
         <h2>Identificación</h2>
@@ -124,7 +125,7 @@
     </div>
 </section>
 
-<section class="cuadro-completo">
+<section class="cuadro-completo" id="sec-cuadro">
     <table class="cuadro">
         <thead>
             @*
@@ -135,13 +136,13 @@
             *@
             <tr>
                 <th rowspan="2"><span class="ayuda" title="@(Cuadro.UnaSolaBarra ? "Identificar el circuito por su espacio en la barra. Una sola barra: en orden." : "Identificar el circuito por su espacio en la barra. Nones arriba, pares abajo.")">N.º</span></th>
-                <th rowspan="2" class="izq descripcion">Descripción</th>
-                <th rowspan="2"><span class="ayuda" title="Seleccionar el tipo de carga. Determina el factor de demanda del resumen — Art. 220.&#10;&#10;Alumbrado: luminarias y alumbrado general.&#10;Contactos: contactos de uso general; en vivienda, seleccionar el uso (cocina, lavadora, baño).&#10;Equipo: hornos, estufas, parrillas, secadoras, calentadores de agua, equipo electrónico.&#10;Motor / A/C: todo lo que funciona con motor o compresor: aire acondicionado, refrigeración, bombas, ventiladores, bombas de calor e inverter frío/calor.&#10;Calefacción: calefacción por resistencia eléctrica: calefactores, cables calefactores, calderas eléctricas; carga continua — 424-3(b).&#10;&#10;Motor / A/C y calefacción se calculan como carga de placa (Art. 430 pendiente). 240-4(b) no aplica en contactos.">Tipo</span></th>
+                <th rowspan="2" class="izq descripcion" data-col="desc" title="Describir el circuito. Ctrl+Enter abre o cierra el desglose de sus aparatos.">Descripción</th>
+                <th rowspan="2" data-col="tipo"><span class="ayuda" title="Seleccionar el tipo de carga. Determina el factor de demanda del resumen — Art. 220.&#10;&#10;Alumbrado: luminarias y alumbrado general.&#10;Contactos: contactos de uso general; en vivienda, seleccionar el uso (cocina, lavadora, baño).&#10;Equipo: hornos, estufas, parrillas, secadoras, calentadores de agua, equipo electrónico.&#10;Motor / A/C: todo lo que funciona con motor o compresor: aire acondicionado, refrigeración, bombas, ventiladores, bombas de calor e inverter frío/calor.&#10;Calefacción: calefacción por resistencia eléctrica: calefactores, cables calefactores, calderas eléctricas; carga continua — 424-3(b).&#10;&#10;Motor / A/C y calefacción se calculan como carga de placa (Art. 430 pendiente). 240-4(b) no aplica en contactos.">Tipo</span></th>
                 <th colspan="4"><span class="ayuda" title="Capturar la carga de placa en VA, W o A y su factor de potencia. Continua (3 h o más): 125 % — 210-19(a)(1), 210-20(a). No continua: 100 %. En W o A, consultar abajo el VA de cálculo.">Carga</span></th>
                 <th colspan="@Datos.Barras.Count"><span class="ayuda" title="Consultar la carga del circuito repartida entre las barras que toca.">Balanceo de fases <span class="simbolo">(VA)</span></span></th>
-                <th rowspan="2"><span class="ayuda" title="Capturar la longitud del circuito. Determina la caída de tensión — Tabla 9."><span class="simbolo">L (m)</span></span></th>
-                <th rowspan="2"><span class="ayuda" title="Seleccionar la canalización del circuito de la lista de la tarjeta «Canalizaciones». Al capturar la carga, cada circuito nace en la suya (T1, T2…); para agrupar, elegir la de otro circuito, o «+ Nueva». Los circuitos de una misma canalización se agrupan y el programa cuenta sus portadores — 310-15(b)(3)(a). Si el circuito pasa por varias, la del tramo más desfavorable — 310-15(a)(2). Debajo: el tamaño que resultó.">Canal.</span></th>
-                <th rowspan="2"><span class="ayuda" title="Seleccionar los polos del interruptor. Un multipolar ocupa los espacios N, N+2 y N+4 del mismo lado.">P</span></th>
+                <th rowspan="2" data-col="l"><span class="ayuda" title="Capturar la longitud del circuito. Determina la caída de tensión — Tabla 9."><span class="simbolo">L (m)</span></span></th>
+                <th rowspan="2" data-col="canal"><span class="ayuda" title="Seleccionar la canalización del circuito de la lista de la tarjeta «Canalizaciones». Al capturar la carga, cada circuito nace en la suya (T1, T2…); para agrupar, elegir la de otro circuito, o «+ Nueva». Los circuitos de una misma canalización se agrupan y el programa cuenta sus portadores — 310-15(b)(3)(a). Si el circuito pasa por varias, la del tramo más desfavorable — 310-15(a)(2). Debajo: el tamaño que resultó.">Canal.</span></th>
+                <th rowspan="2" data-col="polos masn"><span class="ayuda" title="Seleccionar los polos del interruptor. Un multipolar ocupa los espacios N, N+2 y N+4 del mismo lado.">P</span></th>
                 <th rowspan="2"><span class="ayuda" title="Consultar las barras que toca el interruptor. Las determina el espacio de montaje.">Barras</span></th>
                 <th rowspan="2"><span class="ayuda" title="Consultar la corriente de diseño de la carga capturada — 210-19(a)(1)."><span class="simbolo">In (A)</span></span></th>
                 <th rowspan="2"><span class="ayuda" title="Consultar la protección: primer tamaño normalizado mayor o igual a la capacidad mínima — 240-6(a), 210-20(a). Pasar el cursor sobre el valor para consultar el desglose.">Protec. <span class="simbolo">(A)</span></span></th>
@@ -151,10 +152,10 @@
                 <th rowspan="2" class="ultima"><span class="ayuda" title="Consultar la caída de tensión del circuito. Límite recomendado: 3 % en el derivado y 5 % combinada — 210-19(a)(1), nota 4."><span class="simbolo">e (%)</span></span></th>
             </tr>
             <tr>
-                <th><span class="ayuda" title="Seleccionar la unidad de placa. W: convertir con el factor de potencia. A: convertir con la tensión y los polos del circuito.">Unidad</span></th>
-                <th><span class="ayuda" title="Capturar la carga que opera 3 h o más. Aplicar 125 % — 210-19(a)(1), 210-20(a).">Continua</span></th>
-                <th><span class="ayuda" title="Capturar la carga que opera menos de 3 h. Aplicar 100 %.">No continua</span></th>
-                <th><span class="ayuda" title="Capturar el factor de potencia de la carga. Valor inicial: 0.9.&#10;&#10;Capturada en W: VA = W ÷ F.P. Modifica corriente, protección, conductor, caída de tensión y kW.&#10;&#10;Capturada en VA o A: modifica solo la caída de tensión (y el conductor, si excede el límite) y los kW — Tabla 9, nota 2.">F.P.</span></th>
+                <th data-col="unidad"><span class="ayuda" title="Seleccionar la unidad de placa. W: convertir con el factor de potencia. A: convertir con la tensión y los polos del circuito.">Unidad</span></th>
+                <th data-col="continua"><span class="ayuda" title="Capturar la carga que opera 3 h o más. Aplicar 125 % — 210-19(a)(1), 210-20(a).">Continua</span></th>
+                <th data-col="nocontinua"><span class="ayuda" title="Capturar la carga que opera menos de 3 h. Aplicar 100 %.">No continua</span></th>
+                <th data-col="fp"><span class="ayuda" title="Capturar el factor de potencia de la carga. Valor inicial: 0.9.&#10;&#10;Capturada en W: VA = W ÷ F.P. Modifica corriente, protección, conductor, caída de tensión y kW.&#10;&#10;Capturada en VA o A: modifica solo la caída de tensión (y el conductor, si excede el límite) y los kW — Tabla 9, nota 2.">F.P.</span></th>
                 @foreach (var barra in Datos.Barras)
                 {
                     <th class="col-fase"><span class="ayuda" title="Consultar la carga que el circuito asigna a la barra @barra."><span class="fase-rect fase-rect-@char.ToLowerInvariant(barra)">@barra</span></span></th>
@@ -186,13 +187,13 @@
 
                 @foreach (var c in lado.Where(x => !x.EsContinuacion))
                 {
-                    <tr class="@(c.Resultado is null ? "vacio" : null)">
+                    <tr class="@(c.Resultado is null ? "vacio" : null)" data-espacio="@c.Espacio">
                         <td class="num">@c.Espacio</td>
                         <td rowspan="@c.Polos">
                             <div class="desc-linea">
-                                <button class="desglosar" title="Desglosar los aparatos que alimenta el circuito. La carga del circuito es la suma."
+                                <button class="desglosar" tabindex="-1" aria-label="Desglose del circuito @c.Espacio" aria-expanded="@(Abierto(c) ? "true" : "false")" title="Desglosar los aparatos que alimenta el circuito. La carga del circuito es la suma. Con el teclado: Ctrl+Enter."
                                         @onclick="() => AlternarDesglose(c)">@(Abierto(c) ? "▾" : "▸")</button>
-                                <input class="desc" @bind="c.Descripcion" @bind:event="oninput" placeholder="—" />
+                                <input class="desc" data-col="desc" aria-label="Circuito @c.Espacio · Descripción" @bind="c.Descripcion" @bind:event="oninput" placeholder="—" />
                             </div>
                             @if (c.TieneDesglose)
                             {
@@ -201,13 +202,13 @@
                         </td>
                         <td rowspan="@c.Polos">
                             <div class="tipo-uso">
-                            <select class="tipo" title="@c.Categoria.Descripcion()" @bind="c.Categoria" @bind:after="Recalcular">
+                            <select class="tipo" data-col="tipo" aria-label="Circuito @c.Espacio · Tipo" title="@c.Categoria.Descripcion()" @bind="c.Categoria" @bind:after="Recalcular">
                                 @foreach (var categoria in Enum.GetValues<CategoriaDeCarga>()) { <option value="@categoria">@categoria.Nombre()</option> }
                             </select>
                             @* El uso solo cuenta en vivienda de más de 60 m² — 210-11(c), 220-52 (I-46). *@
                             @if (c.Tipo == TipoCarga.Contactos && Datos.Inmueble.AplicaUsoDeContactos())
                             {
-                                <select class="tipo uso" title="Seleccionar el uso del circuito de contactos. Cocina = aparatos pequeños (cocina, despensa, comedor, desayunador), lavadora y baño llevan 20 A — 210-11(c) — y solo esas salidas — 210-52(b)(2), 210-11(c)(2) y (3). Aparatos pequeños y lavadora cuentan 1500 VA en el alimentador — 220-52. Solo en vivienda; no en la popular de hasta 60 m² ni fuera de vivienda."
+                                <select class="tipo uso" data-col="uso" aria-label="Circuito @c.Espacio · Uso de los contactos" title="Seleccionar el uso del circuito de contactos. Cocina = aparatos pequeños (cocina, despensa, comedor, desayunador), lavadora y baño llevan 20 A — 210-11(c) — y solo esas salidas — 210-52(b)(2), 210-11(c)(2) y (3). Aparatos pequeños y lavadora cuentan 1500 VA en el alimentador — 220-52. Solo en vivienda; no en la popular de hasta 60 m² ni fuera de vivienda."
                                         @bind="c.Uso" @bind:after="Recalcular">
                                     @foreach (var uso in Enum.GetValues<UsoDeContactos>()) { <option value="@uso">@uso.NombreCorto()</option> }
                                 </select>
@@ -219,31 +220,31 @@
                             </div>
                         </td>
                         <td rowspan="@c.Polos">
-                            <select class="unidad" @bind="c.Unidad" @bind:after="Recalcular" disabled="@c.TieneDesglose" title="@SumaDelDesglose(c)">
+                            <select class="unidad" data-col="unidad" aria-label="Circuito @c.Espacio · Unidad" @bind="c.Unidad" @bind:after="Recalcular" disabled="@c.TieneDesglose" title="@SumaDelDesglose(c)">
                                 <option value="@UnidadConsumo.VoltAmperes">VA</option>
                                 <option value="@UnidadConsumo.Watts">W</option>
                                 <option value="@UnidadConsumo.Amperes">A</option>
                             </select>
                         </td>
                         <td rowspan="@c.Polos">
-                            <input class="va" type="number" min="0" placeholder="0" value="@Carga(c.Continua)" @onchange="e => { c.Continua = LeerCarga(e, c.Continua); Recalcular(); }"
+                            <input class="va" type="number" min="0" placeholder="0" data-col="continua" aria-label="Circuito @c.Espacio · Continua" value="@Carga(c.Continua)" @onchange="e => { c.Continua = LeerCarga(e, c.Continua); Recalcular(); }"
                                    disabled="@c.TieneDesglose" title="@SumaDelDesglose(c)" />
                             @EnVA(c, c.Continua, c.ContinuaVA)
                         </td>
                         <td rowspan="@c.Polos">
-                            <input class="va" type="number" min="0" placeholder="0" value="@Carga(c.NoContinua)" @onchange="e => { c.NoContinua = LeerCarga(e, c.NoContinua); Recalcular(); }"
+                            <input class="va" type="number" min="0" placeholder="0" data-col="nocontinua" aria-label="Circuito @c.Espacio · No continua" value="@Carga(c.NoContinua)" @onchange="e => { c.NoContinua = LeerCarga(e, c.NoContinua); Recalcular(); }"
                                    disabled="@(c.TieneDesglose || c.Categoria == CategoriaDeCarga.CalefaccionFija)"
                                    title="@(c.Categoria == CategoriaDeCarga.CalefaccionFija ? "Calefacción fija: carga continua — 424-3(b)." : SumaDelDesglose(c))" />
                             @EnVA(c, c.NoContinua, c.NoContinuaVA)
                         </td>
-                        <td rowspan="@c.Polos"><input data-requerido class="va fp" type="number" min="0.1" max="1" step="0.05" title="@(c.TieneDesglose ? "F.P. combinado de los aparatos: P ÷ √(P² + Q²)." : AyudaFactorPotencia(c))" value="@Factor(c.FactorPotencia)" @onchange="e => { c.FactorPotencia = Leer(e, c.FactorPotencia); Recalcular(); }" disabled="@c.TieneDesglose" /></td>
+                        <td rowspan="@c.Polos"><input data-requerido data-col="fp" aria-label="Circuito @c.Espacio · F.P." class="va fp" type="number" min="0.1" max="1" step="0.05" title="@(c.TieneDesglose ? "F.P. combinado de los aparatos: P ÷ √(P² + Q²)." : AyudaFactorPotencia(c))" value="@Factor(c.FactorPotencia)" @onchange="e => { c.FactorPotencia = Leer(e, c.FactorPotencia); Recalcular(); }" disabled="@c.TieneDesglose" /></td>
                         @foreach (var barra in Datos.Barras)
                         {
                             <td rowspan="@c.Polos" class="num tenue col-fase">@(c.TieneCarga && c.Fases.Contains(barra) ? c.CargaPorFaseVA.ToString("#,0.##") : "")</td>
                         }
-                        <td rowspan="@c.Polos"><input data-requerido class="va corto" type="number" min="0" value="@Numero(c.LongitudM)" @onchange="e => { c.LongitudM = Leer(e, c.LongitudM); Recalcular(); }" /></td>
+                        <td rowspan="@c.Polos"><input data-requerido class="va corto" type="number" min="0" data-col="l" aria-label="Circuito @c.Espacio · Longitud (m)" value="@Numero(c.LongitudM)" @onchange="e => { c.LongitudM = Leer(e, c.LongitudM); Recalcular(); }" /></td>
                         <td rowspan="@c.Polos" class="canal">
-                            <select class="canal" value="@(c.Canalizacion ?? "")" @onchange="e => CambiarCanalizacion(c, e.Value?.ToString())">
+                            <select class="canal" data-col="canal" aria-label="Circuito @c.Espacio · Canalización" value="@(c.Canalizacion ?? "")" @onchange="e => CambiarCanalizacion(c, e.Value?.ToString())">
                                 @if (!c.TieneCarga)
                                 {
                                     <option value="">—</option>
@@ -262,14 +263,14 @@
                             }
                         </td>
                         <td rowspan="@c.Polos">
-                            <select class="polos" value="@c.Polos"
+                            <select class="polos" data-col="polos" aria-label="Circuito @c.Espacio · Polos" value="@c.Polos"
                                     @onchange="e => CambiarPolos(c, e.Value?.ToString())">
                                 @foreach (var p in Enumerable.Range(1, Datos.MaximoPolos)) { <option value="@p">@p</option> }
                             </select>
                             @if (c.Polos > 1 && TieneNeutro)
                             {
                                 <label class="mas-n" title="Marcar si la carga es F-N (220/127 V) y el circuito lleva neutro. En 2 fases + neutro de estrella el neutro cuenta como portador — 310-15(b)(5)(2).">
-                                    <input type="checkbox" checked="@c.ConNeutro" @onchange="e => { c.ConNeutro = e.Value is true; Recalcular(); }" />+N</label>
+                                    <input type="checkbox" data-col="masn" aria-label="Circuito @c.Espacio · Con neutro" checked="@c.ConNeutro" @onchange="e => { c.ConNeutro = e.Value is true; Recalcular(); }" />+N</label>
                             }
                         </td>
                         <td rowspan="@c.Polos" class="fase">
@@ -312,43 +313,43 @@
                         <tr class="fila-desglose">
                             <td></td>
                             <td colspan="@(Columnas - 1)">
-                                <table class="desglose">
+                                <table class="desglose" data-circuito="@c.Espacio">
                                     <thead>
                                         <tr>
-                                            <th class="izq">Aparato del circuito @c.Espacio</th>
-                                            <th>Cant.</th>
-                                            <th>Unidad</th>
-                                            <th>Carga c/u</th>
-                                            <th><span class="ayuda" title="Opera 3 h o más: 125 % — 210-19(a)(1). Calefacción: siempre — 424-3(b).">Continua</span></th>
-                                            <th>F.P.</th>
+                                            <th class="izq" data-col="ap-desc">Aparato del circuito @c.Espacio</th>
+                                            <th data-col="ap-cant">Cant.</th>
+                                            <th data-col="ap-unidad">Unidad</th>
+                                            <th data-col="ap-carga">Carga c/u</th>
+                                            <th data-col="ap-continua"><span class="ayuda" title="Opera 3 h o más: 125 % — 210-19(a)(1). Calefacción: siempre — 424-3(b).">Continua</span></th>
+                                            <th data-col="ap-fp">F.P.</th>
                                             <th>Total <span class="simbolo">(VA)</span></th>
                                             <th></th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach (var aparato in c.Aparatos)
+                                        @foreach (var (aparato, n) in c.Aparatos.Select((a, i) => (a, i + 1)))
                                         {
                                             <tr>
-                                                <td class="izq"><input class="desc" @bind="aparato.Descripcion" @bind:after="Recalcular" placeholder="Aparato (Contacto: 180 VA)" /></td>
-                                                <td><input data-requerido class="va corto" type="number" min="1" step="1" @bind="aparato.Cantidad" @bind:after="Recalcular" /></td>
+                                                <td class="izq"><input class="desc" data-col="ap-desc" aria-label="Circuito @c.Espacio, aparato @n · Descripción" @bind="aparato.Descripcion" @bind:after="Recalcular" placeholder="Aparato (Contacto: 180 VA)" /></td>
+                                                <td><input data-requerido data-col="ap-cant" aria-label="Circuito @c.Espacio, aparato @n · Cantidad" class="va corto" type="number" min="1" step="1" @bind="aparato.Cantidad" @bind:after="Recalcular" /></td>
                                                 <td>
-                                                    <select class="unidad" @bind="aparato.Unidad" @bind:after="Recalcular">
+                                                    <select class="unidad" data-col="ap-unidad" aria-label="Circuito @c.Espacio, aparato @n · Unidad" @bind="aparato.Unidad" @bind:after="Recalcular">
                                                         <option value="@UnidadConsumo.VoltAmperes">VA</option>
                                                         <option value="@UnidadConsumo.Watts">W</option>
                                                         <option value="@UnidadConsumo.Amperes">A</option>
                                                     </select>
                                                 </td>
-                                                <td><input class="va" type="number" min="0" placeholder="0" value="@Carga(aparato.CargaUnitaria)" @onchange="e => { aparato.CargaUnitaria = LeerCarga(e, aparato.CargaUnitaria); Recalcular(); }" /></td>
-                                                <td><input type="checkbox" @bind="aparato.Continua" @bind:after="Recalcular" disabled="@calefaccion" /></td>
-                                                <td><input data-requerido class="va fp" type="number" min="0.1" max="1" step="0.05" value="@Factor(aparato.FactorPotencia)" @onchange="e => { aparato.FactorPotencia = Leer(e, aparato.FactorPotencia); Recalcular(); }" /></td>
+                                                <td><input class="va" type="number" min="0" placeholder="0" data-col="ap-carga" aria-label="Circuito @c.Espacio, aparato @n · Carga c/u" value="@Carga(aparato.CargaUnitaria)" @onchange="e => { aparato.CargaUnitaria = LeerCarga(e, aparato.CargaUnitaria); Recalcular(); }" /></td>
+                                                <td><input type="checkbox" data-col="ap-continua" aria-label="Circuito @c.Espacio, aparato @n · Continua" @bind="aparato.Continua" @bind:after="Recalcular" disabled="@calefaccion" /></td>
+                                                <td><input data-requerido class="va fp" type="number" min="0.1" max="1" step="0.05" data-col="ap-fp" aria-label="Circuito @c.Espacio, aparato @n · F.P." value="@Factor(aparato.FactorPotencia)" @onchange="e => { aparato.FactorPotencia = Leer(e, aparato.FactorPotencia); Recalcular(); }" /></td>
                                                 <td class="num">@aparato.TotalVA.ToString("#,0.##")</td>
-                                                <td><button class="quitar" title="Quitar el aparato" @onclick="() => QuitarAparato(c, aparato)">✕</button></td>
+                                                <td><button class="quitar" title="Quitar el aparato" aria-label="Quitar el aparato @n del circuito @c.Espacio" @onclick="() => QuitarAparato(c, aparato, n)">✕</button></td>
                                             </tr>
                                         }
                                     </tbody>
                                     <tfoot>
                                         <tr>
-                                            <td class="izq"><button class="agregar" @onclick="() => AgregarAparato(c)">+ Agregar aparato</button></td>
+                                            <td class="izq"><button class="agregar" data-agregar="@c.Espacio" @onclick="() => AgregarAparato(c)">+ Agregar aparato</button></td>
                                             <td colspan="7" class="num">
                                                 @if (c.TieneDesglose)
                                                 {
@@ -373,10 +374,10 @@
     de canalización y tamaño (Capítulo 10). Una sola lista: cada circuito con carga nace en la suya;
     todas nacen como tubo EMT y se configuran en su renglón (David, 2026-09-24).
 *@
-<section class="tarjeta canalizaciones">
+<section class="tarjeta canalizaciones" id="sec-canalizaciones">
     <div class="encabezado-tarjeta">
         <h2>Canalizaciones</h2>
-        <button class="agregar" @onclick="NuevaCanalizacion">+ Nueva canalización</button>
+        <button class="agregar" id="nueva-canalizacion" @onclick="NuevaCanalizacion">+ Nueva canalización</button>
     </div>
 
     @* Una sola lista de tubos: por omisión cada circuito con carga recibe el suyo (T1, T2…) y en la
@@ -387,8 +388,8 @@
     <table class="cuadro canal-tabla">
         <thead>
             <tr>
-                <th rowspan="2"><span class="ayuda" title="El nombre con el que aparece en la columna «Canal.» del cuadro, en el documento y en la memoria. Nace T1, T2…; editable: «Tubo pasillo», «Bajada cocina». Borrado, regresa a su número.">Nombre</span></th>
-                <th rowspan="2"><span class="ayuda" title="Toda canalización nace como tubo conduit EMT; se decide en cada una. En tubo, el bloque de la Tabla 4. Ductos y canales: medidas interiores (20 % — 376-22, 378-22, 366-22). Superficiales: área interior y número de conductores del fabricante (386-22, 388-22).">Tipo</span></th>
+                <th rowspan="2" data-col="cn-nombre"><span class="ayuda" title="El nombre con el que aparece en la columna «Canal.» del cuadro, en el documento y en la memoria. Nace T1, T2…; editable: «Tubo pasillo», «Bajada cocina». Borrado, regresa a su número.">Nombre</span></th>
+                <th rowspan="2" data-col="cn-tipo cn-tubo cn-ancho cn-alto cn-area cn-max"><span class="ayuda" title="Toda canalización nace como tubo conduit EMT; se decide en cada una. En tubo, el bloque de la Tabla 4. Ductos y canales: medidas interiores (20 % — 376-22, 378-22, 366-22). Superficiales: área interior y número de conductores del fabricante (386-22, 388-22).">Tipo</span></th>
                 <th rowspan="2"><span class="ayuda" title="Los circuitos que van por esta canalización. Cada circuito con carga nace en la suya; se cambia en la columna «Canal.» del cuadro.">Circuitos</span></th>
                 <th colspan="3"><span class="ayuda" title="Cuántos conductores de cada uno van en la canalización. Para el llenado cuentan todos — Nota 3 del Capítulo 10.">Conductores</span></th>
                 @EncabezadoCalculo()
@@ -397,8 +398,8 @@
             <tr>
                 <th>Fase</th><th>Neutro</th><th>Tierra</th>
                 <th><span class="simbolo">mm</span></th><th><span class="simbolo">in</span></th>
-                <th class="dos-lineas"><span class="ayuda" title="Los circuitos de 1 polo de esta canalización, en barras distintas, comparten un solo neutro: circuito multiconductor — 210-4. Baja los portadores, pero exige que los interruptores desconecten juntos — 210-4(b). Solo con dos o más circuitos.">Neutro comp.</span></th>
-                <th class="dos-lineas"><span class="ayuda" title="Una sola tierra para todos los circuitos de la canalización, del calibre que pide la protección mayor — 250-122(c). Menos conductores, tubo más chico. Solo con dos o más circuitos.">Tierra común</span></th>
+                <th class="dos-lineas" data-col="cn-neutro"><span class="ayuda" title="Los circuitos de 1 polo de esta canalización, en barras distintas, comparten un solo neutro: circuito multiconductor — 210-4. Baja los portadores, pero exige que los interruptores desconecten juntos — 210-4(b). Solo con dos o más circuitos.">Neutro comp.</span></th>
+                <th class="dos-lineas" data-col="cn-tierra"><span class="ayuda" title="Una sola tierra para todos los circuitos de la canalización, del calibre que pide la protección mayor — 250-122(c). Menos conductores, tubo más chico. Solo con dos o más circuitos.">Tierra común</span></th>
                 @EncabezadoTierraDesnuda()
                 @EncabezadoAzotea()
             </tr>
@@ -421,7 +422,7 @@
     <table class="cuadro canal-tabla">
         <thead>
             <tr>
-                <th rowspan="2"><span class="ayuda" title="La canalización del alimentador, que va sola: no hereda el agrupamiento de los derivados. Nace como tubo conduit EMT.">Tipo</span></th>
+                <th rowspan="2" data-col="cn-tipo cn-tubo cn-ancho cn-alto cn-area cn-max"><span class="ayuda" title="La canalización del alimentador, que va sola: no hereda el agrupamiento de los derivados. Nace como tubo conduit EMT.">Tipo</span></th>
                 <th colspan="3">Conductores</th>
                 @EncabezadoCalculo()
                 <th colspan="3">Opciones</th>
@@ -431,7 +432,7 @@
                 <th><span class="simbolo">mm</span></th><th><span class="simbolo">in</span></th>
                 @EncabezadoTierraDesnuda()
                 @EncabezadoAzotea()
-                <th class="dos-lineas"><span class="ayuda" title="Solo si el alimentador sale con conductores en paralelo: todos los juegos en una sola canalización, y cada conductor cuenta como portador — 310-15(b)(3)(a). Sin marcar: un juego por canalización, todas iguales — 310-10(h)(3).">Paralelos en un tubo</span></th>
+                <th class="dos-lineas" data-col="cn-paralelos"><span class="ayuda" title="Solo si el alimentador sale con conductores en paralelo: todos los juegos en una sola canalización, y cada conductor cuenta como portador — 310-15(b)(3)(a). Sin marcar: un juego por canalización, todas iguales — 310-10(h)(3).">Paralelos en un tubo</span></th>
             </tr>
         </thead>
         <tbody>
@@ -518,11 +519,11 @@
     </section>
 
     <div class="columna">
-    <section class="tarjeta">
+    <section class="tarjeta" id="sec-resumen">
         <h2>Resumen de carga</h2>
         <table class="datos resumen">
             <tr>
-                <th class="izq">Tipo de carga</th><th>Instalada <span class="simbolo">(kVA)</span></th><th>F.D.</th><th>Demandada <span class="simbolo">(kVA)</span></th>
+                <th class="izq">Tipo de carga</th><th>Instalada <span class="simbolo">(kVA)</span></th><th data-col="fd" title="Factor de demanda del tipo de carga — Art. 220. Enter baja al siguiente.">F.D.</th><th>Demandada <span class="simbolo">(kVA)</span></th>
             </tr>
             @foreach (var fila in Cuadro.Resumen.PorCategoria ?? [])
             {
@@ -530,7 +531,7 @@
                     <td class="izq">@fila.Categoria.NombreCompleto()</td>
                     <td class="num">@((fila.InstaladaVA / 1000m).ToString("N2"))</td>
                     <td class="num">
-                        <input data-requerido class="va chico" type="number" min="0" max="1" step="0.05"
+                        <input data-requerido data-col="fd" aria-label="F.D. · @fila.Categoria.NombreCompleto()" class="va chico" type="number" min="0" max="1" step="0.05"
                                value="@Factor(fila.FactorDemanda)"
                                @onchange="e => CambiarFactor(fila.Categoria, e)" />
                     </td>
@@ -619,7 +620,7 @@
         Lo primero que se ve es la protección seleccionada, y luego los conductores con el color de su
         forro (David, 2026-09-24). El cálculo que lleva a ellos va abajo; los avisos, en su tarjeta.
     *@
-    <section class="tarjeta alimentador">
+    <section class="tarjeta alimentador" id="sec-alimentador">
         <h2>Alimentador y protección principal</h2>
 
         @if (Cuadro.Alimentador.Resultado is { } a)
@@ -740,9 +741,39 @@
 
     private void NuevaCanalizacion()
     {
-        Datos.NuevaCanalizacion();
+        var nueva = Datos.NuevaCanalizacion();
         Recalcular();
+        _enfocar = $"tr[data-canal=\"{nueva.Id}\"] input[data-col=\"cn-nombre\"]";
     }
+
+    /// <summary>Quita una canalización y deja el foco en la que queda en su lugar, o en «+ Nueva canalización».</summary>
+    private void QuitarCanalizacion(CanalizacionDelTablero t)
+    {
+        var i = Datos.Canalizaciones.IndexOf(t);
+        Cuadro.QuitarCanalizacion(t);
+        var siguiente = Datos.Canalizaciones.ElementAtOrDefault(Math.Min(i, Datos.Canalizaciones.Count - 1));
+        _enfocar = siguiente is null ? "#nueva-canalizacion" : $"tr[data-canal=\"{siguiente.Id}\"] input[data-col=\"cn-nombre\"]";
+    }
+
+    // ---- FOCO DESPUÉS DE UNA ACCIÓN (I-56) ---------------------------------------------------------
+    // Lo que se acaba de crear o abrir recibe el foco: antes se quedaba en el botón y había que
+    // buscarlo con el ratón. Se aplica al terminar de dibujar, cuando el elemento ya existe.
+
+    private string? _enfocar;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_enfocar is { } selector)
+        {
+            _enfocar = null;
+            await JS.InvokeVoidAsync("powerNode.enfocar", selector);
+        }
+    }
+
+    private static string DescripcionDeAparato(int espacio, int n) =>
+        $"table.desglose[data-circuito=\"{espacio}\"] > tbody > tr:nth-child({n}) input[data-col=\"ap-desc\"]";
+
+    private static string AgregarDe(int espacio) => $"button[data-agregar=\"{espacio}\"]";
 
     private void CambiarDiametro(string clave, string? valor)
     {
@@ -801,58 +832,58 @@
             <th rowspan="2"><span class="ayuda" title="Conductores portadores de corriente — 310-15(b)(3)(a), (b)(5). La tierra no cuenta — (b)(6). Pasar el cursor sobre el número para consultar el conteo.">Portadores</span></th>
             <th rowspan="2"><span class="ayuda" title="Factor de ajuste por agrupamiento — Tabla 310-15(b)(3)(a), según el tipo de canalización. Pasar el cursor para consultar por qué.">F.A.</span></th>
             <th rowspan="2"><span class="ayuda" title="Suma de las áreas de los conductores — Tablas 5 y 8 del Capítulo 10."><span class="simbolo">Área (mm²)</span></span></th>
-            <th colspan="2"><span class="ayuda" title="Tubo: el tamaño más chico que alcanza — Tablas 1 y 4 del Capítulo 10. Se puede cambiar en el combo; fijado, se marca y el programa verifica que alcance. ↺ regresa al cálculo. Ducto o canal: sus medidas, o sin ellas el área interior mínima. «2 ×»: una canalización por juego de conductores en paralelo — 310-10(h)(3).">Tamaño</span></th>
+            <th colspan="2" data-col="cn-mm cn-in"><span class="ayuda" title="Tubo: el tamaño más chico que alcanza — Tablas 1 y 4 del Capítulo 10. Se puede cambiar en el combo; fijado, se marca y el programa verifica que alcance. ↺ regresa al cálculo. Ducto o canal: sus medidas, o sin ellas el área interior mínima. «2 ×»: una canalización por juego de conductores en paralelo — 310-10(h)(3).">Tamaño</span></th>
             <th rowspan="2"><span class="ayuda" title="Área de los conductores entre el área interior de la canalización.">Ocupación</span></th>
         </text>;
 
     private RenderFragment EncabezadoTierraDesnuda() =>
-        @<th class="dos-lineas"><span class="ayuda" title="Tierra desnuda: su área sale de la Tabla 8 — Nota 8 del Capítulo 10.">Tierra desnuda</span></th>;
+        @<th class="dos-lineas" data-col="cn-desnuda"><span class="ayuda" title="Tierra desnuda: su área sale de la Tabla 8 — Nota 8 del Capítulo 10.">Tierra desnuda</span></th>;
 
     private RenderFragment EncabezadoAzotea() =>
-        @<th class="dos-lineas"><span class="ayuda" title="Tubo expuesto al sol sobre una azotea: la distancia del techo a la base del tubo, en mm. Se suma temperatura al ambiente — Tabla 310-15(b)(3)(c). Vacío: no está en azotea.">Azotea al sol (mm)</span></th>;
+        @<th class="dos-lineas" data-col="cn-azotea"><span class="ayuda" title="Tubo expuesto al sol sobre una azotea: la distancia del techo a la base del tubo, en mm. Se suma temperatura al ambiente — Tabla 310-15(b)(3)(c). Vacío: no está en azotea.">Azotea al sol (mm)</span></th>;
 
     /// <summary>
     /// Un renglón de la tarjeta «Canalizaciones». Cada opción en su columna, para que el renglón no
     /// crezca (David, 2026-09-24). Neutro compartido y tierra común, con dos o más circuitos.
     /// </summary>
     private RenderFragment FilaCanal(CanalizacionDelTablero t, bool alimentador = false) =>
-        @<tr @key="t.Id">
+        @<tr @key="t.Id" data-canal="@t.Id">
             @if (!alimentador)
             {
                 <td class="nombre-canal">
                     <div class="nombre-controles">
-                        <input type="text" maxlength="40" value="@t.Nombre" title="Editar el nombre. Borrado, regresa a @t.Id." @onchange="e => { t.Nombre = e.Value?.ToString() ?? string.Empty; Recalcular(); }" />
+                        <input type="text" maxlength="40" data-col="cn-nombre" aria-label="@CuadroDeCarga.NombreDe(t) · Nombre" value="@t.Nombre" title="Editar el nombre. Borrado, regresa a @t.Id." @onchange="e => { t.Nombre = e.Value?.ToString() ?? string.Empty; Recalcular(); }" />
                         @if (!t.Automatica || t.Circuitos.Count > 1)
                         {
-                            <button class="quitar" title="Quitar la canalización: cada uno de sus circuitos recibe un tubo nuevo, EMT." @onclick="() => Cuadro.QuitarCanalizacion(t)">✕</button>
+                            <button class="quitar" title="Quitar la canalización: cada uno de sus circuitos recibe un tubo nuevo, EMT." aria-label="Quitar @CuadroDeCarga.NombreDe(t)" @onclick="() => QuitarCanalizacion(t)">✕</button>
                         }
                     </div>
                 </td>
             }
             <td class="tipo">
                 <div class="tipo-controles">
-                    <select value="@t.Tipo" title="@t.Tipo.Nombre()" @onchange="e => { t.Tipo = Enum.Parse<TipoCanalizacion>(e.Value!.ToString()!); t.TamanoFijado = null; Recalcular(); }">
+                    <select data-col="cn-tipo" aria-label="@CuadroDeCarga.NombreDe(t) · Tipo" value="@t.Tipo" title="@t.Tipo.Nombre()" @onchange="e => { t.Tipo = Enum.Parse<TipoCanalizacion>(e.Value!.ToString()!); t.TamanoFijado = null; Recalcular(); }">
                         @foreach (var tipo in Enum.GetValues<TipoCanalizacion>()) { <option value="@tipo" title="@tipo.Nombre()">@TipoCorto(tipo)</option> }
                     </select>
                     @if (t.Tipo.EsTubo())
                     {
-                        <select value="@t.Tubo" @onchange="e => { t.Tubo = Enum.Parse<TipoTuboConduit>(e.Value!.ToString()!); t.TamanoFijado = null; Recalcular(); }">
+                        <select data-col="cn-tubo" aria-label="@CuadroDeCarga.NombreDe(t) · Tubo" value="@t.Tubo" @onchange="e => { t.Tubo = Enum.Parse<TipoTuboConduit>(e.Value!.ToString()!); t.TamanoFijado = null; Recalcular(); }">
                             @foreach (var tubo in Enum.GetValues<TipoTuboConduit>()) { <option value="@tubo">@tubo.Corto()</option> }
                         </select>
                     }
                     else if (t.Tipo.EsDuctoOCanal())
                     {
                         <span class="medidas">
-                            <input type="number" min="0" placeholder="ancho" title="Ancho interior (mm)" value="@Opcional(t.AnchoMm)" @onchange="e => { t.AnchoMm = Decimal(e.Value); Recalcular(); }" />
+                            <input type="number" min="0" placeholder="ancho" data-col="cn-ancho" aria-label="@CuadroDeCarga.NombreDe(t) · Ancho interior (mm)" title="Ancho interior (mm)" value="@Opcional(t.AnchoMm)" @onchange="e => { t.AnchoMm = Decimal(e.Value); Recalcular(); }" />
                             ×
-                            <input type="number" min="0" placeholder="alto" title="Alto interior (mm)" value="@Opcional(t.AltoMm)" @onchange="e => { t.AltoMm = Decimal(e.Value); Recalcular(); }" /> mm
+                            <input type="number" min="0" placeholder="alto" data-col="cn-alto" aria-label="@CuadroDeCarga.NombreDe(t) · Alto interior (mm)" title="Alto interior (mm)" value="@Opcional(t.AltoMm)" @onchange="e => { t.AltoMm = Decimal(e.Value); Recalcular(); }" /> mm
                         </span>
                     }
                     else
                     {
                         <span class="medidas">
-                            <input type="number" min="0" placeholder="área mm²" title="Área interior (mm²)" value="@Opcional(t.AreaInteriorMm2)" @onchange="e => { t.AreaInteriorMm2 = Decimal(e.Value); Recalcular(); }" />
-                            <input type="number" min="0" placeholder="máx." title="Número máximo de conductores que marca el fabricante" value="@(t.MaxConductoresFabricante?.ToString() ?? "")" @onchange="e => { t.MaxConductoresFabricante = int.TryParse(e.Value?.ToString(), out var m) && m > 0 ? m : null; Recalcular(); }" />
+                            <input type="number" min="0" placeholder="área mm²" data-col="cn-area" aria-label="@CuadroDeCarga.NombreDe(t) · Área interior (mm²)" title="Área interior (mm²)" value="@Opcional(t.AreaInteriorMm2)" @onchange="e => { t.AreaInteriorMm2 = Decimal(e.Value); Recalcular(); }" />
+                            <input type="number" min="0" placeholder="máx." data-col="cn-max" aria-label="@CuadroDeCarga.NombreDe(t) · Máximo de conductores" title="Número máximo de conductores que marca el fabricante" value="@(t.MaxConductoresFabricante?.ToString() ?? "")" @onchange="e => { t.MaxConductoresFabricante = int.TryParse(e.Value?.ToString(), out var m) && m > 0 ? m : null; Recalcular(); }" />
                         </span>
                     }
                 </div>
@@ -885,7 +916,7 @@
                 <td class="casilla-canal">
                     @if (t.Circuitos.Count > 1)
                     {
-                        <input type="checkbox" title="Neutro compartido — 210-4" checked="@t.NeutroCompartido" @onchange="e => { t.NeutroCompartido = e.Value is true; Recalcular(); }" />
+                        <input type="checkbox" data-col="cn-neutro" aria-label="@CuadroDeCarga.NombreDe(t) · Neutro compartido" title="Neutro compartido — 210-4" checked="@t.NeutroCompartido" @onchange="e => { t.NeutroCompartido = e.Value is true; Recalcular(); }" />
                     }
                     else
                     {
@@ -895,7 +926,7 @@
                 <td class="casilla-canal">
                     @if (t.Circuitos.Count > 1)
                     {
-                        <input type="checkbox" title="Tierra común — 250-122(c)" checked="@t.TierraComun" @onchange="e => { t.TierraComun = e.Value is true; Recalcular(); }" />
+                        <input type="checkbox" data-col="cn-tierra" aria-label="@CuadroDeCarga.NombreDe(t) · Tierra común" title="Tierra común — 250-122(c)" checked="@t.TierraComun" @onchange="e => { t.TierraComun = e.Value is true; Recalcular(); }" />
                     }
                     else
                     {
@@ -903,11 +934,11 @@
                     }
                 </td>
             }
-            <td class="casilla-canal"><input type="checkbox" title="Tierra desnuda — Tabla 8" checked="@t.TierraDesnuda" @onchange="e => { t.TierraDesnuda = e.Value is true; Recalcular(); }" /></td>
+            <td class="casilla-canal"><input type="checkbox" data-col="cn-desnuda" aria-label="@CuadroDeCarga.NombreDe(t) · Tierra desnuda" title="Tierra desnuda — Tabla 8" checked="@t.TierraDesnuda" @onchange="e => { t.TierraDesnuda = e.Value is true; Recalcular(); }" /></td>
             <td class="@(alimentador ? null : "ultima")">
                 @if (t.Tipo.EsTubo())
                 {
-                    <input type="number" min="0" class="corto" placeholder="—" title="Distancia del techo a la base del tubo, en mm — Tabla 310-15(b)(3)(c). Vacío: no está en azotea." value="@Opcional(t.AlturaSobreTechoMm)" @onchange="e => { t.AlturaSobreTechoMm = decimal.TryParse(e.Value?.ToString(), NumberStyles.Number, CultureInfo.InvariantCulture, out var h) && h >= 0m ? h : null; Recalcular(); }" />
+                    <input type="number" min="0" class="corto" placeholder="—" data-col="cn-azotea" aria-label="@CuadroDeCarga.NombreDe(t) · Azotea al sol (mm)" title="Distancia del techo a la base del tubo, en mm — Tabla 310-15(b)(3)(c). Vacío: no está en azotea." value="@Opcional(t.AlturaSobreTechoMm)" @onchange="e => { t.AlturaSobreTechoMm = decimal.TryParse(e.Value?.ToString(), NumberStyles.Number, CultureInfo.InvariantCulture, out var h) && h >= 0m ? h : null; Recalcular(); }" />
                 }
                 else
                 {
@@ -916,7 +947,7 @@
             </td>
             @if (alimentador)
             {
-                <td class="casilla-canal ultima"><input type="checkbox" title="Paralelos en un tubo — 310-15(b)(3)(a)" checked="@t.JuegosEnUnTubo" @onchange="e => { t.JuegosEnUnTubo = e.Value is true; Recalcular(); }" /></td>
+                <td class="casilla-canal ultima"><input type="checkbox" data-col="cn-paralelos" aria-label="@CuadroDeCarga.NombreDe(t) · Paralelos en un tubo" title="Paralelos en un tubo — 310-15(b)(3)(a)" checked="@t.JuegosEnUnTubo" @onchange="e => { t.JuegosEnUnTubo = e.Value is true; Recalcular(); }" /></td>
             }
         </tr>;
 
@@ -935,7 +966,7 @@
                     {
                         <span>@t.CanalizacionesIguales ×</span>
                     }
-                    <select class="@(t.TamanoFijado is null ? null : "fijado")"
+                    <select class="@(t.TamanoFijado is null ? null : "fijado")" data-col="@(pulgadas ? "cn-in" : "cn-mm")" aria-label="@CuadroDeCarga.NombreDe(t) · Tamaño en @(pulgadas ? "pulgadas" : "mm")"
                             title="@(t.TamanoFijado is null ? "Calculado — Tablas 1 y 4 del Capítulo 10. Elegir otro para fijarlo." : $"Fijado por el ingeniero. El cálculo da {calculado?.Rotulo ?? "ninguno"}.")"
                             value="@(o.Tamano?.DesignacionMetrica.ToString() ?? "")"
                             @onchange="e => FijarTamano(t, e.Value?.ToString())">
@@ -950,7 +981,7 @@
                     </select>
                     @if (!pulgadas && t.TamanoFijado is not null)
                     {
-                        <button class="quitar" title="Regresar al cálculo: @(calculado?.Rotulo ?? "ninguno alcanza")" @onclick="() => FijarTamano(t, null)">↺</button>
+                        <button class="quitar" aria-label="Regresar al tamaño calculado" title="Regresar al cálculo: @(calculado?.Rotulo ?? "ninguno alcanza")" @onclick="() => FijarTamano(t, null)">↺</button>
                     }
                 </div>
             }
@@ -1131,22 +1162,31 @@
 
     private bool Abierto(CircuitoDelCuadro c) => _desgloseAbierto.Contains(c.Espacio);
 
+    /// <summary>Abrir lleva el foco al primer aparato (o a «+ Agregar aparato»); cerrar, a la descripción del circuito.</summary>
     private void AlternarDesglose(CircuitoDelCuadro c)
     {
-        if (!_desgloseAbierto.Remove(c.Espacio))
-            _desgloseAbierto.Add(c.Espacio);
+        if (_desgloseAbierto.Remove(c.Espacio))
+        {
+            _enfocar = $"tr[data-espacio=\"{c.Espacio}\"] input[data-col=\"desc\"]";
+            return;
+        }
+        _desgloseAbierto.Add(c.Espacio);
+        _enfocar = c.Aparatos.Count > 0 ? DescripcionDeAparato(c.Espacio, 1) : AgregarDe(c.Espacio);
     }
 
     private void AgregarAparato(CircuitoDelCuadro c)
     {
         c.AgregarAparato();
         Recalcular();
+        _enfocar = DescripcionDeAparato(c.Espacio, c.Aparatos.Count);
     }
 
-    private void QuitarAparato(CircuitoDelCuadro c, AparatoDelCircuito a)
+    /// <summary>Quita el aparato <paramref name="n"/> y deja el foco en el que queda en su lugar, o en «+ Agregar aparato».</summary>
+    private void QuitarAparato(CircuitoDelCuadro c, AparatoDelCircuito a, int n)
     {
         c.Aparatos.Remove(a);
         Recalcular();
+        _enfocar = c.Aparatos.Count == 0 ? AgregarDe(c.Espacio) : DescripcionDeAparato(c.Espacio, Math.Min(n, c.Aparatos.Count));
     }
 
     private static string? SumaDelDesglose(CircuitoDelCuadro c) =>

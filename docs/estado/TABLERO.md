@@ -33,6 +33,8 @@ Ejecutar en el navegador (Blazor WebAssembly), sin servidor, publicado en GitHub
   interior del gabinete.
 - `/documento`: emitir el cuadro de carga (24 columnas) y la memoria de cálculo (nueve secciones).
 - Consultar en tooltip el desglose de la protección y del conductor de cada renglón.
+- Teclado (`wwwroot/js/teclado.js`): Enter/Shift+Enter bajan y suben, ↑↓ cambian de renglón, Esc deshace,
+  Ctrl+Enter abre el desglose, Alt+1…5 cambian de sección; barra de ayuda al pie con la ayuda del campo.
 - Canalizaciones: cada circuito con carga nace en su tubo (T1, T2…, EMT); agrupar en la columna
   «Canal.»; configurar nombre, tipo, opciones y tamaño en la tarjeta «Canalizaciones».
 - Pruebas: 179 en `PowerNode.Web.Tests` (20 del documento de pruebas del 2026-09-23).

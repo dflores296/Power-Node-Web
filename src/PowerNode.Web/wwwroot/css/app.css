@@ -551,3 +551,22 @@ label.suelto input { width: 90px; }
 }
 .cuadro tbody tr:not(.separador) > td:first-child { background: var(--papel); }
 .cuadro thead tr:first-child > th:first-child { background: #eef2f7; z-index: 2; }
+
+/* ------------------------------------------------------------------------------------------------
+   TECLADO — I-56 (David, 2026-09-25).
+   ------------------------------------------------------------------------------------------------ */
+/* Foco uniforme con el color de acento; con ratón, los botones no muestran el contorno. */
+:where(input, select, button, a):focus { outline: none; }
+:where(input, select, button, a):focus-visible { outline: 2px solid var(--acento); outline-offset: 1px; }
+/* Barra de ayuda: la del campo con el foco y las teclas. No tapa el final de la página. */
+#barra-ayuda { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; display: flex; gap: 16px;
+               align-items: flex-start; justify-content: space-between; padding: 8px 16px;
+               background: var(--papel, #fff); border-top: 1px solid var(--linea); font-size: 12px;
+               box-shadow: 0 -2px 8px rgba(0, 0, 0, .06); max-height: 30vh; overflow: auto; }
+#barra-ayuda[hidden] { display: none; }
+#barra-ayuda .ayuda-campo { white-space: pre-line; min-width: 0; }
+#barra-ayuda .campo { margin-right: 8px; }
+#barra-ayuda .teclas { color: var(--tenue); white-space: nowrap; font-size: 11px; }
+body.con-ayuda { padding-bottom: 72px; }
+@media (max-width: 700px) { #barra-ayuda .teclas { display: none; } }
+@media print { #barra-ayuda { display: none !important; } body.con-ayuda { padding-bottom: 0; } }
