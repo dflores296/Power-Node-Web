@@ -1,73 +1,77 @@
 @*
-    EL INTERRUPTOR TERMOMAGNÉTICO, DUOTONO (I-66). Mismo trazo que Icono.razor —1.5 px, remate
-    redondo, relleno del acento al 16 %—, pero no en la rejilla de 24 × 24: su alto crece con los
-    polos, para que en el gabinete cada polo quede frente a su espacio. Genérico: ni marca ni
-    logotipo (sin-catalogo-square-d.md).
+    EL INTERRUPTOR TERMOMAGNÉTICO NEMA, TIPO QO, DUOTONO (I-66). Mismo trazo que Icono.razor —1.5 px,
+    remate redondo, relleno del acento al 16 %—. Genérico: sin marca, logotipo ni rótulo
+    (sin-catalogo-square-d.md). Canvas «Iconos de termomagnético», segunda propuesta.
 
-    NEMA (centro de carga): montado de lado, como va en el gabinete; los polos se apilan cada 34 px
-    —el renglón de 30 más el hueco de 4 de .interior— y una sola manija los une, con el valor
-    calado en ella. DIN (riel de 35 mm): de pie, módulos de 18 lado a lado, bornes arriba y abajo,
-    la curva y el valor en el frente. El DIN está hecho pero sin usar: el único gabinete es NEMA.
+    Visto de frente con la manija arriba (encendido), de arriba abajo: la pinza que entra a la barra,
+    el cuerpo, el cuello que sale por la tapa, la manija en su ranura, la ventana de disparo y la
+    zapata de carga con su tornillo, una por polo. En 2 y 3 polos, UNA manija ancha —así es el QO de
+    varios polos—, no manijas sueltas unidas por una barra.
+
+    Cada polo mide 34 de ancho (el renglón de 30 del gabinete más su hueco de 4); el cuerpo se
+    recorta 5 por lado, así que un interruptor de n polos mide 34n − 10 y cabe justo en los n
+    renglones que abarca. En el gabinete va acostado, con la pinza hacia la barra del centro.
 *@
-@if (Din)
-{
-    var ancho = 18 * Polos;
-    <svg class="interruptor din @Clase" viewBox="0 0 @ancho 40" width="@ancho" height="40" role="img" aria-label="@Nombre">
-        <rect class="relleno" x="1" y="1.5" width="@(ancho - 2)" height="37" rx="2.5" />
-        <rect class="trazo" x="1" y="1.5" width="@(ancho - 2)" height="37" rx="2.5" />
-        <path class="trazo" d="@($"M1 11h{ancho - 2}M1 29h{ancho - 2}")" />
+<svg class="interruptor @Clase" viewBox="0 0 @AnchoEnPantalla @AltoEnPantalla" width="@AnchoEnPantalla" height="@AltoEnPantalla" role="img" aria-label="@Nombre">
+    <g transform="@Giro">
+        <path class="relleno" d="@Pinza" />
+        <path class="trazo" d="@Pinza" />
+        <rect class="relleno" x="0.75" y="4" width="@N(Ancho - 1.5m)" height="41.25" rx="2.5" />
+        <rect class="trazo" x="0.75" y="4" width="@N(Ancho - 1.5m)" height="41.25" rx="2.5" />
+        @for (var k = 1; k < Polos; k++)
+        {
+            <path class="trazo" d="@($"M{Paso * k - 5} 4v4M{Paso * k - 5} 34v11.25")" />
+        }
+        <rect class="relleno" x="4.5" y="8" width="@(Ancho - 9)" height="26" rx="2" />
+        <rect class="trazo" x="4.5" y="8" width="@(Ancho - 9)" height="26" rx="2" />
+        <rect class="trazo" x="6.5" y="11" width="@(Ancho - 13)" height="14" rx="1.5" />
+        <rect class="manija" x="8" y="12.5" width="@(Ancho - 16)" height="6.5" rx="1" />
+        <path class="ranura" d="@($"M9.5 15.75h{Ancho - 19}")" />
+        <rect class="trazo" x="@N(Ancho / 2m - 2.5m)" y="28" width="5" height="3" rx="0.8" />
         @for (var k = 0; k < Polos; k++)
         {
-            var x = 18 * k;
-            if (k > 0)
-            {
-                <path class="trazo" d="@($"M{x} 1.5v9.5M{x} 29v9.5")" />
-            }
-            <circle class="trazo" cx="@(x + 9)" cy="6.2" r="1.8" />
-            <circle class="trazo" cx="@(x + 9)" cy="33.8" r="1.8" />
+            var x = Paso * k + 12;
+            <circle class="trazo" cx="@x" cy="39.5" r="2.3" />
+            <path class="trazo" d="@($"M{N(x - 1.1m)} 40.6l2.2-2.2")" />
         }
-        <rect class="manija" x="4.5" y="13.5" width="@(ancho - 9)" height="5.5" rx="1.5" />
-        <text class="valor-frente" x="@(ancho / 2)" y="26" font-size="5.5">@Etiqueta</text>
-    </svg>
-}
-else
-{
-    var alto = 24 + Paso * (Polos - 1);
-    <svg class="interruptor nema @Clase" viewBox="0 0 36 @alto" width="36" height="@alto" role="img" aria-label="@Nombre">
-        @for (var k = 0; k < Polos; k++)
-        {
-            var y = Paso * k;
-            <rect class="relleno" x="1.5" y="@(y + 2)" width="33" height="20" rx="3" />
-            <rect class="trazo" x="1.5" y="@(y + 2)" width="33" height="20" rx="3" />
-            <path class="trazo" d="@($"M7.5 {y + 2}v20")" />
-            <circle class="trazo" cx="30.5" cy="@(y + 12)" r="1.8" />
-        }
-        <rect class="manija" x="12" y="6" width="14" height="@(alto - 12)" rx="2.5" />
-        <text class="valor" x="19" y="@((alto / 2m + 2.5m).ToString(System.Globalization.CultureInfo.InvariantCulture))" font-size="7">@Etiqueta</text>
-    </svg>
-}
+    </g>
+</svg>
 
 @code {
-    /// <summary>De un polo al siguiente en el NEMA: el renglón del gabinete (30 px) más su hueco (4 px).</summary>
+    /// <summary>De un polo al siguiente: el renglón del gabinete (30 px) más su hueco (4 px).</summary>
     private const int Paso = 34;
+
+    /// <summary>Largo del interruptor, de la pinza a la zapata.</summary>
+    private const int Largo = 46;
 
     /// <summary>1, 2 o 3.</summary>
     [Parameter] public int Polos { get; set; } = 1;
 
-    /// <summary>En amperes. En DIN se rotula con la curva: «C16».</summary>
-    [Parameter, EditorRequired] public decimal Amperes { get; set; }
-
-    /// <summary>Riel DIN en vez de centro de carga NEMA.</summary>
-    [Parameter] public bool Din { get; set; }
-
-    /// <summary>La curva del DIN; no aplica al NEMA.</summary>
-    [Parameter] public char Curva { get; set; } = 'C';
+    /// <summary>Hacia dónde apunta la pinza. De frente (arriba) por omisión.</summary>
+    [Parameter] public HaciaLaBarra Barra { get; set; } = HaciaLaBarra.Arriba;
 
     [Parameter] public string? Clase { get; set; }
 
-    private string Etiqueta => Din ? $"{Curva}{Amperes:0}" : $"{Amperes:0}";
+    public enum HaciaLaBarra { Arriba, Derecha, Izquierda }
 
-    private string Nombre => $"Interruptor {(Din ? "DIN" : "NEMA")} de {Polos} {(Polos == 1 ? "polo" : "polos")}, {Etiqueta}{(Din ? "" : " A")}";
+    private int Ancho => Paso * Polos - 10;
+
+    private bool Acostado => Barra != HaciaLaBarra.Arriba;
+    private int AnchoEnPantalla => Acostado ? Largo : Ancho;
+    private int AltoEnPantalla => Acostado ? Ancho : Largo;
+
+    private string? Giro => Barra switch
+    {
+        HaciaLaBarra.Derecha => $"translate({Largo} 0) rotate(90)",
+        HaciaLaBarra.Izquierda => $"translate(0 {Ancho}) rotate(-90)",
+        _ => null,
+    };
+
+    private string Pinza => $"M5 4V1.75a1 1 0 0 1 1-1h{Ancho - 12}a1 1 0 0 1 1 1V4";
+
+    private string Nombre => $"Interruptor de {Polos} {(Polos == 1 ? "polo" : "polos")}";
+
+    private static string N(decimal valor) => valor.ToString(System.Globalization.CultureInfo.InvariantCulture);
 
     protected override void OnParametersSet()
     {

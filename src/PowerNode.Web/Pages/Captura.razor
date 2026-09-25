@@ -479,7 +479,7 @@
         <div class="interior @(Cuadro.UnaSolaBarra ? "una-columna" : null)">
             @foreach (var bloque in Cuadro.Gabinete)
             {
-                <div class="bloque @(bloque.Ocupado ? "ocupado" : "vacante")"
+                <div class="bloque @(bloque.Ocupado ? "ocupado" : "vacante") @(bloque.Columna == 2 ? "derecha" : null)"
                      style="grid-column: @bloque.Columna; grid-row: @bloque.Fila / span @bloque.Espacios"
                      title="@Titulo(bloque)">
                     <span class="numeros">@bloque.Numeros</span>
@@ -496,13 +496,15 @@
                                 : bloque.Circuito.Descripcion)
                             : "libre")
                     </span>
-                    @* El interruptor dibujado, con su valor en la manija (I-66). Solo NEMA: es el
-                       único gabinete; el DIN espera a que haya gabinete de riel. *@
-                    @if (bloque.Ocupado && bloque.Circuito.Resultado is { ProteccionA: > 0m } r && bloque.Espacios is >= 1 and <= 3)
+                    @* El interruptor dibujado, acostado y con la pinza hacia la barra del centro:
+                       los nones apuntan a la derecha, los pares a la izquierda (y .derecha lo pone
+                       primero). Solo NEMA: es el único gabinete (I-66). *@
+                    @if (bloque.Ocupado && bloque.Espacios is >= 1 and <= 3)
                     {
-                        <Interruptor Polos="bloque.Espacios" Amperes="r.ProteccionA" />
+                        <Interruptor Polos="bloque.Espacios"
+                                     Barra="@(bloque.Columna == 2 ? Interruptor.HaciaLaBarra.Izquierda : Interruptor.HaciaLaBarra.Derecha)" />
                     }
-                    else if (bloque.Ocupado)
+                    @if (bloque.Ocupado)
                     {
                         <span class="amperes">@bloque.Circuito.Resultado?.ProteccionA.ToString("N0") A</span>
                     }
