@@ -55,23 +55,49 @@ dibuja el `border-bottom` de cada celda.
 favicons se comportan distinto en cada navegador. El CSS sí lo lleva; los iconos se versionan
 cambiándoles el nombre, o no se versionan.
 
+## Tema oscuro
+
+> **Pedido de David · 2026-09-25** (I-57). Botón en el encabezado de la captura y del documento:
+> **Automático → Claro → Oscuro**.
+
+- `wwwroot/js/tema.js` resuelve la elección y escribe `<html data-tema="claro|oscuro">`: es lo único
+  que lee la hoja de estilos. Automático sigue a `prefers-color-scheme`, también si el sistema cambia
+  con la página abierta. Claro y oscuro se recuerdan en `localStorage` (`powernode.tema`).
+- Va en el `<head>` y sin `defer`, para que la página no destelle en claro mientras carga.
+- Todos los colores de `app.css` son variables de `:root`; la paleta oscura se escribe **una sola vez**,
+  en `@media screen { :root[data-tema="oscuro"] }`. **Impreso sale siempre en claro**: el bloque es
+  solo de pantalla.
+- Los colores de fase (A negro, B rojo, C azul, neutro blanco, tierra verde; 200-6, 250-119) no
+  cambian. En oscuro, el negro de la fase A lleva un borde (`--fase-borde`) para no perderse.
+- Un `<img>` no sabe del tema de la página: el logo va dos veces, con `solo-claro` y `solo-oscuro`, y
+  la hoja **solo oculta** el que no toca (así cada imagen conserva su propio `display`). Al imprimir,
+  la regla es `html:root .solo-oscuro`: con menos peso, `.doc-marca img { display: block }` le ganaba
+  y salían las dos firmas.
+- Tinta oscura del logo `#E8ECEF`; el azul del nodo es el mismo en los dos temas.
+
 ## Qué archivo es cuál
 
 | Archivo | Para qué |
 |---|---|
 | `marca/powernode-icono.svg` | El del encabezado y la pantalla de carga. Trazo normal: borde 3.5, líneas 1.8 (lienzo 64) |
+| `marca/powernode-icono-oscuro.svg` | El mismo con tinta clara, para el tema oscuro |
 | `marca/powernode-icono-16.svg` | Trazo grueso (borde 5, líneas 2.6), para tamaños chicos. Fuente de los PNG chicos y del `.ico` |
 | `marca/powernode-icono-mono.svg` | `currentColor`, para heredar el color del contexto |
-| `marca/powernode-firma.svg` | Logo con el texto «Power Node · Design Suite» — el del documento |
-| `marca/powernode-favicon.svg` | El del navegador: trazo grueso, con `prefers-color-scheme` adentro |
-| `marca/powernode-16.png`, `-32.png`, `-48.png` | Los tamaños chicos; 16, 32 y 48 van dentro del `.ico` |
-| `marca/powernode-180.png`, `-192.png`, `-512.png` | iOS (180) y tamaños grandes, del trazo normal |
-| `favicon.ico`, `favicon.png` (raíz) | Ver I-07: los que el navegador pide solo. `favicon.png` va sobre blanco |
+| `marca/powernode-firma.svg`, `powernode-firma-oscura.svg` | Logo con el texto «Power Node · Design Suite» — el del documento, en claro y en oscuro |
+| `marca/powernode-carta-favicon.svg` | El de la pestaña: trazo grueso, con `prefers-color-scheme` adentro |
+| `marca/powernode-carta.ico` | El `.ico` que declara `index.html`: PNG de 16, 32 y 48 adentro |
+| `marca/powernode-carta-16.png`, `-32.png`, `-48.png` | Los tamaños chicos, del trazo grueso |
+| `marca/powernode-carta-180.png`, `-192.png`, `-512.png` | iOS (180) y tamaños grandes, del trazo normal |
+| `favicon.ico`, `favicon.png` (raíz) | Ver I-07: los que el navegador pide solo. El `.ico` es copia de `powernode-carta.ico`; `favicon.png` va sobre blanco |
+
+**Por qué «carta» en el nombre de los iconos de la pestaña:** el navegador guarda el favicon por URL.
+Con los nombres de antes (`powernode-favicon.svg`, `powernode-32.png`…) seguía mostrando el unifilar
+aunque el archivo ya fuera la carta. Un icono se versiona cambiándole el nombre (I-07).
 
 **Nada de esto se edita a mano; se genera:**
 
 ```bash
 python3 tools/marca_carta_smith.py            # los SVG, con las ecuaciones
 node tools/marca_png.mjs                      # los PNG, con Playwright (NODE_PATH si no es global)
-python3 tools/marca_carta_smith.py --ico      # favicon.ico con los PNG de 16, 32 y 48
+python3 tools/marca_carta_smith.py --ico      # powernode-carta.ico y favicon.ico con los PNG de 16, 32 y 48
 ```

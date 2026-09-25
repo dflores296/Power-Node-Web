@@ -10,6 +10,28 @@
     --papel: #fff;
     --alerta: #b3261e;
 
+    /* Tonos de apoyo (I-57): antes eran colores sueltos en cada regla; con el tema oscuro cada uno
+       necesita su pareja. */
+    --encabezado: #eef2f7;      /* encabezados de tabla, chips, pistas */
+    --linea-suave: #eef1f5;     /* divisiones interiores */
+    --punteado: #9aa6b2;        /* subrayado de las ayudas, borde del chip de neutro */
+    --hover: #f8fafc;           /* renglón bajo el cursor */
+    --vacio: #b9c2cc;           /* renglones y espacios libres */
+    --codigo: #eceff3;          /* fondo de citas y código */
+    --fondo-suave: #f7f8fa;     /* desglose */
+    --acento-suave: #eaf3f8;    /* fondo de lo ocupado, del principal */
+    --acento-borde: #bcd7e5;
+    --sobre-acento: #fff;       /* texto sobre el acento */
+    --aviso-texto: #7a5a12;
+    --aviso-fondo: #fdf6e3;
+    --aviso-borde: #d9a441;
+    --alerta-fondo: #fdeceb;
+    --cita: #8a5a2b;
+    --fase-borde: transparent;  /* la fase A es negra: en oscuro lleva borde para no perderse */
+    --sombra: rgba(0, 0, 0, .06);
+    --foco: rgb(11 110 153 / .12); /* halo del campo con el foco */
+    color-scheme: light;
+
     /* Escala de redondeo. Nace del logo: sus líneas rematan en semicírculo
        (stroke-linecap="round"), no en escuadra. La interfaz sigue el mismo criterio --
        cuanto más grande el elemento, más generoso el radio -- en vez de los valores
@@ -18,6 +40,54 @@
     --radio-sm: 9px;    /* campos, selectores, botones */
     --radio-md: 14px;   /* tarjetas y la tabla */
     --radio-lg: 18px;   /* el panel de la memoria */
+}
+
+/* TEMA OSCURO (David, 2026-09-25 — I-57). js/tema.js resuelve la elección del botón del encabezado
+   (automático, claro u oscuro) y la escribe en <html data-tema>. Solo en pantalla: impreso, el papel
+   sale siempre en claro. Los colores de fase (A negro, B rojo, C azul, neutro blanco, tierra verde)
+   son los de la NOM y no cambian. */
+@media screen {
+    :root[data-tema="oscuro"] {
+        --tinta: #e8ecef;
+        --acento: #4aa3d1;
+        --tenue: #9aa6b2;
+
+        --linea: #2e3640;
+        --fondo: #0f1317;
+        --papel: #171c21;
+        --alerta: #f2877e;
+
+        --encabezado: #1e252c;
+        --linea-suave: #232a31;
+        --punteado: #5a6570;
+        --hover: #1b2127;
+        --vacio: #4e5864;
+        --codigo: #232a31;
+        --fondo-suave: #13181d;
+        --acento-suave: #0f2a38;
+        --acento-borde: #1f5470;
+        --sobre-acento: #0b1116;
+        --aviso-texto: #e7c77a;
+        --aviso-fondo: #2a2414;
+        --aviso-borde: #b8892e;
+        --alerta-fondo: #3a1a18;
+        --cita: #d9a77a;
+        --fase-borde: #6b7682;
+        --sombra: rgba(0, 0, 0, .4);
+        --foco: rgb(74 163 209 / .22);
+        color-scheme: dark;
+    }
+}
+
+/* El logo con tinta clara u oscura: un <img> no sabe del tema de la página, por eso van los dos y se
+   oculta el que no toca. Solo se oculta: cada imagen conserva el display que le da su propia regla. */
+:root:not([data-tema="oscuro"]) .solo-oscuro { display: none; }
+@media screen {
+    :root[data-tema="oscuro"] .solo-claro { display: none; }
+}
+@media print {
+    /* Con html:root le gana a reglas como «.doc-marca img { display: block }». */
+    html:root .solo-oscuro { display: none; }
 }
 
 * { box-sizing: border-box; }
@@ -69,7 +139,7 @@ select, input { font: inherit; padding: 5px 8px; border: 1px solid var(--linea);
           background: var(--papel); border: 1px solid var(--linea);
           border-radius: var(--radio-md); overflow: clip; /* clip y no hidden: hidden la vuelve contenedor de desplazamiento y la columna fija de N.º deja de fijarse */
           font-variant-numeric: tabular-nums; }
-.cuadro th { background: #eef2f7; font-size: 10px; text-transform: uppercase;
+.cuadro th { background: var(--encabezado); font-size: 10px; text-transform: uppercase;
              letter-spacing: .03em; color: var(--tenue); font-weight: 600;
              padding: 7px 6px; border-bottom: 1px solid var(--linea); text-align: center;
              vertical-align: middle; white-space: nowrap; }
@@ -108,15 +178,15 @@ select, input { font: inherit; padding: 5px 8px; border: 1px solid var(--linea);
 
 /* Un rótulo que esconde su explicación: subrayado punteado y cursor de ayuda, para que se note que
    hay algo que leer. El texto va en el title, no en una segunda línea del encabezado. */
-.ayuda { border-bottom: 1px dotted #9aa6b2; cursor: help; }
+.ayuda { border-bottom: 1px dotted var(--punteado); cursor: help; }
 
 /* La descripción se queda con lo que sobra: las demás columnas son de ancho de contenido, así que
    sin esto el navegador le daba lo mínimo y "Alumbrado oficinas" salía cortado. */
 .cuadro th.descripcion { min-width: 240px; }
 .cuadro td { padding: 3px 6px; border-bottom: 1px solid var(--linea); text-align: center; white-space: nowrap; }
 .cuadro tr.fila-desglose td { white-space: normal; }
-.cuadro tbody tr:hover { background: #f8fafc; }
-.cuadro tr.vacio { color: #b9c2cc; }
+.cuadro tbody tr:hover { background: var(--hover); }
+.cuadro tr.vacio { color: var(--vacio); }
 .cuadro td.tenue { color: var(--tenue); }
 
 .izq { text-align: left !important; }
@@ -142,7 +212,7 @@ input.va.fp { width: 60px; }
 input.desc:focus, input.va:focus {
     background: var(--papel);
     border-color: var(--acento);
-    box-shadow: 0 0 0 3px rgb(11 110 153 / .12);
+    box-shadow: 0 0 0 3px var(--foco);
 }
 
 /*
@@ -160,17 +230,17 @@ input.desc:focus, input.va:focus {
          min-width: 20px; height: 17px; padding: 0 5px; border-radius: 5px;
          font-size: 10px; font-weight: 700; letter-spacing: 0; color: #fff; }
 .fase .fase-rect + .fase-rect { margin-left: 3px; }
-.fase-rect-a { background: #1b1f23; }
+.fase-rect-a { background: #1b1f23; box-shadow: inset 0 0 0 1px var(--fase-borde); }
 .fase-rect-b { background: #c62828; }
 .fase-rect-c { background: #1565c0; }
 
 /* Las muestras antes de «Fase», «Neutro» y «Puesta a tierra»: el color del forro de cada uno. */
 .muestras { display: inline-flex; gap: 2px; margin-right: 5px; vertical-align: -1px; }
 .muestras i { display: block; width: 7px; height: 11px; border-radius: 2px; }
-.color-a { background: #1b1f23; }
+.color-a { background: #1b1f23; box-shadow: inset 0 0 0 1px var(--fase-borde); }
 .color-b { background: #c62828; }
 .color-c { background: #1565c0; }
-.color-neutro { background: #fff; box-shadow: inset 0 0 0 1px #9aa6b2; }
+.color-neutro { background: #fff; box-shadow: inset 0 0 0 1px var(--punteado); }
 .color-tierra { background: #2e7d32; }
 
 /* Un conductor en una sola celda: el calibre y, debajo, la sección. */
@@ -190,7 +260,7 @@ input.desc:focus, input.va:focus {
            border-radius: var(--radio-lg); padding: 16px 20px; }
 .memoria ul { margin: 0; padding-left: 18px; }
 .memoria li { margin: 4px 0; font-size: 12px; }
-.memoria code { background: #eceff3; padding: 2px 7px; border-radius: var(--radio-xs); font-size: 11px; }
+.memoria code { background: var(--codigo); padding: 2px 7px; border-radius: var(--radio-xs); font-size: 11px; }
 
 .pie { margin-top: 26px; color: var(--tenue); font-size: 11px; line-height: 1.6; }
 .pie a { color: var(--acento); }
@@ -220,7 +290,7 @@ input.desc:focus, input.va:focus {
 .titulo { display: flex; align-items: center; gap: 11px; }
 .titulo img { flex: none; }
 
-#blazor-error-ui { background: #ffe9e6; border-top: 2px solid var(--alerta);
+#blazor-error-ui { background: var(--alerta-fondo); border-top: 2px solid var(--alerta);
                    bottom: 0; display: none; left: 0; padding: 10px 16px; position: fixed;
                    width: 100%; z-index: 1000; }
 select.polos { width: 48px; padding: 2px 4px; border-radius: var(--radio-xs); }
@@ -269,19 +339,23 @@ select.tipo { width: 108px; padding: 2px 4px 2px 6px; border-radius: var(--radio
 }
 .derivado { margin: 10px 0 0; font-size: 11px; color: var(--tenue); line-height: 1.5; }
 
-.acciones { display: flex; gap: 8px; align-items: center; }
+.acciones { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .boton { font: inherit; font-size: 12px; padding: 6px 12px; cursor: pointer;
          border: 1px solid var(--linea); border-radius: var(--radio-sm);
          background: var(--papel); color: var(--tinta); }
 .boton:hover { border-color: var(--acento); color: var(--acento); }
-.boton.primario { background: var(--acento); border-color: var(--acento); color: #fff; }
-.boton.primario:hover { color: #fff; filter: brightness(1.08); }
+.boton.primario { background: var(--acento); border-color: var(--acento); color: var(--sobre-acento); }
+.boton.primario:hover { color: var(--sobre-acento); filter: brightness(1.08); }
 .boton.activo { border-color: var(--acento); color: var(--acento); font-weight: 600; }
+/* El del tema (I-57): ancho fijo, para que el botón de junto no brinque al cambiar la palabra. */
+.boton.tema { min-width: 120px; text-align: left; }
+.tema-simbolo { display: inline-block; width: 1.1em; text-align: center; }
+@media print { .boton.tema { display: none; } }
 
 /* El corte entre los nones y los pares: el renglón en blanco de 6 pt que el Excel tiene en la
    fila 55. No lleva rótulo — el número de circuito ya dice de qué columna del gabinete es. */
 .cuadro tr.separador td, .doc-cuadro tr.separador td {
-    height: 9px; padding: 0; background: #eef2f7;
+    height: 9px; padding: 0; background: var(--encabezado);
     border-top: 1px solid var(--linea); border-bottom: 1px solid var(--linea);
 }
 
@@ -321,7 +395,7 @@ select.tipo { width: 108px; padding: 2px 4px 2px 6px; border-radius: var(--radio
 .datos th { font-size: 10px; text-transform: uppercase; letter-spacing: .03em;
             color: var(--tenue); font-weight: 600; text-align: right; padding: 4px 6px;
             white-space: nowrap; }
-.datos td { padding: 4px 6px; text-align: right; border-top: 1px solid #eef1f5;
+.datos td { padding: 4px 6px; text-align: right; border-top: 1px solid var(--linea-suave);
             white-space: nowrap; }
 .datos tr.total td { font-weight: 600; border-top: 1px solid var(--linea); }
 .datos input.chico { width: 62px; }
@@ -337,7 +411,7 @@ select.tipo { width: 108px; padding: 2px 4px 2px 6px; border-radius: var(--radio
 .balanceo .fila-fase { display: grid; grid-template-columns: 26px 1fr 90px; gap: 12px;
                        align-items: center; padding: 6px 0; }
 .balanceo .fila-fase .num { text-align: right; }
-.balanceo .pista { height: 10px; border-radius: 5px; background: #e8ecf1; overflow: hidden; }
+.balanceo .pista { height: 10px; border-radius: 5px; background: var(--encabezado); overflow: hidden; }
 .balanceo .relleno { height: 100%; border-radius: 5px; }
 .balanceo .desbalanceo { display: flex; justify-content: space-between; margin-top: auto;
                          padding-top: 10px; border-top: 1px solid var(--linea); }
@@ -348,7 +422,7 @@ label.suelto input { width: 90px; }
 
 /* Alimentador: primero la protección, luego los cables con su color, luego el cálculo. */
 .alimentador .seleccion { display: flex; flex-direction: column; gap: 2px; padding: 12px 16px;
-                          margin-bottom: 14px; background: #eaf3f8; border: 1px solid #bcd7e5;
+                          margin-bottom: 14px; background: var(--acento-suave); border: 1px solid var(--acento-borde);
                           border-radius: var(--radio-sm); }
 .alimentador .seleccion .rotulo { font-size: 11px; color: var(--tenue); font-weight: 600;
                                   text-transform: uppercase; letter-spacing: .04em; }
@@ -358,17 +432,17 @@ label.suelto input { width: 90px; }
                        border: 1px solid var(--linea); border-radius: var(--radio-sm); }
 .alimentador .cable { display: grid; grid-template-columns: 34px 1fr auto; align-items: center;
                       gap: 10px; padding: 9px 14px; }
-.alimentador .cable + .cable { border-top: 1px solid #eef1f5; }
+.alimentador .cable + .cable { border-top: 1px solid var(--linea-suave); }
 .alimentador .cable .calibre { text-align: right; font-weight: 600; font-size: 14px; }
 .alimentador .cable .calibre small { display: block; font-size: 10px; font-weight: 400; color: var(--tenue); }
 .muestras.grande { gap: 3px; margin: 0; }
 .muestras.grande i { width: 8px; height: 18px; border-radius: 3px; }
 .alimentador .datos td { padding: 7px 6px; }
 
-.aviso { margin: 10px 0 0; font-size: 11px; line-height: 1.5; color: #7a5a12;
-         background: #fdf6e3; border-left: 3px solid #d9a441;
+.aviso { margin: 10px 0 0; font-size: 11px; line-height: 1.5; color: var(--aviso-texto);
+         background: var(--aviso-fondo); border-left: 3px solid var(--aviso-borde);
          border-radius: var(--radio-xs); padding: 8px 10px; }
-.aviso.error { color: var(--alerta); background: #fdeceb; border-left-color: var(--alerta); }
+.aviso.error { color: var(--alerta); background: var(--alerta-fondo); border-left-color: var(--alerta); }
 
 /* ------------------------------------------------------------------------------------------------
    EL DOCUMENTO — lo que se imprime. Es el entregable, así que se ve como papel: fondo blanco,
@@ -387,16 +461,16 @@ label.suelto input { width: 90px; }
 .doc-marca img { display: block; }
 .doc-norma { margin: 8px 0 0; font-size: 11px; color: var(--tenue); }
 .doc-datos { margin: 0; font-size: 11px; }
-.doc-datos > div { display: flex; gap: 8px; padding: 2px 0; border-bottom: 1px dotted #e6eaef; }
+.doc-datos > div { display: flex; gap: 8px; padding: 2px 0; border-bottom: 1px dotted var(--linea-suave); }
 .doc-datos dt { color: var(--tenue); min-width: 84px; }
 .doc-datos dd { margin: 0; font-weight: 600; }
 
 .doc-cuadro { width: 100%; border-collapse: collapse; font-size: 10px;
               font-variant-numeric: tabular-nums; }
-.doc-cuadro th { border: 1px solid var(--linea); background: #eef2f7; padding: 4px 6px;
+.doc-cuadro th { border: 1px solid var(--linea); background: var(--encabezado); padding: 4px 6px;
                  font-weight: 600; font-size: 9px; text-transform: uppercase; letter-spacing: .02em; }
-.doc-cuadro td { border: 1px solid #e6eaef; padding: 3px 6px; text-align: center; }
-.doc-cuadro tr.libre td { color: #b9c2cc; }
+.doc-cuadro td { border: 1px solid var(--linea-suave); padding: 3px 6px; text-align: center; }
+.doc-cuadro tr.libre td { color: var(--vacio); }
 .doc-cuadro .tenue { color: var(--tenue); font-style: italic; }
 
 .doc-pie { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 18px; }
@@ -405,9 +479,9 @@ label.suelto input { width: 90px; }
                         color: var(--tenue); margin: 0 0 6px; }
 .doc-resumen { width: 100%; border-collapse: collapse; font-size: 11px;
                font-variant-numeric: tabular-nums; }
-.doc-resumen th { border: 1px solid var(--linea); background: #eef2f7; padding: 3px 6px;
+.doc-resumen th { border: 1px solid var(--linea); background: var(--encabezado); padding: 3px 6px;
                   font-size: 9px; text-transform: uppercase; letter-spacing: .02em; }
-.doc-resumen td { border: 1px solid #e6eaef; padding: 3px 6px; text-align: right; }
+.doc-resumen td { border: 1px solid var(--linea-suave); padding: 3px 6px; text-align: right; }
 .doc-resumen tr.total td { font-weight: 600; }
 .doc-resumen .rotulo { color: var(--tenue); width: 42%; }
 .doc-resumen.separado { margin-top: 12px; }
@@ -418,12 +492,12 @@ label.suelto input { width: 90px; }
 .hoja h3 { font-size: 13px; text-transform: none; letter-spacing: 0; color: var(--tinta);
            font-weight: 600; }
 .hoja h4 { font-size: 10px; text-transform: uppercase; letter-spacing: .05em;
-           color: #8a5a2b; margin: 14px 0 5px; }
+           color: var(--cita); margin: 14px 0 5px; }
 .formula { text-align: center; font-style: italic; font-size: 12px; margin: 6px 0; }
 .nota { font-size: 10px; color: var(--tenue); font-style: italic; margin: 4px 0; line-height: 1.5; }
 .citas { margin: 0; padding-left: 18px; }
 .citas li { font-size: 10px; margin: 3px 0; }
-.citas code { background: #eceff3; padding: 1px 6px; border-radius: var(--radio-xs); font-size: 10px; }
+.citas code { background: var(--codigo); padding: 1px 6px; border-radius: var(--radio-xs); font-size: 10px; }
 
 @media print {
     /* La barra de botones y el marco de la aplicación no son parte del entregable. */
@@ -455,13 +529,13 @@ label.suelto input { width: 90px; }
 .bloque { display: flex; align-items: center; gap: 6px; min-height: 30px;
           border: 1px solid var(--linea); border-radius: var(--radio-xs);
           padding: 3px 6px; background: var(--fondo); overflow: hidden; }
-.bloque.ocupado { background: #eaf3f8; border-color: #bcd7e5; }
+.bloque.ocupado { background: var(--acento-suave); border-color: var(--acento-borde); }
 .bloque .numeros { font-size: 10px; font-weight: 700; color: var(--tenue);
                    min-width: 30px; text-align: center; font-variant-numeric: tabular-nums; }
 .bloque .pastillas { display: flex; flex-direction: column; gap: 2px; }
 .bloque .etiqueta { font-size: 11px; overflow: hidden; text-overflow: ellipsis;
                     white-space: nowrap; flex: 1; }
-.bloque.vacante .etiqueta { color: #b9c2cc; font-style: italic; }
+.bloque.vacante .etiqueta { color: var(--vacio); font-style: italic; }
 .bloque .amperes { font-size: 10px; font-weight: 600; color: var(--tenue);
                    font-variant-numeric: tabular-nums; }
 
@@ -470,7 +544,7 @@ label.suelto input { width: 90px; }
 .bloque .fase-rect { min-width: 18px; height: 16px; padding: 0 4px; }
 
 .principal { margin-top: 8px; padding: 8px 10px; text-align: center; font-size: 11px;
-             color: var(--tenue); background: #eef2f7; border: 1px solid var(--linea);
+             color: var(--tenue); background: var(--encabezado); border: 1px solid var(--linea);
              border-radius: var(--radio-sm); }
 .principal strong { color: var(--tinta); }
 
@@ -478,7 +552,7 @@ label.suelto input { width: 90px; }
 .cuadro .desc-linea { display: flex; align-items: center; gap: 4px; }
 .cuadro button.desglosar { border: 0; background: none; cursor: pointer; color: var(--tenue); font-size: 11px; padding: 0 2px; }
 .cuadro .en-va.izq { text-align: left; }
-.cuadro tr.fila-desglose td { background: var(--fondo-suave, #f7f8fa); padding: 8px 12px 12px; text-align: left; }
+.cuadro tr.fila-desglose td { background: var(--fondo-suave); padding: 8px 12px 12px; text-align: left; }
 /* El desglose es una lista dentro del circuito (David, 2026-09-24): tarjeta blanca a todo el ancho
    del renglón, con una línea entre aparato y aparato. La descripción se queda con lo que sobra.
    separate y no collapse, por el border-radius — ver .cuadro. */
@@ -487,11 +561,11 @@ label.suelto input { width: 90px; }
                          border-radius: var(--radio-sm); overflow: hidden; }
 .cuadro table.desglose th { font-size: 10px; font-weight: 600; text-transform: uppercase; color: var(--tenue);
                             padding: 7px 10px; border: 0; border-bottom: 1px solid var(--linea);
-                            background: #f7f9fb; width: 120px; }
+                            background: var(--fondo-suave); width: 120px; }
 .cuadro table.desglose th.izq { width: auto; }
 .cuadro table.desglose th:last-child { width: 40px; }
 .cuadro table.desglose th:nth-last-child(2) { text-align: right; }
-.cuadro table.desglose td { padding: 5px 10px; border: 0; border-bottom: 1px solid #eef1f5;
+.cuadro table.desglose td { padding: 5px 10px; border: 0; border-bottom: 1px solid var(--linea-suave);
                             background: none; text-align: center; }
 .cuadro table.desglose tbody tr:last-child td { border-bottom: 0; }
 .cuadro table.desglose td.izq, .cuadro table.desglose th.izq { text-align: left; }
@@ -499,7 +573,7 @@ label.suelto input { width: 90px; }
 .cuadro table.desglose input.desc { width: 100%; }
 .cuadro table.desglose tfoot td { padding: 8px 10px; font-size: 11px; color: var(--tenue);
                                   border-top: 1px solid var(--linea); border-bottom: 0; }
-.cuadro button.agregar, .cuadro button.quitar { border: 0; background: none; cursor: pointer; color: var(--acento, #2563eb); font-size: 11px; padding: 2px 4px; }
+.cuadro button.agregar, .cuadro button.quitar { border: 0; background: none; cursor: pointer; color: var(--acento); font-size: 11px; padding: 2px 4px; }
 .cuadro button.quitar { color: var(--tenue); }
 
 /* ------------------------------------------------------------------------------------------------
@@ -531,7 +605,7 @@ label.suelto input { width: 90px; }
 .canal-tabla .tamano-controles { display: flex; align-items: center; justify-content: center; gap: 4px; }
 .canal-tabla .tamano-controles select { font-weight: 600; }
 /* Tamaño fijado por el ingeniero: se distingue del calculado. */
-.canal-tabla .tamano-controles select.fijado { color: var(--acento, #2563eb); border-color: var(--acento, #2563eb); }
+.canal-tabla .tamano-controles select.fijado { color: var(--acento); border-color: var(--acento); }
 .canal-tabla .tipo-controles { display: flex; gap: 6px; align-items: center; justify-content: center; }
 .canal-tabla .medidas { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: var(--tenue); }
 .canal-tabla .medidas input { width: 64px; }
@@ -550,7 +624,7 @@ label.suelto input { width: 90px; }
     box-shadow: 1px 0 0 var(--linea);
 }
 .cuadro tbody tr:not(.separador) > td:first-child { background: var(--papel); }
-.cuadro thead tr:first-child > th:first-child { background: #eef2f7; z-index: 2; }
+.cuadro thead tr:first-child > th:first-child { background: var(--encabezado); z-index: 2; }
 
 /* ------------------------------------------------------------------------------------------------
    TECLADO — I-56 (David, 2026-09-25).
@@ -564,8 +638,8 @@ h1:focus { outline: none; }
 /* Barra de ayuda: la del campo con el foco y las teclas. No tapa el final de la página. */
 #barra-ayuda { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; display: flex; gap: 16px;
                align-items: flex-start; justify-content: space-between; padding: 8px 16px;
-               background: var(--papel, #fff); border-top: 1px solid var(--linea); font-size: 12px;
-               box-shadow: 0 -2px 8px rgba(0, 0, 0, .06); max-height: 30vh; overflow: auto; }
+               background: var(--papel); border-top: 1px solid var(--linea); font-size: 12px;
+               box-shadow: 0 -2px 8px var(--sombra); max-height: 30vh; overflow: auto; }
 #barra-ayuda[hidden] { display: none; }
 #barra-ayuda .ayuda-campo { white-space: pre-line; min-width: 0; }
 #barra-ayuda .campo { margin-right: 8px; }

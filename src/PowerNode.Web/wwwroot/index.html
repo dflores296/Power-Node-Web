@@ -28,9 +28,20 @@
       distinto en cada navegador y hay casos en que directamente lo hacen ignorar el icono. Un icono
       se versiona cambiándole el nombre al archivo, o no se versiona.
     -->
-    <link rel="icon" href="favicon.ico" sizes="any" />
-    <link rel="icon" type="image/svg+xml" href="marca/powernode-favicon.svg" />
-    <link rel="apple-touch-icon" sizes="180x180" href="marca/powernode-180.png" />
+    <!--
+      CON «carta» EN EL NOMBRE (David, 2026-09-25): el logo pasó del unifilar a la carta de Smith, y
+      el navegador guarda el icono de la pestaña por URL. Con los nombres de antes seguía mostrando el
+      unifilar. favicon.ico y favicon.png de la raíz se quedan (ya con la carta): son los que se piden
+      solos.
+    -->
+    <link rel="icon" href="marca/powernode-carta.ico" sizes="any" />
+    <link rel="icon" type="image/svg+xml" href="marca/powernode-carta-favicon.svg" />
+    <link rel="apple-touch-icon" sizes="180x180" href="marca/powernode-carta-180.png" />
+    <!--
+      EL TEMA, ANTES DE PINTAR (I-57): tema.js pone <html data-tema="claro|oscuro"> aquí, en el <head> y
+      sin defer, para que la página no destelle en claro mientras carga.
+    -->
+    <script src="js/tema.js"></script>
 </head>
 
 <body>
@@ -46,7 +57,8 @@
     -->
     <div id="app">
         <div class="arranque">
-            <img class="arranque-logo" src="marca/powernode-icono.svg" alt="" width="56" height="56" />
+            <img class="arranque-logo solo-claro" src="marca/powernode-icono.svg" alt="" width="56" height="56" />
+            <img class="arranque-logo solo-oscuro" src="marca/powernode-icono-oscuro.svg" alt="" width="56" height="56" />
             <p class="arranque-nombre">Power Node</p>
             <p class="arranque-nota">Cargando el cálculo y las tablas de la norma…</p>
         </div>

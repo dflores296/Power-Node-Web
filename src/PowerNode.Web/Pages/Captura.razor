@@ -9,13 +9,15 @@
 
 <header class="encabezado">
     <div class="titulo">
-        <img src="marca/powernode-icono.svg" alt="Power Node" width="38" height="38" />
+        <img class="solo-claro" src="marca/powernode-icono.svg" alt="Power Node" width="38" height="38" />
+        <img class="solo-oscuro" src="marca/powernode-icono-oscuro.svg" alt="Power Node" width="38" height="38" />
         <div>
             <h1>Cuadro de carga</h1>
             <p class="meta">NOM-001-SEDE-2012 · Art. 210, 215, 220, 240, 250, 310, 408</p>
         </div>
     </div>
     <div class="acciones">
+        <TemaDePantalla />
         <button class="boton" @onclick="@(() => Navegacion.NavigateTo("documento"))">Documento y memoria</button>
     </div>
 </header>
@@ -377,7 +379,7 @@
 <section class="tarjeta canalizaciones" id="sec-canalizaciones">
     <div class="encabezado-tarjeta">
         <h2>Canalizaciones</h2>
-        <button class="agregar" id="nueva-canalizacion" @onclick="NuevaCanalizacion">+ Nueva canalización</button>
+        <button class="boton" id="nueva-canalizacion" @onclick="NuevaCanalizacion">+ Nueva canalización</button>
     </div>
 
     @* Una sola lista de tubos: por omisión cada circuito con carga recibe el suyo (T1, T2…) y en la

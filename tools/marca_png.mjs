@@ -21,13 +21,13 @@ const raiz = path.resolve(aqui, '..', 'src', 'PowerNode.Web', 'wwwroot');
 const marca = path.join(raiz, 'marca');
 
 const trabajos = [
-    ['powernode-icono-16.svg', 16, path.join(marca, 'powernode-16.png'), null],
-    ['powernode-icono-16.svg', 32, path.join(marca, 'powernode-32.png'), null],
-    ['powernode-icono-16.svg', 48, path.join(marca, 'powernode-48.png'), null],
+    ['powernode-icono-16.svg', 16, path.join(marca, 'powernode-carta-16.png'), null],
+    ['powernode-icono-16.svg', 32, path.join(marca, 'powernode-carta-32.png'), null],
+    ['powernode-icono-16.svg', 48, path.join(marca, 'powernode-carta-48.png'), null],
     ['powernode-icono-16.svg', 32, path.join(raiz, 'favicon.png'), '#ffffff'],
-    ['powernode-icono.svg', 180, path.join(marca, 'powernode-180.png'), null],
-    ['powernode-icono.svg', 192, path.join(marca, 'powernode-192.png'), null],
-    ['powernode-icono.svg', 512, path.join(marca, 'powernode-512.png'), null],
+    ['powernode-icono.svg', 180, path.join(marca, 'powernode-carta-180.png'), null],
+    ['powernode-icono.svg', 192, path.join(marca, 'powernode-carta-192.png'), null],
+    ['powernode-icono.svg', 512, path.join(marca, 'powernode-carta-512.png'), null],
 ];
 
 const navegador = await chromium.launch();

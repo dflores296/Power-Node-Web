@@ -216,13 +216,12 @@
     }
 
     // ---- Para la página: poner el foco en lo que acaba de crearse o abrirse (I-56) ---------------
-    window.powerNode = {
-        enfocar(selector) {
-            const el = document.querySelector(selector);
-            if (!el)
-                return;
-            el.focus();
-            el.scrollIntoView({ block: 'nearest', inline: 'nearest' });
-        },
+    // window.powerNode ya existe: tema.js, en el <head>, puso ahí el tema (I-57).
+    (window.powerNode ??= {}).enfocar = selector => {
+        const el = document.querySelector(selector);
+        if (!el)
+            return;
+        el.focus();
+        el.scrollIntoView({ block: 'nearest', inline: 'nearest' });
     };
 })();

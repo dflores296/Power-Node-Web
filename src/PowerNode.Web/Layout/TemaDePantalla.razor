@@ -1,0 +1,28 @@
+@inject IJSRuntime JS
+
+@* El botón del tema (I-57): automático → claro → oscuro. js/tema.js guarda la elección y la aplica
+   en <html data-tema>; aquí solo se muestra y se pide la siguiente. *@
+<button class="boton tema" type="button" @onclick="Siguiente"
+        title="Tema de la pantalla. Automático sigue al sistema; claro y oscuro lo fijan. Impreso sale siempre en claro."
+        aria-label="@($"Tema: {Nombre}. Cambiar")">
+    <span class="tema-simbolo" aria-hidden="true">@Simbolo</span> @Nombre
+</button>
+
+@code {
+    private string _eleccion = "automatico";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+        _eleccion = await JS.InvokeAsync<string>("powerNode.tema.eleccion");
+        StateHasChanged();
+    }
+
+    private async Task Siguiente() => _eleccion = await JS.InvokeAsync<string>("powerNode.tema.siguiente");
+
+    private string Nombre => _eleccion switch { "claro" => "Claro", "oscuro" => "Oscuro", _ => "Automático" };
+
+    // Con el selector de variación de texto (U+FE0E): sin él, algunos sistemas pintan ☀ como emoji.
+    private string Simbolo => _eleccion switch { "claro" => "☀︎", "oscuro" => "☾︎", _ => "◐︎" };
+}

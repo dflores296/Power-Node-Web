@@ -26,7 +26,7 @@ from pathlib import Path
 RAIZ = Path(__file__).resolve().parent.parent / "src" / "PowerNode.Web" / "wwwroot"
 MARCA = RAIZ / "marca"
 
-TINTA, TINTA_OSCURA, AZUL, GRIS = "#101418", "#E8ECEF", "#0B6E99", "#5A6570"
+TINTA, TINTA_OSCURA, AZUL, GRIS, GRIS_OSCURO = "#101418", "#E8ECEF", "#0B6E99", "#5A6570", "#9AA6B2"
 RESISTENCIAS = [0.5, 1, 2]
 REACTANCIAS = [0.5, 1, 2]
 C, R = 32.0, 26.0  # centro y radio de la carta en el lienzo de 64 × 64
@@ -80,23 +80,33 @@ def svg(contenido, ancho=64, alto=64, estilo=""):
             f'viewBox="0 0 {ancho} {alto}">\n  <!-- {NOTA} -->\n{estilo}  {contenido}\n</svg>\n')
 
 
+def firma(tinta, gris):
+    return svg(
+        carta(f'stroke="{tinta}"', AZUL, **NORMAL)
+        + f'\n  <text x="76" y="30" font-family="IBM Plex Sans, Segoe UI, sans-serif" font-size="21" '
+          f'font-weight="600" fill="{tinta}" letter-spacing="-0.2">Power Node</text>'
+          f'\n  <text x="76" y="47" font-family="IBM Plex Sans, Segoe UI, sans-serif" font-size="11" '
+          f'font-weight="500" fill="{gris}" letter-spacing="1.6">DESIGN SUITE</text>',
+        ancho=260)
+
+
 def escribir_svg():
     archivos = {
         "powernode-icono.svg": svg(carta(f'stroke="{TINTA}"', AZUL, **NORMAL)),
+        # Tema oscuro de la aplicación: la tinta clara. Un <img> no sabe del tema que se eligió en la
+        # página (solo del sistema), por eso son dos archivos y la hoja de estilos muestra uno u otro.
+        "powernode-icono-oscuro.svg": svg(carta(f'stroke="{TINTA_OSCURA}"', AZUL, **NORMAL)),
         "powernode-icono-16.svg": svg(carta(f'stroke="{TINTA}"', AZUL, **CHICO)),
         "powernode-icono-mono.svg": svg(carta('stroke="currentColor"', "currentColor", **NORMAL)),
         # La tinta cambia con el tema de la pestaña; el azul no, tiene contraste en los dos.
-        "powernode-favicon.svg": svg(
+        # Con «carta» en el nombre: el navegador guarda el icono de la pestaña por URL, y con el
+        # nombre anterior seguía mostrando el unifilar (I-07).
+        "powernode-carta-favicon.svg": svg(
             carta('class="tinta"', AZUL, **CHICO),
             estilo=(f"  <style>.tinta {{ stroke: {TINTA}; }} @media (prefers-color-scheme: dark) "
                     f"{{ .tinta {{ stroke: {TINTA_OSCURA}; }} }}</style>\n")),
-        "powernode-firma.svg": svg(
-            carta(f'stroke="{TINTA}"', AZUL, **NORMAL)
-            + f'\n  <text x="76" y="30" font-family="IBM Plex Sans, Segoe UI, sans-serif" font-size="21" '
-              f'font-weight="600" fill="{TINTA}" letter-spacing="-0.2">Power Node</text>'
-              f'\n  <text x="76" y="47" font-family="IBM Plex Sans, Segoe UI, sans-serif" font-size="11" '
-              f'font-weight="500" fill="{GRIS}" letter-spacing="1.6">DESIGN SUITE</text>',
-            ancho=260),
+        "powernode-firma.svg": firma(TINTA, GRIS),
+        "powernode-firma-oscura.svg": firma(TINTA_OSCURA, GRIS_OSCURO),
     }
     for nombre, contenido in archivos.items():
         (MARCA / nombre).write_text(contenido, encoding="utf-8")
@@ -104,16 +114,21 @@ def escribir_svg():
 
 
 def escribir_ico():
-    """favicon.ico con PNG adentro (16, 32, 48), como el anterior: lo aceptan todos desde Vista."""
-    pngs = [(t, (MARCA / f"powernode-{t}.png").read_bytes()) for t in (16, 32, 48)]
+    """
+    El .ico con PNG adentro (16, 32, 48), como el anterior: lo aceptan todos desde Vista. Dos copias:
+    marca/powernode-carta.ico, el que declara index.html, y favicon.ico en la raíz, el que el navegador
+    pide solo (I-07).
+    """
+    pngs = [(t, (MARCA / f"powernode-carta-{t}.png").read_bytes()) for t in (16, 32, 48)]
     cabecera = struct.pack("<HHH", 0, 1, len(pngs))
     desplazamiento = 6 + 16 * len(pngs)
     entradas, datos = b"", b""
     for tamano, png in pngs:
         entradas += struct.pack("<BBBBHHII", tamano, tamano, 0, 0, 1, 32, len(png), desplazamiento + len(datos))
         datos += png
-    (RAIZ / "favicon.ico").write_bytes(cabecera + entradas + datos)
-    print("escrito", RAIZ / "favicon.ico")
+    for destino in (MARCA / "powernode-carta.ico", RAIZ / "favicon.ico"):
+        destino.write_bytes(cabecera + entradas + datos)
+        print("escrito", destino)
 
 
 if __name__ == "__main__":

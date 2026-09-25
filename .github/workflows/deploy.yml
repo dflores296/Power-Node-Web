@@ -61,9 +61,10 @@ jobs:
       #    docs/despliegue.md): un número que hay que acordarse de subir en cada cambio tarde o
       #    temprano no se sube. _framework/ no lo necesita: Blazor ya versiona sus propios archivos.
       #
-      #    SÓLO EL CSS. Los iconos NO llevan ?v=: las query strings en favicons se comportan
-      #    distinto en cada navegador y hay casos en que lo hacen ignorar el icono. Ver el comentario
-      #    largo de wwwroot/index.html.
+      #    El CSS y los scripts de js/ (I-57): un teclado.js viejo en caché, junto al tema.js nuevo,
+      #    pisaba window.powerNode y el botón del tema tronaba la página. Los iconos NO llevan ?v=:
+      #    las query strings en favicons se comportan distinto en cada navegador y hay casos en que lo
+      #    hacen ignorar el icono. Ver el comentario largo de wwwroot/index.html.
       - name: Publicar
         run: |
           dotnet publish src/PowerNode.Web --configuration Release --output publicado
@@ -72,6 +73,8 @@ jobs:
           sed -i "s|href=\"css/app.css\"|href=\"css/app.css?v=$V\"|g" publicado/wwwroot/index.html
           echo "Versión de assets: $V"
           grep -oE 'href="css/app\.css\?v=[a-f0-9]+"' publicado/wwwroot/index.html
+          sed -i -E "s#src=\"js/([a-z]+)\.js\"#src=\"js/\\1.js?v=$V\"#g" publicado/wwwroot/index.html
+          test "$(grep -cE 'src="js/[a-z]+\.js\?v=[a-f0-9]+"' publicado/wwwroot/index.html)" -eq 2
 
       # Sin .nojekyll, GitHub Pages ignora _framework/ por empezar con guion bajo, y la página
       # publica "bien" pero no arranca, sin error visible. Es la trampa clásica de Blazor en Pages.

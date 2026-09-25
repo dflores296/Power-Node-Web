@@ -11,7 +11,10 @@
         <button class="boton @(_hoja == Hoja.Cuadro ? "activo" : null)" @onclick="() => _hoja = Hoja.Cuadro">Cuadro de carga</button>
         <button class="boton @(_hoja == Hoja.Memoria ? "activo" : null)" @onclick="() => _hoja = Hoja.Memoria">Memoria de cálculo</button>
     </div>
-    <button class="boton primario" @onclick="@(async () => await Imprimir())">Imprimir / PDF</button>
+    <div class="acciones">
+        <TemaDePantalla />
+        <button class="boton primario" @onclick="@(async () => await Imprimir())">Imprimir / PDF</button>
+    </div>
 </div>
 
 @if (_hoja == Hoja.Cuadro)
@@ -19,7 +22,8 @@
     <article class="documento">
         <header class="doc-encabezado">
             <div class="doc-marca">
-                <img src="marca/powernode-firma.svg" alt="Power Node" height="26" />
+                <img class="solo-claro" src="marca/powernode-firma.svg" alt="Power Node" height="26" />
+                <img class="solo-oscuro" src="marca/powernode-firma-oscura.svg" alt="Power Node" height="26" />
                 <p class="doc-norma">Cuadro de carga · NOM-001-SEDE-2012</p>
             </div>
             <dl class="doc-datos">
@@ -267,7 +271,8 @@ else
     <article class="documento memoria-doc">
         <header class="doc-encabezado">
             <div class="doc-marca">
-                <img src="marca/powernode-firma.svg" alt="Power Node" height="26" />
+                <img class="solo-claro" src="marca/powernode-firma.svg" alt="Power Node" height="26" />
+                <img class="solo-oscuro" src="marca/powernode-firma-oscura.svg" alt="Power Node" height="26" />
                 <p class="doc-norma">Memoria de cálculo · NOM-001-SEDE-2012</p>
             </div>
             <dl class="doc-datos">
