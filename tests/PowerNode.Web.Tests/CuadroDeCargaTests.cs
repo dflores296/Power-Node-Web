@@ -1855,14 +1855,14 @@ public class CuadroDeCargaTests
     [Fact]
     public void I54_1F2H_OfreceDe1a8Espacios_YAjustaAlCambiarDeConfiguracion()
     {
-        // David, 2026-09-25: en 1F-2H hay centros de carga de 1 a 8 espacios; de 12 en adelante no.
+        // David, 2026-09-25: en 1F-2H, centros de carga de 1, 2, 4, 6 y 8 espacios; de 12 en adelante no.
         var datos = new DatosDelTablero(); // 3F-4H, 24 espacios
         datos.Fases = 1; // 1F-2H
-        Assert.Equal([1, 2, 3, 4, 5, 6, 7, 8], datos.EspaciosValidos);
+        Assert.Equal([1, 2, 4, 6, 8], datos.EspaciosValidos);
         Assert.Equal(8, datos.NumeroEspacios);
 
-        datos.NumeroEspacios = 5;
-        datos.Fases = 3; // de regreso a 3F: 5 no existe, pasa a 6
+        datos.NumeroEspacios = 4;
+        datos.Fases = 3; // de regreso a 3F: 4 no existe, pasa a 6
         Assert.Equal([6, 12, 18, 24, 30, 36, 42], datos.EspaciosValidos);
         Assert.Equal(6, datos.NumeroEspacios);
 
