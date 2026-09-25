@@ -12,33 +12,62 @@
     de frente abajo.
 
     Un renglón mide lo mismo que un polo (24 px, el QO a 1.2): cada conexión llega a su polo.
+
+    EL PRINCIPAL (I-68, decisión montaje-del-interruptor-principal, canvas B3): en zócalo, de frente
+    abajo de las barras, un polo bajo cada una; con zapatas, un borne bajo cada barra; en espacios,
+    como un derivado pero en el color del acento y con flechas hacia la barra, porque la alimenta.
+    La acometida entra por abajo (en 1F-2H, por la izquierda).
 *@
 <div class="gabinete">
+@if (Cuadro.AvisoDelPrincipal is { } aviso)
+{
+    <p class="aviso"><Icono Nombre="aviso" Clase="aviso-icono" /><span>@aviso</span></p>
+}
 @if (Cuadro.UnaSolaBarra)
 {
+    var zapatas = !Datos.UsaInterruptorPrincipal;
     <div class="multifilar-1">
-        <div class="inicio-barra" role="img" aria-label="Barra A">
-            <svg width="36" height="64" viewBox="0 0 36 64" aria-hidden="true">
-                <line class="riel riel-a" x1="20" y1="10" x2="36" y2="10" />
-            </svg>
+        <div class="inicio-barra @(zapatas ? "con-zapata" : null)" role="img"
+             aria-label="@(zapatas ? "Acometida a zapatas principales, barra A" : "Barra A")">
+            @if (zapatas)
+            {
+                <svg width="60" height="64" viewBox="0 0 60 64" aria-hidden="true">
+                    <line class="acometida" x1="0" y1="10" x2="10" y2="10" />
+                    <polygon class="acometida" points="17,10 10,6 10,14" />
+                    <rect class="zapata riel-a" x="17" y="0" width="20" height="20" rx="3" />
+                    <circle class="tornillo" cx="27" cy="10" r="3.5" />
+                    <path class="tornillo" d="M24.8 12.2l4.4-4.4" />
+                    <line class="riel riel-a" x1="37" y1="10" x2="60" y2="10" />
+                </svg>
+            }
+            else
+            {
+                <svg width="36" height="64" viewBox="0 0 36 64" aria-hidden="true">
+                    <line class="riel riel-a" x1="20" y1="10" x2="36" y2="10" />
+                </svg>
+            }
             <span class="fase-rect fase-rect-a">A</span>
         </div>
         @foreach (var bloque in Cuadro.Gabinete)
         {
             var ocupado = bloque.Ocupado;
             var ultimo = bloque.Fila == Cuadro.Gabinete.Max(b => b.Fila);
-            <div class="espacio-1 @(ocupado ? null : "vacio")" title="@Titulo(bloque)">
+            <div class="espacio-1 @(ocupado ? null : "vacio") @(bloque.EsPrincipal ? "principal" : null)" title="@Titulo(bloque)">
                 <div class="conector">
                     <svg width="48" height="64" viewBox="0 0 48 64" aria-hidden="true">
                         <line class="riel riel-a" x1="0" y1="10" x2="@(ultimo ? 24 : 48)" y2="10" />
                         <line class="conexion riel-a @(ocupado ? null : "libre")" x1="24" y1="10" x2="24" y2="64" />
+                        @if (bloque.EsPrincipal)
+                        {
+                            <polygon class="flecha riel-a" points="24,17 20,25 28,25" />
+                        }
                         <circle class="union riel-a @(ocupado ? null : "libre")" cx="24" cy="10" r="4.5" />
                     </svg>
                     <span class="etq etq-a @(ocupado ? null : "libre")">@bloque.Numeros</span>
                 </div>
                 @if (ocupado)
                 {
-                    <Interruptor Polos="1" Escala="1.2m" />
+                    <Interruptor Polos="1" Escala="1.2m" Clase="@(bloque.EsPrincipal ? "principal" : null)" />
                 }
                 else
                 {
@@ -49,61 +78,125 @@
             </div>
         }
     </div>
+    <p class="nota-principal">
+        @if (zapatas)
+        {
+            <span>Acometida a <strong>zapatas principales</strong> · sin interruptor principal</span>
+        }
+        else if (Cuadro.EspaciosDelPrincipal.Count > 0)
+        {
+            <span>Acometida al <strong class="acento">interruptor principal</strong> en el espacio @string.Join("-", Cuadro.EspaciosDelPrincipal)</span>
+        }
+    </p>
 }
 else
 {
-    var renglones = (Cuadro.Datos.NumeroEspacios + 1) / 2;
+    var renglones = (Datos.NumeroEspacios + 1) / 2;
     var altoBarras = Cabeza + renglones * Renglon;
-    var barras = Cuadro.Datos.Barras;
-    <div class="multifilar" style="grid-template-rows: @(Cabeza)px repeat(@renglones, @(Renglon)px)">
-        <div class="tapa-muerta" style="grid-row: 1 / @(renglones + 2)"></div>
+    var barras = Datos.Barras;
+    // Abajo de las barras: el zócalo del principal o las zapatas. Con el principal en espacios, nada.
+    var abajo = !Datos.PrincipalEnEspacios;
+    var zocalo = abajo && Datos.UsaInterruptorPrincipal;
+    var alto = altoBarras + (abajo ? Abajo : 0);
+    var filas = renglones + (abajo ? 2 : 1);
+    <div class="multifilar" style="grid-template-rows: @(Cabeza)px repeat(@renglones, @(Renglon)px)@(abajo ? $" {Abajo}px" : "")">
+        <div class="tapa-muerta" style="grid-row: 1 / @(filas + 1)"></div>
         <div class="cabeza izq">Nones</div>
         <div class="cabeza der">Pares</div>
 
-        <div class="barras" style="grid-row: 1 / @(renglones + 2); height: @(altoBarras)px">
-            <svg width="@AnchoBarras" height="@altoBarras" viewBox="0 0 @AnchoBarras @altoBarras"
+        <div class="barras" style="grid-row: 1 / @(filas + 1); height: @(alto)px">
+            <svg width="@AnchoBarras" height="@alto" viewBox="0 0 @AnchoBarras @alto"
                  role="img" aria-label="@($"Barras {string.Join(", ", barras)} con la conexión de cada espacio")">
-                @for (var n = 1; n <= Cuadro.Datos.NumeroEspacios; n++)
+                @for (var n = 1; n <= Datos.NumeroEspacios; n++)
                 {
                     var c = Conexion(n, barras);
                     <line class="conexion riel-@c.Clase @(c.Usado ? null : "libre")"
-                          x1="@(c.Nones ? 0 : c.X)" y1="@c.Y" x2="@(c.Nones ? c.X : AnchoBarras)" y2="@c.Y" />
+                          x1="@(c.Nones ? 0 : c.X)" y1="@N(c.Y)" x2="@(c.Nones ? c.X : AnchoBarras)" y2="@N(c.Y)" />
                 }
                 @foreach (var b in barras)
                 {
-                    <line class="riel riel-@char.ToLowerInvariant(b)" x1="@XDe(b, barras)" y1="22" x2="@XDe(b, barras)" y2="@(altoBarras - 4)" />
+                    <line class="riel riel-@char.ToLowerInvariant(b)" x1="@XDe(b, barras)" y1="22" x2="@XDe(b, barras)" y2="@(abajo ? altoBarras + 10 : altoBarras - 4)" />
                 }
-                @for (var n = 1; n <= Cuadro.Datos.NumeroEspacios; n++)
+                @for (var n = 1; n <= Datos.NumeroEspacios; n++)
                 {
                     var c = Conexion(n, barras);
-                    <circle class="union riel-@c.Clase @(c.Usado ? null : "libre")" cx="@c.X" cy="@c.Y" r="4.5" />
+                    if (c.DelPrincipal)
+                    {
+                        var punta = c.Nones ? c.X - 7 : c.X + 7;
+                        var cola = c.Nones ? c.X - 15 : c.X + 15;
+                        <polygon class="flecha riel-@c.Clase" points="@($"{punta},{N(c.Y)} {cola},{N(c.Y - 4.5m)} {cola},{N(c.Y + 4.5m)}")" />
+                    }
+                    <circle class="union riel-@c.Clase @(c.Usado ? null : "libre")" cx="@c.X" cy="@N(c.Y)" r="4.5" />
+                }
+                @if (abajo)
+                {
+                    @foreach (var b in barras)
+                    {
+                        var x = XDe(b, barras);
+                        var desde = zocalo ? altoBarras + 86 : altoBarras + 36;
+                        if (!zocalo)
+                        {
+                            <rect class="zapata riel-@char.ToLowerInvariant(b)" x="@(x - 8)" y="@(altoBarras + 10)" width="16" height="22" rx="3" />
+                            <circle class="tornillo" cx="@x" cy="@(altoBarras + 21)" r="3.5" />
+                            <path class="tornillo" d="@($"M{N(x - 2.2m)} {N(altoBarras + 23.2m)}l4.4-4.4")" />
+                        }
+                        <line class="acometida" x1="@x" y1="@(desde + 6)" x2="@x" y2="@(alto - 2)" />
+                        <polygon class="acometida" points="@($"{x},{desde} {x - 4},{desde + 7} {x + 4},{desde + 7}")" />
+                    }
                 }
             </svg>
             @foreach (var b in barras)
             {
                 <span class="fase-rect fase-rect-@char.ToLowerInvariant(b)" style="left: @(XDe(b, barras) - 10)px">@b</span>
             }
-            @for (var n = 1; n <= Cuadro.Datos.NumeroEspacios; n++)
+            @for (var n = 1; n <= Datos.NumeroEspacios; n++)
             {
                 var c = Conexion(n, barras);
                 <span class="etq etq-@c.Clase @(c.Usado ? null : "libre")"
-                      style="left: @(c.Nones ? 0 : AnchoBarras - 22)px; top: @(c.Y - 7.5m)px">@n</span>
+                      style="left: @(c.Nones ? 0 : AnchoBarras - 22)px; top: @N(c.Y - 7.5m)px">@n</span>
+            }
+            @if (zocalo)
+            {
+                @* De frente, la pinza arriba: a 1.2 un polo mide 24, lo que separa a las barras. *@
+                <div class="zocalo" style="left: @(XDe(barras[0], barras) - 12)px; top: @(altoBarras + 8)px">
+                    <Interruptor Polos="Datos.PolosDelPrincipal" Escala="1.2m" Clase="principal" />
+                </div>
             }
         </div>
+
+        @if (abajo)
+        {
+            <div class="nota-abajo izq" style="grid-row: @(renglones + 2)">
+                @if (zocalo)
+                {
+                    <span class="t acento">Interruptor principal</span>
+                    <span class="s">@(Cuadro.InterruptorPrincipalA > 0m ? $"{Cuadro.InterruptorPrincipalA:N0} A · " : "")@PolosTexto(Datos.PolosDelPrincipal) · en zócalo</span>
+                }
+                else
+                {
+                    <span class="t">Zapatas principales</span>
+                    <span class="s">sin interruptor principal</span>
+                }
+            </div>
+            <div class="nota-abajo der" style="grid-row: @(renglones + 2)">
+                <span class="t">Acometida</span>
+                <span class="s">entra por abajo</span>
+            </div>
+        }
 
         @foreach (var bloque in Cuadro.Gabinete)
         {
             var nones = bloque.Columna == 1;
-            var filas = $"grid-row: {bloque.Fila + 1} / span {bloque.Espacios}";
-            <div class="directorio @(nones ? "izq" : "der") @(bloque.Ocupado ? null : "vacio")"
-                 style="@filas" title="@Titulo(bloque)">
+            var lugar = $"grid-row: {bloque.Fila + 1} / span {bloque.Espacios}";
+            <div class="directorio @(nones ? "izq" : "der") @(bloque.Ocupado ? null : "vacio") @(bloque.EsPrincipal ? "principal" : null)"
+                 style="@lugar" title="@Titulo(bloque)">
                 <span class="nom">@Nombre(bloque)</span>
                 <span class="amp">@Amperes(bloque)</span>
             </div>
-            <div class="hueco @(nones ? "izq" : "der")" style="@filas">
+            <div class="hueco @(nones ? "izq" : "der")" style="@lugar">
                 @if (bloque.Ocupado && bloque.Espacios is >= 1 and <= 3)
                 {
-                    <Interruptor Polos="bloque.Espacios" Escala="1.2m"
+                    <Interruptor Polos="bloque.Espacios" Escala="1.2m" Clase="@(bloque.EsPrincipal ? "principal" : null)"
                                  Barra="@(nones ? Interruptor.HaciaLaBarra.Derecha : Interruptor.HaciaLaBarra.Izquierda)" />
                 }
                 else if (!bloque.Ocupado)
@@ -114,12 +207,19 @@ else
         }
     </div>
 
+    @if (Cuadro.EspaciosDelPrincipal.Count > 0)
+    {
+        <p class="nota-principal">
+            <span>Acometida al <strong class="acento">interruptor principal</strong> en los espacios @string.Join("-", Cuadro.EspaciosDelPrincipal)</span>
+        </p>
+    }
+
     @* Angosto (celular, o dos columnas en pantallas medianas): el directorio no cabe a los lados
        del multifilar y baja aquí, en orden de espacio. *@
     <ol class="directorio-lista">
         @foreach (var bloque in Cuadro.Gabinete.Where(b => b.Ocupado).OrderBy(b => b.Circuito.Espacio))
         {
-            <li title="@Titulo(bloque)">
+            <li class="@(bloque.EsPrincipal ? "principal" : null)" title="@Titulo(bloque)">
                 <span class="num">@bloque.Numeros</span>
                 <span class="nom">@Nombre(bloque)</span>
                 <span class="amp">@Amperes(bloque)</span>
@@ -132,6 +232,8 @@ else
 @code {
     [Parameter, EditorRequired] public CuadroDeCarga Cuadro { get; set; } = default!;
 
+    private DatosDelTablero Datos => Cuadro.Datos;
+
     /// <summary>Un renglón del gabinete: un polo del QO a 1.2 (20 × 1.2).</summary>
     private const int Renglon = 24;
 
@@ -141,30 +243,41 @@ else
     /// <summary>La franja de las barras; van a 24 px una de otra, centradas.</summary>
     private const int AnchoBarras = 104;
 
+    /// <summary>Abajo de las barras: el zócalo del principal (74 px a 1.2) y la acometida, o las zapatas.</summary>
+    private const int Abajo = 118;
+
     private static int XDe(char barra, IReadOnlyList<char> barras) =>
         AnchoBarras / 2 + 24 * barras.TakeWhile(b => b != barra).Count() - 12 * (barras.Count - 1);
 
-    private readonly record struct Punto(decimal X, decimal Y, string Clase, bool Nones, bool Usado);
+    private readonly record struct Punto(int X, decimal Y, string Clase, bool Nones, bool Usado, bool DelPrincipal);
 
     /// <summary>Dónde sale de su barra el espacio <paramref name="n"/>.</summary>
     private Punto Conexion(int n, IReadOnlyList<char> barras)
     {
-        var fase = DistribucionBarras.FaseDe(n, Cuadro.Datos.Sistema);
+        var fase = DistribucionBarras.FaseDe(n, Datos.Sistema);
         var usado = Cuadro.Gabinete.Any(b => b.Ocupado && DistribucionBarras.EspaciosQueOcupa(b.Circuito.Espacio, b.Espacios).Contains(n));
         return new(XDe(fase, barras), Cabeza + Renglon * ((n - 1) / 2) + Renglon / 2m,
-                   char.ToLowerInvariant(fase).ToString(), n % 2 == 1, usado);
+                   char.ToLowerInvariant(fase).ToString(), n % 2 == 1, usado, Cuadro.EspaciosDelPrincipal.Contains(n));
     }
 
-    private static string Nombre(BloqueDelGabinete bloque) =>
-        !bloque.Ocupado ? "libre"
+    private static string N(decimal valor) => valor.ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+    private static string PolosTexto(int n) => n == 1 ? "1 polo" : $"{n} polos";
+
+    private string Nombre(BloqueDelGabinete bloque) =>
+        bloque.EsPrincipal ? "Interruptor principal"
+        : !bloque.Ocupado ? "libre"
         : string.IsNullOrWhiteSpace(bloque.Circuito.Descripcion) ? MemoriaDeCalculo.Etiqueta(bloque.Circuito)
         : bloque.Circuito.Descripcion;
 
-    private static string? Amperes(BloqueDelGabinete bloque) =>
-        bloque.Ocupado && bloque.Circuito.Resultado is { } r ? $"{r.ProteccionA:N0} A" : null;
+    private string? Amperes(BloqueDelGabinete bloque) =>
+        bloque.EsPrincipal ? (Cuadro.InterruptorPrincipalA > 0m ? $"{Cuadro.InterruptorPrincipalA:N0} A" : null)
+        : bloque.Ocupado && bloque.Circuito.Resultado is { } r ? $"{r.ProteccionA:N0} A" : null;
 
     private static string Titulo(BloqueDelGabinete bloque) =>
-        bloque.Ocupado
-            ? $"Espacio(s) {bloque.Numeros} · barra(s) {bloque.Barras} · {bloque.Espacios} polo(s)"
-            : $"Espacio {bloque.Numeros} · barra {bloque.Barras} · libre";
+        bloque.EsPrincipal
+            ? $"Espacio(s) {bloque.Numeros} · interruptor principal · {bloque.Espacios} polo(s)"
+            : bloque.Ocupado
+                ? $"Espacio(s) {bloque.Numeros} · barra(s) {bloque.Barras} · {bloque.Espacios} polo(s)"
+                : $"Espacio {bloque.Numeros} · barra {bloque.Barras} · libre";
 }

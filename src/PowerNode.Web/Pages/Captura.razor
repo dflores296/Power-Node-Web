@@ -55,6 +55,30 @@
             <option value="@TipoAcometidaTablero.InterruptorPrincipal">Interruptor principal</option>
             <option value="@TipoAcometidaTablero.ZapatasPrincipales">Zapatas principales</option>
         </select></label>
+        @* Dónde va el principal — decisión montaje-del-interruptor-principal (I-68). Con una barra no
+           hay zócalo: siempre va en un espacio. *@
+        @if (Datos.UsaInterruptorPrincipal && Datos.Barras.Count > 1)
+        {
+            <label><span class="ayuda" title="Zócalo propio: abajo de las barras, sin ocupar espacios numerados. En espacios: como un derivado, se come tantos espacios como polos; por omisión, los últimos pares.">Montaje del principal</span>
+                <select @bind="Datos.MontajePrincipal" @bind:after="Recalcular">
+                    <option value="@MontajeDelPrincipal.Zocalo">Zócalo propio</option>
+                    <option value="@MontajeDelPrincipal.EnEspacios">En espacios del gabinete</option>
+                </select></label>
+        }
+        @if (Datos.PrincipalEnEspacios)
+        {
+            <label><span class="ayuda" title="Los espacios que se come el interruptor principal. Es un valor por omisión: se puede mover a donde quepa sin pisar un circuito.">Espacios del principal</span>
+                <select value="@Datos.EspacioInicialDelPrincipal" @onchange="CambiarEspacioDelPrincipal">
+                    @foreach (var e in Datos.EspaciosValidosDelPrincipal)
+                    {
+                        <option value="@e">@string.Join("-", DistribucionBarras.EspaciosQueOcupa(e, Datos.PolosDelPrincipal))</option>
+                    }
+                </select></label>
+        }
+        @if (Cuadro.AvisoDelPrincipal is { } avisoPrincipal)
+        {
+            <p class="aviso"><Icono Nombre="aviso" Clase="aviso-icono" /><span>@avisoPrincipal</span></p>
+        }
         <label>Montaje <select @bind="Datos.Montaje">
             <option value="Sobreponer">Sobreponer</option>
             <option value="Empotrar">Empotrar</option>
@@ -180,6 +204,21 @@
 
                 @foreach (var c in lado.Where(x => !x.EsContinuacion))
                 {
+                    @* El interruptor principal en espacios: un renglón que dice lo que es, sin captura (I-68). *@
+                    if (c.EsDelPrincipal)
+                    {
+                        <tr class="fila-principal" data-espacio="@c.Espacio">
+                            <td class="num">@c.Espacio</td>
+                            <td colspan="@(Columnas - 1)" rowspan="@Cuadro.EspaciosDelPrincipal.Count">
+                                <strong>Interruptor principal</strong>@(Cuadro.InterruptorPrincipalA > 0m ? $" · {Cuadro.InterruptorPrincipalA:N0} A" : "") · @Polos(Datos.PolosDelPrincipal) · @(Datos.Barras.Count == 1 ? "alimenta la barra" : "alimenta las barras")
+                            </td>
+                        </tr>
+                        @foreach (var seguido in lado.Where(x => x.ContinuacionDe == c.Espacio))
+                        {
+                            <tr class="fila-principal"><td class="num">@seguido.Espacio</td></tr>
+                        }
+                        continue;
+                    }
                     <tr class="@(c.Resultado is null ? "vacio" : null)" data-espacio="@c.Espacio">
                         <td class="num">@c.Espacio</td>
                         <td rowspan="@c.Polos">
@@ -475,23 +514,6 @@
         </p>
 
         <InteriorDelGabinete Cuadro="Cuadro" />
-
-        @*
-            El principal va abajo y centrado, fuera de las dos columnas: sin catálogo no se sabe si
-            su marco es el de un derivado (y entonces se comería espacios numerados) o si trae
-            alojamiento propio, y suponerlo sería inventar espacios que no se pueden usar. Se dibuja
-            como lo que es seguro: existe y protege al tablero.
-        *@
-        @if (Datos.UsaInterruptorPrincipal)
-        {
-            <div class="principal">
-                Interruptor principal
-                @if (Cuadro.InterruptorPrincipalA > 0m)
-                {
-                    <strong>@Cuadro.InterruptorPrincipalA.ToString("N0") A · @Polos(Cuadro.Alimentador.Polos)</strong>
-                }
-            </div>
-        }
     </section>
 
     <div class="columna">
@@ -714,6 +736,13 @@
     private DatosDelTablero Datos => Cuadro.Datos;
 
     private void Recalcular() => Cuadro.Recalcular();
+
+    private void CambiarEspacioDelPrincipal(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var espacio))
+            Datos.EspacioDelPrincipal = espacio;
+        Recalcular();
+    }
 
     private void NuevaCanalizacion()
     {

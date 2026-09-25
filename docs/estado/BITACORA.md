@@ -95,8 +95,9 @@ Pruebas: 66 en `PowerNode.Web.Tests`, 6 en `PowerNode.Normativa.Tests`.
 - El interruptor NEMA con una manija de ancho normal en su polo (único, derecho o central), tapa lisa en los demás y más esbelto — I-66, `3a70aea`.
 - El interruptor NEMA a 20 por polo (proporción del QO), centrado en su celda; renglones de 30 px mínimo en la rejilla — I-66, `ba636bd`.
 - Gabinete en multifilar: barras con su fase, conexión y número por espacio, directorio afuera; 1F-2H con la barra horizontal — I-67, `eb6d52c`.
+- El interruptor principal en el gabinete: zócalo, espacios o zapatas; 1F-2H arranca con zapatas. Decisión propuesta: `montaje-del-interruptor-principal.md` — I-68, `HASH`.
 
-Pruebas: 194 en `PowerNode.Web.Tests`, 23 en `PowerNode.Normativa.Tests`.
+Pruebas: 205 en `PowerNode.Web.Tests`, 23 en `PowerNode.Normativa.Tests`.
 
 ## 2026-09-22 (tercera parte)
 

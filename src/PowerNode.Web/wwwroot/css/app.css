@@ -776,10 +776,36 @@ circle.union { stroke: var(--encabezado); }
 .interruptor .manija { fill: currentColor; fill-opacity: .85; }
 .interruptor .ranura { fill: none; stroke: var(--papel); stroke-width: 1; stroke-linecap: round; }
 
-.principal { margin-top: 8px; padding: 8px 10px; text-align: center; font-size: 11px;
-             color: var(--tenue); background: var(--encabezado); border: 1px solid var(--linea);
-             border-radius: var(--radio-sm); }
-.principal strong { color: var(--tinta); }
+/* EL PRINCIPAL EN EL GABINETE (I-68) — decisión montaje-del-interruptor-principal. En el color
+   del acento, para no confundirlo con un derivado; la acometida, tenue, con flechas hacia él. */
+.interruptor.principal { color: var(--acento); }
+.interruptor.principal .relleno { fill-opacity: .45; }
+.multifilar .zocalo { position: absolute; }
+.multifilar .zocalo .interruptor { display: block; }
+.acometida { stroke: var(--tenue); stroke-width: 1.5; fill: var(--tenue); }
+.flecha { stroke: none; }
+polygon.riel-a { fill: var(--barra-a); } polygon.riel-b { fill: var(--barra-b); } polygon.riel-c { fill: var(--barra-c); }
+.zapata { fill: var(--papel); stroke-width: 1.5; }
+.tornillo { fill: none; stroke: var(--tinta); stroke-width: 1.5; }
+.multifilar .nota-abajo { display: flex; flex-direction: column; justify-content: center; gap: 2px; padding: 0 8px; }
+.multifilar .nota-abajo.izq { grid-column: 1; align-items: flex-end; text-align: right; }
+.multifilar .nota-abajo.der { grid-column: 5; }
+.multifilar .nota-abajo .t { font-size: 12px; font-weight: 700; }
+.multifilar .nota-abajo .s { font-size: 11px; color: var(--tenue); }
+.gabinete .acento { color: var(--acento); }
+.multifilar .directorio.principal .nom, .multifilar .directorio.principal .amp,
+.multifilar-1 .principal .nom, .multifilar-1 .principal .amp,
+.directorio-lista li.principal .nom, .directorio-lista li.principal .amp { color: var(--acento); font-weight: 700; }
+.nota-principal { margin: 10px 0 0; padding: 8px 10px; text-align: center; font-size: 11px;
+                  color: var(--tenue); background: var(--encabezado); border: 1px solid var(--linea);
+                  border-radius: var(--radio-sm); }
+.nota-principal:empty { display: none; }
+.nota-principal strong { color: var(--tinta); }
+.multifilar-1 .inicio-barra.con-zapata { width: 60px; }
+.multifilar-1 .inicio-barra.con-zapata .fase-rect { left: 18px; top: 26px; }
+/* El renglón del principal en el cuadro de carga: dice lo que es, sin captura. */
+.cuadro tr.fila-principal td { background: var(--acento-suave); color: var(--tinta); text-align: left; }
+.cuadro tr.fila-principal td.num { text-align: center; }
 
 /* Desglose de aparatos del circuito — I-35 */
 .cuadro .desc-linea { display: flex; align-items: center; gap: 4px; }

@@ -18,14 +18,16 @@ namespace PowerNode.Web.Modelo;
 /// <param name="Espacios">Cuántos renglones abarca: sus polos.</param>
 /// <param name="Numeros">Los espacios que se come: «1» o «1-3-5», como en un directorio de tablero.</param>
 /// <param name="Barras">Las barras que toca, en orden: «A», «AB», «ABC».</param>
+/// <param name="EsPrincipal">El interruptor principal montado en espacios: alimenta las barras.</param>
 public sealed record BloqueDelGabinete(
     CircuitoDelCuadro Circuito,
     int Fila,
     int Columna,
     int Espacios,
     string Numeros,
-    string Barras)
+    string Barras,
+    bool EsPrincipal = false)
 {
     /// <summary>¿Hay un interruptor de verdad aquí, o es un espacio sin usar?</summary>
-    public bool Ocupado => Circuito.TieneCarga;
+    public bool Ocupado => EsPrincipal || Circuito.TieneCarga;
 }

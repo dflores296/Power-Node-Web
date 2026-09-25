@@ -81,6 +81,21 @@
 
                     @foreach (var c in lado.Where(x => !x.EsContinuacion))
                     {
+                        @* El interruptor principal en espacios (I-68). *@
+                        if (c.EsDelPrincipal)
+                        {
+                            <tr class="principal-doc">
+                                <td class="num">@c.Espacio</td>
+                                <td colspan="@(15 + Datos.Barras.Count)" rowspan="@Cuadro.EspaciosDelPrincipal.Count" class="izq">
+                                    <strong>INTERRUPTOR PRINCIPAL</strong>@(Cuadro.InterruptorPrincipalA > 0m ? $" · {Cuadro.InterruptorPrincipalA:N0} A" : "") · @Datos.PolosDelPrincipal @(Datos.PolosDelPrincipal == 1 ? "polo" : "polos")
+                                </td>
+                            </tr>
+                            @foreach (var seguido in lado.Where(x => x.ContinuacionDe == c.Espacio))
+                            {
+                                <tr class="principal-doc"><td class="num">@seguido.Espacio</td></tr>
+                            }
+                            continue;
+                        }
                         <tr class="@(c.TieneCarga ? null : "libre")">
                             <td class="num">@c.Espacio</td>
                             <td rowspan="@c.Polos" class="izq">@(string.IsNullOrWhiteSpace(c.Descripcion) ? (c.TieneCarga ? MemoriaDeCalculo.Etiqueta(c) : "LIBRE") : c.Descripcion)</td>

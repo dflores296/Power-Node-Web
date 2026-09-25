@@ -78,8 +78,69 @@ public sealed class DatosDelTablero
             NumeroEspacios = validos.FirstOrDefault(e => e >= NumeroEspacios, validos[^1]);
     }
 
-    /// <summary>Zapatas principales o interruptor principal propio. Decide qué dice el 408-36.</summary>
+    /// <summary>
+    /// Zapatas principales o interruptor principal propio. Decide qué dice el 408-36. Por omisión,
+    /// interruptor principal; en 1F-2H, zapatas: un centro de carga de una barra casi siempre viene
+    /// protegido desde otro tablero (David, 2026-09-25). Ver <see cref="AjustarAcometida"/>.
+    /// </summary>
     public TipoAcometidaTablero TipoAcometida { get; set; } = TipoAcometidaTablero.InterruptorPrincipal;
+
+    /// <summary>
+    /// Zócalo propio o espacios del gabinete — decisión <c>montaje-del-interruptor-principal.md</c>.
+    /// Solo se ofrece con dos o tres barras; con una, el principal siempre va en un espacio.
+    /// </summary>
+    public MontajeDelPrincipal MontajePrincipal { get; set; } = MontajeDelPrincipal.Zocalo;
+
+    /// <summary>
+    /// El primer espacio del principal cuando va en espacios. <c>null</c> = el de omisión
+    /// (<see cref="EspacioPorOmisionDelPrincipal"/>): es un valor por omisión, no una regla.
+    /// </summary>
+    public int? EspacioDelPrincipal { get; set; }
+
+    /// <summary>Tantos polos como barras: 3, 2 o 1. No se captura.</summary>
+    public int PolosDelPrincipal => Barras.Count;
+
+    /// <summary>¿El principal se come espacios numerados? Con una barra, siempre que lo haya.</summary>
+    public bool PrincipalEnEspacios =>
+        UsaInterruptorPrincipal && (Barras.Count == 1 || MontajePrincipal == MontajeDelPrincipal.EnEspacios);
+
+    /// <summary>
+    /// Con una barra, el espacio 1 (junto a la acometida en el dibujo); con dos o tres, los últimos
+    /// pares: 20-22-24 en un tablero de 24 y 3 barras, 22-24 con 2 (David, 2026-09-25).
+    /// </summary>
+    public int EspacioPorOmisionDelPrincipal
+    {
+        get
+        {
+            if (Barras.Count == 1)
+                return 1;
+            var ultimoPar = NumeroEspacios % 2 == 0 ? NumeroEspacios : NumeroEspacios - 1;
+            return Math.Max(2, ultimoPar - 2 * (PolosDelPrincipal - 1));
+        }
+    }
+
+    /// <summary>Los espacios donde puede empezar el principal: donde caben sus polos.</summary>
+    public IReadOnlyList<int> EspaciosValidosDelPrincipal =>
+        [.. Enumerable.Range(1, NumeroEspacios).Where(e => DistribucionBarras.CabeEnElTablero(e, PolosDelPrincipal, NumeroEspacios))];
+
+    /// <summary>El primer espacio del principal: el capturado si cabe, si no el de omisión.</summary>
+    public int EspacioInicialDelPrincipal =>
+        EspacioDelPrincipal is { } e && EspaciosValidosDelPrincipal.Contains(e) ? e : EspacioPorOmisionDelPrincipal;
+
+    /// <summary>
+    /// Al entrar a 1F-2H, zapatas; al salir de 1F-2H, interruptor principal. Solo en el cambio: lo
+    /// que se elija después se respeta, y el archivo pone la acometida después de las fases.
+    /// </summary>
+    private void AjustarAcometida(ConfiguracionTablero antes)
+    {
+        var ahora = SistemaDelTablero.De(Sistema);
+        if (ahora == antes)
+            return;
+        if (ahora == ConfiguracionTablero.UnaFaseDosHilos)
+            TipoAcometida = TipoAcometidaTablero.ZapatasPrincipales;
+        else if (antes == ConfiguracionTablero.UnaFaseDosHilos)
+            TipoAcometida = TipoAcometidaTablero.InterruptorPrincipal;
+    }
 
     /// <summary>
     /// Capacidad nominal de la barra, en amperes. <b><c>null</c> es válido y no dispara nada</b>:
@@ -136,10 +197,12 @@ public sealed class DatosDelTablero
         {
             if (value == _fases)
                 return;
+            var antes = SistemaDelTablero.De(Sistema);
             _fases = value;
             _hilos = HilosPorOmision(value);
             AjustarTension();
             AjustarEspacios();
+            AjustarAcometida(antes);
         }
     }
     private int _fases = 3;
@@ -152,9 +215,11 @@ public sealed class DatosDelTablero
         {
             if (value == _hilos)
                 return;
+            var antes = SistemaDelTablero.De(Sistema);
             _hilos = value;
             AjustarTension();
             AjustarEspacios();
+            AjustarAcometida(antes);
         }
     }
     private int _hilos = 4;
