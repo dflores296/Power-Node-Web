@@ -3,16 +3,16 @@
        no son aproximaciones. El resto se derivó alrededor de ellos. */
     --tinta: #101418;
     --acento: #0B6E99;
-    --tenue: #5A6570;
+    --tenue: #45505c;           /* más oscuro desde I-64: los rótulos grises casi no se leían */
 
     --linea: #d8dee6;
-    --fondo: #f5f7fa;
+    --fondo: #e6ebf1;           /* un tono abajo del papel: las tarjetas se separan del fondo (I-64) */
     --papel: #fff;
     --alerta: #b3261e;
 
     /* Tonos de apoyo (I-57): antes eran colores sueltos en cada regla; con el tema oscuro cada uno
        necesita su pareja. */
-    --encabezado: #eef2f7;      /* encabezados de tabla, chips, pistas */
+    --encabezado: #dfe6ee;      /* encabezados de tabla, chips, pistas */
     --linea-suave: #eef1f5;     /* divisiones interiores */
     --punteado: #9aa6b2;        /* subrayado de las ayudas, borde del chip de neutro */
     --hover: #f8fafc;           /* renglón bajo el cursor */
@@ -32,6 +32,11 @@
     --foco: rgb(11 110 153 / .12); /* halo del campo con el foco */
     --estrella: #bf8700;        /* la ★ del botón de GitHub, la de GitHub */
     --icono-relleno: .16;       /* la opacidad del relleno de los iconos duotono */
+    /* EL RELIEVE (David, 2026-09-25 — I-64), la propuesta B del canvas «relieve y contraste»: */
+    --relieve-borde: #9aa9b8;   /* el borde de tarjetas y campos */
+    --relieve-sombra: #c3ceda;  /* la sombra sólida, desplazada, de las tarjetas */
+    --trazo-fuerte: #1d2a36;    /* borde y sombra de los botones; la línea bajo la barra */
+    --acento-hondo: #06384e;    /* la sombra del botón primario */
     color-scheme: light;
 
     /* Escala de redondeo. Nace del logo: sus líneas rematan en semicírculo
@@ -55,7 +60,7 @@
         --tenue: #9aa6b2;
 
         --linea: #2e3640;
-        --fondo: #0f1317;
+        --fondo: #0b0e12;
         --papel: #171c21;
         --alerta: #f2877e;
 
@@ -79,6 +84,10 @@
         --foco: rgb(74 163 209 / .22);
         --estrella: #e3b341;
         --icono-relleno: .26;
+        --relieve-borde: #3d4955;
+        --relieve-sombra: #05080b;
+        --trazo-fuerte: #8595a5;
+        --acento-hondo: #123a4f;
         color-scheme: dark;
     }
 }
@@ -794,3 +803,39 @@ h1:focus { outline: none; }
 body.con-ayuda { padding-bottom: 72px; }
 @media (max-width: 700px) { #barra-ayuda .teclas { display: none; } }
 @media print { #barra-ayuda { display: none !important; } body.con-ayuda { padding-bottom: 0; } }
+
+/* ------------------------------------------------------------------------------------------------
+   EL RELIEVE (David, 2026-09-25 — I-64). La propuesta B del canvas «Power Node — relieve y
+   contraste», entre lo plano de antes y lo exagerado de gitdiagram: tarjetas con borde marcado y una
+   sombra sólida desplazada; botones con la suya, que se hunden al presionarlos; títulos en tinta, no
+   en gris. Solo en pantalla: el papel impreso sigue plano.
+   ------------------------------------------------------------------------------------------------ */
+@media screen {
+    .ficha .grupo, .tarjeta, .memoria, .documento, .cuadro {
+        border: 1.5px solid var(--relieve-borde);
+        box-shadow: 4px 4px 0 var(--relieve-sombra);
+    }
+    /* La sombra del cuadro no se corta en su contenedor con desplazamiento. */
+    .cuadro-completo { padding: 0 4px 4px 0; }
+    .cuadro table.desglose { border: 1.5px solid var(--relieve-borde); }
+
+    select, input { border-width: 1.5px; border-color: var(--relieve-borde); }
+
+    .boton { border: 1.5px solid var(--trazo-fuerte); font-weight: 600;
+             box-shadow: 2px 2px 0 var(--trazo-fuerte); transition: transform .06s, box-shadow .06s; }
+    .boton:hover { border-color: var(--trazo-fuerte); }
+    .boton:active { transform: translate(2px, 2px); box-shadow: none; }
+    .boton.primario { border-color: var(--acento-hondo); box-shadow: 2px 2px 0 var(--acento-hondo); }
+    .boton.primario:active { box-shadow: none; }
+
+    .tema-opciones { border: 1.5px solid var(--trazo-fuerte); box-shadow: 2px 2px 0 var(--trazo-fuerte); }
+    .paginas a.active { box-shadow: inset 0 0 0 1.5px var(--acento); }
+    .barra-superior { border-bottom: 2px solid var(--trazo-fuerte); }
+    .nota-archivo { border-width: 1.5px 1.5px 1.5px 3px; border-color: var(--trazo-fuerte); border-left-color: var(--acento);
+                    box-shadow: 3px 3px 0 var(--trazo-fuerte); }
+
+    h2 { color: var(--tinta); font-weight: 700; }
+}
+@media print {
+    * { box-shadow: none !important; }
+}

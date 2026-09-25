@@ -156,6 +156,20 @@ papel y una línea abajo; 64 px de alto (56 hasta I-59).
   (uno por renglón) y junto al selector «Tipo» del cuadro, solo en los renglones con carga. No en la
   puesta a tierra (ya lleva la muestra verde de la NOM) ni en el documento impreso, que se firma.
 
+## El relieve
+
+> **CONFIRMADA · David · 2026-09-25** (I-64): «lo siento muy plano». De tres puntos intermedios entre la
+> app plana y gitdiagram (sombra suave, relieve marcado, superficies tintadas) eligió **B, relieve
+> marcado**.
+
+- Tarjetas (ficha, tarjetas, cuadro, memoria, documento en pantalla): borde de 1.5 px `--relieve-borde`
+  y una sombra sólida desplazada 4 px, `--relieve-sombra`. Campos con borde de 1.5 px.
+- Botones y el selector de tema: borde `--trazo-fuerte` y sombra sólida de 2 px; al presionarlos se
+  hunden. El primario, con `--acento-hondo`. La barra superior, con una línea de 2 px abajo.
+- Más contraste: fondo `#e6ebf1` (un tono abajo del papel), `--tenue` más oscuro, títulos de tarjeta en
+  tinta y negrita, encabezados de tabla `#dfe6ee`. En oscuro, el fondo baja a `#0b0e12`.
+- Solo en pantalla (`@media screen`): el documento impreso sigue plano.
+
 ## Qué archivo es cuál
 
 | Archivo | Para qué |
