@@ -94,6 +94,7 @@ Pruebas: 66 en `PowerNode.Web.Tests`, 6 en `PowerNode.Normativa.Tests`.
 - El interruptor NEMA rehecho como un QO genérico de frente, con una manija ancha en 2 y 3 polos y sin rótulo; en el gabinete, acostado con la pinza hacia la barra; DIN retirado — I-66, `f850580`.
 - El interruptor NEMA con una manija de ancho normal en su polo (único, derecho o central), tapa lisa en los demás y más esbelto — I-66, `3a70aea`.
 - El interruptor NEMA a 20 por polo (proporción del QO), centrado en su celda; renglones de 30 px mínimo en la rejilla — I-66, `ba636bd`.
+- Gabinete en multifilar: barras con su fase, conexión y número por espacio, directorio afuera; 1F-2H con la barra horizontal — I-67, `HASH`.
 
 Pruebas: 194 en `PowerNode.Web.Tests`, 23 en `PowerNode.Normativa.Tests`.
 

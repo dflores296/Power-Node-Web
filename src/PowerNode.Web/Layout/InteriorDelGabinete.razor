@@ -1,0 +1,170 @@
+@*
+    EL INTERIOR DEL GABINETE EN MULTIFILAR (I-67). Canvas «Gabinete · reacomodos de la tarjeta de
+    circuito», propuesta B2, elegida por David el 2026-09-25: la tapa muerta al centro, con las
+    barras dibujadas; los interruptores acostados a sus lados y el directorio afuera.
+
+    Dos o tres barras: verticales, con su rótulo arriba (el mismo .fase-rect del cuadro: relleno =
+    fase). Cada espacio sale de su barra con una conexión horizontal, un punto donde toca la barra y
+    su número en la punta (contorno = circuito); los nones a la izquierda, los pares a la derecha.
+    Una conexión que cruza otra barra sin punto no la toca, como en un multifilar.
+
+    Una barra (1F-2H): la barra horizontal, cada espacio baja de ella con su número y el interruptor
+    de frente abajo.
+
+    Un renglón mide lo mismo que un polo (24 px, el QO a 1.2): cada conexión llega a su polo.
+*@
+<div class="gabinete">
+@if (Cuadro.UnaSolaBarra)
+{
+    <div class="multifilar-1">
+        <div class="inicio-barra" role="img" aria-label="Barra A">
+            <svg width="36" height="64" viewBox="0 0 36 64" aria-hidden="true">
+                <line class="riel riel-a" x1="20" y1="10" x2="36" y2="10" />
+            </svg>
+            <span class="fase-rect fase-rect-a">A</span>
+        </div>
+        @foreach (var bloque in Cuadro.Gabinete)
+        {
+            var ocupado = bloque.Ocupado;
+            var ultimo = bloque.Fila == Cuadro.Gabinete.Max(b => b.Fila);
+            <div class="espacio-1 @(ocupado ? null : "vacio")" title="@Titulo(bloque)">
+                <div class="conector">
+                    <svg width="48" height="64" viewBox="0 0 48 64" aria-hidden="true">
+                        <line class="riel riel-a" x1="0" y1="10" x2="@(ultimo ? 24 : 48)" y2="10" />
+                        <line class="conexion riel-a @(ocupado ? null : "libre")" x1="24" y1="10" x2="24" y2="64" />
+                        <circle class="union riel-a @(ocupado ? null : "libre")" cx="24" cy="10" r="4.5" />
+                    </svg>
+                    <span class="etq etq-a @(ocupado ? null : "libre")">@bloque.Numeros</span>
+                </div>
+                @if (ocupado)
+                {
+                    <Interruptor Polos="1" Escala="1.2m" />
+                }
+                else
+                {
+                    <span class="tapon" aria-label="Espacio libre, con tapón"></span>
+                }
+                <span class="amp">@Amperes(bloque)</span>
+                <span class="nom">@Nombre(bloque)</span>
+            </div>
+        }
+    </div>
+}
+else
+{
+    var renglones = (Cuadro.Datos.NumeroEspacios + 1) / 2;
+    var altoBarras = Cabeza + renglones * Renglon;
+    var barras = Cuadro.Datos.Barras;
+    <div class="multifilar" style="grid-template-rows: @(Cabeza)px repeat(@renglones, @(Renglon)px)">
+        <div class="tapa-muerta" style="grid-row: 1 / @(renglones + 2)"></div>
+        <div class="cabeza izq">Nones</div>
+        <div class="cabeza der">Pares</div>
+
+        <div class="barras" style="grid-row: 1 / @(renglones + 2); height: @(altoBarras)px">
+            <svg width="@AnchoBarras" height="@altoBarras" viewBox="0 0 @AnchoBarras @altoBarras"
+                 role="img" aria-label="@($"Barras {string.Join(", ", barras)} con la conexión de cada espacio")">
+                @for (var n = 1; n <= Cuadro.Datos.NumeroEspacios; n++)
+                {
+                    var c = Conexion(n, barras);
+                    <line class="conexion riel-@c.Clase @(c.Usado ? null : "libre")"
+                          x1="@(c.Nones ? 0 : c.X)" y1="@c.Y" x2="@(c.Nones ? c.X : AnchoBarras)" y2="@c.Y" />
+                }
+                @foreach (var b in barras)
+                {
+                    <line class="riel riel-@char.ToLowerInvariant(b)" x1="@XDe(b, barras)" y1="22" x2="@XDe(b, barras)" y2="@(altoBarras - 4)" />
+                }
+                @for (var n = 1; n <= Cuadro.Datos.NumeroEspacios; n++)
+                {
+                    var c = Conexion(n, barras);
+                    <circle class="union riel-@c.Clase @(c.Usado ? null : "libre")" cx="@c.X" cy="@c.Y" r="4.5" />
+                }
+            </svg>
+            @foreach (var b in barras)
+            {
+                <span class="fase-rect fase-rect-@char.ToLowerInvariant(b)" style="left: @(XDe(b, barras) - 10)px">@b</span>
+            }
+            @for (var n = 1; n <= Cuadro.Datos.NumeroEspacios; n++)
+            {
+                var c = Conexion(n, barras);
+                <span class="etq etq-@c.Clase @(c.Usado ? null : "libre")"
+                      style="left: @(c.Nones ? 0 : AnchoBarras - 22)px; top: @(c.Y - 7.5m)px">@n</span>
+            }
+        </div>
+
+        @foreach (var bloque in Cuadro.Gabinete)
+        {
+            var nones = bloque.Columna == 1;
+            var filas = $"grid-row: {bloque.Fila + 1} / span {bloque.Espacios}";
+            <div class="directorio @(nones ? "izq" : "der") @(bloque.Ocupado ? null : "vacio")"
+                 style="@filas" title="@Titulo(bloque)">
+                <span class="nom">@Nombre(bloque)</span>
+                <span class="amp">@Amperes(bloque)</span>
+            </div>
+            <div class="hueco @(nones ? "izq" : "der")" style="@filas">
+                @if (bloque.Ocupado && bloque.Espacios is >= 1 and <= 3)
+                {
+                    <Interruptor Polos="bloque.Espacios" Escala="1.2m"
+                                 Barra="@(nones ? Interruptor.HaciaLaBarra.Derecha : Interruptor.HaciaLaBarra.Izquierda)" />
+                }
+                else if (!bloque.Ocupado)
+                {
+                    <span class="tapon" aria-label="Espacio libre, con tapón"></span>
+                }
+            </div>
+        }
+    </div>
+
+    @* Angosto (celular, o dos columnas en pantallas medianas): el directorio no cabe a los lados
+       del multifilar y baja aquí, en orden de espacio. *@
+    <ol class="directorio-lista">
+        @foreach (var bloque in Cuadro.Gabinete.Where(b => b.Ocupado).OrderBy(b => b.Circuito.Espacio))
+        {
+            <li title="@Titulo(bloque)">
+                <span class="num">@bloque.Numeros</span>
+                <span class="nom">@Nombre(bloque)</span>
+                <span class="amp">@Amperes(bloque)</span>
+            </li>
+        }
+    </ol>
+}
+</div>
+
+@code {
+    [Parameter, EditorRequired] public CuadroDeCarga Cuadro { get; set; } = default!;
+
+    /// <summary>Un renglón del gabinete: un polo del QO a 1.2 (20 × 1.2).</summary>
+    private const int Renglon = 24;
+
+    /// <summary>El renglón de los rótulos de las barras.</summary>
+    private const int Cabeza = 26;
+
+    /// <summary>La franja de las barras; van a 24 px una de otra, centradas.</summary>
+    private const int AnchoBarras = 104;
+
+    private static int XDe(char barra, IReadOnlyList<char> barras) =>
+        AnchoBarras / 2 + 24 * barras.TakeWhile(b => b != barra).Count() - 12 * (barras.Count - 1);
+
+    private readonly record struct Punto(decimal X, decimal Y, string Clase, bool Nones, bool Usado);
+
+    /// <summary>Dónde sale de su barra el espacio <paramref name="n"/>.</summary>
+    private Punto Conexion(int n, IReadOnlyList<char> barras)
+    {
+        var fase = DistribucionBarras.FaseDe(n, Cuadro.Datos.Sistema);
+        var usado = Cuadro.Gabinete.Any(b => b.Ocupado && DistribucionBarras.EspaciosQueOcupa(b.Circuito.Espacio, b.Espacios).Contains(n));
+        return new(XDe(fase, barras), Cabeza + Renglon * ((n - 1) / 2) + Renglon / 2m,
+                   char.ToLowerInvariant(fase).ToString(), n % 2 == 1, usado);
+    }
+
+    private static string Nombre(BloqueDelGabinete bloque) =>
+        !bloque.Ocupado ? "libre"
+        : string.IsNullOrWhiteSpace(bloque.Circuito.Descripcion) ? MemoriaDeCalculo.Etiqueta(bloque.Circuito)
+        : bloque.Circuito.Descripcion;
+
+    private static string? Amperes(BloqueDelGabinete bloque) =>
+        bloque.Ocupado && bloque.Circuito.Resultado is { } r ? $"{r.ProteccionA:N0} A" : null;
+
+    private static string Titulo(BloqueDelGabinete bloque) =>
+        bloque.Ocupado
+            ? $"Espacio(s) {bloque.Numeros} · barra(s) {bloque.Barras} · {bloque.Espacios} polo(s)"
+            : $"Espacio {bloque.Numeros} · barra {bloque.Barras} · libre";
+}

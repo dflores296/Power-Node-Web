@@ -28,6 +28,9 @@
     --alerta-fondo: #fdeceb;
     --cita: #8a5a2b;
     --fase-borde: transparent;  /* la fase A es negra: en oscuro lleva borde para no perderse */
+    --barra-a: #1b1f23;         /* las barras del gabinete (I-67), del color de su fase */
+    --barra-b: #c62828;
+    --barra-c: #1565c0;
     --sombra: rgba(0, 0, 0, .06);
     --foco: rgb(11 110 153 / .12); /* halo del campo con el foco */
     --estrella: #bf8700;        /* la ★ del botón de GitHub, la de GitHub */
@@ -80,6 +83,9 @@
         --alerta-fondo: #3a1a18;
         --cita: #d9a77a;
         --fase-borde: #6b7682;
+        --barra-a: #aab4bf;
+        --barra-b: #e5534b;
+        --barra-c: #4c8dff;
         --sombra: rgba(0, 0, 0, .4);
         --foco: rgb(74 163 209 / .22);
         --estrella: #e3b341;
@@ -513,9 +519,10 @@ select.tipo { width: 108px; padding: 2px 4px 2px 6px; border-radius: var(--radio
 /* minmax(0, …) y no 1fr a secas: 1fr no baja del ancho mínimo de su contenido (la tabla del
    resumen, sin cortes de línea), y en un teléfono la columna salía más ancha que la pantalla. El
    navegador alejaba entonces TODA la página para que cupiera, y el resto se veía a dos tercios. */
-.cierre { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr) minmax(0, 1fr);
+/* El gabinete, más ancho (1.5): el multifilar fija 256 px al centro y el directorio necesita el resto (I-67). */
+.cierre { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1fr);
           gap: 20px; margin-top: 22px; align-items: stretch; }
-@media (max-width: 1400px) { .cierre { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 1540px) { .cierre { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 900px) { .cierre { grid-template-columns: minmax(0, 1fr); } }
 /* En pantalla angosta los rótulos largos del resumen parten en dos líneas en vez de empujar; también
    las cifras («0.00 / 0.00»). A 360 px, el Android más común, no bastaba: la tabla se salía 22 px de
@@ -668,42 +675,100 @@ label.suelto input { width: 90px; }
 .intro { margin: 4px 0 2px; font-size: 11px; }
 
 /* ------------------------------------------------------------------------------------------------
-   EL INTERIOR DEL GABINETE — la cuadrícula de dos columnas con la rotación por pares.
+   EL INTERIOR DEL GABINETE EN MULTIFILAR — Layout/InteriorDelGabinete.razor (I-67).
 
-   Es una rejilla CSS de verdad y no una lista: hace falta que un interruptor multipolar sea UNA
-   celda que abarque varios renglones (grid-row: span N), y una lista reparte una casilla por
-   elemento sin saber fusionarlas. Mismo motivo por el que el editor de escritorio usa un Grid con
-   RowSpan y no un UniformGrid.
+   Rejilla de cinco columnas: directorio de nones, interruptores, barras, interruptores, directorio
+   de pares. Un renglón por par de espacios, de 24 px: lo mismo que un polo del QO a 1.2, así que un
+   interruptor de 3 polos abarca tres renglones y cada conexión llega a su polo. Relleno = fase
+   (.fase-rect), contorno = circuito (.etq).
    ------------------------------------------------------------------------------------------------ */
 
 .sin-margen { margin-top: 0; }
 
-/* Cada espacio, un renglón de 30 px por lo menos: un interruptor de 3 polos mide tres espacios. */
-.interior { display: grid; grid-template-columns: 1fr 1fr; grid-auto-rows: minmax(30px, auto);
-            gap: 4px; margin: 10px 0 4px; }
-/* 1F-2H: una sola barra, una sola columna en orden (I-54). */
-.interior.una-columna { grid-template-columns: 1fr; }
+.gabinete { container-type: inline-size; }
+.multifilar { display: grid; grid-template-columns: minmax(0, 1fr) 76px 104px 76px minmax(0, 1fr);
+              margin: 14px 0 4px; }
+.multifilar .tapa-muerta { grid-column: 2 / 5; margin: -6px 0; background: var(--encabezado);
+                           border: 1px solid var(--linea); border-radius: var(--radio-sm); }
+.multifilar .cabeza { grid-row: 1; display: flex; align-items: center; padding: 0 8px;
+                      font-size: 10px; font-weight: 700; letter-spacing: .06em;
+                      text-transform: uppercase; color: var(--tenue); }
+.multifilar .cabeza.izq { grid-column: 1; justify-content: flex-end; }
+.multifilar .cabeza.der { grid-column: 5; }
 
-.bloque { display: flex; align-items: center; gap: 6px; min-height: 30px;
-          border: 1px solid var(--linea); border-radius: var(--radio-xs);
-          padding: 3px 6px; background: var(--fondo); overflow: hidden; }
-.bloque.ocupado { background: var(--acento-suave); border-color: var(--acento-borde); }
-.bloque .numeros { font-size: 10px; font-weight: 700; color: var(--tenue);
-                   min-width: 30px; text-align: center; font-variant-numeric: tabular-nums; }
-.bloque .pastillas { display: flex; flex-direction: column; gap: 2px; }
-.bloque .etiqueta { font-size: 11px; overflow: hidden; text-overflow: ellipsis;
-                    white-space: nowrap; flex: 1; }
-.bloque.vacante .etiqueta { color: var(--vacio); font-style: italic; }
-.bloque .amperes { font-size: 10px; font-weight: 600; color: var(--tenue);
-                   font-variant-numeric: tabular-nums; }
+.multifilar .barras { grid-column: 3; position: relative; width: 104px; }
+.multifilar .barras svg { position: absolute; inset: 0; display: block; overflow: visible; }
+.multifilar .barras .fase-rect { position: absolute; top: 2px; }
 
-/* Una pastilla por barra que toca, apiladas: un 3 polos toca A, B y C, y fundir eso en un solo
-   color perdería justo el dato que el color existe para enseñar. Los colores son los de .fase-rect. */
-.bloque .fase-rect { min-width: 18px; height: 16px; padding: 0 4px; }
+.multifilar .directorio { display: flex; align-items: center; gap: 6px; min-width: 0; padding: 0 8px;
+                          border-bottom: 1px solid var(--linea-suave); }
+.multifilar .directorio.izq { grid-column: 1; }
+.multifilar .directorio.izq .nom { text-align: right; }
+.multifilar .directorio.der { grid-column: 5; flex-direction: row-reverse; }
+.multifilar .hueco { display: flex; align-items: center; justify-content: center; }
+.multifilar .hueco.izq { grid-column: 2; }
+.multifilar .hueco.der { grid-column: 4; }
 
-/* EL INTERRUPTOR DIBUJADO (I-66), Layout/Interruptor.razor. Mismo duotono que .icono. Centrado en
-   su celda; en la columna de los pares va primero, junto a la barra del centro. */
-.bloque.derecha > .interruptor { order: -1; }
+.multifilar .nom, .multifilar-1 .nom { flex: 1; min-width: 0; font-size: 12px; white-space: nowrap;
+                                       overflow: hidden; text-overflow: ellipsis; }
+.multifilar .amp, .multifilar-1 .amp { font-size: 11px; font-weight: 700; color: var(--tenue);
+                                       font-variant-numeric: tabular-nums; white-space: nowrap; }
+.multifilar .vacio .nom, .multifilar-1 .vacio .nom { color: var(--vacio); font-style: italic; }
+.multifilar .tapon { width: 46px; height: 12px; box-sizing: border-box; border: 1.5px dashed var(--vacio);
+                     border-radius: 4px; }
+
+/* Las barras, las conexiones y los puntos, del color de su fase. La A es negra; en oscuro, gris
+   claro: el negro sobre la tapa oscura no se vería. */
+.riel { stroke-width: 4; stroke-linecap: round; }
+.conexion { stroke-width: 1.5; }
+.conexion.libre { stroke-dasharray: 3 3; opacity: .4; }
+.union { stroke: var(--encabezado); stroke-width: 2; }
+.union.libre { opacity: .4; }
+.riel-a { stroke: var(--barra-a); } circle.riel-a { fill: var(--barra-a); }
+.riel-b { stroke: var(--barra-b); } circle.riel-b { fill: var(--barra-b); }
+.riel-c { stroke: var(--barra-c); } circle.riel-c { fill: var(--barra-c); }
+circle.union { stroke: var(--encabezado); }
+
+/* El número del espacio en la punta de su conexión: contorno del color de la fase, sin relleno. */
+.etq { position: absolute; display: flex; align-items: center; justify-content: center;
+       width: 22px; height: 15px; box-sizing: border-box; border: 1px solid; border-radius: 4px;
+       background: var(--papel); color: var(--tinta); font-size: 9.5px; font-weight: 700;
+       line-height: 1; font-variant-numeric: tabular-nums; }
+.etq.libre { opacity: .45; }
+.etq-a { border-color: var(--barra-a); }
+.etq-b { border-color: var(--barra-b); }
+.etq-c { border-color: var(--barra-c); }
+
+/* Angosto: el multifilar solo, al centro; el directorio, en lista debajo. */
+.directorio-lista { display: none; margin: 12px 0 0; padding: 0; list-style: none; }
+.directorio-lista li { display: flex; align-items: baseline; gap: 8px; padding: 5px 2px;
+                       border-bottom: 1px solid var(--linea-suave); font-size: 12px; }
+.directorio-lista .num { min-width: 44px; font-weight: 700; color: var(--tenue); font-variant-numeric: tabular-nums; }
+.directorio-lista .nom { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.directorio-lista .amp { font-weight: 700; color: var(--tenue); font-variant-numeric: tabular-nums; }
+@container (max-width: 560px) {
+    .multifilar .directorio, .multifilar .cabeza { display: none; }
+    .directorio-lista { display: block; }
+}
+
+/* 1F-2H: la única barra, horizontal; cada espacio baja de ella. Con muchos espacios, se recorre de
+   lado dentro de la tarjeta. */
+.multifilar-1 { display: flex; align-items: flex-start; margin: 14px 0 4px; padding: 10px 8px 12px;
+                background: var(--encabezado); border: 1px solid var(--linea);
+                border-radius: var(--radio-sm); overflow-x: auto; }
+.multifilar-1 .inicio-barra { position: relative; flex: none; width: 36px; height: 64px; }
+.multifilar-1 .inicio-barra svg, .multifilar-1 .conector svg { display: block; overflow: visible; }
+.multifilar-1 .inicio-barra .fase-rect { position: absolute; left: 0; top: 1.5px; }
+.multifilar-1 .espacio-1 { flex: none; width: 48px; display: flex; flex-direction: column; align-items: center; }
+.multifilar-1 .conector { position: relative; width: 48px; height: 64px; }
+.multifilar-1 .conector .etq { left: 13px; top: 30px; }
+.multifilar-1 .amp { margin-top: 8px; }
+.multifilar-1 .nom { flex: none; margin-top: 8px; height: 150px; writing-mode: vertical-rl;
+                     transform: rotate(180deg); }
+.multifilar-1 .tapon { width: 12px; height: 46px; margin: 14px 0; box-sizing: border-box;
+                       border: 1.5px dashed var(--vacio); border-radius: 4px; }
+
+/* EL INTERRUPTOR DIBUJADO (I-66), Layout/Interruptor.razor. Mismo duotono que .icono. */
 .interruptor { flex: none; display: block; overflow: visible; color: var(--tinta); }
 .interruptor .trazo { fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
 .interruptor .relleno { fill: var(--acento); fill-opacity: var(--icono-relleno); stroke: none; }

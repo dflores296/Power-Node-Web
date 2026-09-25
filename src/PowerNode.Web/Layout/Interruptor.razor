@@ -12,7 +12,7 @@
     que llenaba el renglón del gabinete, 34 por polo, se veía chata). En el gabinete va acostado,
     centrado en su celda y con la pinza hacia la barra del centro.
 *@
-<svg class="interruptor @Clase" viewBox="0 0 @AnchoEnPantalla @AltoEnPantalla" width="@AnchoEnPantalla" height="@AltoEnPantalla" role="img" aria-label="@Nombre">
+<svg class="interruptor @Clase" viewBox="0 0 @AnchoEnPantalla @AltoEnPantalla" width="@N(AnchoEnPantalla * Escala)" height="@N(AltoEnPantalla * Escala)" role="img" aria-label="@Nombre">
     <g transform="@Giro">
         @foreach (var y in new[] { 0.75m, Largo - 11.75m })
         {
@@ -52,6 +52,9 @@
 
     /// <summary>Hacia dónde apunta la pinza. De frente (arriba) por omisión.</summary>
     [Parameter] public HaciaLaBarra Barra { get; set; } = HaciaLaBarra.Arriba;
+
+    /// <summary>Tamaño en pantalla: 1 = 20 px por polo. El gabinete lo usa a 1.2, un polo por renglón de 24 px.</summary>
+    [Parameter] public decimal Escala { get; set; } = 1m;
 
     [Parameter] public string? Clase { get; set; }
 

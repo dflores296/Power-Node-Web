@@ -464,53 +464,17 @@
 
 <div class="cierre">
     @*
-        El interior del tablero, calcado del editor de gabinete de escritorio: UNA celda por
-        interruptor —tan alta como polos tiene—, no una por espacio. Un trifásico dibujado como tres
-        celdas sueltas con una flecha de "continúa" fue justo lo que David señaló allá el
-        2026-08-20: en un directorio de tablero real, un interruptor es una sola celda.
+        El interior del tablero: la tapa muerta con las barras en multifilar, los interruptores a sus
+        lados y el directorio afuera — Layout/InteriorDelGabinete.razor (I-67).
     *@
     <section class="tarjeta">
-        <h2>Gabinete · convención NEMA</h2>
+        <h2>Gabinete · convención NEMA · @Datos.EtiquetaSistema</h2>
         <p class="derivado sin-margen">
             <strong>@Cuadro.EspaciosOcupados</strong> de @Datos.NumeroEspacios espacios ocupados ·
             @Cuadro.EspaciosLibres libres
         </p>
 
-        <div class="interior @(Cuadro.UnaSolaBarra ? "una-columna" : null)">
-            @foreach (var bloque in Cuadro.Gabinete)
-            {
-                <div class="bloque @(bloque.Ocupado ? "ocupado" : "vacante") @(bloque.Columna == 2 ? "derecha" : null)"
-                     style="grid-column: @bloque.Columna; grid-row: @bloque.Fila / span @bloque.Espacios"
-                     title="@Titulo(bloque)">
-                    <span class="numeros">@bloque.Numeros</span>
-                    <span class="pastillas">
-                        @foreach (var barra in bloque.Barras)
-                        {
-                            <span class="fase-rect fase-rect-@char.ToLowerInvariant(barra)">@barra</span>
-                        }
-                    </span>
-                    <span class="etiqueta">
-                        @(bloque.Ocupado
-                            ? (string.IsNullOrWhiteSpace(bloque.Circuito.Descripcion)
-                                ? MemoriaDeCalculo.Etiqueta(bloque.Circuito)
-                                : bloque.Circuito.Descripcion)
-                            : "libre")
-                    </span>
-                    @* El interruptor dibujado, acostado y con la pinza hacia la barra del centro:
-                       los nones apuntan a la derecha, los pares a la izquierda (y .derecha lo pone
-                       primero). Solo NEMA: es el único gabinete (I-66). *@
-                    @if (bloque.Ocupado && bloque.Espacios is >= 1 and <= 3)
-                    {
-                        <Interruptor Polos="bloque.Espacios"
-                                     Barra="@(bloque.Columna == 2 ? Interruptor.HaciaLaBarra.Izquierda : Interruptor.HaciaLaBarra.Derecha)" />
-                    }
-                    @if (bloque.Ocupado)
-                    {
-                        <span class="amperes">@bloque.Circuito.Resultado?.ProteccionA.ToString("N0") A</span>
-                    }
-                </div>
-            }
-        </div>
+        <InteriorDelGabinete Cuadro="Cuadro" />
 
         @*
             El principal va abajo y centrado, fuera de las dos columnas: sin catálogo no se sabe si
@@ -1166,11 +1130,6 @@
         ? "Capturada en W: VA = W ÷ F.P. Modifica corriente, protección, conductor, caída de tensión y kW."
         : $"Capturada en {(c.Unidad == UnidadConsumo.Amperes ? "A" : "VA")}: el F.P. no modifica la corriente ni la protección. " +
           "Modifica la caída de tensión (y el conductor, si excede el límite) y los kW.";
-
-    private static string Titulo(BloqueDelGabinete bloque) =>
-        bloque.Ocupado
-            ? $"Espacio(s) {bloque.Numeros} · barra(s) {bloque.Barras} · {bloque.Espacios} polo(s)"
-            : $"Espacio {bloque.Numeros} · barra {bloque.Barras} · libre";
 
     /// <summary>«6.77 % (fase C)»: la caída del alimentador y la fase que la da.</summary>
     private static string CaidaDelAlimentador(ResultadoAlimentador a) =>
