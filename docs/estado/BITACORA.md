@@ -86,6 +86,7 @@ Pruebas: 66 en `PowerNode.Web.Tests`, 6 en `PowerNode.Normativa.Tests`.
 - La carta de la carga se ve completa aunque la carga sea rápida (capa encima de la app, 1.6 s mínimo, sin brincos tras la congelación del arranque); encabezado del documento sin hueco; resumen a 360 px; tema e Imprimir con símbolos en el celular — I-60, `da669de`.
 - Guardar y abrir el tablero en un archivo `.powernode.json` (lo capturado, se recalcula al abrir); la pestaña lleva el nombre del tablero; varios tableros, uno por pestaña. Decisión propuesta: `archivo-del-tablero.md` — I-05, `0169b78`.
 - Botón de GitHub con las estrellas en la barra, como el de gitdiagram.com — I-61, `005be3c`.
+- Propuestas de tipografía e iconos en un canvas; David eligió Segoe UI y duotono: iconos duotono en toda la aplicación, firma en Segoe UI — I-62, `5518836`.
 
 Pruebas: 194 en `PowerNode.Web.Tests`, 23 en `PowerNode.Normativa.Tests`.
 
