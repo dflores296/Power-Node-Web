@@ -96,7 +96,7 @@ Pruebas: 66 en `PowerNode.Web.Tests`, 6 en `PowerNode.Normativa.Tests`.
 - El interruptor NEMA a 20 por polo (proporción del QO), centrado en su celda; renglones de 30 px mínimo en la rejilla — I-66, `ba636bd`.
 - Gabinete en multifilar: barras con su fase, conexión y número por espacio, directorio afuera; 1F-2H con la barra horizontal — I-67, `eb6d52c`.
 - El interruptor principal en el gabinete: zócalo, espacios o zapatas; 1F-2H arranca con zapatas. Decisión propuesta: `montaje-del-interruptor-principal.md` — I-68, `4db6997`.
-- Arrastrar circuitos en la tabla y en el gabinete, deshacer y «Optimizar acomodo» (con el desempate por dispersión en `BalanceoDeFases`) — I-69, `HASH`.
+- Arrastrar circuitos en la tabla y en el gabinete, deshacer y «Optimizar acomodo» (con el desempate por dispersión en `BalanceoDeFases`) — I-69, `1c573d1`.
 
 Pruebas: 214 en `PowerNode.Web.Tests`, 23 en `PowerNode.Normativa.Tests`.
 
