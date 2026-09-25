@@ -88,11 +88,18 @@ papel y una línea abajo; 64 px de alto (56 hasta I-59).
   tooltip: David lo pidió quitar.
 - Las páginas: **Captura · Cuadro de carga · Memoria de cálculo** (`NavLink`, con `aria-current`).
   La memoria tiene ruta propia, `/documento/memoria`; antes era una pestaña sin dirección.
-- Derecha: en la captura, **Abrir** y **Guardar** (I-05); el tema; en el documento, **Imprimir / PDF**.
+- Derecha: en la captura, **Abrir** y **Guardar** (I-05); en el documento, **Imprimir / PDF**; el
+  tema; y al final **GitHub ★ n**, como el botón de gitdiagram.com (I-61): lleva al repositorio, en otra
+  pestaña, con sus estrellas. La cuenta sale de la API pública de GitHub (60 consultas por hora sin
+  sesión, por dirección IP) y se guarda una hora en el navegador (`js/github.js`); si la consulta
+  falla, el botón sale sin número. «17.1k» arriba de mil, como GitHub. La marca de GitHub es la de
+  Octicons, para enlazar al repositorio como lo permiten sus lineamientos.
 - En el celular (≤ 760 px) las páginas bajan a un segundo renglón, y el tema e Imprimir quedan como
   símbolos (◐ ☀ ☾, una carpeta, un disquete y una impresora) con el nombre para el lector de pantalla:
   con texto, la barra del documento se iba a tres renglones (I-60). A 400 px o menos, en la captura, el
-  logo va sin «Power Node» junto a Abrir y Guardar; el nombre sigue en la pestaña.
+  logo va sin «Power Node» junto a Abrir y Guardar; el nombre sigue en la pestaña. En el segundo
+  renglón, las páginas con su nombre corto (Captura · Cuadro · Memoria) y GitHub a la derecha, solo con
+  la marca y el número (I-61).
 - `html { scroll-padding-top }`: Enter, las flechas y Alt+1…5 mueven el foco con `scrollIntoView`, y
   sin esto el campo quedaba debajo de la barra.
 - Impreso no sale (`no-imprime`). Vive en `Layout/BarraSuperior.razor`, dentro de `MainLayout`.

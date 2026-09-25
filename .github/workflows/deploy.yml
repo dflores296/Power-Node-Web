@@ -74,7 +74,7 @@ jobs:
           echo "Versión de assets: $V"
           grep -oE 'href="css/app\.css\?v=[a-f0-9]+"' publicado/wwwroot/index.html
           sed -i -E "s#src=\"js/([a-z]+)\.js\"#src=\"js/\\1.js?v=$V\"#g" publicado/wwwroot/index.html
-          test "$(grep -cE 'src="js/[a-z]+\.js\?v=[a-f0-9]+"' publicado/wwwroot/index.html)" -eq 3
+          test "$(grep -cE 'src="js/[a-z]+\.js\?v=[a-f0-9]+"' publicado/wwwroot/index.html)" -eq 4
 
       # Sin .nojekyll, GitHub Pages ignora _framework/ por empezar con guion bajo, y la página
       # publica "bien" pero no arranca, sin error visible. Es la trampa clásica de Blazor en Pages.

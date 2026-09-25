@@ -30,6 +30,7 @@
     --fase-borde: transparent;  /* la fase A es negra: en oscuro lleva borde para no perderse */
     --sombra: rgba(0, 0, 0, .06);
     --foco: rgb(11 110 153 / .12); /* halo del campo con el foco */
+    --estrella: #bf8700;        /* la ★ del botón de GitHub, la de GitHub */
     color-scheme: light;
 
     /* Escala de redondeo. Nace del logo: sus líneas rematan en semicírculo
@@ -75,6 +76,7 @@
         --fase-borde: #6b7682;
         --sombra: rgba(0, 0, 0, .4);
         --foco: rgb(74 163 209 / .22);
+        --estrella: #e3b341;
         color-scheme: dark;
     }
 }
@@ -135,6 +137,7 @@ html { scroll-padding-top: calc(var(--alto-barra) + 8px); }
 .paginas a:hover { color: var(--acento); background: var(--hover); }
 .paginas a.active { color: var(--acento); background: var(--acento-suave); font-weight: 600; }
 .espaciador { flex: 1 1 auto; }
+.pagina-corta { display: none; }
 
 /* El tema, segmentado como el de msa-toolkit: las tres opciones en un riel, la elegida resaltada. */
 .tema-opciones { display: flex; padding: 2px; border-radius: var(--radio-sm);
@@ -148,6 +151,14 @@ html { scroll-padding-top: calc(var(--alto-barra) + 8px); }
 /* Botones con icono (Abrir, Guardar, Imprimir): en el celular queda solo el icono (I-60, I-05). */
 .boton.con-icono { display: inline-flex; align-items: center; gap: 6px; }
 .boton-icono { flex: none; }
+
+/* El repositorio, como el botón de gitdiagram.com: marca, «GitHub», ★ y las estrellas (I-61). */
+.github { display: inline-flex; align-items: center; gap: 7px; padding: 6px 10px; border-radius: var(--radio-sm);
+          color: var(--tinta); text-decoration: none; font-size: 13px; font-weight: 500; white-space: nowrap; }
+.github:hover { background: var(--hover); color: var(--acento); }
+.github-marca { flex: none; }
+.github-estrellas { display: inline-flex; align-items: center; gap: 3px; color: var(--tenue); font-variant-numeric: tabular-nums; }
+.github-estrellas .estrella { color: var(--estrella); }
 
 /* El aviso de abrir y guardar, bajo la barra, a la derecha. Se va solo. */
 .nota-archivo { position: absolute; right: 20px; top: calc(100% + 8px); max-width: min(560px, calc(100vw - 28px));
@@ -174,7 +185,13 @@ html { scroll-padding-top: calc(var(--alto-barra) + 8px); }
     .boton.con-icono { padding: 7px 10px; }
     .nota-archivo { right: 14px; }
     .marca-texto small, .barra-superior .vsep { display: none; }
-    .paginas { order: 3; flex-basis: 100%; overflow-x: auto; }
+    /* Las páginas y GitHub, en el segundo renglón: GitHub a la derecha, solo con la marca y el número. */
+    .paginas { order: 3; flex: 1 1 calc(100% - 120px); min-width: 0; overflow-x: auto; }
+    .paginas a { padding: 6px 8px; }
+    .pagina-corta { display: inline; }
+    .pagina-larga { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    .github { order: 4; padding: 6px 8px; }
+    .github-texto { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
     html { scroll-padding-top: 108px; }
 }
 /* 360 px, el Android más común: con Abrir y Guardar no cabe el nombre junto al logo, y queda el logo
