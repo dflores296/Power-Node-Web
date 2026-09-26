@@ -16,8 +16,8 @@ namespace PowerNode.Web.Modelo;
 ///
 /// <para>
 /// Para el cálculo del circuito, <see cref="MotorOAireAcondicionado"/> y <see cref="CalefaccionFija"/>
-/// son <see cref="TipoCarga.Equipo"/>: carga de placa. El cálculo propio de motores (Art. 430) está
-/// pendiente — I-15.
+/// son <see cref="TipoCarga.Equipo"/>: carga de placa. Un motor capturado en HP es
+/// <see cref="TipoCarga.Fuerza"/> y se calcula por el Art. 430 — I-15, <see cref="MotoresEnHp"/>.
 /// </para>
 /// </summary>
 public enum CategoriaDeCarga
@@ -59,7 +59,7 @@ public static class CategoriasDeCarga
         CategoriaDeCarga.Alumbrado => "Alumbrado: luminarias y alumbrado general — Tabla 220-42.",
         CategoriaDeCarga.Contactos => "Contactos: contactos de uso general. En vivienda, seleccionar el uso (cocina, lavadora, baño) — 210-11(c).",
         CategoriaDeCarga.Equipo => "Equipo: aparatos que no son motor ni calefacción de ambiente: hornos, estufas, parrillas, secadoras, calentadores de agua, equipo electrónico — 220-53 a 220-56.",
-        CategoriaDeCarga.MotorOAireAcondicionado => "Motor / A/C: todo lo que funciona con motor o compresor: aire acondicionado, refrigeración, bombas, ventiladores, bombas de calor e inverter frío/calor — 220-50, Art. 430 y 440.",
+        CategoriaDeCarga.MotorOAireAcondicionado => "Motor / A/C: todo lo que funciona con motor o compresor: aire acondicionado, refrigeración, bombas, ventiladores, bombas de calor e inverter frío/calor — 220-50. En HP, circuito de motor por el Art. 430; en VA, W o A, carga de placa.",
         _ => "Calefacción: calefacción por resistencia eléctrica: calefactores, cables calefactores, calderas eléctricas. Carga continua — 424-3(b); 220-51.",
     };
 

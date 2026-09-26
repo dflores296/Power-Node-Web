@@ -18,7 +18,8 @@ namespace PowerNode.Web.Modelo;
 /// <b>Las dos calculadoras que expone son las dos mitades del cuadro de carga:</b> cada renglón es
 /// un circuito derivado (Art. 210) y el renglón de abajo —el alimentador con el interruptor
 /// principal del tablero— es un alimentador (Art. 215). El Excel original las trata igual: la fila
-/// 79 tiene exactamente las mismas fórmulas que las filas 34-76.
+/// 79 tiene exactamente las mismas fórmulas que las filas 34-76. La tercera, <see cref="Motor"/>, es
+/// un renglón de Motor / A/C capturado en HP (Art. 430) — I-15.
 /// </para>
 /// </summary>
 public sealed class MotorNom
@@ -43,6 +44,8 @@ public sealed class MotorNom
         var tierra = new TablaPuestaTierraJson(fuente, Calibres);
         var impedancia = new TablaImpedanciaJson(fuente, Calibres);
         var aislamiento = new TablaAislamientoJson(fuente);
+        var flcMotor = new TablaFlcMotorJson(fuente);
+        var proteccionMotor = new TablaProteccionMotorJson(fuente);
 
         // Un juego de calculadoras por serie de interruptores: la misma norma, elegida dentro de la
         // familia que se instala. Ver SerieDeInterruptores.
@@ -53,6 +56,8 @@ public sealed class MotorNom
                 Calibres, ampacidad, deLaSerie, temperatura, agrupamiento, tierra, impedancia, aislamiento);
             _alimentador[serie] = new CalculadoraAlimentador(
                 Calibres, ampacidad, deLaSerie, temperatura, agrupamiento, tierra, impedancia, aislamiento);
+            _motor[serie] = new CalculadoraCircuitoDerivadoMotor(
+                Calibres, ampacidad, flcMotor, proteccionMotor, deLaSerie, temperatura, agrupamiento, tierra, impedancia, aislamiento);
         }
 
         ProteccionEstandar = proteccion;
@@ -63,10 +68,13 @@ public sealed class MotorNom
         Aislamiento = aislamiento;
         Azotea = new TablaTemperaturaAzoteaJson(fuente);
         Agrupamiento = agrupamiento;
+        FlcMotor = flcMotor;
+        ProteccionMotor = proteccionMotor;
     }
 
     private readonly Dictionary<SerieDeInterruptores, CalculadoraCircuitoDerivadoNoMotor> _noMotor = [];
     private readonly Dictionary<SerieDeInterruptores, CalculadoraAlimentador> _alimentador = [];
+    private readonly Dictionary<SerieDeInterruptores, CalculadoraCircuitoDerivadoMotor> _motor = [];
 
     public FuenteTablasJson Fuente { get; }
     public ICatalogoCalibres Calibres { get; }
@@ -77,6 +85,18 @@ public sealed class MotorNom
 
     /// <summary>Cada renglón del cuadro: circuito derivado de Alumbrado, Contactos o Equipo (Art. 210).</summary>
     public CalculadoraCircuitoDerivadoNoMotor NoMotor(SerieDeInterruptores serie) => _noMotor[serie];
+
+    /// <summary>
+    /// Un renglón de Motor / A/C capturado en HP: circuito derivado de un motor (Art. 430) — I-15.
+    /// FLC de tabla, conductor al 125 % (430-22) y protección de la Tabla 430-52.
+    /// </summary>
+    public CalculadoraCircuitoDerivadoMotor Motor(SerieDeInterruptores serie) => _motor[serie];
+
+    /// <summary>Tablas 430-247 a 430-250: la corriente a plena carga de un motor — 430-6(a).</summary>
+    public ITablaFlcMotor FlcMotor { get; }
+
+    /// <summary>Tabla 430-52: el porcentaje de la FLC que puede tener la protección del derivado.</summary>
+    public ITablaProteccionMotor ProteccionMotor { get; }
 
     /// <summary>
     /// El renglón del alimentador (Art. 215). Su <c>ProteccionA</c> <b>es</b> el interruptor

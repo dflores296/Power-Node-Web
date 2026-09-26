@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "power-node-web",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": ["run", "--project", "src/PowerNode.Web", "--urls", "http://127.0.0.1:5199"],
+      "port": 5199,
+      "url": "http://127.0.0.1:5199"
+    }
+  ]
+}

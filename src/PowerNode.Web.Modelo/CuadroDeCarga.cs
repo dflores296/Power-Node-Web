@@ -3,6 +3,7 @@ using PowerNode.DesignSuite.Calculo.Canalizaciones;
 using PowerNode.DesignSuite.Calculo.Casos;
 using PowerNode.DesignSuite.Calculo.Magnitudes;
 using PowerNode.DesignSuite.Calculo.Tableros;
+using PowerNode.DesignSuite.Calculo.Unidades;
 using PowerNode.DesignSuite.Calculo.Validaciones;
 using PowerNode.Web.Modelo.Archivo;
 
@@ -21,6 +22,9 @@ public sealed record CargaPorCategoria(CategoriaDeCarga Categoria, decimal Insta
 /// 220-52. Renglón propio del resumen: no está en <see cref="NoContinuaVA"/>, que es la suma de los
 /// renglones. Lleva el F.D. de contactos.
 /// </param>
+/// <param name="MotoresVA">
+/// Los motores en HP, que no son continua ni no continua: van al alimentador por 430-24 — I-15.
+/// </param>
 public sealed record ResumenDeCarga(
     decimal ContinuaVA,
     decimal ContinuaDemandadaVA,
@@ -33,13 +37,15 @@ public sealed record ResumenDeCarga(
     decimal FactorPotencia = 1m,
     decimal Minimo220_52VA = 0m,
     decimal Minimo220_52DemandadoVA = 0m,
-    IReadOnlyList<CargaPorCategoria>? PorCategoria = null)
+    IReadOnlyList<CargaPorCategoria>? PorCategoria = null,
+    decimal MotoresVA = 0m,
+    decimal MotoresDemandadaVA = 0m)
 {
-    public decimal InstaladaVA => ContinuaVA + NoContinuaVA;
+    public decimal InstaladaVA => ContinuaVA + NoContinuaVA + MotoresVA;
 
     /// <summary>La carga que va al alimentador: la instalada más el mínimo de 220-52.</summary>
     public decimal CalculadaVA => InstaladaVA + Minimo220_52VA;
-    public decimal DemandadaVA => ContinuaDemandadaVA + NoContinuaDemandadaVA + Minimo220_52DemandadoVA;
+    public decimal DemandadaVA => ContinuaDemandadaVA + NoContinuaDemandadaVA + Minimo220_52DemandadoVA + MotoresDemandadaVA;
 }
 
 /// <summary>
@@ -71,10 +77,13 @@ public static class FactorPotenciaCombinado
 /// la no continua).
 /// </summary>
 /// <param name="FactorContinua">1.25, o 1.00 con el ensamble aprobado al 100 % — 215-3.</param>
-public sealed record CorrienteDeFase(char Fase, decimal ContinuaA, decimal NoContinuaA, decimal FactorContinua)
+/// <param name="Motores">Los motores en HP que toca la barra, ya con su factor de demanda: su capacidad
+/// es la de 430-24 — 125 % del mayor + la suma de los demás (I-15).</param>
+public sealed record CorrienteDeFase(char Fase, decimal ContinuaA, decimal NoContinuaA, decimal FactorContinua, AgregadoMotores Motores = default)
 {
-    public decimal TotalA => ContinuaA + NoContinuaA;
-    public decimal CapacidadA => FactorContinua * ContinuaA + NoContinuaA;
+    public decimal TotalA => ContinuaA + NoContinuaA + Motores.CorrienteRealA;
+    public decimal CapacidadA => FactorContinua * ContinuaA + NoContinuaA + Motores.CapacidadMinimaA;
+    public bool TieneMotores => Motores.MayorFlcA is not null;
 }
 
 /// <summary>
@@ -239,6 +248,19 @@ public sealed class CuadroDeCarga
         if (c.Resultado is not { Detalle: { } detalle } r)
             return null;
 
+        if (c.EsMotor)
+            return DesgloseDeSeleccion.DeMotor(
+                _motor.Ampacidad, Datos,
+                hp: c.Hp!.Value,
+                flcA: c.FlcA,
+                fuente: FuenteDeFlc(c),
+                porcentaje: PorcentajeProteccionMotor(c),
+                proteccionA: r.ProteccionA,
+                calibre: r.CalibreFase,
+                conductoresPorFase: r.NumeroConductoresParalelo,
+                d: detalle,
+                citas: r.Citas);
+
         var divisor = TensionDeCalculo.Divisor(c.Polos, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV);
         var factor = CargaContinua100Pct.Para(Datos.ConjuntoAprobado100Pct, null, "210-20(a)", "210-19(a)(1)").Factor;
 
@@ -257,6 +279,20 @@ public sealed class CuadroDeCarga
             citas: r.Citas,
             referenciaMinimo: c.UsoEfectivo.ReferenciaProteccionMinima());
     }
+
+    /// <summary>Los HP que la tabla trae para los polos y la tensión de este circuito — I-15. Los ofrece el selector.</summary>
+    public IReadOnlyList<decimal> HpDisponibles(CircuitoDelCuadro c) =>
+        MotoresEnHp.Disponibles(_motor.FlcMotor, c.Polos, TensionDelMotor(c));
+
+    /// <summary>«Tabla 430-250, columna de 230 V (220 V: intervalo de 220 a 240 V)»: de dónde sale la FLC de este circuito.</summary>
+    public string FuenteDeFlc(CircuitoDelCuadro c) => MotoresEnHp.Fuente(c.Polos, TensionDelMotor(c));
+
+    /// <summary>
+    /// El porcentaje de la FLC que puede tener la protección del derivado de un motor — Tabla 430-52,
+    /// interruptor automático de tiempo inverso: 250 % en monofásicos y jaula de ardilla.
+    /// </summary>
+    public decimal PorcentajeProteccionMotor(CircuitoDelCuadro c) =>
+        _motor.ProteccionMotor.PorcentajeMaximo(MotoresEnHp.TipoDeMotor(c.Polos), TipoDispositivoProteccionMotor.InterruptorTiempoInverso);
 
     /// <summary>El desglose del alimentador, con la corriente de la fase que gobierna. <c>null</c> sin cálculo.</summary>
     public DesgloseDeSeleccion? DesgloseDelAlimentador()
@@ -277,7 +313,8 @@ public sealed class CuadroDeCarga
             conductoresPorFase: r.NumeroConductoresParalelo,
             d: detalle,
             citas: r.Citas,
-            referenciaMinimo: Datos.Minimo230_79?.Referencia);
+            referenciaMinimo: Datos.Minimo230_79?.Referencia,
+            motores: g.Motores);
     }
 
     private decimal TamanoEstandar(decimal amperes) =>
@@ -621,6 +658,24 @@ public sealed class CuadroDeCarga
         {
             // I-46: el uso de los contactos solo cuenta en vivienda (210-11(c), 220-52).
             c.UsoEfectivo = c.Categoria == CategoriaDeCarga.Contactos && Datos.Inmueble.AplicaUsoDeContactos() ? c.Uso : UsoDeContactos.General;
+            c.FlcA = 0m;
+            c.MotorVA = 0m;
+
+            // I-15: un motor en HP no tiene carga continua ni no continua. Su corriente es la FLC de
+            // tabla (430-6(a)), y sus VA, esa corriente por la tensión del circuito.
+            if (c.EsMotor)
+            {
+                c.ContinuaVA = 0m;
+                c.NoContinuaVA = 0m;
+                c.Ajuste220_52VA = 0m;
+                if (c.Hp > 0m && MotoresEnHp.Flc(_motor.FlcMotor, c.Hp.Value, c.Polos, TensionDelMotor(c)) is { } flc)
+                {
+                    c.FlcA = flc;
+                    c.MotorVA = flc * TensionDeCalculo.Divisor(c.Polos, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV);
+                }
+                continue;
+            }
+
             if (c.TieneDesglose)
                 SumarDesglose(c);
 
@@ -669,6 +724,10 @@ public sealed class CuadroDeCarga
             ? FactorPotenciaCombinado.De(c.Aparatos.Select(a => (a.TotalVA, a.FactorPotencia)))
             : CircuitoDelCuadro.FactorPotenciaSupuesto;
     }
+
+    /// <summary>La tensión con la que se entra a la tabla de FLC: la del circuito — <see cref="MotoresEnHp.Tension"/>.</summary>
+    private decimal TensionDelMotor(CircuitoDelCuadro c) =>
+        MotoresEnHp.Tension(c.Polos, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV);
 
     private decimal AVoltAmperes(CircuitoDelCuadro c, decimal valor) =>
         ConsumoDePlaca.AVoltAmperes(
@@ -860,6 +919,12 @@ public sealed class CuadroDeCarga
 
             try
             {
+                if (c.EsMotor)
+                {
+                    CalcularMotor(c, canal);
+                    continue;
+                }
+
                 c.Resultado = _motor.NoMotor(Datos.SerieInterruptores).Calcular(new DatosEntradaCircuitoDerivadoNoMotor(
                     TipoCarga: c.Tipo,
                     CargaContinuaVA: c.ContinuaVA,
@@ -902,6 +967,45 @@ public sealed class CuadroDeCarga
                 c.Error = ex.Message;
             }
         }
+    }
+
+    /// <summary>
+    /// <b>El derivado de un motor</b> — I-15, Art. 430: FLC de tabla, conductor al 125 % (430-22),
+    /// protección de la Tabla 430-52 con interruptor de tiempo inverso. Las condiciones (canalización,
+    /// temperatura, aislamiento, terminales) son las mismas que las de cualquier renglón.
+    /// </summary>
+    private void CalcularMotor(CircuitoDelCuadro c, CanalizacionDelTablero canal)
+    {
+        var tension = TensionDelMotor(c);
+        if (c.FlcA <= 0m)
+        {
+            c.Error = MotoresEnHp.SinFila(_motor.FlcMotor, c.Hp!.Value, c.Polos, tension);
+            return;
+        }
+
+        c.Resultado = _motor.Motor(Datos.SerieInterruptores).Calcular(new DatosEntradaCircuitoDerivadoMotor(
+            Hp: c.Hp!.Value,
+            TipoAlimentacion: MotoresEnHp.Alimentacion(c.Polos),
+            TipoMotor: MotoresEnHp.TipoDeMotor(c.Polos),
+            // Lo que se monta en un tablero de derivados: interruptor automático de tiempo inverso.
+            TipoDispositivoProteccion: TipoDispositivoProteccionMotor.InterruptorTiempoInverso,
+            TensionNominalMotorV: tension,
+            // PARA LA CAÍDA, LA TENSIÓN A LA QUE ESTÁ CONECTADO. El motor calcula la de un monofásico
+            // con «la fase-neutro», y un monofásico de 2 polos está entre fases: 220 V, no 127.
+            TensionFaseNeutroV: c.Polos == 1 ? Datos.TensionFaseNeutroV : Datos.TensionFaseFaseV,
+            TensionFaseFaseV: Datos.TensionFaseFaseV,
+            LongitudM: c.LongitudM,
+            NumeroConductoresParalelo: 1,
+            NumeroConductoresAgrupados: canal.Ajuste!.ConductoresParaElMotor,
+            TemperaturaAmbienteC: Datos.TemperaturaAmbienteC + canal.SumadorAzoteaC,
+            MaterialConductor: Datos.MaterialConductor,
+            MaterialCanalizacion: canal.MaterialParaTabla9,
+            FactorPotencia: c.FactorPotencia,
+            CaidaTensionMaxPct: Datos.CaidaMaxDerivadoPct,
+            PisoPracticoCalibreMm2: null,
+            TipoAislamiento: Datos.TipoAislamiento,
+            LugarInstalacionSeco: Datos.LugarSeco,
+            TerminalesMarcadas75C: Datos.TerminalesMarcadas75C));
     }
 
     /// <summary>
@@ -975,6 +1079,8 @@ public sealed class CuadroDeCarga
         var minimo220_52 = conCarga.Sum(c => c.Ajuste220_52VA);
 
         Resumen = new ResumenDeCarga(
+            MotoresVA: conCarga.Sum(c => c.MotorVA),
+            MotoresDemandadaVA: conCarga.Sum(c => c.MotorVA * FactorDeDemanda(c)),
             ContinuaVA: continua,
             ContinuaDemandadaVA: conCarga.Sum(c => c.ContinuaVA * FactorDeDemanda(c)),
             NoContinuaVA: noContinua,
@@ -1036,10 +1142,54 @@ public sealed class CuadroDeCarga
             Datos.ConjuntoAprobado100Pct, null,
             ClaseDeTramo.Alimentador.CapacidadMinima(), ClaseDeTramo.Alimentador.Excepcion100Pct()).Factor;
 
+        var motores = MotoresPorFase();
         return
         [
-            .. Datos.Barras.Select(f => new CorrienteDeFase(f, continua[f], noContinua[f], factor))
+            .. Datos.Barras.Select(f => new CorrienteDeFase(f, continua[f], noContinua[f], factor, motores[f].Agregado))
         ];
+    }
+
+    /// <summary>
+    /// <b>Los motores de cada barra</b> — I-15: cada motor en HP con su FLC (y el F.D. de su tipo) en
+    /// las barras que toca, agrupados para 430-24 (el mayor y el resto) y 430-62(a) (la mayor
+    /// protección de derivado), y la suma fasorial de sus FLC para la caída. La corriente y su
+    /// sentido en cada barra, como los demás circuitos (<see cref="Direcciones"/>).
+    /// </summary>
+    private Dictionary<char, (AgregadoMotores Agregado, Fasor Fasor)> MotoresPorFase()
+    {
+        var porFase = Datos.Barras.ToDictionary(b => b, _ => (Agregado: AgregadoMotores.Vacio, Fasor: new Fasor(0m, 0m)));
+        foreach (var c in _circuitos.Where(c => c.TieneCarga && c.EsMotor && c.FlcA > 0m))
+        {
+            var flc = FactorDeDemanda(c) * c.FlcA;
+            // Sin derivado calculado no hay protección que aportar al techo de 430-62(a).
+            var motor = c.Resultado is { } r ? AgregadoMotores.DeUnMotor(flc, r.ProteccionA) : AgregadoMotores.DeUnMotor(flc);
+            foreach (var (fase, angulo) in Direcciones(c))
+            {
+                var (agregado, fasor) = porFase[fase];
+                porFase[fase] = (AgregadoMotores.Combinar(agregado, motor), fasor + new Fasor(flc, angulo));
+            }
+        }
+        return porFase;
+    }
+
+    /// <summary>
+    /// Por qué barras sale la corriente de un circuito y con qué ángulo: 1 polo, el de V<sub>FN</sub> − θ;
+    /// 2 polos, sale por una con el de V<sub>FF</sub> − θ y regresa por la otra; 3 polos, cada una con el
+    /// de su V<sub>FN</sub> − θ.
+    /// </summary>
+    private IEnumerable<(char Fase, decimal Angulo)> Direcciones(CircuitoDelCuadro c)
+    {
+        var theta = (decimal)(Math.Acos((double)c.FactorPotencia) * 180.0 / Math.PI);
+        var fases = c.Fases.Where(Datos.Barras.Contains).ToList();
+        if (fases.Count == 2)
+        {
+            var vff = new Fasor(1m, AnguloDeTension(fases[0])) - new Fasor(1m, AnguloDeTension(fases[1]));
+            yield return (fases[0], vff.AnguloGrados - theta);
+            yield return (fases[1], vff.AnguloGrados - theta + 180m);
+        }
+        else
+            foreach (var f in fases)
+                yield return (f, AnguloDeTension(f) - theta);
     }
 
     /// <summary>
@@ -1064,29 +1214,14 @@ public sealed class CuadroDeCarga
         var fasorContinua = barras.ToDictionary(b => b, _ => new Fasor(0m, 0m));
         var fasorNoContinua = barras.ToDictionary(b => b, _ => new Fasor(0m, 0m));
 
-        foreach (var c in _circuitos.Where(c => c.TieneCarga))
+        // Un motor en HP no tiene continua ni no continua: aporta cero aquí y entra con sus motores.
+        foreach (var c in _circuitos.Where(c => c.TieneCarga && !c.EsMotor))
         {
             var divisor = TensionDeCalculo.Divisor(c.Polos, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV);
             var iContinua = FactorDeDemanda(c) * c.ContinuaVA / divisor;
             var iNoContinua = FactorDeDemanda(c) * (c.NoContinuaVA + c.Ajuste220_52VA) / divisor;
-            var theta = (decimal)(Math.Acos((double)c.FactorPotencia) * 180.0 / Math.PI);
-            var fases = c.Fases.Where(angulo.ContainsKey).ToList();
 
-            // Ángulo y sentido de la corriente en cada fase que toca.
-            IEnumerable<(char Fase, decimal Angulo)> Direcciones()
-            {
-                if (fases.Count == 2)
-                {
-                    var vff = new Fasor(1m, angulo[fases[0]]) - new Fasor(1m, angulo[fases[1]]);
-                    yield return (fases[0], vff.AnguloGrados - theta);
-                    yield return (fases[1], vff.AnguloGrados - theta + 180m);
-                }
-                else
-                    foreach (var f in fases)
-                        yield return (f, angulo[f] - theta);
-            }
-
-            foreach (var (f, anguloCorriente) in Direcciones())
+            foreach (var (f, anguloCorriente) in Direcciones(c))
             {
                 continuaA[f] += iContinua;
                 noContinuaA[f] += iNoContinua;
@@ -1095,8 +1230,9 @@ public sealed class CuadroDeCarga
             }
         }
 
+        var motores = MotoresPorFase();
         return [.. barras.Select(b => new CorrienteDeFaseAlimentador(
-            b, continuaA[b], noContinuaA[b], angulo[b], fasorContinua[b], fasorNoContinua[b]))];
+            b, continuaA[b], noContinuaA[b], angulo[b], fasorContinua[b], fasorNoContinua[b], motores[b].Agregado, motores[b].Fasor))];
     }
 
     /// <summary>Ángulo de V fase-neutro: A 0°, B −120°, C 120°; en 1F-3H las dos barras están en oposición.</summary>
@@ -1266,11 +1402,30 @@ public sealed class CuadroDeCarga
         // M-03: un principal más chico que un derivado. No es criterio de diseño, es un error de
         // coordinación básico: el principal se dispara con una carga que el derivado sí admite.
         // Aviso, no bloqueo, mientras David no decida otra cosa.
-        if (mayor is not null && resultado.ProteccionA < mayorDerivado)
+        //
+        // CON UN MOTOR, EL DERIVADO ES GRANDE A PROPÓSITO (I-15): 430-52 lo dimensiona para el
+        // arranque, no para la carga. Lo que hay que decir es hasta dónde deja subir el principal
+        // 430-62(a), no que la carga capturada esté mal.
+        if (mayor is { EsMotor: true } && resultado.ProteccionA < mayorDerivado)
+            avisos.Add(
+                $"El interruptor principal ({resultado.ProteccionA:N0} A) es menor que la protección del motor del circuito " +
+                $"{mayor.Espacio} ({mayorDerivado:N0} A), que 430-52 dimensiona para el arranque. El principal podría dispararse " +
+                "al arrancar el motor" +
+                (resultado.TechoProteccion430_62A is { } techo
+                    ? $": 430-62(a) y 430-63 permiten subirlo hasta {techo:N2} A. Criterio del proyectista."
+                    : ". Criterio del proyectista."));
+        else if (mayor is not null && resultado.ProteccionA < mayorDerivado)
             avisos.Add(
                 $"El interruptor principal ({resultado.ProteccionA:N0} A) es menor que el derivado más grande " +
                 $"({mayorDerivado:N0} A, circuito {mayor.Espacio}). El principal se dispararía con una carga que ese " +
                 "derivado sí admite: revisa la carga capturada o sube el principal.");
+
+        // 430-62(a): con motores la protección del alimentador tiene TECHO, y el redondeo al tamaño
+        // estándar lo puede rebasar. El motor ya retiró el aviso si el conductor lo permite (430-62(b)).
+        if (resultado.ProteccionExcedeTecho430_62 && resultado.TechoProteccion430_62A is { } maximo)
+            avisos.Add(
+                $"El interruptor principal ({resultado.ProteccionA:N0} A) excede el máximo de 430-62(a) y 430-63 ({maximo:N2} A): " +
+                "la mayor protección de motor más las demás cargas. Revisa los motores o elige un tamaño que no pase del máximo.");
 
         // Los dos criterios de diseño que NO son de la norma (vienen del Excel). Se REPORTAN, no se
         // aplican: el número que se imprime sale del motor, y el criterio lo decide quien firma. Los

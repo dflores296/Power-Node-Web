@@ -22,6 +22,13 @@ namespace PowerNode.Web.Modelo.Memoria;
 /// <param name="CaidaCombinada">Solo en un derivado: alimentador + circuito, ya redactado — R-01.</param>
 /// <param name="Canalizacion">La canalización del tramo: portadores, factor de agrupamiento y azotea —
 /// I-39. Va en la sección 4.</param>
+/// <param name="Motor">Solo en el derivado de un motor en HP: sus datos de tabla — I-15. Cambia las
+/// secciones 1 y 3 al Art. 430.</param>
+/// <param name="CargaMotoresVa">La carga de los motores en HP, que no es continua ni no continua.</param>
+/// <param name="MotoresQueGobiernan">Solo en el alimentador: los motores de la fase que gobierna, para
+/// 430-24.</param>
+/// <param name="Techo430_62A">Solo en el alimentador con motores: el máximo de 430-62(a) más la otra
+/// carga (430-63).</param>
 public sealed record HojaDeMemoria(
     string Sujeto,
     string Articulo,
@@ -55,7 +62,20 @@ public sealed record HojaDeMemoria(
     decimal TensionFaseNeutroV = 0m,
     IReadOnlyList<RenglonMemoria>? FactoresDeDemanda = null,
     IReadOnlyList<RenglonMemoria>? Desglose = null,
-    IReadOnlyList<RenglonMemoria>? Canalizacion = null);
+    IReadOnlyList<RenglonMemoria>? Canalizacion = null,
+    MotorDeLaHoja? Motor = null,
+    decimal CargaMotoresVa = 0m,
+    AgregadoMotores MotoresQueGobiernan = default,
+    decimal? Techo430_62A = null);
+
+/// <summary>
+/// Un motor en HP, como lo pone la memoria — I-15: «1 HP · trifásico · FLC 4.20 A — Tabla 430-250,
+/// columna de 230 V».
+/// </summary>
+/// <param name="Tipo">«monofásico» o «trifásico».</param>
+/// <param name="Fuente">La tabla y la columna de donde sale la FLC.</param>
+/// <param name="PorcentajeProteccion">El de la Tabla 430-52 para interruptor de tiempo inverso.</param>
+public sealed record MotorDeLaHoja(decimal Hp, string Tipo, decimal FlcA, string Fuente, decimal PorcentajeProteccion);
 
 /// <summary>Un renglón «rótulo: valor» de una sección de la memoria.</summary>
 public sealed record RenglonMemoria(string Rotulo, string Valor);

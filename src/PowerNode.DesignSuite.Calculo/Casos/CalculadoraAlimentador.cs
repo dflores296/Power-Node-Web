@@ -43,22 +43,30 @@ public class CalculadoraAlimentador(
         CorrienteDeFaseAlimentador? gobierna = null;
         var continuaParaProteccion = continuaConDemanda;
         var noContinuaParaProteccion = noContinuaConDemanda;
+        // LOS MOTORES, POR FASE — I-15. Con corrientes por fase que traen sus motores, el grupo de
+        // 430-24 y 430-62(a) es el de la fase que gobierna: un motor monofásico en la fase A no le
+        // pide ampacidad a la B. El agregado de todo el alimentador (CargaMotores) queda para quien
+        // no trae corrientes por fase, como la cascada del escritorio.
+        var cargaMotores = d.CargaMotores;
         if (fases is not null)
         {
             var factor = CargaContinua100Pct.Para(
                 d.ConjuntoAprobado100Pct, d.ModeloProteccionEsDe100Pct, d.Clase.CapacidadMinima(), d.Clase.Excepcion100Pct()).Factor;
+            // 430-24 se suma aparte, sin factor de demanda ni el 125 % de la continua: es otra regla.
             decimal Capacidad(CorrienteDeFaseAlimentador f) =>
-                factor * d.FactorDemandaContinua * f.ContinuaA + d.FactorDemandaNoContinua * f.NoContinuaA;
+                factor * d.FactorDemandaContinua * f.ContinuaA + d.FactorDemandaNoContinua * f.NoContinuaA + f.Motores.CapacidadMinimaA;
 
             gobierna = fases.Aggregate((max, f) => Capacidad(f) > Capacidad(max) ? f : max);
             var divisor = TensionDeCalculo.Divisor(d.NumeroFases, d.TensionFaseNeutroV, d.TensionFaseFaseV);
             continuaParaProteccion = d.FactorDemandaContinua * gobierna.ContinuaA * divisor;
             noContinuaParaProteccion = d.FactorDemandaNoContinua * gobierna.NoContinuaA * divisor;
+            if (fases.Any(f => f.Motores.MayorFlcA is not null))
+                cargaMotores = gobierna.Motores;
         }
 
         // 1-3. Corriente de diseño y protección estándar -- compartido con CalculoTablero.BreakerPrincipalA.
         var proteccion = CalculadoraProteccionAlimentador.Calcular(
-            proteccionEstandar, continuaParaProteccion, noContinuaParaProteccion, d.NumeroFases, d.TensionFaseNeutroV, d.TensionFaseFaseV, d.CargaMotores,
+            proteccionEstandar, continuaParaProteccion, noContinuaParaProteccion, d.NumeroFases, d.TensionFaseNeutroV, d.TensionFaseFaseV, cargaMotores,
             d.ConjuntoAprobado100Pct, d.ModeloProteccionEsDe100Pct, d.Clase);
         var in_ = proteccion.CorrienteDisenoA;
         var capacidadMin = proteccion.CapacidadMinimaA;
@@ -77,7 +85,8 @@ public class CalculadoraAlimentador(
         if (gobierna is not null)
             citas.Insert(0, new Cita("215-2(a)(1)",
                 $"Fase que gobierna: {gobierna.Fase}, la de mayor capacidad requerida. Por fase, sin demanda: " +
-                string.Join("; ", fases!.Select(f => $"{f.Fase} {f.ContinuaA:0.##} A continua + {f.NoContinuaA:0.##} A no continua"))));
+                string.Join("; ", fases!.Select(f => $"{f.Fase} {f.ContinuaA:0.##} A continua + {f.NoContinuaA:0.##} A no continua" +
+                    (f.Motores.MayorFlcA is not null ? $" + motores {f.Motores.CorrienteRealA:0.##} A (430-24: {f.Motores.CapacidadMinimaA:0.##} A)" : "")))));
 
         // 240-21(b): en una derivación, la ampacidad mínima no la fija solo la carga. Las fracciones
         // del inciso (1/3 de la protección del alimentador padre, 1/10 cuando los conductores salen
@@ -144,9 +153,10 @@ public class CalculadoraAlimentador(
         if (factorAgrup != 1m)
             citas.Add(new Cita("310-15(b)(3)(a)", $"Factor de ajuste por agrupamiento ({d.NumeroConductoresAgrupados} conductores): x{factorAgrup}"));
 
-        // 5.5. CAÍDA FASE POR FASE, CON EL NEUTRO — R-02. Solo con corrientes por fase, con neutro y sin
-        // motores (el Art. 430 no llega fasorial hasta aquí). La caída se mide contra la tensión F-N
-        // y manda la peor fase, que no siempre es la que gobierna el dimensionamiento.
+        // 5.5. CAÍDA FASE POR FASE, CON EL NEUTRO — R-02. Solo con corrientes por fase y con neutro. Los
+        // motores entran si vienen por fase (I-15), con su FLC al 100 %; un agregado sin fase
+        // (CargaMotores) no se sabe dónde cae, y deja la caída balanceada. La caída se mide contra la
+        // tensión F-N y manda la peor fase, que no siempre es la que gobierna el dimensionamiento.
         List<(char Fase, Magnitudes.Fasor Corriente, decimal AnguloTensionGrados)>? corrientesConDemanda = null;
         Func<decimal, decimal, int, decimal>? caidaVolts = null;
         var tensionParaCaida = tensionEfectiva;
@@ -155,7 +165,7 @@ public class CalculadoraAlimentador(
             corrientesConDemanda =
             [
                 .. fases.Select(f => (f.Fase,
-                    f.FasorContinua * d.FactorDemandaContinua + f.FasorNoContinua * d.FactorDemandaNoContinua,
+                    f.FasorContinua * d.FactorDemandaContinua + f.FasorNoContinua * d.FactorDemandaNoContinua + f.FasorMotores,
                     f.AnguloTensionGrados)),
             ];
             caidaVolts = (r, x, n) => CaidaPorFase.Calcular(corrientesConDemanda, r, x, d.LongitudM, n, d.TensionFaseNeutroV).Max(c => c.CaidaV);
@@ -194,7 +204,7 @@ public class CalculadoraAlimentador(
             // 215-2(a)(1): mismas dos revisiones que 210-19(a)(1). Solo sin motores y fuera de una
             // derivación: 430-24 y 240-21(b) son pisos de ampacidad con su propia regla, y se quedan
             // como estaban (contra la ampacidad corregida).
-            cargaAl100PctA: d.CargaMotores.MayorFlcA is null && d.PisoAmpacidadDerivacionA is null ? in_ : null,
+            cargaAl100PctA: cargaMotores.MayorFlcA is null && d.PisoAmpacidadDerivacionA is null ? in_ : null,
             caidaVoltsPorImpedancia: caidaVolts);
         citas.AddRange(seleccion.Citas);
 

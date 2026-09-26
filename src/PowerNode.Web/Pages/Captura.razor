@@ -154,8 +154,8 @@
             <tr>
                 <th rowspan="2"><span class="ayuda" title="@(Cuadro.UnaSolaBarra ? "Identificar el circuito por su espacio en la barra. Una sola barra: en orden." : "Identificar el circuito por su espacio en la barra. Nones arriba, pares abajo.")">N.º</span></th>
                 <th rowspan="2" class="izq descripcion" data-col="desc" title="Describir el circuito. Ctrl+Enter abre o cierra el desglose de sus aparatos.">Descripción</th>
-                <th rowspan="2" data-col="tipo"><span class="ayuda" title="Seleccionar el tipo de carga. Determina el factor de demanda del resumen — Art. 220.&#10;&#10;Alumbrado: luminarias y alumbrado general.&#10;Contactos: contactos de uso general; en vivienda, seleccionar el uso (cocina, lavadora, baño).&#10;Equipo: hornos, estufas, parrillas, secadoras, calentadores de agua, equipo electrónico.&#10;Motor / A/C: todo lo que funciona con motor o compresor: aire acondicionado, refrigeración, bombas, ventiladores, bombas de calor e inverter frío/calor.&#10;Calefacción: calefacción por resistencia eléctrica: calefactores, cables calefactores, calderas eléctricas; carga continua — 424-3(b).&#10;&#10;Motor / A/C y calefacción se calculan como carga de placa (Art. 430 pendiente). 240-4(b) no aplica en contactos.">Tipo</span></th>
-                <th colspan="4"><span class="ayuda" title="Capturar la carga de placa en VA, W o A y su factor de potencia. Continua (3 h o más): 125 % — 210-19(a)(1), 210-20(a). No continua: 100 %. En W o A, consultar abajo el VA de cálculo.">Carga</span></th>
+                <th rowspan="2" data-col="tipo"><span class="ayuda" title="Seleccionar el tipo de carga. Determina el factor de demanda del resumen — Art. 220.&#10;&#10;Alumbrado: luminarias y alumbrado general.&#10;Contactos: contactos de uso general; en vivienda, seleccionar el uso (cocina, lavadora, baño).&#10;Equipo: hornos, estufas, parrillas, secadoras, calentadores de agua, equipo electrónico.&#10;Motor / A/C: todo lo que funciona con motor o compresor: aire acondicionado, refrigeración, bombas, ventiladores, bombas de calor e inverter frío/calor.&#10;Calefacción: calefacción por resistencia eléctrica: calefactores, cables calefactores, calderas eléctricas; carga continua — 424-3(b).&#10;&#10;Motor / A/C en HP: circuito de motor — Art. 430. En VA, W o A, y la calefacción: carga de placa. 240-4(b) no aplica en contactos.">Tipo</span></th>
+                <th colspan="4"><span class="ayuda" title="Capturar la carga de placa en VA, W o A y su factor de potencia. Continua (3 h o más): 125 % — 210-19(a)(1), 210-20(a). No continua: 100 %. En W o A, consultar abajo el VA de cálculo.&#10;&#10;Motor / A/C: seleccionar HP y los caballos de placa. La corriente sale de la tabla — 430-6(a).">Carga</span></th>
                 <th colspan="@Datos.Barras.Count"><span class="ayuda" title="Consultar la carga del circuito repartida entre las barras que toca.">Balanceo de fases <span class="simbolo">(VA)</span></span></th>
                 <th rowspan="2" data-col="l"><span class="ayuda" title="Capturar la longitud del circuito. Determina la caída de tensión — Tabla 9."><span class="simbolo">L (m)</span></span></th>
                 <th rowspan="2" data-col="canal"><span class="ayuda" title="Seleccionar la canalización del circuito de la lista de la tarjeta «Canalizaciones». Al capturar la carga, cada circuito nace en la suya (T1, T2…); para agrupar, elegir la de otro circuito, o «+ Nueva». Los circuitos de una misma canalización se agrupan y el programa cuenta sus portadores — 310-15(b)(3)(a). Si el circuito pasa por varias, la del tramo más desfavorable — 310-15(a)(2). Debajo: el tamaño que resultó.">Canal.</span></th>
@@ -169,7 +169,7 @@
                 <th rowspan="2" class="ultima"><span class="ayuda" title="Consultar la caída de tensión del circuito. Límite recomendado: 3 % en el derivado y 5 % combinada — 210-19(a)(1), nota 4."><span class="simbolo">e (%)</span></span></th>
             </tr>
             <tr>
-                <th data-col="unidad"><span class="ayuda" title="Seleccionar la unidad de placa. W: convertir con el factor de potencia. A: convertir con la tensión y los polos del circuito.">Unidad</span></th>
+                <th data-col="unidad"><span class="ayuda" title="Seleccionar la unidad de placa. W: convertir con el factor de potencia. A: convertir con la tensión y los polos del circuito. HP (solo Motor / A/C): circuito de motor por sus caballos — Art. 430.">Unidad</span></th>
                 <th data-col="continua"><span class="ayuda" title="Capturar la carga que opera 3 h o más. Aplicar 125 % — 210-19(a)(1), 210-20(a).">Continua</span></th>
                 <th data-col="nocontinua"><span class="ayuda" title="Capturar la carga que opera menos de 3 h. Aplicar 100 %.">No continua</span></th>
                 <th data-col="fp"><span class="ayuda" title="Capturar el factor de potencia de la carga. Valor inicial: 0.9.&#10;&#10;Capturada en W: VA = W ÷ F.P. Modifica corriente, protección, conductor, caída de tensión y kW.&#10;&#10;Capturada en VA o A: modifica solo la caída de tensión (y el conductor, si excede el límite) y los kW — Tabla 9, nota 2.">F.P.</span></th>
@@ -223,7 +223,8 @@
                         <td class="num @(c.TieneCaptura ? "asa" : null)" data-destino="@c.Espacio" data-arrastre="@(c.TieneCaptura ? c.Espacio : null)" data-etiqueta="@EtiquetaDeArrastre(c)" title="@(c.TieneCaptura ? "Arrastrar para mover el circuito a otro espacio" : null)">@c.Espacio</td>
                         <td rowspan="@c.Polos">
                             <div class="desc-linea">
-                                <button class="desglosar" tabindex="-1" aria-label="Desglose del circuito @c.Espacio" aria-expanded="@(Abierto(c) ? "true" : "false")" title="Desglosar los aparatos que alimenta el circuito. La carga del circuito es la suma. Con el teclado: Ctrl+Enter."
+                                <button class="desglosar" tabindex="-1" aria-label="Desglose del circuito @c.Espacio" aria-expanded="@(Abierto(c) ? "true" : "false")" disabled="@c.EsMotor"
+                                        title="@(c.EsMotor ? "Un motor en HP no se desglosa: es un circuito de un motor — 430-22. Para varios aparatos, capturar en VA, W o A." : "Desglosar los aparatos que alimenta el circuito. La carga del circuito es la suma. Con el teclado: Ctrl+Enter.")"
                                         @onclick="() => AlternarDesglose(c)"><Icono Nombre="@(Abierto(c) ? "desglose-abierto" : "desglose")" Tamano="14" /></button>
                                 <input class="desc" data-col="desc" aria-label="Circuito @c.Espacio · Descripción" @bind="c.Descripcion" @bind:event="oninput" placeholder="—" />
                             </div>
@@ -263,12 +264,38 @@
                             </div>
                         </td>
                         <td rowspan="@c.Polos">
-                            <select class="unidad" data-col="unidad" aria-label="Circuito @c.Espacio · Unidad" @bind="c.Unidad" @bind:after="Recalcular" disabled="@c.TieneDesglose" title="@SumaDelDesglose(c)">
+                            <select class="unidad" data-col="unidad" aria-label="Circuito @c.Espacio · Unidad" value="@UnidadDe(c)" @onchange="e => CambiarUnidad(c, e.Value?.ToString())" disabled="@c.TieneDesglose" title="@SumaDelDesglose(c)">
                                 <option value="@UnidadConsumo.VoltAmperes">VA</option>
                                 <option value="@UnidadConsumo.Watts">W</option>
                                 <option value="@UnidadConsumo.Amperes">A</option>
+                                @if (c.Categoria == CategoriaDeCarga.MotorOAireAcondicionado)
+                                {
+                                    <option value="@Hp">HP</option>
+                                }
                             </select>
                         </td>
+                        @* I-15: un motor en HP no tiene continua ni no continua; sus caballos ocupan las dos celdas. *@
+                        @if (c.EsMotor)
+                        {
+                            <td rowspan="@c.Polos" colspan="2">
+                                <select class="hp" data-col="continua" aria-label="Circuito @c.Espacio · HP" value="@ValorHp(c.Hp ?? 0m)" @onchange="e => CambiarHp(c, e.Value?.ToString())"
+                                        title="Seleccionar los caballos de placa del motor. Solo los que trae la tabla a la tensión y los polos del circuito: la corriente sale de la tabla, no de la placa — 430-6(a).">
+                                    <option value="@ValorHp(0m)">—</option>
+                                    @{ var disponibles = Cuadro.HpDisponibles(c); }
+                                    @foreach (var hp in disponibles) { <option value="@ValorHp(hp)">@MotoresEnHp.Texto(hp) HP</option> }
+                                    @if (c.Hp is > 0m and { } fuera && !disponibles.Contains(fuera))
+                                    {
+                                        <option value="@ValorHp(fuera)">@MotoresEnHp.Texto(fuera) HP</option>
+                                    }
+                                </select>
+                                @if (c.FlcA > 0m)
+                                {
+                                    <span class="en-va" title="Corriente a plena carga de la @Cuadro.FuenteDeFlc(c) — 430-6(a). La carga en VA es la FLC por la tensión del circuito@(c.Polos == 3 ? " por √3" : "").">FLC @c.FlcA.ToString("N2") A · @c.MotorVA.ToString("#,0") VA</span>
+                                }
+                            </td>
+                        }
+                        else
+                        {
                         <td rowspan="@c.Polos">
                             <input class="va" type="number" min="0" placeholder="0" data-col="continua" aria-label="Circuito @c.Espacio · Continua" value="@Carga(c.Continua)" @onchange="e => { c.Continua = LeerCarga(e, c.Continua); Recalcular(); }"
                                    disabled="@c.TieneDesglose" title="@SumaDelDesglose(c)" />
@@ -280,6 +307,7 @@
                                    title="@(c.Categoria == CategoriaDeCarga.CalefaccionFija ? "Calefacción fija: carga continua — 424-3(b)." : SumaDelDesglose(c))" />
                             @EnVA(c, c.NoContinua, c.NoContinuaVA)
                         </td>
+                        }
                         <td rowspan="@c.Polos"><input data-requerido data-col="fp" aria-label="Circuito @c.Espacio · F.P." class="va fp" type="number" min="0.1" max="1" step="0.05" title="@(c.TieneDesglose ? "F.P. combinado de los aparatos: P ÷ √(P² + Q²)." : AyudaFactorPotencia(c))" value="@Factor(c.FactorPotencia)" @onchange="e => { c.FactorPotencia = Leer(e, c.FactorPotencia); Recalcular(); }" disabled="@c.TieneDesglose" /></td>
                         @foreach (var barra in Datos.Barras)
                         {
@@ -585,6 +613,15 @@
                 <td></td>
                 <td class="num">@((Cuadro.Resumen.ContinuaDemandadaVA / 1000m).ToString("N2")) / @(((Cuadro.Resumen.NoContinuaDemandadaVA + Cuadro.Resumen.Minimo220_52DemandadoVA) / 1000m).ToString("N2"))</td>
             </tr>
+            @if (Cuadro.Resumen.MotoresVA > 0m)
+            {
+                <tr>
+                    <td class="izq"><span class="ayuda" title="Consultar la carga de los motores capturados en HP. No es continua ni no continua: en el alimentador entra con su FLC de tabla, 125 % la del mayor y 100 % la de los demás, en cada fase — 430-24. Lleva el F.D. de motores — 430-26.">Motores en HP</span></td>
+                    <td class="num">@((Cuadro.Resumen.MotoresVA / 1000m).ToString("N2"))</td>
+                    <td></td>
+                    <td class="num">@((Cuadro.Resumen.MotoresDemandadaVA / 1000m).ToString("N2"))</td>
+                </tr>
+            }
         </table>
 
         @if (Datos.ReduceCargaPorDemanda)
@@ -678,7 +715,7 @@
                 @if (Cuadro.Alimentador.Gobierna is { } g && Datos.Barras.Count > 1)
                 {
                     <tr>
-                        <td class="izq"><span class="ayuda" title="Consultar la fase de mayor capacidad requerida (125 % continua + no continua). Dimensiona el alimentador — 215-2(a)(1), 215-3.">Fase que gobierna</span></td>
+                        <td class="izq"><span class="ayuda" title="Consultar la fase de mayor capacidad requerida (125 % continua + no continua; con motores en HP, más 125 % del mayor y 100 % de los demás — 430-24). Dimensiona el alimentador — 215-2(a)(1), 215-3.">Fase que gobierna</span></td>
                         <td class="num">@g.Fase, la más cargada</td>
                     </tr>
                 }
@@ -1246,7 +1283,10 @@
     /// Qué hace el F.P. en ESTE renglón, que depende de la unidad: con W convierte a VA y mueve todo;
     /// con VA o A la corriente no pasa por él, y solo mueve la caída de tensión y los kW.
     /// </summary>
-    private static string AyudaFactorPotencia(CircuitoDelCuadro c) => c.Unidad == UnidadConsumo.Watts
+    private static string AyudaFactorPotencia(CircuitoDelCuadro c) =>
+        c.EsMotor
+        ? "Motor en HP: la corriente es la FLC de tabla — 430-6(a). El F.P. modifica solo la caída de tensión (y el conductor, si excede el límite) y los kW."
+        : c.Unidad == UnidadConsumo.Watts
         ? "Capturada en W: VA = W ÷ F.P. Modifica corriente, protección, conductor, caída de tensión y kW."
         : $"Capturada en {(c.Unidad == UnidadConsumo.Amperes ? "A" : "VA")}: el F.P. no modifica la corriente ni la protección. " +
           "Modifica la caída de tensión (y el conductor, si excede el límite) y los kW.";
@@ -1291,6 +1331,36 @@
         c.Aparatos.Remove(a);
         Recalcular();
         _enfocar = c.Aparatos.Count == 0 ? AgregarDe(c.Espacio) : DescripcionDeAparato(c.Espacio, Math.Min(n, c.Aparatos.Count));
+    }
+
+    /// <summary>El valor de «HP» en el selector de unidad: no es una <see cref="UnidadConsumo"/>.</summary>
+    private const string Hp = "HP";
+
+    private static string UnidadDe(CircuitoDelCuadro c) => c.EsMotor ? Hp : c.Unidad.ToString();
+
+    /// <summary>
+    /// HP abre el motor —I-15— sin caballos todavía; VA, W o A lo cierran. Lo capturado en continua y
+    /// no continua se queda: es lo que vuelve a contar al regresar a VA, W o A.
+    /// </summary>
+    private void CambiarUnidad(CircuitoDelCuadro c, string? valor)
+    {
+        if (valor == Hp)
+            c.Hp ??= 0m;
+        else if (Enum.TryParse<UnidadConsumo>(valor, out var unidad))
+        {
+            c.Hp = null;
+            c.Unidad = unidad;
+        }
+        Recalcular();
+    }
+
+    private static string ValorHp(decimal hp) => hp.ToString(CultureInfo.InvariantCulture);
+
+    private void CambiarHp(CircuitoDelCuadro c, string? valor)
+    {
+        if (decimal.TryParse(valor, NumberStyles.Number, CultureInfo.InvariantCulture, out var hp) && hp >= 0m)
+            c.Hp = hp;
+        Recalcular();
     }
 
     private static string? SumaDelDesglose(CircuitoDelCuadro c) =>

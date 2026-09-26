@@ -59,9 +59,11 @@ public class CalculadoraCircuitoDerivadoMotor(
         citas.Add(new Cita("430-52", $"Techo de protección: {porcentaje}% x {flc:0.##} A = {techoProteccion:0.##} A -> {breaker} A " +
             "(430-52(c)(1) Excepción 1: redondeo al estándar inmediato superior)"));
 
-        // 4. Temperatura de terminales -- 110-14(c)(1).
-        var tempTerminales = TemperaturaTerminales.Para(breaker);
-        citas.Add(new Cita("110-14(c)(1)", $"Protección {breaker} A -> terminales a {(int)tempTerminales}°C"));
+        // 4. Temperatura de terminales -- 110-14(c)(1). Con equipo marcado 75 °C la columna depende
+        // también del aislamiento, igual que en el circuito no-motor (M-06).
+        var tempTerminales = TemperaturaTerminales.Para(
+            breaker, d.TerminalesMarcadas75C, aislamiento.TemperaturaMaxima(d.TipoAislamiento, d.LugarInstalacionSeco));
+        citas.Add(new Cita("110-14(c)(1)", TemperaturaTerminales.Explicacion(breaker, d.TerminalesMarcadas75C, tempTerminales)));
 
         // 4.5. Aislamiento -- 110-14(c): debe alcanzar o superar la temperatura que exige la terminal.
         var tempAislamiento = aislamiento.TemperaturaMaxima(d.TipoAislamiento, d.LugarInstalacionSeco)

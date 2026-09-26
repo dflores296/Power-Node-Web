@@ -99,10 +99,18 @@
                         <tr class="@(c.TieneCarga ? null : "libre")">
                             <td class="num">@c.Espacio</td>
                             <td rowspan="@c.Polos" class="izq">@(string.IsNullOrWhiteSpace(c.Descripcion) ? (c.TieneCarga ? MemoriaDeCalculo.Etiqueta(c) : "LIBRE") : c.Descripcion)</td>
-                            <td rowspan="@c.Polos" class="num">@Cifra(c.ContinuaVA)</td>
-                            <td rowspan="@c.Polos" class="num">@(c.TieneCarga ? "1.00" : "")</td>
-                            <td rowspan="@c.Polos" class="num">@Cifra(c.NoContinuaVA)</td>
-                            <td rowspan="@c.Polos" class="num">@(c.TieneCarga ? "1.00" : "")</td>
+                            @if (c.EsMotor)
+                            {
+                                @* I-15: un motor en HP no es continua ni no continua; va por 430-22 y 430-24. *@
+                                <td rowspan="@c.Polos" colspan="4" class="num">@(c.Hp > 0m ? $"{MotoresEnHp.Texto(c.Hp.Value)} HP" : "")@(c.FlcA > 0m ? $" · FLC {c.FlcA:N2} A" : "")</td>
+                            }
+                            else
+                            {
+                                <td rowspan="@c.Polos" class="num">@Cifra(c.ContinuaVA)</td>
+                                <td rowspan="@c.Polos" class="num">@(c.TieneCarga ? "1.00" : "")</td>
+                                <td rowspan="@c.Polos" class="num">@Cifra(c.NoContinuaVA)</td>
+                                <td rowspan="@c.Polos" class="num">@(c.TieneCarga ? "1.00" : "")</td>
+                            }
                             <td rowspan="@c.Polos" class="num">@Cifra(c.CargaInstaladaVA)</td>
                             @foreach (var barra in Datos.Barras)
                             {
@@ -176,6 +184,15 @@
                         <td></td>
                         <td class="num">@((Cuadro.Resumen.ContinuaDemandadaVA / 1000m).ToString("N2")) / @(((Cuadro.Resumen.NoContinuaDemandadaVA + Cuadro.Resumen.Minimo220_52DemandadoVA) / 1000m).ToString("N2"))</td>
                     </tr>
+                    @if (Cuadro.Resumen.MotoresVA > 0m)
+                    {
+                        <tr>
+                            <td class="izq">Motores en HP — 430-24</td>
+                            <td class="num">@((Cuadro.Resumen.MotoresVA / 1000m).ToString("N2"))</td>
+                            <td></td>
+                            <td class="num">@((Cuadro.Resumen.MotoresDemandadaVA / 1000m).ToString("N2"))</td>
+                        </tr>
+                    }
                 </table>
             </div>
 

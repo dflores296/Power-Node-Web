@@ -46,9 +46,20 @@ public static class MemoriaDeCalculo
             ? Etiqueta(circuito)
             : circuito.Descripcion.Trim();
 
+        MotorDeLaHoja? motor = null;
+        if (circuito.EsMotor)
+        {
+            motor = new MotorDeLaHoja(
+                Hp: circuito.Hp!.Value,
+                Tipo: circuito.Polos == 3 ? "trifásico" : "monofásico",
+                FlcA: circuito.FlcA,
+                Fuente: cuadro.FuenteDeFlc(circuito),
+                PorcentajeProteccion: cuadro.PorcentajeProteccionMotor(circuito));
+        }
+
         return new HojaDeMemoria(
             Sujeto: $"Circuito {circuito.Espacio} — {nombre}  ·  fase {circuito.Fases}",
-            Articulo: "210",
+            Articulo: circuito.EsMotor ? "430" : "210",
             CargaContinuaVa: circuito.ContinuaVA,
             CargaNoContinuaVa: circuito.NoContinuaVA,
             // La tensión del TRAMO, no la del tablero: un circuito de 1 polo va a fase-neutro.
@@ -74,7 +85,9 @@ public static class MemoriaDeCalculo
             CaidaCombinada: CaidaCombinada(cuadro, circuito),
             NeutroPortador: circuito.LlevaNeutro ? NeutroPortador(cuadro, circuito.Polos, alimentador: false) : null,
             Desglose: Desglose(circuito),
-            Canalizacion: DeLaCanalizacion(cuadro, circuito.CanalizacionEfectiva));
+            Canalizacion: DeLaCanalizacion(cuadro, circuito.CanalizacionEfectiva),
+            Motor: motor,
+            CargaMotoresVa: circuito.MotorVA);
     }
 
     /// <summary>
@@ -221,7 +234,10 @@ public static class MemoriaDeCalculo
             CorrienteNeutro: r.CorrienteNeutro,
             TensionFaseNeutroV: datos.TensionFaseNeutroV,
             FactoresDeDemanda: FactoresDeDemanda(datos),
-            Canalizacion: DeLaCanalizacion(cuadro, datos.CanalizacionAlimentador));
+            Canalizacion: DeLaCanalizacion(cuadro, datos.CanalizacionAlimentador),
+            CargaMotoresVa: cuadro.Resumen.MotoresVA,
+            MotoresQueGobiernan: cuadro.Alimentador.Gobierna?.Motores ?? default,
+            Techo430_62A: r.TechoProteccion430_62A);
     }
 
     /// <summary>«Estufa: 1 × 3,000 W = 3,000 VA · no continua · F.P. 1.00». Un renglón por aparato — I-35.</summary>
@@ -265,7 +281,9 @@ public static class MemoriaDeCalculo
             return null;
 
         return $"Fase {g.Fase}, la más cargada: {g.FactorContinua * 100m:0} % × {g.ContinuaA:N2} A (continua) + " +
-               $"{g.NoContinuaA:N2} A (no continua) = {g.CapacidadA:N2} A. Las demás: " +
+               $"{g.NoContinuaA:N2} A (no continua)" +
+               (g.TieneMotores ? $" + {g.Motores.CapacidadMinimaA:N2} A (motores, 430-24)" : "") +
+               $" = {g.CapacidadA:N2} A. Las demás: " +
                string.Join(", ", fases.Where(f => f.Fase != g.Fase).Select(f => $"fase {f.Fase} {f.CapacidadA:N2} A")) +
                ". El alimentador se dimensiona con la corriente de esta fase, no con la carga total repartida.";
     }
@@ -274,15 +292,22 @@ public static class MemoriaDeCalculo
     public static IReadOnlyList<BloqueMemoria> Secciones(HojaDeMemoria hoja)
     {
         var d = hoja.Detalle;
-        var cargaTotal = hoja.CargaContinuaVa + hoja.CargaNoContinuaVa;
+        var cargaTotal = hoja.CargaContinuaVa + hoja.CargaNoContinuaVa + hoja.CargaMotoresVa;
         var senTheta = TrianguloPotencias.SenoDelAngulo(hoja.FactorPotencia);
         var bloques = new List<BloqueMemoria>();
+        var m = hoja.Motor;
 
         // ---- 1
         var seccion1 = Seccion("1. DATOS DEL SISTEMA", [
             ("Carga total instalada", $"{cargaTotal:N0} VA"),
-            ("Carga continua", $"{hoja.CargaContinuaVa:N0} VA"),
-            ("Carga no continua", $"{hoja.CargaNoContinuaVa:N0} VA"),
+            ("Motor", m is null ? null
+                : $"{MotoresEnHp.Texto(m.Hp)} HP · {m.Tipo} · FLC {m.FlcA:N2} A — {m.Fuente}, 430-6(a). " +
+                  $"{hoja.CargaMotoresVa:N0} VA = FLC × tensión{(hoja.NumeroFases == 3 ? " × √3" : "")}"),
+            ("Carga continua", m is null ? $"{hoja.CargaContinuaVa:N0} VA" : null),
+            ("Carga no continua", m is null ? $"{hoja.CargaNoContinuaVa:N0} VA" : null),
+            ("Motores en HP", m is null && hoja.CargaMotoresVa > 0m
+                ? $"{hoja.CargaMotoresVa:N0} VA — entran al alimentador con su FLC de tabla, 430-24"
+                : null),
             ("Mínimo 220-52", hoja.Minimo220_52VA > 0m
                 ? $"{hoja.Minimo220_52VA:N0} VA — aparatos pequeños y lavadora a 1,500 VA por circuito, 220-52(a) y (b)"
                 : null),
@@ -309,13 +334,45 @@ public static class MemoriaDeCalculo
             ("Neutro — 310-15(b)(5)(2)", hoja.NeutroPortador)]));
 
         // ---- 3
-        var articuloProteccion = hoja.Articulo == "215" ? "215-3" : "210-20(a)";
-        bloques.Add(Seccion("3. SELECCIÓN DE LA PROTECCIÓN", [
-            ("Fase que gobierna", hoja.FaseQueGobierna),
-            ("Corriente de diseño (In)", Amperes(hoja.CorrienteDisenoA)),
-            ($"Capacidad mínima — {articuloProteccion}", d is null ? null : Amperes(d.CapacidadMinimaA)),
-            ("Protección seleccionada — 240-6(a)", Amperes(hoja.ProteccionA, "N0")),
-            ("Tamaños de interruptor", hoja.SerieDeInterruptores)]));
+        if (m is not null)
+        {
+            // I-15: el derivado de un motor. La corriente es la de tabla; el conductor, 125 % de ella
+            // (430-22); la protección, el porcentaje de la Tabla 430-52 y el tamaño inmediato superior.
+            var maximo = m.FlcA * m.PorcentajeProteccion / 100m;
+            bloques.Add(new BloqueMemoria(
+                "3. SELECCIÓN DE LA PROTECCIÓN",
+                [
+                    new("Corriente a plena carga (FLC) — 430-6(a)", $"{m.FlcA:N2} A — {m.Fuente}"),
+                    new("Capacidad mínima del conductor — 430-22", $"125 % × {m.FlcA:N2} A = {1.25m * m.FlcA:N2} A"),
+                    new("Protección máxima — Tabla 430-52", $"{m.PorcentajeProteccion:0} % × {m.FlcA:N2} A = {maximo:N2} A (interruptor automático de tiempo inverso)"),
+                    new("Protección seleccionada — 430-52(c)(1) Excepción 1", $"{hoja.ProteccionA:N0} A"),
+                    new("Tamaños de interruptor", hoja.SerieDeInterruptores ?? "—"),
+                ],
+                [],
+                [
+                    "La FLC sale de la tabla, no de la placa — 430-6(a). El interruptor del tablero protege el circuito contra " +
+                    "cortocircuito y falla a tierra; puede quedar arriba de la ampacidad del conductor — 240-4(g).",
+                    "La protección contra sobrecarga del motor va en el arrancador (relevador de sobrecarga) o en el propio " +
+                    "motor — 430-32. No la da el interruptor del tablero.",
+                ]));
+        }
+        else
+        {
+            var articuloProteccion = hoja.Articulo == "215" ? "215-3" : "210-20(a)";
+            var motores = hoja.MotoresQueGobiernan;
+            bloques.Add(Seccion("3. SELECCIÓN DE LA PROTECCIÓN", [
+                ("Fase que gobierna", hoja.FaseQueGobierna),
+                ("Corriente de diseño (In)", Amperes(hoja.CorrienteDisenoA)),
+                ("Motores — 430-24", motores.MayorFlcA is { } mayor
+                    ? $"125 % × {mayor:N2} A (el mayor) + {motores.SumaRestoFlcA:N2} A (los demás) = {motores.CapacidadMinimaA:N2} A"
+                    : null),
+                ($"Capacidad mínima — {articuloProteccion}{(motores.MayorFlcA is null ? "" : ", 430-24")}", d is null ? null : Amperes(d.CapacidadMinimaA)),
+                ("Protección seleccionada — 240-6(a)", Amperes(hoja.ProteccionA, "N0")),
+                ("Protección máxima — 430-62(a), 430-63", hoja.Techo430_62A is { } techo
+                    ? $"{techo:N2} A: la mayor protección de motor, la FLC de los demás motores y lo que 215-3 pide para la otra carga"
+                    : null),
+                ("Tamaños de interruptor", hoja.SerieDeInterruptores)]));
+        }
 
         // ---- 4: cómo se llegó a la ampacidad del conductor, paso por paso. Hasta el 2026-09-23 aquí
         // decía «Icm = In / (FT × FA)» y sustituía la CAPACIDAD MÍNIMA, no In; con 6 agrupados

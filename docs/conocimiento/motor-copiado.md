@@ -93,6 +93,15 @@ Llevar estos cambios a `PowerNode-DesignSuite`.
 | 2026-09-24 | `TablasNom/ErratasDeLaNorma.cs` | Agregar `AreaTw10Awg`: Tabla 5, TW/THHW/THW/THW-2 de 10 AWG, 55.68 → 15.68 mm². | Sí, en llenado de canalizaciones | M-07 |
 | 2026-09-24 | `Normativa/TablaAislamientoJson.cs` (en escritorio: `Data/TablasNom`) | `TemperaturaMaxima`: en lugar seco sin renglón propio, la temperatura que da la tabla — 310-10(a). THW se rechazaba en seco. | Sí, THW en lugar seco | M-08 |
 | 2026-09-25 | `Tableros/BalanceoDeFases.cs` | Desempatar por dispersión: a igual (máx − mín) / máx, gana el acomodo con las corrientes por barra más parejas. Con toda la carga en una barra, la búsqueda se detenía en 100 % aunque dos movimientos llegaban a 0 %. | Sí, propone más movimientos cuando antes no proponía | I-69 |
+| 2026-09-26 | `Casos/DatosEntradaCircuitoDerivadoMotor.cs`, `CalculadoraCircuitoDerivadoMotor.cs` | Agregar `TerminalesMarcadas75C` y usar `TemperaturaTerminales.Para(protección, marcado75C, aislamiento)`, como M-06 en el no-motor. | No (por omisión) | I-15 |
+| 2026-09-26 | `Casos/CaidaPorFase.cs` (`CorrienteDeFaseAlimentador`), `CalculadoraAlimentador.cs` | Agregar `Motores` y `FasorMotores` a cada fase: la fase que gobierna cuenta 430-24; 430-24 y 430-62(a) con los motores de esa fase; caída fasorial con sus FLC al 100 %. `CargaMotores` sin fase sigue igual. | No (por omisión); sí con motores por fase | I-15 |
+| 2026-09-26 | `Casos/CalculadoraProteccionAlimentador.cs` | Techo de 430-63: la otra carga con lo que le pide 215-3 (125 % de la continua + no continua), no al 100 %. | Sí, con motores y carga continua: el techo sube | M-09 |
+| 2026-09-26 | `Normativa/TablaFlcMotorJson.cs` (en escritorio: `Data/TablasNom`) | Agregar `TensionDeColumna` y `TablaDe`: la columna con la que se lee una tensión de sistema, para que la memoria la diga. | No | I-15 |
+
+**Visto en el escritorio, sin cambio aquí (I-15):** `CalculadoraCircuitoDerivadoMotor` calcula la caída
+de un motor monofásico con `TensionFaseNeutroV`, también cuando el motor está entre fases (2 polos,
+220 V): la caída sale ~1.7 veces mayor. La web le pasa la tensión del circuito en ese campo; en el
+escritorio hay que revisar qué tensión le llega.
 
 ## Nacido en la web — llevar al escritorio
 

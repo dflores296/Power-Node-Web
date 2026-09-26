@@ -123,16 +123,29 @@ public class TablaFlcMotorJson(IFuenteTablas fuente) : ITablaFlcMotor
     /// no existe, la del intervalo de sistema que la contenga. Null si no cae en ninguno — ahí sí
     /// es una tensión que la tabla no cubre.
     /// </summary>
-    private static int? ColumnaPara(TipoAlimentacionMotor tipo, Dictionary<int, int> columnas, decimal tensionV)
+    private static int? ColumnaPara(TipoAlimentacionMotor tipo, Dictionary<int, int> columnas, decimal tensionV) =>
+        TensionDeColumna(tipo, tensionV) is { } nominal ? columnas[nominal] : null;
+
+    /// <summary>
+    /// <b>La tensión nominal de la columna con la que se lee <paramref name="tensionV"/></b>: la
+    /// misma si la tabla tiene esa columna, o la del intervalo de sistema que la contiene — 220 V se
+    /// lee en la de 230 V. Null si la tabla no la cubre. Es lo que la memoria tiene que decir para
+    /// que el número se encuentre en la tabla (Power Node Web, I-15).
+    /// </summary>
+    public static int? TensionDeColumna(TipoAlimentacionMotor tipo, decimal tensionV)
     {
-        if (columnas.TryGetValue((int)tensionV, out var exacta)) return exacta;
+        var (_, columnas) = Config[tipo];
+        if (columnas.ContainsKey((int)tensionV)) return (int)tensionV;
 
         if (!IntervalosDeSistema.TryGetValue(tipo, out var intervalos)) return null;
 
         foreach (var (min, max, nominal) in intervalos)
-            if (tensionV >= min && tensionV <= max && columnas.TryGetValue(nominal, out var porIntervalo))
-                return porIntervalo;
+            if (tensionV >= min && tensionV <= max && columnas.ContainsKey(nominal))
+                return nominal;
 
         return null;
     }
+
+    /// <summary>La tabla de la norma que da la FLC de cada tipo de alimentación: «430-250» en trifásico.</summary>
+    public static string TablaDe(TipoAlimentacionMotor tipo) => Config[tipo].TablaId;
 }

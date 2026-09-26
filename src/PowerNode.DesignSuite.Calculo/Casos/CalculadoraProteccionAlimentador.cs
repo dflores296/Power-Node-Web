@@ -97,12 +97,17 @@ public static class CalculadoraProteccionAlimentador
         // Y otra carga: el dispositivo "debe tener un valor nominal no menor al requerido para la
         // suma de otra carga, más [...] para dos o más motores, el valor nominal permitido en
         // 430-62". Por eso la carga no-motor se suma al techo, no compite con él.
+        //
+        // «EL REQUERIDO PARA LA OTRA CARGA» ES EL DE 215-3: 125 % de la continua + 100 % de la no
+        // continua — M-09 (Power Node Web, 2026-09-26). Hasta entonces se sumaba al 100 %, y un
+        // tablero con alumbrado continuo y un motor chico «excedía el techo» con la protección que
+        // la propia 215-3 le exige a ese alumbrado.
         decimal? techo = null;
         var excedeTecho = false;
 
         if (cargaMotores.TechoProteccion430_62aA is decimal techoMotores)
         {
-            var noMotorA = iContinua + iNoContinua;
+            var noMotorA = continua.Factor * iContinua + iNoContinua;
             techo = techoMotores + noMotorA;
 
             citas.Add(new Cita("430-62(a)",
@@ -111,7 +116,8 @@ public static class CalculadoraProteccionAlimentador
 
             if (noMotorA > 0m)
                 citas.Add(new Cita("430-63",
-                    $"El alimentador lleva motores y otra carga: al techo de 430-62 se le suma la otra carga ({noMotorA:0.##} A) = {techo:0.##} A"));
+                    $"El alimentador lleva motores y otra carga: al techo de 430-62 se le suma lo que 215-3 requiere para la otra carga " +
+                    $"({continua.Factor * 100m:0}% x {iContinua:0.##} A + {iNoContinua:0.##} A = {noMotorA:0.##} A) = {techo:0.##} A"));
 
             excedeTecho = breaker > techo;
             if (excedeTecho)

@@ -17,5 +17,8 @@ Supuestos del cálculo pendientes de confirmar en campo o por David. Ordenados p
 | El desbalanceo se calcula en corriente; el balanceo se imprime en VA. | Los dos valores no coinciden entre sí. | Igual que el motor y el Excel. |
 | El entregable se imprime desde el navegador. | No editable antes de entregar. | Propuesta — [`../decisiones/documento-imprimible-en-vez-de-archivo.md`](../decisiones/documento-imprimible-en-vez-de-archivo.md). |
 | Impresión revisada solo en PDF de Chromium. | Márgenes o cortes distintos en impresora. | Imprimir una vez en físico. |
-| Motor / A/C y calefacción fija se calculan como carga de placa. | Sin 430-22, 430-52 ni 440 en el derivado de un motor. | Pendiente — I-15. |
+| Motor / A/C en VA, W o A y calefacción fija se calculan como carga de placa. | Sin 440 (MCA y MOCP) en un motocompresor hermético. | En HP, Art. 430 — I-15. El Art. 440, fuera. |
+| Un motor en HP se protege con interruptor de tiempo inverso y es monofásico o de jaula de ardilla. | Rotor devanado o fusible: otro porcentaje de la Tabla 430-52. | Propuesta — [`../decisiones/motores-art-430.md`](../decisiones/motores-art-430.md). |
+| 430-24 y 430-62(a) se aplican por fase, con los motores que toca cada barra. | Con motores monofásicos repartidos, un alimentador más chico que si se sumaran todos. | Propuesta — [`../decisiones/motores-art-430.md`](../decisiones/motores-art-430.md). |
+| El F.D. de motores (430-26) reduce la FLC de los motores en HP en el alimentador. | Alimentador de menos si el F.D. no se sostiene. | 430-26 pide el permiso de la autoridad; va con justificación (R-18). |
 | El mínimo de 220-52 lleva el factor de demanda de contactos. | Alimentador de menos si el F.D. de contactos es bajo. | 220-52 permite sumarlo al alumbrado general con la Tabla 220-42. |

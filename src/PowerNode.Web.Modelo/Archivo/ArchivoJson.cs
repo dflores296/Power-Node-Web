@@ -82,6 +82,8 @@ public sealed class CircuitoJson
     public CategoriaDeCarga? Categoria { get; set; }
     public UsoDeContactos? Uso { get; set; }
     public UnidadConsumo? Unidad { get; set; }
+    /// <summary>Los HP de un motor — I-15. Sin él, carga de placa en <see cref="Unidad"/>.</summary>
+    public decimal? Hp { get; set; }
     public decimal? Continua { get; set; }
     public decimal? NoContinua { get; set; }
     public decimal? FactorPotencia { get; set; }
@@ -98,6 +100,7 @@ public sealed class CircuitoJson
         Categoria = c.Categoria,
         Uso = c.Uso,
         Unidad = c.Unidad,
+        Hp = c.Hp,
         Continua = c.Continua,
         NoContinua = c.NoContinua,
         FactorPotencia = c.FactorPotencia,
@@ -126,6 +129,7 @@ public sealed class CircuitoJson
         c.Categoria = Categoria ?? c.Categoria;
         c.Uso = Uso ?? c.Uso;
         c.Unidad = Unidad ?? c.Unidad;
+        c.Hp = Hp is >= 0m ? Hp : null;
         c.Continua = Continua ?? c.Continua;
         c.NoContinua = NoContinua ?? c.NoContinua;
         c.FactorPotencia = FactorPotencia ?? c.FactorPotencia;

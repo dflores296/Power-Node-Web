@@ -20,13 +20,21 @@ namespace PowerNode.DesignSuite.Calculo.Casos;
 /// </summary>
 /// <param name="AnguloTensionGrados">Ángulo de V fase-neutro: A 0°, B −120°, C 120° en estrella;
 /// A 0°, B 180° en 1F-3H.</param>
+/// <param name="Motores">Los motores que toca la fase, con su FLC de tabla y la protección de su
+/// derivado — I-15. <b>No</b> van en <paramref name="ContinuaA"/> ni en
+/// <paramref name="NoContinuaA"/>: su capacidad es la de 430-24 (125 % del mayor + la suma de los
+/// demás), no la de 215-3. Vacío = la fase no lleva motores.</param>
+/// <param name="FasorMotores">La suma fasorial de las FLC de esos motores, al 100 %: la corriente
+/// que de verdad circula en operación normal, para la caída de tensión.</param>
 public sealed record CorrienteDeFaseAlimentador(
     char Fase,
     decimal ContinuaA,
     decimal NoContinuaA,
     decimal AnguloTensionGrados,
     Fasor FasorContinua,
-    Fasor FasorNoContinua);
+    Fasor FasorNoContinua,
+    AgregadoMotores Motores = default,
+    Fasor FasorMotores = default);
 
 /// <summary>La caída de una fase del alimentador, con su corriente ya con demanda.</summary>
 public sealed record CaidaDeFase(char Fase, Fasor Corriente, decimal CaidaV, decimal CaidaPct);

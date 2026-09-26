@@ -31,6 +31,7 @@ Power Node lo resuelve para **un tablero** de hasta 42 espacios:
 | **Conductor** | Ampacidad por aislamiento, temperatura, agrupamiento y terminales | 310-15, 110-14(c) |
 | **Canalización** | Portadores por tubo, ajuste por agrupamiento y llenado | Capítulo 10 |
 | **Caída de tensión** | Con la impedancia eficaz, fase por fase en el alimentador | Tabla 9 |
+| **Motores** | En HP: corriente de tabla, conductor al 125 %, protección de la Tabla 430-52; en el alimentador, 125 % del mayor por fase | Art. 430 |
 | **Alimentador y principal** | Factor de demanda por tipo de carga, fase que gobierna, mínimos de acometida | Art. 220, 215, 230-79 |
 | **Balanceo** | El interior del gabinete dibujado; los circuitos se mueven arrastrándolos | — |
 
@@ -40,7 +41,7 @@ La lista completa, con la prueba que verifica cada requisito, está en
 ## Cómo se usa
 
 1. **Captura** — los datos del tablero (sistema, tensión, acometida, inmueble) y un renglón por
-   circuito: carga en VA, W o A, factor de potencia y tipo.
+   circuito: carga en VA, W o A, factor de potencia y tipo; un motor, en HP.
 2. **Cuadro de carga** — la tabla de 24 columnas con el resumen de carga. Cada protección y cada
    conductor tiene su desglose en tooltip.
 3. **Memoria de cálculo** — nueve secciones con las fórmulas y sus números sustituidos.

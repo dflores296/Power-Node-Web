@@ -42,17 +42,96 @@ public sealed record DesgloseDeSeleccion(IReadOnlyList<string> Proteccion, IRead
         int conductoresPorFase,
         DetalleDelCalculo d,
         IReadOnlyList<Cita> citas,
-        string? referenciaMinimo = null)
+        string? referenciaMinimo = null,
+        AgregadoMotores motores = default)
     {
+        // Con motores (I-15), la corriente y la capacidad llevan su parte: la FLC de todos al 100 %
+        // y 430-24 aparte, sin el 125 % de la continua.
+        var conMotores = motores.MayorFlcA is not null;
+        var corriente = iContinuaA + iNoContinuaA + motores.CorrienteRealA;
         var proteccion = new List<string>
         {
-            $"In = {iContinuaA:N2} A (continua) + {iNoContinuaA:N2} A (no continua) = {iContinuaA + iNoContinuaA:N2} A",
-            $"Capacidad mínima = {factorContinua * 100m:0} % × {iContinuaA:N2} A + {iNoContinuaA:N2} A = {d.CapacidadMinimaA:N2} A — {articuloProteccion}",
+            $"In = {iContinuaA:N2} A (continua) + {iNoContinuaA:N2} A (no continua)" +
+                (conMotores ? $" + {motores.CorrienteRealA:N2} A (motores)" : "") + $" = {corriente:N2} A",
+            conMotores
+                ? $"Capacidad mínima = {factorContinua * 100m:0} % × {iContinuaA:N2} A + {iNoContinuaA:N2} A + " +
+                  $"(125 % × {motores.MayorFlcA:N2} A + {motores.SumaRestoFlcA:N2} A) = {d.CapacidadMinimaA:N2} A — {articuloProteccion}, 430-24"
+                : $"Capacidad mínima = {factorContinua * 100m:0} % × {iContinuaA:N2} A + {iNoContinuaA:N2} A = {d.CapacidadMinimaA:N2} A — {articuloProteccion}",
             $"Protección: {proteccionSinMinimo:N0} A, primer tamaño ≥ capacidad mínima en «{datos.SerieInterruptores.Nombre()}» — 240-6(a)",
         };
         if (proteccionA != proteccionSinMinimo)
             proteccion.Add($"Protección mínima del circuito: {proteccionA:N0} A — {referenciaMinimo}");
 
+        var conductor = LineasDelConductor(ampacidad, datos, proteccionA, calibre, conductoresPorFase, d);
+
+        // Las dos revisiones de 210-19(a)(1) / 215-2(a)(1), por separado: el 125 % contra la tabla
+        // SIN factores (en la columna de la terminal), la carga al 100 % contra la corregida. Con
+        // motores, 430-24 es un piso de ampacidad con su propia regla: contra la corregida.
+        if (conMotores)
+            conductor.Add(
+                $"Con factores: {d.AmpacidadConductorA:N2} A ≥ capacidad mínima {d.CapacidadMinimaA:N2} A " +
+                $"{(d.AmpacidadConductorA >= d.CapacidadMinimaA ? "✔" : "✘")} — {articuloConductor}, 430-24");
+        else
+        {
+            if (ampacidad.Ampacidad(calibre, datos.MaterialConductor, (TemperaturaAislamiento)d.TemperaturaTerminalesC) is { } tabla)
+            {
+                var tablaTotal = tabla * conductoresPorFase;
+                conductor.Add(
+                    $"Antes de factores: {tablaTotal:N2} A a {d.TemperaturaTerminalesC} °C ≥ capacidad mínima {d.CapacidadMinimaA:N2} A " +
+                    $"{(tablaTotal >= d.CapacidadMinimaA ? "✔" : "✘")} — {articuloConductor}");
+            }
+            conductor.Add(
+                $"Con factores: {d.AmpacidadConductorA:N2} A ≥ carga {corriente:N2} A {(d.AmpacidadConductorA >= corriente ? "✔" : "✘")} — {articuloConductor}");
+        }
+
+        conductor.AddRange(PorQueCrecio(citas, proteccionA, d));
+        return new DesgloseDeSeleccion(proteccion, conductor);
+    }
+
+    /// <summary>
+    /// <b>El derivado de un motor</b> — I-15: la FLC de tabla, el 125 % para el conductor (430-22) y el
+    /// porcentaje de la Tabla 430-52 para la protección, con el tamaño inmediato superior que permite
+    /// su Excepción 1. La protección puede quedar arriba de la ampacidad del conductor: es protección
+    /// contra cortocircuito y falla a tierra; la sobrecarga la cuida el arrancador — 430-32, 240-4(g).
+    /// </summary>
+    /// <param name="fuente">«Tabla 430-250, columna de 230 V (220 V: intervalo de 220 a 240 V)».</param>
+    /// <param name="porcentaje">El de la Tabla 430-52: 250 % con interruptor de tiempo inverso.</param>
+    internal static DesgloseDeSeleccion DeMotor(
+        ITablaAmpacidad ampacidad,
+        DatosDelTablero datos,
+        decimal hp,
+        decimal flcA,
+        string fuente,
+        decimal porcentaje,
+        decimal proteccionA,
+        Calibre calibre,
+        int conductoresPorFase,
+        DetalleDelCalculo d,
+        IReadOnlyList<Cita> citas)
+    {
+        var techo = flcA * porcentaje / 100m;
+        var proteccion = new List<string>
+        {
+            $"FLC = {flcA:N2} A, {MotoresEnHp.Texto(hp)} HP — {fuente}, 430-6(a)",
+            $"Máximo = {porcentaje:0} % × {flcA:N2} A = {techo:N2} A, interruptor de tiempo inverso — Tabla 430-52",
+            $"Protección: {proteccionA:N0} A, " +
+                (proteccionA == techo ? "igual al máximo" : "tamaño inmediato superior al máximo") +
+                $" en «{datos.SerieInterruptores.Nombre()}» — 430-52(c)(1) Excepción 1",
+            "Sobrecarga del motor: relevador en el arrancador o protector del motor — 430-32",
+        };
+
+        var conductor = LineasDelConductor(ampacidad, datos, proteccionA, calibre, conductoresPorFase, d);
+        conductor.Add(
+            $"Con factores: {d.AmpacidadConductorA:N2} A ≥ 125 % × {flcA:N2} A = {d.CapacidadMinimaA:N2} A " +
+            $"{(d.AmpacidadConductorA >= d.CapacidadMinimaA ? "✔" : "✘")} — 430-22");
+        conductor.AddRange(PorQueCrecio(citas, proteccionA, d));
+        return new DesgloseDeSeleccion(proteccion, conductor);
+    }
+
+    /// <summary>La columna del aislamiento con sus factores, el tope de la terminal y la ampacidad utilizable.</summary>
+    private static List<string> LineasDelConductor(
+        ITablaAmpacidad ampacidad, DatosDelTablero datos, decimal proteccionA, Calibre calibre, int conductoresPorFase, DetalleDelCalculo d)
+    {
         var tAislamiento = (TemperaturaAislamiento)d.TemperaturaAislamientoC;
         var tTerminal = (TemperaturaAislamiento)d.TemperaturaTerminalesC;
         var deTablaAislamiento = ampacidad.Ampacidad(calibre, datos.MaterialConductor, tAislamiento);
@@ -74,35 +153,26 @@ public sealed record DesgloseDeSeleccion(IReadOnlyList<string> Proteccion, IRead
         }
 
         conductor.Add($"Ampacidad utilizable: {d.AmpacidadConductorA:N2} A{porFase}");
+        return conductor;
+    }
 
-        // Las dos revisiones de 210-19(a)(1) / 215-2(a)(1), por separado: el 125 % contra la tabla
-        // SIN factores (en la columna de la terminal), la carga al 100 % contra la corregida.
-        var carga = iContinuaA + iNoContinuaA;
-        if (deTablaTerminal is { } tabla)
-        {
-            var tablaTotal = tabla * conductoresPorFase;
-            conductor.Add(
-                $"Antes de factores: {tablaTotal:N2} A a {d.TemperaturaTerminalesC} °C ≥ capacidad mínima {d.CapacidadMinimaA:N2} A " +
-                $"{(tablaTotal >= d.CapacidadMinimaA ? "✔" : "✘")} — {articuloConductor}");
-        }
-        conductor.Add(
-            $"Con factores: {d.AmpacidadConductorA:N2} A ≥ carga {carga:N2} A {(d.AmpacidadConductorA >= carga ? "✔" : "✘")} — {articuloConductor}");
-
-        // Por qué el conductor terminó más grueso de lo que pedía la capacidad: lo dice el motor en
-        // sus citas, y aquí solo se repite en corto.
+    /// <summary>
+    /// Por qué el conductor terminó más grueso de lo que pedía la capacidad: lo dice el motor en sus
+    /// citas, y aquí solo se repite en corto.
+    /// </summary>
+    private static IEnumerable<string> PorQueCrecio(IReadOnlyList<Cita> citas, decimal proteccionA, DetalleDelCalculo d)
+    {
         foreach (var cita in citas)
         {
             if (cita.Referencia == "240-4(b)")
-                conductor.Add($"Protección {proteccionA:N0} A > {d.AmpacidadConductorA:N2} A: estándar inmediato superior permitido — 240-4(b)");
+                yield return $"Protección {proteccionA:N0} A > {d.AmpacidadConductorA:N2} A: estándar inmediato superior permitido — 240-4(b)";
             else if (cita.Referencia == "240-4")
-                conductor.Add($"Conductor aumentado para quedar protegido por {proteccionA:N0} A — 240-4");
+                yield return $"Conductor aumentado para quedar protegido por {proteccionA:N0} A — 240-4";
             else if (cita.Referencia == "240-4(d)")
-                conductor.Add($"Conductor aumentado por el tope de protección de calibres pequeños — 240-4(d)");
+                yield return $"Conductor aumentado por el tope de protección de calibres pequeños — 240-4(d)";
             else if (cita.Referencia == "Tabla 9" && cita.Descripcion.Contains("excedía"))
-                conductor.Add($"Conductor aumentado por caída de tensión — {cita.Descripcion}");
+                yield return $"Conductor aumentado por caída de tensión — {cita.Descripcion}";
         }
-
-        return new DesgloseDeSeleccion(proteccion, conductor);
     }
 
     private static string PorQueLaTerminal(decimal proteccionA, bool marcadas75C, int terminalC) =>
