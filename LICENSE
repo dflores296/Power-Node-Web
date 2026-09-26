@@ -1,0 +1,54 @@
+Copyright (c) 2026 dflores296. Todos los derechos reservados.
+All rights reserved.
+
+Este repositorio es de CÓDIGO VISIBLE (source-available), NO de código abierto.
+Se publica únicamente para poder consultarlo y para alojar el sitio en GitHub
+Pages.
+
+
+LO QUE SÍ SE PERMITE
+
+  - Consultar y leer el código dentro de GitHub.
+  - Usar la aplicación publicada en GitHub Pages tal como se ofrece.
+  - Las bifurcaciones (forks) dentro de GitHub, en la medida en que lo permiten
+    los Términos de Servicio de GitHub.
+
+
+LO QUE NO SE PERMITE
+
+No se concede ninguna licencia, expresa ni implícita, para usar, copiar,
+modificar, fusionar, publicar, distribuir, sublicenciar, vender ni crear obras
+derivadas de este software o de partes sustanciales del mismo, ni para
+incorporarlo a un producto o servicio propio, sin autorización previa y por
+escrito del titular de los derechos.
+
+Esto incluye el motor de cálculo (src/PowerNode.DesignSuite.*), copiado del
+repositorio privado PowerNode-DesignSuite del mismo titular.
+
+Para solicitar una licencia de uso, escribe al titular del repositorio.
+
+
+SIN GARANTÍA
+
+EL SOFTWARE SE PROPORCIONA "TAL CUAL", SIN GARANTÍA DE NINGÚN TIPO, EXPRESA O
+IMPLÍCITA, INCLUIDAS ENTRE OTRAS LAS GARANTÍAS DE COMERCIABILIDAD, IDONEIDAD
+PARA UN PROPÓSITO PARTICULAR Y NO INFRACCIÓN. EN NINGÚN CASO EL AUTOR O EL
+TITULAR DE LOS DERECHOS SERÁ RESPONSABLE DE NINGUNA RECLAMACIÓN, DAÑO U OTRA
+RESPONSABILIDAD DERIVADA DEL SOFTWARE O DE SU USO.
+
+Los resultados de esta herramienta no sustituyen el criterio del ingeniero
+responsable del proyecto ni el dictamen de una Unidad de Verificación.
+Verifica los valores contra la NOM-001-SEDE-2012 antes de usarlos en un
+proyecto.
+
+
+CONTENIDO NORMATIVO
+
+Las tablas de la NOM-001-SEDE-2012 (wwwroot/datos/tablas-nom.json y su copia en
+tests/) se extraen del repositorio público dflores296/NOM-001-SEDE-2012, que las
+reproduce del Diario Oficial de la Federación (29 de noviembre de 2012).
+Conforme al artículo 14 de la Ley Federal del Derecho de Autor, los textos
+reglamentarios no son objeto de protección como derecho de autor, y esta
+licencia no reclama derecho alguno sobre ellos. La estructura de esas tablas
+es obra de aquel repositorio y se publica bajo CC BY-SA 4.0: los dos archivos
+tablas-nom.json conservan esa licencia, no la de arriba.

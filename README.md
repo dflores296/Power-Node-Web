@@ -1,96 +1,122 @@
+[![Power Node — cuadros de carga según la NOM-001-SEDE-2012](docs/portada.png)](https://dflores296.github.io/Power-Node-Web/)
+
+[![CI](https://github.com/dflores296/Power-Node-Web/actions/workflows/ci.yml/badge.svg)](https://github.com/dflores296/Power-Node-Web/actions/workflows/ci.yml)
+[![Despliegue](https://github.com/dflores296/Power-Node-Web/actions/workflows/deploy.yml/badge.svg)](https://github.com/dflores296/Power-Node-Web/actions/workflows/deploy.yml)
+![Código](https://img.shields.io/badge/c%C3%B3digo-visible%2C%20no%20abierto-lightgrey.svg)
+![Tablas](https://img.shields.io/badge/tablas-verificadas%20vs%20NOM--001--SEDE--2012-brightgreen.svg)
+
 # Power Node Web
 
-Calcular el cuadro de carga de un tablero según la **NOM-001-SEDE-2012**, en el navegador, sin
-instalación ni servidor.
+El **cuadro de carga de un tablero** según la **NOM-001-SEDE-2012**, entero en el navegador. Sin
+instalar nada y sin servidor: se abre la página, se capturan los circuitos y sale el cuadro de carga
+con su memoria de cálculo, lista para imprimir.
 
-## Requisitos
+**[Abrir la herramienta →](https://dflores296.github.io/Power-Node-Web/)**
 
-Cada requisito se relaciona con su referencia normativa y con su verificación en
-`tests/PowerNode.Web.Tests`.
+> **No sustituye el criterio de quien firma el proyecto.** Cada resultado lleva la cita del artículo
+> o la tabla de la que sale, pero aprobar una instalación es una decisión de ingeniería y, en su
+> caso, de una Unidad de Verificación — no un número que devuelva una página.
 
-### Tablero
+## Para qué sirve
 
-| ID | Requisito | Referencia | Verificación |
-|---|---|---|---|
-| T-1 | Distribuir hasta 42 espacios: nones a la izquierda, pares a la derecha, fase por renglón (convención NEMA). | — | `LasBarrasRotanPorPares_…` |
-| T-2 | Asignar a un interruptor de 2 o 3 polos los espacios N, N+2 y N+4 del mismo lado. | — | `UnTrifasicoOcupaTresEspacios…` |
-| T-3 | Calcular la tensión fase-neutro según el sistema: estrella ÷√3, 1F-3H ÷2, 1F-2H igual. | — | `LaTensionFaseNeutroNoEsSiempreEntreRaizDeTres` |
+Antes de armar un tablero hay que saber qué protección y qué conductor lleva cada circuito, cómo
+quedan repartidas las fases y con qué se alimenta. Eso es el **cuadro de carga**, y es parte de toda
+memoria técnica de una instalación eléctrica en México.
 
-### Carga
+Power Node lo resuelve para **un tablero** de hasta 42 espacios:
 
-| ID | Requisito | Referencia | Verificación |
-|---|---|---|---|
-| C-1 | Capturar la carga en VA, W o A y convertirla a VA. | 220-14(a) | `I25_…` |
-| C-2 | Capturar el factor de potencia por carga (valor inicial 0.9). | Tabla 9, nota 2 | `FP_…` |
-| C-3 | Separar la carga continua (3 h o más) de la no continua. | Art. 100 | `ElMotorDistingueContinuaDeNoContinua_…` |
-| C-4 | Calcular la corriente de diseño sin factor de demanda en el derivado. | 210-19(a)(1), 220-42 | `UnCircuitoDeAlumbrado…` |
-| C-5 | Desglosar los aparatos de un circuito (opcional): la carga es la suma, el F.P. el combinado; «Contacto» sin carga, 180 VA. | 220-14(i), 424-3(b) | `I35_…` |
+| Qué | Cómo | Referencia |
+|---|---|---|
+| **Protección** de cada circuito | 125 % de la continua + 100 % de la no continua, al tamaño normalizado | 210-20(a), 240-6(a) |
+| **Conductor** | Ampacidad por aislamiento, temperatura, agrupamiento y terminales | 310-15, 110-14(c) |
+| **Canalización** | Portadores por tubo, ajuste por agrupamiento y llenado | Capítulo 10 |
+| **Caída de tensión** | Con la impedancia eficaz, fase por fase en el alimentador | Tabla 9 |
+| **Alimentador y principal** | Factor de demanda por tipo de carga, fase que gobierna, mínimos de acometida | Art. 220, 215, 230-79 |
+| **Balanceo** | El interior del gabinete dibujado; los circuitos se mueven arrastrándolos | — |
 
-### Protección
+La lista completa, con la prueba que verifica cada requisito, está en
+[`docs/conocimiento/requisitos.md`](docs/conocimiento/requisitos.md).
 
-| ID | Requisito | Referencia | Verificación |
-|---|---|---|---|
-| P-1 | Calcular la capacidad mínima: 125 % de la continua + 100 % de la no continua. | 210-20(a), 215-3 | `ElDesgloseDeLaProteccion…` |
-| P-2 | Seleccionar el primer tamaño normalizado mayor o igual a la capacidad mínima. | 240-6(a) | `Serie_…` |
-| P-3 | Seleccionar la familia de interruptores: centro de carga (NEMA), riel DIN (IEC) o NOM completa. | 240-6(a) | `Serie_…` |
-| P-4 | Sin mínimo por tipo de carga. Aplicar 20 A a los contactos de vivienda de cocina (aparatos pequeños), lavadora y baño; no fuera de vivienda ni en vivienda popular de hasta 60 m². | 210-11(c) y su Excepción 1 | `SinMinimoPorTipo_…`, `Vivienda_ElUsoPide20A…`, `I46_…` |
+## Cómo se usa
 
-### Conductor
+1. **Captura** — los datos del tablero (sistema, tensión, acometida, inmueble) y un renglón por
+   circuito: carga en VA, W o A, factor de potencia y tipo.
+2. **Cuadro de carga** — la tabla de 24 columnas con el resumen de carga. Cada protección y cada
+   conductor tiene su desglose en tooltip.
+3. **Memoria de cálculo** — nueve secciones con las fórmulas y sus números sustituidos.
 
-| ID | Requisito | Referencia | Verificación |
-|---|---|---|---|
-| K-1 | Seleccionar la columna de ampacidad por aislamiento y lugar de instalación. | Tabla 310-104(a), Tabla 310-15(b)(16) | `Aislamiento_…` |
-| K-2 | Aplicar los factores por temperatura ambiente y por agrupamiento en la columna del aislamiento. | 310-15(b)(2)(a), 310-15(b)(3)(a) | `DosRevisiones_…` |
-| K-3 | Limitar la ampacidad a la temperatura de la terminal: 60 °C hasta 100 A, 75 °C arriba de 100 A, o 75 °C con equipo marcado. | 110-14(c)(1) | `Terminales_…` |
-| K-4 | Verificar el 125 % contra la ampacidad de tabla sin factores y la carga al 100 % contra la ampacidad corregida. | 210-19(a)(1), 215-2(a)(1) | `DosRevisiones_…` |
-| K-5 | Proteger el conductor según su ampacidad; permitir el estándar inmediato superior salvo en circuitos de contactos. | 240-4, 240-4(b) | `Excepcion240_4b_…`, `R16_…` |
-| K-6 | Limitar la protección de 14, 12 y 10 AWG de cobre a 15, 20 y 30 A. | 240-4(d) | `Serie_EnRielDinNoHay15A_…` |
-| K-7 | Verificar la caída de tensión con la impedancia eficaz. | Tabla 9, 210-19(a)(1) nota 4 | `LasFormulasVienenConSusNumerosSustituidos` |
-| K-8 | Seleccionar el conductor de puesta a tierra con ajuste proporcional. | 250-122, 250-122(b) | — |
-| K-9 | En 2 fases + neutro de estrella, citar el neutro como portador y darle el calibre de la fase. | 310-15(b)(5)(2), 220-61(c)(1) | `R09_…` |
-| K-10 | En 2F-3H 220Y/127, no aplicar la excepción de 220-61(a) (× 140 %) ni la Tabla 310-15(b)(7). | 220-61(a), 310-15(b)(7) | `R10_…` |
-| K-11 | Contar los portadores de cada canalización con los circuitos que van por ella: neutro de 1 polo sí, de 2 fases + N de estrella sí, de 3 fases + N solo con carga no lineal, tierra nunca; neutro compartido. | 310-15(b)(3)(a), 310-15(b)(5), 310-15(b)(6), 210-4 | `CanalizacionesTests`, `I39_…` |
-| K-12 | Aplicar el ajuste por agrupamiento según el tipo de canalización: tubo, niple, ductos, canales auxiliares, superficiales. Sumar la temperatura de azotea al sol. | 310-15(b)(3)(a)(2), 376-22(b), 378-22, 366-23, 386-22, 388-22, 310-15(b)(3)(c) | `Ajuste_…`, `DuctoMetalico_…`, `Azotea_…` |
-| K-13 | Dimensionar la canalización con todos sus conductores; 20 % en ductos y canales. | Capítulo 10, Tablas 1, 4, 5 y 8, Notas 2 a 5; 376-22(a), 366-22 | `Llenado_…` |
-| K-14 | Llevar neutro solo en 1 polo, o en 2 y 3 polos con carga F-N. | 310-15(b)(5) | `I41_…` |
-
-### Alimentador
-
-| ID | Requisito | Referencia | Verificación |
-|---|---|---|---|
-| A-1 | Dimensionar el alimentador con la fase de mayor capacidad requerida, en el motor. | 215-2(a)(1), 215-3 | `M02_…`, `R04_…` |
-| A-2 | Aplicar el factor de demanda por tipo de carga (alumbrado, contactos, equipo, motores y A/C, calefacción), a criterio del ingeniero y con justificación del Art. 220. Justificaciones filtradas por inmueble. Calefacción fija como carga continua. | 220-40, 220-50, 220-51, 430-26, 424-3(b) | `ElFactorDeDemanda…`, `R12_…`, `R17_…`, `R18_…`, `R19_…` |
-| A-3 | Calcular el factor de potencia del alimentador con las cargas de la fase que gobierna. | Tabla 9, nota 2 | `FP_ElDelAlimentador…` |
-| A-4 | Avisar si el principal es menor que el derivado más grande. | — | `M03_…` |
-| A-5 | Si el tablero es equipo de acometida, subir el principal al mínimo del inmueble: 30 A (vivienda popular), 60 A (todos los que no son vivienda unifamiliar). | 230-79(c), 230-79(d) | `R11_…`, `R19_…` |
-| A-6 | Verificar la protección contra la capacidad de la barra. | 408-36 | `ElAvisoDel408_36…` |
-| A-7 | Limitar la caída de tensión del alimentador: 2 % por omisión (con el 3 % del derivado, 5 %), capturable. Avisar si los límites suman más de 5 %. | 215-2(a)(4) NOTA 2, 210-19(a)(1) NOTA 4 | `R01_…`, `R15_…` |
-| A-11 | Calcular la caída del alimentador fase por fase, con la caída del neutro (suma fasorial); limitar con la peor fase. | Tabla 9 | `R02_…` |
-| A-8 | Avisar por circuito si la caída del alimentador en su fase más la del derivado excede 5 %. | 215-2(a)(4) NOTA 2, 210-19(a)(1) NOTA 4 | `R01_…` |
-| A-9 | Cargar al alimentador 1500 VA por circuito de aparatos pequeños y de lavadora, solo en vivienda de más de 60 m². | 220-52(a), 220-52(b) y su excepción | `Vivienda_AparatosPequenosYLavadora…`, `I46_…` |
-| A-10 | Avisar si hay un solo circuito de aparatos pequeños. | 210-11(c)(1) | `Vivienda_UnSoloCircuito…` |
-
-### Entregable
-
-| ID | Requisito | Referencia | Verificación |
-|---|---|---|---|
-| E-1 | Emitir el cuadro de carga con 24 columnas y el resumen de carga. | — | Navegador |
-| E-2 | Emitir la memoria de cálculo con nueve secciones y fórmulas sustituidas. | — | `LasNueveSecciones…` |
-| E-3 | Mostrar el desglose de la protección y del conductor en tooltip y en la memoria, sección 4. | — | `LaSeccion4CuadraConElConductorElegido` |
-| E-4 | Guardar el tablero en un archivo (`.powernode.json`) y abrirlo de vuelta: lo capturado, sin resultados; se recalcula al abrir. Rechazar lo que no es de Power Node o es de una versión más nueva. | — | `I05_…` |
-| E-5 | Nombrar la pestaña con el tablero: «Tablero cocina — Power Node». | — | Navegador |
+El tablero se guarda en un archivo `.powernode.json` y se abre de vuelta; se pueden tener varios
+abiertos, uno por pestaña. Todo se queda en el navegador: no hay cuenta ni servidor.
 
 ## Datos
 
-Tablas tomadas de [NOM-001-SEDE-2012](https://github.com/dflores296/NOM-001-SEDE-2012), verificadas
-contra el PDF del DOF. La integración continua compara ambas copias en cada compilación.
+Las 18 tablas que usa el cálculo se extraen de
+[NOM-001-SEDE-2012](https://github.com/dflores296/NOM-001-SEDE-2012), donde están contrastadas
+celda por celda contra el PDF del DOF. **La integración continua clona ese repositorio en cada
+compilación** y falla si la copia de aquí se despegó (`tools/extraer_tablas.py --check`).
 
-> Los resultados no sustituyen el criterio del ingeniero responsable del proyecto.
+El motor de cálculo se copia de `PowerNode-DesignSuite`, la versión de escritorio, sin su base de
+datos ni su catálogo de equipos — ver
+[`docs/decisiones/motor-copiado-no-enlazado.md`](docs/decisiones/motor-copiado-no-enlazado.md).
 
-## Ejecutar
+## Desarrollo
 
 ```bash
-dotnet run --project src/PowerNode.Web
+dotnet run --project src/PowerNode.Web --urls http://127.0.0.1:5199
+dotnet test tests/PowerNode.Normativa.Tests
+dotnet test tests/PowerNode.Web.Tests
 ```
 
-Blazor WebAssembly sobre .NET 8. Índice de documentación: [`docs/LEEME.md`](docs/LEEME.md).
+Blazor WebAssembly sobre .NET 8. Publicación en GitHub Pages con
+[`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) en cada push a `main`.
+
+## Estructura
+
+| Ruta | Contenido |
+|---|---|
+| `src/PowerNode.Web/` | La aplicación Blazor: páginas, componentes y `wwwroot/` |
+| `src/PowerNode.Web.Modelo/` | El cuadro de carga: circuitos, alimentador, memoria y archivo |
+| `src/PowerNode.DesignSuite.Calculo/` | Motor de cálculo, copiado del escritorio |
+| `src/PowerNode.DesignSuite.Domain/` | Entidades del motor, copiadas del escritorio |
+| `src/PowerNode.DesignSuite.Normativa/` | Lectura de las tablas de la NOM desde JSON |
+| `tests/` | Pruebas de las tablas y del cuadro de carga |
+| `tools/` | Utilidades del repositorio, no de la aplicación |
+| `docs/` | Estado, decisiones y referencia técnica |
+
+## Documentación
+
+**[`docs/README.md`](docs/README.md)** es el índice, y dice qué es estado vigente y qué es
+referencia. Los que más se consultan:
+
+- [`docs/estado/TABLERO.md`](docs/estado/TABLERO.md) — cómo vamos y qué falta
+- [`docs/estado/HALLAZGOS.md`](docs/estado/HALLAZGOS.md) — defectos con ID y commit de cierre
+- [`docs/conocimiento/requisitos.md`](docs/conocimiento/requisitos.md) — cada requisito con su
+  referencia NOM y su prueba
+- [`docs/conocimiento/seleccion-conductor-y-proteccion.md`](docs/conocimiento/seleccion-conductor-y-proteccion.md)
+  — matriz de trazabilidad contra la norma
+- [`docs/decisiones/alcance-v1-un-tablero.md`](docs/decisiones/alcance-v1-un-tablero.md) — qué
+  entra y qué se descartó
+
+## Alcance
+
+**Un tablero, como el Excel original.** Sin cascada de tableros, sin coordinación de protecciones y
+sin catálogo de equipos. Lo que se evaluó y se dejó fuera, con su razón, está en
+[`docs/decisiones/alcance-v1-un-tablero.md`](docs/decisiones/alcance-v1-un-tablero.md).
+
+## Licencia
+
+**Código visible, no código abierto.** Copyright (c) 2026 dflores296, todos los derechos
+reservados. El repositorio es público para poder consultarlo y para alojar el sitio en GitHub Pages,
+pero **no** se concede licencia de uso, copia, modificación ni redistribución. Ver
+[LICENSE](LICENSE).
+
+Las tablas de la norma (`tablas-nom.json`) conservan la licencia CC BY-SA 4.0 del repositorio del
+que se extraen; el texto de la NOM no es objeto de derecho de autor (art. 14 de la LFDA).
+
+## Marcas
+
+Square D es marca registrada de Schneider Electric. NEMA es marca registrada de National Electrical
+Manufacturers Association. Este proyecto no está afiliado ni avalado por ellos, y **no** incluye
+datos de su catálogo — ver
+[`docs/decisiones/sin-catalogo-square-d.md`](docs/decisiones/sin-catalogo-square-d.md). Se les
+menciona únicamente como referencia técnica.

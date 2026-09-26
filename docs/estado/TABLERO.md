@@ -48,7 +48,7 @@ Ejecutar en el navegador (Blazor WebAssembly), sin servidor, publicado en GitHub
   «Canal.»; configurar nombre, tipo, opciones y tamaño en la tarjeta «Canalizaciones».
 - Pruebas: 218 en `PowerNode.Web.Tests` (20 del documento de pruebas del 2026-09-23).
 
-Requisitos con su referencia NOM y su prueba: [`../../README.md`](../../README.md).
+Requisitos con su referencia NOM y su prueba: [`../conocimiento/requisitos.md`](../conocimiento/requisitos.md).
 
 ## Publicación
 

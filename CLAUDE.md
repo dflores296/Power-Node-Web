@@ -13,7 +13,7 @@ publicada en GitHub Pages. Hermana de `dflores296/PowerNode-DesignSuite` (escrit
    Empezar siempre aquí.
 2. **[`docs/estado/HALLAZGOS.md`](docs/estado/HALLAZGOS.md)** — defectos con ID y commit de cierre.
 3. **[`docs/estado/BITACORA.md`](docs/estado/BITACORA.md)** — qué se hizo cada sesión.
-4. **[`docs/LEEME.md`](docs/LEEME.md)** — índice completo de todo lo demás.
+4. **[`docs/README.md`](docs/README.md)** — índice completo de todo lo demás.
 
 ## Este archivo se queda corto, a propósito
 

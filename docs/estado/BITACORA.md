@@ -2,6 +2,19 @@
 
 Registro de acciones por sesión, con hallazgo y commit.
 
+## 2026-09-26
+
+**Ordenar el repositorio como `msa-toolkit` y `NOM-001-SEDE-2012`** (pedido de David)
+
+- Agregar `LICENSE`: código visible, no abierto, como `msa-toolkit`; las tablas conservan CC BY-SA 4.0.
+- Reescribir `README.md` como portada: captura, insignias, enlace a la herramienta, para qué sirve,
+  cómo se usa, estructura, documentación, licencia y marcas.
+- Mover la tabla de requisitos a `docs/conocimiento/requisitos.md`.
+- Renombrar `docs/LEEME.md` a `docs/README.md` (GitHub lo muestra al abrir la carpeta); agregar las
+  tres decisiones que faltaban en el índice, los binarios y las convenciones.
+- Agregar `docs/portada.png` (Playwright, vista «Cuadro de carga»).
+- Agregar `.claude/hooks/session-start.sh`: instala .NET 8 y `wasm-tools` en las sesiones remotas.
+
 ## 2026-09-23
 
 **Prueba de los tres aparatos (refrigerador, microondas, air fryer; 3F-4H 220/127 V)**
