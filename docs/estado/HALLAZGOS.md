@@ -33,7 +33,7 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-12 · Sin alimentador ni interruptor principal | P1 | **Cerrado** | `cc92ad5` |
 | I-13 · Sin documento imprimible ni memoria | P1 | **Cerrado** | `cc92ad5` |
 | I-14 · Tensión F-N siempre ÷√3 | P1 | **Cerrado** | `cc92ad5` |
-| I-15 · Sin captura de circuitos de Fuerza (Art. 430) | P2 | Pendiente | — |
+| I-15 · Sin captura de circuitos de Fuerza (Art. 430) | P2 | **Cerrado** (propuesta por confirmar) | `8099fb1` |
 | I-16 · Encabezados en dos líneas | P2 | **Cerrado** | `c2bb19c` |
 | I-17 · Sin hilos, mm² ni designación por conductor | P2 | **Cerrado** | `c2bb19c` |
 | I-18 · Sin dibujo del interior del tablero | P1 | **Cerrado** | `c2bb19c` |
@@ -63,6 +63,7 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | M-07 · Errata de la Tabla 5: TW 10 AWG con 55.68 mm² | P1 | **Cerrado** | `6e88585` |
 | I-42 · Selector de aislamiento con 7 de 17 tipos | P1 | **Cerrado** | `23da7ce` |
 | M-08 · THW rechazado en lugar seco | P1 | **Cerrado** | `23da7ce` |
+| M-09 · Techo de 430-63 con la otra carga al 100 %, no como la pide 215-3 | P2 | **Cerrado** | `8099fb1` |
 | I-43 · Canalización de los circuitos sin compartida fijada en Condiciones de cálculo | P2 | **Cerrado** | `58febd2` |
 | I-44 · «Propia» como nombre de tubería; opciones apiladas que ensanchaban el renglón; columna vacía | P2 | **Cerrado** | `c7ab778` |
 | I-45 · El selector «Canal.» mostraba otro tubo que el del circuito | P1 | **Cerrado** | `2ddc0b5` |
@@ -171,7 +172,7 @@ Formato: **Hecho** (defecto observado) · **Corrección** · **Referencia** · *
 
 **I-14** — Hecho: V F-N siempre ÷√3 (1F-3H 240 V: 138.6 V). Corrección: `SistemaDelTablero.TensionFaseNeutro` (120 V). Prueba: `LaTensionFaseNeutroNoEsSiempreEntreRaizDeTres`.
 
-**I-15** — Pendiente: capturar circuitos de Fuerza (Art. 430).
+**I-15** — Hecho: «Motor / A/C» se calculaba como carga de placa (Art. 210), sin 430-6(a), 430-22, 430-52 ni 430-24. El motor copiado traía `CalculadoraCircuitoDerivadoMotor` y `AgregadoMotores` sin conectar. Corrección: HP como unidad de Motor / A/C; el selector ofrece solo los HP que trae la tabla a la tensión y los polos del circuito. FLC de la Tabla 430-248 (1 y 2 polos) o 430-250 (3 polos) con la tensión del circuito en volts enteros (220 V en la columna de 230 V; 127 V en la suya; 208Y/120 a 1 polo en la de 115 V); interruptor de tiempo inverso, monofásico o jaula de ardilla: 250 % de la Tabla 430-52, tamaño inmediato superior. Conductor al 125 % de la FLC; la caída de un monofásico de 2 polos, a la tensión F-F. En el cuadro, VA = FLC × tensión (× √3), renglón «Motores en HP» en el resumen. Alimentador por fase: 125 % del mayor de cada barra + 100 % de los demás (430-24), con el F.D. de motores (430-26); techo de 430-62(a) y 430-63 de la fase que gobierna; el aviso de M-03 con un motor dice hasta cuánto permite subir el principal. Desglose, documento y memoria (secciones 1 y 3) por el Art. 430; nota de 430-32. `TerminalesMarcadas75C` en el derivado de motor. Referencia: 430-6(a), 430-22, 430-24, 430-26, 430-52(c)(1) Excepción 1, 430-62(a), 430-63, 240-4(g). Propuesta: [`../decisiones/motores-art-430.md`](../decisiones/motores-art-430.md). Prueba: `I15_…` (5 HP a 220 V: 15.2 A, 40 A, 12 AWG; 5 HP + 3 HP: 28.6 A → 30 A, techo 49.6 A; tres de 1 HP a 127 V, uno por fase: 20 A, no 50 A). Visto en el navegador: captura, desglose, documento, memoria, móvil y tema oscuro.
 
 **I-16 a I-18** — Hecho: encabezados en dos líneas; sin hilos, mm² ni AWG por conductor; sin dibujo del gabinete. Corrección: unidad entre paréntesis y tooltip; nueve columnas de conductor; interior del gabinete.
 
@@ -218,6 +219,8 @@ Formato: **Hecho** (defecto observado) · **Corrección** · **Referencia** · *
 **M-07** — Hecho: la Tabla 5 del DOF publica 55.68 mm² para TW/THHW/THW/THW-2 de 10 AWG; la misma fila da 4.470 mm de diámetro (15.69 mm²), el bloque va 11.68 → 55.68 → 28.19 y el NEC da 15.68. Cada conductor de 10 AWG contaba 3.5 veces su área. Corrección: `ErratasDeLaNorma.AreaTw10Awg` (se verifica antes de corregir y se cita en la memoria). Se barrió la Tabla 5 y la Tabla 4 comparando área contra diámetro: no hay otra. Prueba: `Tabla5_…`.
 
 **I-42** — Hecho (David): el selector de «Aislamiento» era una lista escrita en la pantalla con 7 tipos; el motor reconoce 17 (Tabla 310-104(a)). Faltaban THW, THW-2, THHW, XHH, XHHW, RHH, RHW, RHW-2, USE y USE-2. Corrección: el selector sale de `ITablaAislamiento.DesignacionesReconocidas`; los que no trae la Tabla 5 (THW-LS, THHW-LS, USE, USE-2) dicen «diámetro del fabricante». Prueba: `TodosLosAislamientosDelMotor_…`.
+
+**M-09** — Hecho (visto con I-15): el techo de 430-62(a) con otra carga (430-63) le sumaba esa carga al 100 %. 430-63 pide «el valor nominal requerido para la otra carga», que para la continua es 125 % (215-3): 40 A continuos y un motor de 5.3 A con derivado de 15 A daban techo de 55 A contra una protección de 60 A que la propia 215-3 exige. Corrección: `CalculadoraProteccionAlimentador` suma 125 % de la continua + la no continua (65 A). Referencia: 430-63, 215-3. Prueba: `M09_…`. Pendiente: llevar a `PowerNode-DesignSuite`.
 
 **M-08** — Hecho: THW en lugar seco daba «no es válido para el lugar capturado». El DOF publica THW solo con «75 °C · Lugares mojados» (verificado contra el PDF, pág. 156); `TablaAislamientoJson` buscaba un renglón que dijera «seco». Pero 310-10(a) permite en lugar seco cualquier tipo de la NOM, y 310-10(b) nombra al THW. Corrección: sin renglón para seco, la temperatura que da la tabla (THW: 75 °C). Lo destapó I-42: con la lista corta, THW no se podía elegir. Prueba: `Tabla310_104a_ThwEnLugarSeco_…`.
 

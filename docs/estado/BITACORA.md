@@ -16,7 +16,22 @@ Registro de acciones por sesión, con hallazgo y commit.
 - Agregar `.claude/hooks/session-start.sh`: instala .NET 8 y `wasm-tools` en las sesiones remotas.
 
 **Diagrama de arquitectura** (entregado por David) — `docs/arquitectura.webp` en el README, sección
-«Arquitectura», con crédito a [GitDiagram](https://github.com/ahmedkhaleel2004/gitdiagram).
+«Arquitectura», con crédito a [GitDiagram](https://github.com/ahmedkhaleel2004/gitdiagram) — `22641fd`.
+
+**Motores en HP, Art. 430** (pedido de David: «vamos con I-15») — I-15, M-09, `8099fb1`
+
+- Capturar un motor por sus HP en Motor / A/C: FLC de tabla, conductor al 125 %, protección de la
+  Tabla 430-52; desglose, documento y memoria por el Art. 430.
+- Sumar los motores del alimentador por fase (430-24), con su techo (430-62(a), 430-63) y su FLC en
+  la caída fasorial.
+- Motor copiado: motores por fase en `CorrienteDeFaseAlimentador`, `TerminalesMarcadas75C` en el
+  derivado de motor, techo de 430-63 con 215-3 (M-09) — registrado en
+  [`../conocimiento/motor-copiado.md`](../conocimiento/motor-copiado.md).
+- Propuesta: [`../decisiones/motores-art-430.md`](../decisiones/motores-art-430.md), con dos
+  preguntas para David.
+- Agregar `.claude/launch.json` (la app en `http://127.0.0.1:5199`, como pide CLAUDE.md).
+
+Pruebas: 237 en `PowerNode.Web.Tests`, 23 en `PowerNode.Normativa.Tests`.
 
 ## 2026-09-23
 
