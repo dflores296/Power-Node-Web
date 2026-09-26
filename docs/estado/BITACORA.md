@@ -4,7 +4,7 @@ Registro de acciones por sesión, con hallazgo y commit.
 
 ## 2026-09-26
 
-**Ordenar el repositorio como `msa-toolkit` y `NOM-001-SEDE-2012`** (pedido de David)
+**Ordenar el repositorio como `msa-toolkit` y `NOM-001-SEDE-2012`** (pedido de David) — `c92aafe`
 
 - Agregar `LICENSE`: código visible, no abierto, como `msa-toolkit`; las tablas conservan CC BY-SA 4.0.
 - Reescribir `README.md` como portada: captura, insignias, enlace a la herramienta, para qué sirve,
