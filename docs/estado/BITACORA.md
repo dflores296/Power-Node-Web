@@ -15,6 +15,9 @@ Registro de acciones por sesión, con hallazgo y commit.
 - Agregar `docs/portada.png` (Playwright, vista «Cuadro de carga»).
 - Agregar `.claude/hooks/session-start.sh`: instala .NET 8 y `wasm-tools` en las sesiones remotas.
 
+**Diagrama de arquitectura** (entregado por David) — `docs/arquitectura.webp` en el README, sección
+«Arquitectura», con crédito a [GitDiagram](https://github.com/ahmedkhaleel2004/gitdiagram).
+
 ## 2026-09-23
 
 **Prueba de los tres aparatos (refrigerador, microondas, air fryer; 3F-4H 220/127 V)**

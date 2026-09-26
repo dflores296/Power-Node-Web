@@ -83,6 +83,13 @@ Blazor WebAssembly sobre .NET 8. Publicación en GitHub Pages con
 | `tools/` | Utilidades del repositorio, no de la aplicación |
 | `docs/` | Estado, decisiones y referencia técnica |
 
+## Arquitectura
+
+![Arquitectura de Power Node Web: aplicación web, modelo eléctrico, cálculo, datos normativos y entregables](docs/arquitectura.webp)
+
+Diagrama generado con [GitDiagram](https://github.com/ahmedkhaleel2004/gitdiagram), de
+Ahmed Khaleel.
+
 ## Documentación
 
 **[`docs/README.md`](docs/README.md)** es el índice, y dice qué es estado vigente y qué es

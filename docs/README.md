@@ -61,6 +61,7 @@ Vacío.
 | Archivo | Qué es |
 |---|---|
 | `portada.png` | Captura que encabeza el README: la vista «Cuadro de carga» con un tablero de ocho circuitos, a 1600 × 900 en tema claro. Se regenera con Playwright contra `http://127.0.0.1:5199`. |
+| `arquitectura.webp` | Diagrama de arquitectura del README: aplicación web, modelo eléctrico, cálculo, datos normativos y entregables, con el archivo de cada bloque. Generado con [GitDiagram](https://github.com/ahmedkhaleel2004/gitdiagram) (Ahmed Khaleel) y entregado por David el 2026-09-25. |
 
 ---
 
