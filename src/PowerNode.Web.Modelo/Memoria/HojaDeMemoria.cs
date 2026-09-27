@@ -24,11 +24,14 @@ namespace PowerNode.Web.Modelo.Memoria;
 /// <param name="CaidaCombinada">Solo en un derivado: alimentador + circuito, ya redactado — R-01.</param>
 /// <param name="Canalizacion">La canalización del tramo: portadores, factor de agrupamiento y azotea —
 /// I-39. Va en la sección 4.</param>
-/// <param name="Motor">Solo en el derivado de un motor en HP: sus datos de tabla — I-15. Cambia las
-/// secciones 1 y 3 al Art. 430.</param>
-/// <param name="CargaMotoresVa">La carga de los motores en HP, que no es continua ni no continua.</param>
-/// <param name="MotoresQueGobiernan">Solo en el alimentador: los motores de la fase que gobierna, para
-/// 430-24.</param>
+/// <param name="Equipo">Solo en el derivado de un motor o de un equipo de A/C: lo que cambia las
+/// secciones 1 y 3 al Art. 430 o al 440 — I-15, I-74.</param>
+/// <param name="CargaMotoresVa">La carga de los motores y los equipos de A/C, que no es continua ni no
+/// continua.</param>
+/// <param name="MotoresQueGobiernan">Solo en el alimentador: los motores y equipos de A/C de la fase que
+/// gobierna, para 430-24 / 440-33.</param>
+/// <param name="EtiquetaDeMotores">«Motores», o «Motores y A/C»; y su referencia, «430-24» o «430-24,
+/// 440-33».</param>
 /// <param name="Techo430_62A">Solo en el alimentador con motores: el máximo de 430-62(a) más la otra
 /// carga (430-63).</param>
 public sealed record HojaDeMemoria(
@@ -65,19 +68,29 @@ public sealed record HojaDeMemoria(
     IReadOnlyList<RenglonMemoria>? FactoresDeDemanda = null,
     IReadOnlyList<RenglonMemoria>? Desglose = null,
     IReadOnlyList<RenglonMemoria>? Canalizacion = null,
-    MotorDeLaHoja? Motor = null,
+    EquipoDeLaHoja? Equipo = null,
     decimal CargaMotoresVa = 0m,
     AgregadoMotores MotoresQueGobiernan = default,
-    decimal? Techo430_62A = null);
+    decimal? Techo430_62A = null,
+    string EtiquetaDeMotores = "Motores",
+    string ReferenciaDeMotores = "430-24");
 
 /// <summary>
-/// Un motor en HP, como lo pone la memoria — I-15: «1 HP · trifásico · FLC 4.20 A — Tabla 430-250,
-/// columna de 230 V».
+/// <b>Un motor o un equipo de A/C, como lo pone la memoria</b> — I-15, I-74. Ya redactado, porque las
+/// dos formas de cada uno (HP o amperes; placa con MCA o con corriente nominal) no se escriben igual.
 /// </summary>
-/// <param name="Tipo">«monofásico» o «trifásico».</param>
-/// <param name="Fuente">La tabla y la columna de donde sale la FLC.</param>
-/// <param name="PorcentajeProteccion">El de la Tabla 430-52 para interruptor de tiempo inverso.</param>
-public sealed record MotorDeLaHoja(decimal Hp, string Tipo, decimal FlcA, string Fuente, decimal PorcentajeProteccion);
+/// <param name="Rotulo">«Motor» o «Equipo de A/C».</param>
+/// <param name="Descripcion">El renglón de la sección 1: «5 HP · trifásico · FLC 15.20 A — Tabla
+/// 430-250, columna de 230 V (…), 430-6(a)».</param>
+/// <param name="Proteccion">La sección 3, renglón por renglón.</param>
+/// <param name="Notas">Las notas de la sección 3.</param>
+/// <param name="Corriente">«FLC» o «corriente»: cómo se llama lo que da los VA en la sección 1.</param>
+public sealed record EquipoDeLaHoja(
+    string Rotulo,
+    string Descripcion,
+    IReadOnlyList<RenglonMemoria> Proteccion,
+    IReadOnlyList<string> Notas,
+    string Corriente);
 
 /// <summary>Un renglón «rótulo: valor» de una sección de la memoria.</summary>
 public sealed record RenglonMemoria(string Rotulo, string Valor);

@@ -22,22 +22,22 @@ public sealed class CircuitoDelCuadro
     public int Espacio { get; }
 
     public string Descripcion { get; set; } = string.Empty;
-    /// <summary>El tipo de carga de los cinco del selector — R-17. Decide el factor de demanda.</summary>
+    /// <summary>El tipo de carga de los seis del selector — R-17, I-74. Decide el factor de demanda y el cálculo.</summary>
     public CategoriaDeCarga Categoria { get; set; } = CategoriaDeCarga.Alumbrado;
 
     /// <summary>
-    /// El tipo con el que calcula el motor, que sale de <see cref="Categoria"/>: motor, A/C y
-    /// calefacción son <see cref="TipoCarga.Equipo"/> —carga de placa—, salvo un motor en HP, que es
-    /// <see cref="TipoCarga.Fuerza"/> (I-15). Asignarlo fija la categoría (Fuerza → motor).
+    /// El tipo con el que calcula el motor, que sale de <see cref="Categoria"/>: equipo y calefacción
+    /// son <see cref="TipoCarga.Equipo"/> —carga de placa—; Motor es <see cref="TipoCarga.Fuerza"/>.
+    /// Asignarlo fija la categoría (Fuerza → Motor).
     /// </summary>
     public TipoCarga Tipo
     {
-        get => EsMotor ? TipoCarga.Fuerza : Categoria.TipoDelMotor();
+        get => Categoria.TipoDelMotor();
         set => Categoria = value switch
         {
             TipoCarga.Alumbrado => CategoriaDeCarga.Alumbrado,
             TipoCarga.Contactos => CategoriaDeCarga.Contactos,
-            TipoCarga.Fuerza => CategoriaDeCarga.MotorOAireAcondicionado,
+            TipoCarga.Fuerza => CategoriaDeCarga.Motor,
             _ => CategoriaDeCarga.Equipo,
         };
     }
@@ -62,28 +62,76 @@ public sealed class CircuitoDelCuadro
     public UnidadConsumo Unidad { get; set; } = UnidadConsumo.VoltAmperes;
 
     /// <summary>
-    /// <b>Los caballos de placa, si el circuito es de un motor capturado en HP</b> — I-15. <c>null</c> =
-    /// carga de placa en <see cref="Unidad"/>. Solo cuenta en Motor / A/C y sin desglose
-    /// (<see cref="EsMotor"/>); al cambiar de tipo se conserva, como <see cref="Uso"/>. 0 = HP
-    /// elegido, motor todavía no.
+    /// <b>Tipo Motor: Art. 430</b> — I-15, I-74. La carga continua y la no continua no cuentan; se
+    /// conservan por si se regresa a otro tipo.
+    /// </summary>
+    public bool EsMotor => Categoria == CategoriaDeCarga.Motor;
+
+    /// <summary><b>Tipo A/C y refrigeración: Art. 440</b> — I-74. Como <see cref="EsMotor"/>, sin continua ni no continua.</summary>
+    public bool EsAireAcondicionado => Categoria == CategoriaDeCarga.AireAcondicionado;
+
+    /// <summary>Motor o A/C: un equipo de un circuito, sin desglose, que entra al alimentador por 430-24 / 440-33.</summary>
+    public bool EsDeMotor => Categoria.EsDeMotor();
+
+    /// <summary>Un motor se captura en HP o, si la placa no los trae, en amperes — 430-6(a)(1).</summary>
+    public CapturaDeMotor CapturaMotor { get; set; } = CapturaDeMotor.Hp;
+
+    /// <summary>
+    /// <b>Los caballos de placa de un motor</b> — I-15. Solo cuentan en Motor capturado en HP; al
+    /// cambiar de tipo se conservan, como <see cref="Uso"/>. <c>null</c> o 0 = motor todavía no elegido.
     /// </summary>
     public decimal? Hp { get; set; }
 
     /// <summary>
-    /// Se calcula como motor: Art. 430, con la FLC de tabla — <see cref="MotoresEnHp"/>. La carga
-    /// continua y la no continua no cuentan; se conservan por si se regresa a VA, W o A.
+    /// <b>La corriente de placa</b>, en A: la de un motor marcado en amperes (430-6(a)(1)) o la de carga
+    /// nominal de un equipo de A/C (440-6(a)). Se comparte: es el mismo dato de placa en los dos tipos.
     /// </summary>
-    public bool EsMotor => Hp is not null && Categoria == CategoriaDeCarga.MotorOAireAcondicionado && !TieneDesglose;
+    public decimal CorrientePlacaA { get; set; }
+
+    /// <summary>A/C: la corriente de selección del circuito derivado, si la placa la trae — 440-6(a) Excepción 1.</summary>
+    public decimal? CorrienteSeleccionA { get; set; }
+
+    /// <summary>A/C por corriente nominal: la protección al 175 % no aguanta el arranque; sube a 225 % — 440-22(a).</summary>
+    public bool ArranqueAl225 { get; set; }
+
+    /// <summary>A/C: qué trae la placa. Ver <see cref="PlacaDeAireAcondicionado"/>.</summary>
+    public PlacaDeAireAcondicionado PlacaAire { get; set; } = PlacaDeAireAcondicionado.AmpacidadYProteccion;
+
+    /// <summary>A/C: la ampacidad mínima de los conductores de la placa (MCA) — 440-4(b).</summary>
+    public decimal AmpacidadMinimaA { get; set; }
+
+    /// <summary>A/C: la protección máxima de la placa (MOCP) — 440-4(b).</summary>
+    public decimal ProteccionMaximaA { get; set; }
 
     /// <summary>
-    /// La corriente a plena carga de tabla — 430-6(a). 0 si no es motor, o si la tabla no trae ese
-    /// motor a esa tensión (entonces el renglón lleva <see cref="Error"/>). La pone <see cref="CuadroDeCarga"/>.
+    /// Lo capturado del motor o del equipo de A/C, en la forma que corresponde: HP, amperes, corriente
+    /// nominal o ampacidad mínima. Con eso el renglón calcula, o dice por qué no (<see cref="Error"/>).
     /// </summary>
-    public decimal FlcA { get; internal set; }
+    public bool TieneCapturaDeMotor =>
+        EsMotor ? (CapturaMotor == CapturaDeMotor.Hp ? Hp > 0m : CorrientePlacaA > 0m)
+        : EsAireAcondicionado && (PlacaAire == PlacaDeAireAcondicionado.AmpacidadYProteccion ? AmpacidadMinimaA > 0m : CorrientePlacaA > 0m);
 
     /// <summary>
-    /// La carga del motor en VA: su FLC por la tensión del circuito (× √3 en 3 polos). Es la que va
-    /// al balanceo, al resumen y a los kW; el derivado y el alimentador se calculan con la FLC.
+    /// <b>La corriente del motor o del equipo de A/C</b>: la FLC de tabla de un motor (430-6(a)), la de
+    /// 440-6(a) o la ampacidad mínima de un equipo de A/C (440-4(b)). Es la que entra al alimentador
+    /// (430-24, 440-33) y a la caída. 0 si no calcula (el renglón lleva <see cref="Error"/>). La pone
+    /// <see cref="CuadroDeCarga"/>.
+    /// </summary>
+    public decimal CorrienteDeMotorA { get; internal set; }
+
+    /// <summary>La corriente a plena carga de un motor — 430-6(a). 0 si no es Motor o no calcula.</summary>
+    public decimal FlcA => EsMotor ? CorrienteDeMotorA : 0m;
+
+    /// <summary>
+    /// Un motor capturado en amperes, llevado a la tabla: sus caballos interpolados — 430-6(a)(1).
+    /// <c>null</c> en HP o fuera de la tabla. La pone <see cref="CuadroDeCarga"/>.
+    /// </summary>
+    public MotorEnAmperes? MotorEnAmperes { get; internal set; }
+
+    /// <summary>
+    /// La carga del motor o del equipo de A/C en VA: su corriente por la tensión del circuito (× √3 en
+    /// 3 polos). Es la que va al balanceo, al resumen y a los kW; el derivado y el alimentador se
+    /// calculan con la corriente.
     /// </summary>
     public decimal MotorVA { get; internal set; }
 
@@ -93,7 +141,11 @@ public sealed class CircuitoDelCuadro
     /// </summary>
     public List<AparatoDelCircuito> Aparatos { get; } = [];
 
-    public bool TieneDesglose => Aparatos.Count > 0;
+    /// <summary>
+    /// Se desglosa. Un motor o un equipo de A/C es un solo equipo: no se desglosa, y los aparatos que
+    /// trajera de otro tipo se conservan sin contar, como la continua y la no continua.
+    /// </summary>
+    public bool TieneDesglose => Aparatos.Count > 0 && !EsDeMotor;
 
     /// <summary>
     /// Abre el desglose. Si el circuito ya traía carga, se convierte en los primeros aparatos —
@@ -230,17 +282,19 @@ public sealed class CircuitoDelCuadro
     public decimal PotenciaActivaW => CargaInstaladaVA * FactorPotencia;
 
     /// <summary>
-    /// Con algo que calcular. Un motor con HP cuenta aunque la tabla no lo traiga: así el renglón
-    /// calcula y dice por qué no (<see cref="Error"/>) en vez de quedarse en blanco.
+    /// Con algo que calcular. Un motor o un equipo de A/C con su placa cuenta aunque no calcule (un
+    /// motor que la tabla no trae): así el renglón dice por qué no (<see cref="Error"/>) en vez de
+    /// quedarse en blanco.
     /// </summary>
-    public bool TieneCarga => !EsContinuacion && !EsDelPrincipal && (CargaInstaladaVA > 0m || EsMotor && Hp > 0m);
+    public bool TieneCarga => !EsContinuacion && !EsDelPrincipal && (CargaInstaladaVA > 0m || TieneCapturaDeMotor);
 
     /// <summary>
-    /// Algo capturado: descripción, carga, aparatos o más de un polo. Un renglón así no se lo come el
-    /// interruptor principal: se avisa y el principal espera a que uno de los dos se mueva.
+    /// Algo capturado: descripción, carga, placa, aparatos o más de un polo. Un renglón así no se lo
+    /// come el interruptor principal: se avisa y el principal espera a que uno de los dos se mueva.
     /// </summary>
     public bool TieneCaptura =>
-        !string.IsNullOrWhiteSpace(Descripcion) || Continua > 0m || NoContinua > 0m || Hp > 0m || TieneDesglose || Polos > 1;
+        !string.IsNullOrWhiteSpace(Descripcion) || Continua > 0m || NoContinua > 0m || Hp > 0m || CorrientePlacaA > 0m
+        || AmpacidadMinimaA > 0m || Aparatos.Count > 0 || Polos > 1;
 
     /// <summary>
     /// Lo que este circuito le carga a cada una de sus barras, en VA — la banda «BALANCEO DE FASES»

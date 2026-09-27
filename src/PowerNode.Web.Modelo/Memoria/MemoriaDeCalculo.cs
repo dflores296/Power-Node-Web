@@ -46,20 +46,13 @@ public static class MemoriaDeCalculo
             ? Etiqueta(circuito)
             : circuito.Descripcion.Trim();
 
-        MotorDeLaHoja? motor = null;
-        if (circuito.EsMotor)
-        {
-            motor = new MotorDeLaHoja(
-                Hp: circuito.Hp!.Value,
-                Tipo: circuito.Polos == 3 ? "trifásico" : "monofásico",
-                FlcA: circuito.FlcA,
-                Fuente: cuadro.FuenteDeFlc(circuito),
-                PorcentajeProteccion: cuadro.PorcentajeProteccionMotor(circuito));
-        }
+        var equipo = circuito.EsMotor ? DelMotor(cuadro, circuito, r)
+            : circuito.EsAireAcondicionado ? DelAireAcondicionado(cuadro, circuito, r)
+            : null;
 
         return new HojaDeMemoria(
             Sujeto: $"Circuito {circuito.Espacio} — {nombre}  ·  fase {circuito.Fases}",
-            Articulo: circuito.EsMotor ? "430" : "210",
+            Articulo: circuito.EsMotor ? "430" : circuito.EsAireAcondicionado ? "440" : "210",
             CargaContinuaVa: circuito.ContinuaVA,
             CargaNoContinuaVa: circuito.NoContinuaVA,
             // La tensión del TRAMO, no la del tablero: un circuito de 1 polo va a fase-neutro.
@@ -88,8 +81,102 @@ public static class MemoriaDeCalculo
             NeutroPortador: circuito.LlevaNeutro ? NeutroPortador(cuadro, circuito.Polos, alimentador: false) : null,
             Desglose: Desglose(circuito),
             Canalizacion: DeLaCanalizacion(cuadro, circuito.CanalizacionEfectiva),
-            Motor: motor,
+            Equipo: equipo,
             CargaMotoresVa: circuito.MotorVA);
+    }
+
+    /// <summary>
+    /// <b>La hoja de un motor</b> — I-15, I-74, Art. 430: la corriente es la de la tabla (430-6(a)), o
+    /// la de un motor marcado en amperes con sus caballos interpolados (430-6(a)(1)); el conductor,
+    /// 125 % de ella (430-22); la protección, el porcentaje de la Tabla 430-52 y el tamaño inmediato
+    /// superior.
+    /// </summary>
+    private static EquipoDeLaHoja DelMotor(CuadroDeCarga cuadro, CircuitoDelCuadro c, ResultadoCircuitoDerivado r)
+    {
+        var tipo = c.Polos == 3 ? "trifásico" : "monofásico";
+        var flc = c.FlcA;
+        var porcentaje = cuadro.PorcentajeProteccionMotor(c);
+        var (rotuloFlc, origen, descripcion) = c.MotorEnAmperes is { } m
+            ? ("Corriente a plena carga (FLC) — 430-6(a)(1)",
+               $"{flc:N2} A — motor marcado en amperes: {m.Hp:0.##} HP, {MotoresEnHp.Interpolacion(m, c.Polos)}",
+               $"Marcado en {flc:N2} A · {tipo} · {m.Hp:0.##} HP por interpolación — {MotoresEnHp.Interpolacion(m, c.Polos)}, 430-6(a)(1)")
+            : ("Corriente a plena carga (FLC) — 430-6(a)",
+               $"{flc:N2} A — {cuadro.FuenteDeFlc(c)}",
+               $"{MotoresEnHp.Texto(c.Hp ?? 0m)} HP · {tipo} · FLC {flc:N2} A — {cuadro.FuenteDeFlc(c)}, 430-6(a)");
+
+        return new EquipoDeLaHoja(
+            Rotulo: "Motor",
+            Descripcion: descripcion,
+            Proteccion:
+            [
+                new(rotuloFlc, origen),
+                new("Capacidad mínima del conductor — 430-22", $"125 % × {flc:N2} A = {1.25m * flc:N2} A"),
+                new("Protección máxima — Tabla 430-52", $"{porcentaje:0} % × {flc:N2} A = {flc * porcentaje / 100m:N2} A (interruptor automático de tiempo inverso)"),
+                new("Protección seleccionada — 430-52(c)(1) Excepción 1", $"{r.ProteccionA:N0} A"),
+            ],
+            Notas:
+            [
+                "La FLC sale de la tabla, no de la placa — 430-6(a). El interruptor del tablero protege el circuito contra " +
+                "cortocircuito y falla a tierra; puede quedar arriba de la ampacidad del conductor — 240-4(g).",
+                "La protección contra sobrecarga del motor va en el arrancador (relevador de sobrecarga) o en el propio " +
+                "motor — 430-32. No la da el interruptor del tablero.",
+            ],
+            Corriente: "FLC");
+    }
+
+    /// <summary>
+    /// <b>La hoja de un equipo de A/C o refrigeración</b> — I-74, Art. 440: con la corriente de placa
+    /// (440-6(a); conductor 440-32; protección 440-22(a), sin redondear hacia arriba) o con la ampacidad
+    /// mínima y la protección máxima que marca la placa (440-4(b)).
+    /// </summary>
+    private static EquipoDeLaHoja DelAireAcondicionado(CuadroDeCarga cuadro, CircuitoDelCuadro c, ResultadoCircuitoDerivado r)
+    {
+        var tipo = c.Polos == 3 ? "trifásico" : "monofásico";
+        List<RenglonMemoria> proteccion;
+        string descripcion;
+        if (c.PlacaAire == PlacaDeAireAcondicionado.AmpacidadYProteccion)
+        {
+            descripcion = $"Motocompresor hermético · {tipo} · placa: ampacidad mínima {c.AmpacidadMinimaA:N2} A, protección máxima " +
+                          $"{c.ProteccionMaximaA:N0} A — 440-4(b)";
+            proteccion =
+            [
+                new("Ampacidad mínima del conductor — 440-4(b)", $"{c.AmpacidadMinimaA:N2} A, de la placa (ya trae el 125 % del motor mayor)"),
+                new("Protección máxima — 440-4(b)", $"{c.ProteccionMaximaA:N0} A, de la placa"),
+                new("Protección seleccionada — 440-4(b)", r.ProteccionA == c.ProteccionMaximaA
+                    ? $"{r.ProteccionA:N0} A"
+                    : $"{r.ProteccionA:N0} A, el mayor tamaño estándar que no excede la máxima de placa"),
+            ];
+        }
+        else
+        {
+            var baseA = c.CorrienteDeMotorA;
+            var pct = c.ArranqueAl225 ? CalculadoraCarga440.TechoProteccionArranquePct : CalculadoraCarga440.TechoProteccionPct;
+            var porSeleccion = c.CorrienteSeleccionA is { } sel && sel > c.CorrientePlacaA;
+            descripcion = $"Motocompresor hermético · {tipo} · placa: corriente de carga nominal {c.CorrientePlacaA:N2} A" +
+                          (c.CorrienteSeleccionA is > 0m and { } s ? $", de selección del circuito {s:N2} A" : "") + " — 440-6(a)";
+            proteccion =
+            [
+                new(porSeleccion ? "Corriente — 440-6(a) Excepción 1" : "Corriente — 440-6(a)",
+                    porSeleccion ? $"{baseA:N2} A, la de selección del circuito derivado" : $"{baseA:N2} A, la de carga nominal de la placa"),
+                new("Capacidad mínima del conductor — 440-32", $"125 % × {baseA:N2} A = {1.25m * baseA:N2} A"),
+                new("Protección máxima — 440-22(a)", $"{pct:0} % × {baseA:N2} A = {baseA * pct / 100m:N2} A" +
+                    (c.ArranqueAl225 ? ": al 175 % no arranca" : "")),
+                new("Protección seleccionada — 440-22(a)", $"{r.ProteccionA:N0} A, el mayor tamaño estándar que no excede el máximo"),
+            ];
+        }
+
+        return new EquipoDeLaHoja(
+            Rotulo: "Equipo de A/C",
+            Descripcion: descripcion,
+            Proteccion: proteccion,
+            Notas:
+            [
+                "La corriente sale de la placa, no de las tablas del Art. 430 — 440-6(a). El interruptor del tablero protege el " +
+                "circuito contra cortocircuito y falla a tierra; puede quedar arriba de la ampacidad del conductor — 240-4(g).",
+                "La sobrecarga del motocompresor la cuida su protector o el relevador del equipo — 440-52. No la da el " +
+                "interruptor del tablero.",
+            ],
+            Corriente: "corriente");
     }
 
     /// <summary>
@@ -238,6 +325,8 @@ public static class MemoriaDeCalculo
             FactoresDeDemanda: FactoresDeDemanda(datos),
             Canalizacion: DeLaCanalizacion(cuadro, datos.CanalizacionAlimentador),
             CargaMotoresVa: cuadro.Resumen.MotoresVA,
+            EtiquetaDeMotores: cuadro.EtiquetaDeMotores,
+            ReferenciaDeMotores: cuadro.ReferenciaDeMotores,
             MotoresQueGobiernan: cuadro.Alimentador.Gobierna?.Motores ?? default,
             Techo430_62A: r.TechoProteccion430_62A);
     }
@@ -284,7 +373,7 @@ public static class MemoriaDeCalculo
 
         return $"Fase {g.Fase}, la más cargada: {g.FactorContinua * 100m:0} % × {g.ContinuaA:N2} A (continua) + " +
                $"{g.NoContinuaA:N2} A (no continua)" +
-               (g.TieneMotores ? $" + {g.Motores.CapacidadMinimaA:N2} A (motores, 430-24)" : "") +
+               (g.TieneMotores ? $" + {g.Motores.CapacidadMinimaA:N2} A ({cuadro.EtiquetaDeMotores.ToLowerInvariant()}, {cuadro.ReferenciaDeMotores})" : "") +
                $" = {g.CapacidadA:N2} A. Las demás: " +
                string.Join(", ", fases.Where(f => f.Fase != g.Fase).Select(f => $"fase {f.Fase} {f.CapacidadA:N2} A")) +
                ". El alimentador se dimensiona con la corriente de esta fase, no con la carga total repartida.";
@@ -297,18 +386,17 @@ public static class MemoriaDeCalculo
         var cargaTotal = hoja.CargaContinuaVa + hoja.CargaNoContinuaVa + hoja.CargaMotoresVa;
         var senTheta = TrianguloPotencias.SenoDelAngulo(hoja.FactorPotencia);
         var bloques = new List<BloqueMemoria>();
-        var m = hoja.Motor;
+        var m = hoja.Equipo;
 
         // ---- 1
         var seccion1 = Seccion("1. DATOS DEL SISTEMA", [
             ("Carga total instalada", $"{cargaTotal:N0} VA"),
-            ("Motor", m is null ? null
-                : $"{MotoresEnHp.Texto(m.Hp)} HP · {m.Tipo} · FLC {m.FlcA:N2} A — {m.Fuente}, 430-6(a). " +
-                  $"{hoja.CargaMotoresVa:N0} VA = FLC × tensión{(hoja.NumeroFases == 3 ? " × √3" : "")}"),
+            (m?.Rotulo ?? "Motor", m is null ? null
+                : $"{m.Descripcion}. {hoja.CargaMotoresVa:N0} VA = {m.Corriente} × tensión{(hoja.NumeroFases == 3 ? " × √3" : "")}"),
             ("Carga continua", m is null ? $"{hoja.CargaContinuaVa:N0} VA" : null),
             ("Carga no continua", m is null ? $"{hoja.CargaNoContinuaVa:N0} VA" : null),
-            ("Motores en HP", m is null && hoja.CargaMotoresVa > 0m
-                ? $"{hoja.CargaMotoresVa:N0} VA — entran al alimentador con su FLC de tabla, 430-24"
+            (hoja.EtiquetaDeMotores, m is null && hoja.CargaMotoresVa > 0m
+                ? $"{hoja.CargaMotoresVa:N0} VA — entran al alimentador con su corriente, {hoja.ReferenciaDeMotores}"
                 : null),
             ("Mínimo 220-52", hoja.Minimo220_52VA > 0m
                 ? $"{hoja.Minimo220_52VA:N0} VA — aparatos pequeños y lavadora a 1,500 VA por circuito, 220-52(a) y (b)"
@@ -338,25 +426,12 @@ public static class MemoriaDeCalculo
         // ---- 3
         if (m is not null)
         {
-            // I-15: el derivado de un motor. La corriente es la de tabla; el conductor, 125 % de ella
-            // (430-22); la protección, el porcentaje de la Tabla 430-52 y el tamaño inmediato superior.
-            var maximo = m.FlcA * m.PorcentajeProteccion / 100m;
+            // I-15, I-74: el derivado de un motor (Art. 430) o de un equipo de A/C (Art. 440), ya redactado.
             bloques.Add(new BloqueMemoria(
                 "3. SELECCIÓN DE LA PROTECCIÓN",
-                [
-                    new("Corriente a plena carga (FLC) — 430-6(a)", $"{m.FlcA:N2} A — {m.Fuente}"),
-                    new("Capacidad mínima del conductor — 430-22", $"125 % × {m.FlcA:N2} A = {1.25m * m.FlcA:N2} A"),
-                    new("Protección máxima — Tabla 430-52", $"{m.PorcentajeProteccion:0} % × {m.FlcA:N2} A = {maximo:N2} A (interruptor automático de tiempo inverso)"),
-                    new("Protección seleccionada — 430-52(c)(1) Excepción 1", $"{hoja.ProteccionA:N0} A"),
-                    new("Tamaños de interruptor", hoja.SerieDeInterruptores ?? "—"),
-                ],
+                [.. m.Proteccion, new("Tamaños de interruptor", hoja.SerieDeInterruptores ?? "—")],
                 [],
-                [
-                    "La FLC sale de la tabla, no de la placa — 430-6(a). El interruptor del tablero protege el circuito contra " +
-                    "cortocircuito y falla a tierra; puede quedar arriba de la ampacidad del conductor — 240-4(g).",
-                    "La protección contra sobrecarga del motor va en el arrancador (relevador de sobrecarga) o en el propio " +
-                    "motor — 430-32. No la da el interruptor del tablero.",
-                ]));
+                m.Notas));
         }
         else
         {
@@ -365,13 +440,13 @@ public static class MemoriaDeCalculo
             bloques.Add(Seccion("3. SELECCIÓN DE LA PROTECCIÓN", [
                 ("Fase que gobierna", hoja.FaseQueGobierna),
                 ("Corriente de diseño (In)", Amperes(hoja.CorrienteDisenoA)),
-                ("Motores — 430-24", motores.MayorFlcA is { } mayor
+                ($"{hoja.EtiquetaDeMotores} — {hoja.ReferenciaDeMotores}", motores.MayorFlcA is { } mayor
                     ? $"125 % × {mayor:N2} A (el mayor) + {motores.SumaRestoFlcA:N2} A (los demás) = {motores.CapacidadMinimaA:N2} A"
                     : null),
-                ($"Capacidad mínima — {articuloProteccion}{(motores.MayorFlcA is null ? "" : ", 430-24")}", d is null ? null : Amperes(d.CapacidadMinimaA)),
+                ($"Capacidad mínima — {articuloProteccion}{(motores.MayorFlcA is null ? "" : $", {hoja.ReferenciaDeMotores}")}", d is null ? null : Amperes(d.CapacidadMinimaA)),
                 ("Protección seleccionada — 240-6(a)", Amperes(hoja.ProteccionA, "N0")),
                 ("Protección máxima — 430-62(a), 430-63", hoja.Techo430_62A is { } techo
-                    ? $"{techo:N2} A: la mayor protección de motor, la FLC de los demás motores y lo que 215-3 pide para la otra carga"
+                    ? $"{techo:N2} A: la mayor protección de motor o de equipo de A/C, la corriente de los demás y lo que 215-3 pide para la otra carga"
                     : null),
                 ("Tamaños de interruptor", hoja.SerieDeInterruptores)]));
         }

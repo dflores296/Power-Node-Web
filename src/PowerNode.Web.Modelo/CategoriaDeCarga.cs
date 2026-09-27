@@ -8,16 +8,23 @@ namespace PowerNode.Web.Modelo;
 /// alumbrado (220-42) no es la de contactos (220-44) ni la de aparatos (220-53 a 220-56).
 ///
 /// <para>
-/// <b>Los cinco admiten factor de demanda, con justificación</b> — R-18. Motores y A/C (220-50) y
-/// calefacción fija (220-51) se calculan al 100 % como regla general, pero 430-26 y la Excepción de
-/// 220-51 permiten menos cuando no funcionan todos a la vez o trabajan por ciclos. Hasta el
-/// 2026-09-24 esos dos quedaban fijos en 1.00: era más estricto que la norma.
+/// <b>Seis tipos desde el 2026-09-27</b> — I-74, <c>docs/decisiones/tipos-de-carga.md</c>. Motor y A/C
+/// eran uno solo, y la unidad decidía el artículo. La regla: si cambia el factor de demanda del
+/// Art. 220, es un tipo; si solo cambia el cálculo del circuito, es un selector dentro del tipo (como
+/// el uso de los contactos). Los <b>nombres</b> de los valores van en el archivo: renombrar uno pide
+/// leer el viejo (<see cref="DelArchivo"/>).
 /// </para>
 ///
 /// <para>
-/// Para el cálculo del circuito, <see cref="MotorOAireAcondicionado"/> y <see cref="CalefaccionFija"/>
-/// son <see cref="TipoCarga.Equipo"/>: carga de placa. Un motor capturado en HP es
-/// <see cref="TipoCarga.Fuerza"/> y se calcula por el Art. 430 — I-15, <see cref="MotoresEnHp"/>.
+/// <b>Todos admiten factor de demanda, con justificación</b> — R-18. Motores (220-50, 430-26), A/C
+/// (220-50, 440-6) y calefacción fija (220-51) se calculan al 100 % como regla general, pero 430-26 y
+/// la Excepción de 220-51 permiten menos cuando no funcionan todos a la vez o trabajan por ciclos.
+/// </para>
+///
+/// <para>
+/// El circuito: Alumbrado y Contactos, Art. 210; Equipo y Calefacción, carga de placa
+/// (<see cref="TipoCarga.Equipo"/>); <see cref="Motor"/>, Art. 430 (<see cref="MotoresEnHp"/>);
+/// <see cref="AireAcondicionado"/>, Art. 440 (<see cref="AireAcondicionadoDePlaca"/>).
 /// </para>
 /// </summary>
 public enum CategoriaDeCarga
@@ -25,7 +32,8 @@ public enum CategoriaDeCarga
     Alumbrado,
     Contactos,
     Equipo,
-    MotorOAireAcondicionado,
+    Motor,
+    AireAcondicionado,
     CalefaccionFija,
 }
 
@@ -40,7 +48,8 @@ public static class CategoriasDeCarga
         CategoriaDeCarga.Alumbrado => "Alumbrado",
         CategoriaDeCarga.Contactos => "Contactos",
         CategoriaDeCarga.Equipo => "Equipo",
-        CategoriaDeCarga.MotorOAireAcondicionado => "Motor / A/C",
+        CategoriaDeCarga.Motor => "Motor",
+        CategoriaDeCarga.AireAcondicionado => "A/C y refrig.",
         _ => "Calefacción",
     };
 
@@ -48,7 +57,8 @@ public static class CategoriasDeCarga
     public static string NombreCompleto(this CategoriaDeCarga c) => c switch
     {
         CategoriaDeCarga.Equipo => "Equipo (aparatos)",
-        CategoriaDeCarga.MotorOAireAcondicionado => "Motores y aire acondicionado",
+        CategoriaDeCarga.Motor => "Motores",
+        CategoriaDeCarga.AireAcondicionado => "Aire acondicionado y refrigeración",
         CategoriaDeCarga.CalefaccionFija => "Calefacción eléctrica fija",
         _ => c.Nombre(),
     };
@@ -58,18 +68,44 @@ public static class CategoriasDeCarga
     {
         CategoriaDeCarga.Alumbrado => "Alumbrado: luminarias y alumbrado general — Tabla 220-42.",
         CategoriaDeCarga.Contactos => "Contactos: contactos de uso general. En vivienda, seleccionar el uso (cocina, lavadora, baño) — 210-11(c).",
-        CategoriaDeCarga.Equipo => "Equipo: aparatos que no son motor ni calefacción de ambiente: hornos, estufas, parrillas, secadoras, calentadores de agua, equipo electrónico — 220-53 a 220-56.",
-        CategoriaDeCarga.MotorOAireAcondicionado => "Motor / A/C: todo lo que funciona con motor o compresor: aire acondicionado, refrigeración, bombas, ventiladores, bombas de calor e inverter frío/calor — 220-50. En HP, circuito de motor por el Art. 430; en VA, W o A, carga de placa.",
+        CategoriaDeCarga.Equipo => "Equipo: aparatos con su valor de placa, también los que traen motor: hornos, estufas, parrillas, secadoras, calentadores de agua, lavavajillas, equipo electrónico — Art. 422; 220-53 a 220-56.",
+        CategoriaDeCarga.Motor => "Motor: bombas, ventiladores, extractores, compresores de aire, bandas — Art. 430. Se captura en HP, o en A si la placa no trae HP: la corriente sale de la tabla — 430-6(a)(1).",
+        CategoriaDeCarga.AireAcondicionado => "A/C y refrigeración: equipos con motocompresor hermético: minisplit (también inverter frío/calor), bomba de calor, paquete, condensadora, cámara de refrigeración — Art. 440. Se captura la placa: ampacidad mínima y protección máxima (MCA, MOCP — 440-4(b)), o la corriente de carga nominal del compresor (440-6(a)).",
         _ => "Calefacción: calefacción por resistencia eléctrica: calefactores, cables calefactores, calderas eléctricas. Carga continua — 424-3(b); 220-51.",
     };
 
-    /// <summary>El tipo con el que calcula el motor: los tres de equipo son carga de placa.</summary>
+    /// <summary>
+    /// Entra al alimentador como motor: 125 % del mayor y 100 % de los demás — 430-24, 440-33. Motor y
+    /// A/C y refrigeración van en el mismo grupo (220-50, 440-33).
+    /// </summary>
+    public static bool EsDeMotor(this CategoriaDeCarga c) =>
+        c is CategoriaDeCarga.Motor or CategoriaDeCarga.AireAcondicionado;
+
+    /// <summary>
+    /// El tipo con el que calcula el derivado no-motor. Motor y A/C no pasan por él: tienen su propio
+    /// cálculo (430 y 440).
+    /// </summary>
     public static TipoCarga TipoDelMotor(this CategoriaDeCarga c) => c switch
     {
         CategoriaDeCarga.Alumbrado => TipoCarga.Alumbrado,
         CategoriaDeCarga.Contactos => TipoCarga.Contactos,
+        CategoriaDeCarga.Motor => TipoCarga.Fuerza,
         _ => TipoCarga.Equipo,
     };
+
+    /// <summary>El nombre que va en el archivo.</summary>
+    public static string AlArchivo(this CategoriaDeCarga c) => c.ToString();
+
+    /// <summary>
+    /// <b>El tipo de un archivo</b>, con los nombres viejos. «MotorOAireAcondicionado» (formato 1) ya no
+    /// existe: regresa <c>null</c> con <paramref name="eraMotorOAire"/> para que quien lee decida — un
+    /// renglón con HP es Motor; uno sin HP, A/C y refrigeración (I-74).
+    /// </summary>
+    public static CategoriaDeCarga? DelArchivo(string? nombre, out bool eraMotorOAire)
+    {
+        eraMotorOAire = nombre == "MotorOAireAcondicionado";
+        return Enum.TryParse<CategoriaDeCarga>(nombre, out var c) && Enum.IsDefined(c) && !int.TryParse(nombre, out _) ? c : null;
+    }
 
     /// <summary>
     /// Las justificaciones que le aplican a un tipo en un inmueble — R-19. Solo se ofrece lo que la
@@ -79,8 +115,8 @@ public static class CategoriasDeCarga
     /// </summary>
     public static IReadOnlyList<JustificacionFactorDemanda> JustificacionesPosibles(this CategoriaDeCarga c, TipoDeInmueble inmueble)
     {
-        // Motores y calefacción: solo con la condición de su propia sección, o si no coinciden.
-        if (c == CategoriaDeCarga.MotorOAireAcondicionado)
+        // Motores, A/C y calefacción: solo con la condición de su propia sección, o si no coinciden.
+        if (c.EsDeMotor())
             return [JustificacionFactorDemanda.MotoresNoSimultaneos, JustificacionFactorDemanda.CargasNoCoincidentes, JustificacionFactorDemanda.Otra];
         if (c == CategoriaDeCarga.CalefaccionFija)
             return [JustificacionFactorDemanda.CalefaccionPorCiclos, JustificacionFactorDemanda.CargasNoCoincidentes, JustificacionFactorDemanda.Otra];

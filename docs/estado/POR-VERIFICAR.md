@@ -17,7 +17,10 @@ Supuestos del cálculo pendientes de confirmar en campo o por David. Ordenados p
 | El desbalanceo se calcula en corriente; el balanceo se imprime en VA. | Los dos valores no coinciden entre sí. | Igual que el motor y el Excel. |
 | El entregable se imprime desde el navegador. | No editable antes de entregar. | Propuesta — [`../decisiones/documento-imprimible-en-vez-de-archivo.md`](../decisiones/documento-imprimible-en-vez-de-archivo.md). |
 | Impresión revisada solo en PDF de Chromium. | Márgenes o cortes distintos en impresora. | Imprimir una vez en físico. |
-| Motor / A/C en VA, W o A y calefacción fija se calculan como carga de placa. | Sin 440 (MCA y MOCP) en un motocompresor hermético. | En HP, Art. 430 — I-15. El Art. 440, fuera. |
+| Calefacción fija se calcula como carga de placa; Motor, por el Art. 430; A/C y refrigeración, por el 440. | Un equipo en el tipo equivocado se calcula con otro artículo. | Decisión de David — [`../decisiones/tipos-de-carga.md`](../decisiones/tipos-de-carga.md), I-74. |
+| Un motor marcado en amperes por debajo del más chico de la tabla se interpola desde 0 HP y 0 A. | La tabla no trae renglón de abajo: la FLC es la de placa. | Supuesto de cálculo — I-74. |
+| Un equipo de A/C capturado con MCA entra al alimentador y a la caída con su MCA. | Alimentador y caída un poco de más: la MCA ya trae el 25 % de su motor mayor. | Del lado seguro — I-74. |
+| Un «Motor / A/C» sin HP de un archivo de formato 1 abre como A/C y refrigeración con su carga como corriente nominal. | Un motor capturado en amperes queda calculado por el 440 hasta que se revise. | Aviso al abrir — I-74. |
 | Un motor en HP se protege con interruptor de tiempo inverso y es monofásico o de jaula de ardilla. | Rotor devanado o fusible: otro porcentaje de la Tabla 430-52. | Propuesta — [`../decisiones/motores-art-430.md`](../decisiones/motores-art-430.md). |
 | 430-24 y 430-62(a) se aplican por fase, con los motores que toca cada barra. | Con motores monofásicos repartidos, un alimentador más chico que si se sumaran todos. | Propuesta — [`../decisiones/motores-art-430.md`](../decisiones/motores-art-430.md). |
 | El F.D. de motores (430-26) reduce la FLC de los motores en HP en el alimentador. | Alimentador de menos si el F.D. no se sostiene. | 430-26 pide el permiso de la autoridad; va con justificación (R-18). |

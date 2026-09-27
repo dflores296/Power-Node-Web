@@ -94,14 +94,13 @@ public sealed record DesgloseDeSeleccion(IReadOnlyList<string> Proteccion, IRead
     /// su Excepción 1. La protección puede quedar arriba de la ampacidad del conductor: es protección
     /// contra cortocircuito y falla a tierra; la sobrecarga la cuida el arrancador — 430-32, 240-4(g).
     /// </summary>
-    /// <param name="fuente">«Tabla 430-250, columna de 230 V (220 V: intervalo de 220 a 240 V)».</param>
+    /// <param name="origenFlc">De dónde sale la FLC, ya redactado — <see cref="CuadroDeCarga.OrigenDeLaFlc"/>.</param>
     /// <param name="porcentaje">El de la Tabla 430-52: 250 % con interruptor de tiempo inverso.</param>
     internal static DesgloseDeSeleccion DeMotor(
         ITablaAmpacidad ampacidad,
         DatosDelTablero datos,
-        decimal hp,
+        string origenFlc,
         decimal flcA,
-        string fuente,
         decimal porcentaje,
         decimal proteccionA,
         Calibre calibre,
@@ -112,7 +111,7 @@ public sealed record DesgloseDeSeleccion(IReadOnlyList<string> Proteccion, IRead
         var techo = flcA * porcentaje / 100m;
         var proteccion = new List<string>
         {
-            $"FLC = {flcA:N2} A, {MotoresEnHp.Texto(hp)} HP — {fuente}, 430-6(a)",
+            origenFlc,
             $"Máximo = {porcentaje:0} % × {flcA:N2} A = {techo:N2} A, interruptor de tiempo inverso — Tabla 430-52",
             $"Protección: {proteccionA:N0} A, " +
                 (proteccionA == techo ? "igual al máximo" : "tamaño inmediato superior al máximo") +
@@ -124,6 +123,60 @@ public sealed record DesgloseDeSeleccion(IReadOnlyList<string> Proteccion, IRead
         conductor.Add(
             $"Con factores: {d.AmpacidadConductorA:N2} A ≥ 125 % × {flcA:N2} A = {d.CapacidadMinimaA:N2} A " +
             $"{(d.AmpacidadConductorA >= d.CapacidadMinimaA ? "✔" : "✘")} — 430-22");
+        conductor.AddRange(PorQueCrecio(citas, proteccionA, d));
+        return new DesgloseDeSeleccion(proteccion, conductor);
+    }
+
+    /// <summary>
+    /// <b>El derivado de un equipo de A/C o refrigeración</b> — I-74, Art. 440. Con la corriente de
+    /// placa: 125 % para el conductor (440-32) y el mayor tamaño estándar que no pase de 175 % —o
+    /// 225 % si no arranca— para la protección (440-22(a)), sin redondear hacia arriba. Con la
+    /// ampacidad mínima y la protección máxima de la placa (440-4(b)): esas dos, tal cual.
+    /// </summary>
+    internal static DesgloseDeSeleccion DeAireAcondicionado(
+        ITablaAmpacidad ampacidad,
+        DatosDelTablero datos,
+        CircuitoDelCuadro c,
+        decimal proteccionA,
+        Calibre calibre,
+        int conductoresPorFase,
+        DetalleDelCalculo d,
+        IReadOnlyList<Cita> citas)
+    {
+        List<string> proteccion;
+        string requisito;
+        if (c.PlacaAire == PlacaDeAireAcondicionado.AmpacidadYProteccion)
+        {
+            proteccion =
+            [
+                $"Placa: ampacidad mínima {c.AmpacidadMinimaA:N2} A, protección máxima {c.ProteccionMaximaA:N0} A — 440-4(b)",
+                $"Protección: {proteccionA:N0} A, " +
+                    (proteccionA == c.ProteccionMaximaA ? "la máxima de placa" : "el mayor tamaño estándar que no excede la máxima de placa") +
+                    $" en «{datos.SerieInterruptores.Nombre()}»",
+            ];
+            requisito = $"ampacidad mínima de placa {d.CapacidadMinimaA:N2} A {(d.AmpacidadConductorA >= d.CapacidadMinimaA ? "✔" : "✘")} — 440-4(b)";
+        }
+        else
+        {
+            var baseA = c.CorrienteDeMotorA;
+            var pct = c.ArranqueAl225 ? CalculadoraCarga440.TechoProteccionArranquePct : CalculadoraCarga440.TechoProteccionPct;
+            proteccion =
+            [
+                c.CorrienteSeleccionA is > 0m and { } sel && sel > c.CorrientePlacaA
+                    ? $"Corriente = {baseA:N2} A, la de selección del circuito (mayor que la nominal, {c.CorrientePlacaA:N2} A) — 440-6(a) Excepción 1"
+                    : $"Corriente = {baseA:N2} A, la de carga nominal de la placa — 440-6(a)",
+                $"Máximo = {pct:0} % × {baseA:N2} A = {baseA * pct / 100m:N2} A" + (c.ArranqueAl225 ? ", porque al 175 % no arranca" : "") + " — 440-22(a)",
+                $"Protección: {proteccionA:N0} A, " +
+                    (proteccionA == CalculadoraCarga440.ProteccionMinimaA && baseA * pct / 100m < proteccionA
+                        ? "no se exige menos — 440-22(a) Excepción"
+                        : $"el mayor tamaño estándar que no excede el máximo en «{datos.SerieInterruptores.Nombre()}» — 440-22(a) no permite redondear hacia arriba"),
+            ];
+            requisito = $"125 % × {baseA:N2} A = {d.CapacidadMinimaA:N2} A {(d.AmpacidadConductorA >= d.CapacidadMinimaA ? "✔" : "✘")} — 440-32";
+        }
+        proteccion.Add("Sobrecarga del motocompresor: su protector o el relevador del equipo — 440-52");
+
+        var conductor = LineasDelConductor(ampacidad, datos, proteccionA, calibre, conductoresPorFase, d);
+        conductor.Add($"Con factores: {d.AmpacidadConductorA:N2} A ≥ {requisito}");
         conductor.AddRange(PorQueCrecio(citas, proteccionA, d));
         return new DesgloseDeSeleccion(proteccion, conductor);
     }

@@ -99,10 +99,10 @@
                         <tr class="@(c.TieneCarga ? null : "libre")">
                             <td class="num">@c.Espacio</td>
                             <td rowspan="@c.Polos" class="izq">@(string.IsNullOrWhiteSpace(c.Descripcion) ? (c.TieneCarga ? MemoriaDeCalculo.Etiqueta(c) : "LIBRE") : c.Descripcion)</td>
-                            @if (c.EsMotor)
+                            @if (c.EsDeMotor)
                             {
-                                @* I-15: un motor en HP no es continua ni no continua; va por 430-22 y 430-24. *@
-                                <td rowspan="@c.Polos" colspan="4" class="num">@(c.Hp > 0m ? $"{MotoresEnHp.Texto(c.Hp.Value)} HP" : "")@(c.FlcA > 0m ? $" · FLC {c.FlcA:N2} A" : "")</td>
+                                @* I-15, I-74: un motor o un equipo de A/C no es continua ni no continua; va por 430-24 / 440-33. *@
+                                <td rowspan="@c.Polos" colspan="4" class="num">@PlacaDelRenglon(c)</td>
                             }
                             else
                             {
@@ -178,16 +178,25 @@
                         <td class="num">@Cuadro.Resumen.FactorPotencia.ToString("N2")</td>
                         <td></td><td></td>
                     </tr>
+                    <tr class="subtitulo">
+                        <th class="izq" colspan="4">Al alimentador</th>
+                    </tr>
                     <tr>
-                        <td class="izq">Continua / no continua</td>
-                        <td class="num">@((Cuadro.Resumen.ContinuaVA / 1000m).ToString("N2")) / @((Cuadro.Resumen.NoContinuaVA / 1000m).ToString("N2"))</td>
+                        <td class="izq">Continua — 125 %, 215-3</td>
+                        <td class="num">@((Cuadro.Resumen.ContinuaVA / 1000m).ToString("N2"))</td>
                         <td></td>
-                        <td class="num">@((Cuadro.Resumen.ContinuaDemandadaVA / 1000m).ToString("N2")) / @(((Cuadro.Resumen.NoContinuaDemandadaVA + Cuadro.Resumen.Minimo220_52DemandadoVA) / 1000m).ToString("N2"))</td>
+                        <td class="num">@((Cuadro.Resumen.ContinuaDemandadaVA / 1000m).ToString("N2"))</td>
+                    </tr>
+                    <tr>
+                        <td class="izq">No continua — 100 %</td>
+                        <td class="num">@(((Cuadro.Resumen.NoContinuaVA + Cuadro.Resumen.Minimo220_52VA) / 1000m).ToString("N2"))</td>
+                        <td></td>
+                        <td class="num">@(((Cuadro.Resumen.NoContinuaDemandadaVA + Cuadro.Resumen.Minimo220_52DemandadoVA) / 1000m).ToString("N2"))</td>
                     </tr>
                     @if (Cuadro.Resumen.MotoresVA > 0m)
                     {
                         <tr>
-                            <td class="izq">Motores en HP — 430-24</td>
+                            <td class="izq">@Cuadro.EtiquetaDeMotores — @Cuadro.ReferenciaDeMotores</td>
                             <td class="num">@((Cuadro.Resumen.MotoresVA / 1000m).ToString("N2"))</td>
                             <td></td>
                             <td class="num">@((Cuadro.Resumen.MotoresDemandadaVA / 1000m).ToString("N2"))</td>
@@ -414,6 +423,15 @@ else
     private static string Texto(string valor) => string.IsNullOrWhiteSpace(valor) ? "—" : valor;
 
     private static string Cifra(decimal valor) => valor <= 0m ? "" : valor.ToString("#,0.##");
+
+    /// <summary>
+    /// Lo que va en las cuatro celdas de carga de un motor o un equipo de A/C — I-15, I-74: «5 HP · FLC
+    /// 15.20 A», «12.00 A (3.93 HP) · FLC 12.00 A», «MCA 18.00 A · MOCP 30 A».
+    /// </summary>
+    private static string PlacaDelRenglon(CircuitoDelCuadro c) =>
+        c.EsAireAcondicionado ? (c.TieneCarga ? AireAcondicionadoDePlaca.Texto(c) : "")
+        : c.MotorEnAmperes is { } m ? $"{m.Amperes:N2} A ({m.Hp:0.##} HP) · FLC {c.FlcA:N2} A"
+        : (c.Hp > 0m ? $"{MotoresEnHp.Texto(c.Hp.Value)} HP" : "") + (c.FlcA > 0m ? $" · FLC {c.FlcA:N2} A" : "");
 
     private static string DePapel(CanalizacionDelTablero t, PapelConductor papel) =>
         t.Ocupacion is { } o ? o.Renglones.Where(r => r.Conductor.Papel == papel).Sum(r => r.Conductor.Cantidad).ToString() : "";

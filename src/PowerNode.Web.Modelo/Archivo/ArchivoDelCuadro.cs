@@ -29,8 +29,11 @@ public static class ArchivoDelCuadro
     /// <summary>Lo que dice que el archivo es de Power Node.</summary>
     public const string Formato = "power-node/cuadro-de-carga";
 
-    /// <summary>Sube cuando un archivo nuevo ya no se puede leer igual que uno anterior.</summary>
-    public const int Version = 1;
+    /// <summary>
+    /// Sube cuando un archivo nuevo ya no se puede leer igual que uno anterior. 2: seis tipos de carga,
+    /// «Motor / A/C» partido en Motor y A/C y refrigeración (I-74). El 1 se sigue leyendo.
+    /// </summary>
+    public const int Version = 2;
 
     /// <summary>El archivo, listo para escribirse.</summary>
     public static string Guardar(CuadroDeCarga cuadro, DateTimeOffset cuando) =>
@@ -110,13 +113,13 @@ public static class ArchivoDelCuadro
                 MontajePrincipal = d.MontajePrincipal, EspacioDelPrincipal = d.EspacioDelPrincipal, CapacidadBarraA = d.CapacidadBarraA,
                 EsEquipoDeAcometida = d.EsEquipoDeAcometida, Inmueble = d.Inmueble, SerieInterruptores = d.SerieInterruptores,
                 TensionFaseFaseV = d.TensionFaseFaseV, Fases = d.Fases, Hilos = d.Hilos, FrecuenciaHz = d.FrecuenciaHz,
-                FactoresDeDemanda = CategoriasDeCarga.Todas.ToDictionary(c => c, d.FactorDeDemanda),
+                FactoresDeDemanda = CategoriasDeCarga.Todas.ToDictionary(c => c.AlArchivo(), d.FactorDeDemanda),
                 Justificaciones = d.Justificaciones
                     .Where(j => j.Value.Count > 0)
-                    .ToDictionary(j => j.Key, j => j.Value.OrderBy(x => x).ToList()),
+                    .ToDictionary(j => j.Key.AlArchivo(), j => j.Value.OrderBy(x => x).ToList()),
                 JustificacionOtra = d.JustificacionOtra
                     .Where(j => !string.IsNullOrWhiteSpace(j.Value))
-                    .ToDictionary(j => j.Key, j => j.Value),
+                    .ToDictionary(j => j.Key.AlArchivo(), j => j.Value),
                 MaterialConductor = d.MaterialConductor, TipoAislamiento = d.TipoAislamiento, LugarSeco = d.LugarSeco,
                 TerminalesMarcadas75C = d.TerminalesMarcadas75C, TemperaturaAmbienteC = d.TemperaturaAmbienteC,
                 CargaNoLineal = d.CargaNoLineal,
@@ -195,13 +198,16 @@ public static class ArchivoDelCuadro
             d.MontajePrincipal = a.MontajePrincipal ?? d.MontajePrincipal;
             d.EspacioDelPrincipal = a.EspacioDelPrincipal;
 
-            foreach (var (categoria, factor) in a.FactoresDeDemanda ?? [])
-                d.CambiarFactorDeDemanda(categoria, factor);
-            foreach (var (categoria, lista) in a.Justificaciones ?? [])
-                foreach (var j in lista)
-                    d.Justificaciones[categoria].Add(j);
-            foreach (var (categoria, texto) in a.JustificacionOtra ?? [])
-                d.JustificacionOtra[categoria] = texto;
+            foreach (var (nombre, factor) in a.FactoresDeDemanda ?? [])
+                foreach (var categoria in Categorias(nombre))
+                    d.CambiarFactorDeDemanda(categoria, factor);
+            foreach (var (nombre, lista) in a.Justificaciones ?? [])
+                foreach (var categoria in Categorias(nombre))
+                    foreach (var j in lista)
+                        d.Justificaciones[categoria].Add(j);
+            foreach (var (nombre, texto) in a.JustificacionOtra ?? [])
+                foreach (var categoria in Categorias(nombre))
+                    d.JustificacionOtra[categoria] = texto;
 
             d.MaterialConductor = a.MaterialConductor ?? d.MaterialConductor;
             d.TipoAislamiento = a.TipoAislamiento ?? d.TipoAislamiento;
@@ -238,9 +244,18 @@ public static class ArchivoDelCuadro
                 avisos.Add($"El circuito {c.Espacio} no cabe en un tablero de {d.NumeroEspacios} espacios; se omitió.");
                 continue;
             }
-            c.Aplicar(cuadro.Circuitos[espacio - 1], d);
+            c.Aplicar(cuadro.Circuitos[espacio - 1], d, avisos);
         }
     }
+
+    /// <summary>
+    /// Los tipos a los que va un factor o una justificación del archivo. El «MotorOAireAcondicionado»
+    /// del formato 1 va a los dos que salieron de él: Motor y A/C y refrigeración (I-74).
+    /// </summary>
+    private static IEnumerable<CategoriaDeCarga> Categorias(string nombre) =>
+        CategoriasDeCarga.DelArchivo(nombre, out var eraMotorOAire) is { } categoria ? [categoria]
+        : eraMotorOAire ? [CategoriaDeCarga.Motor, CategoriaDeCarga.AireAcondicionado]
+        : [];
 }
 
 /// <summary>Lo que resultó de abrir un archivo: el cuadro, o por qué no se pudo.</summary>

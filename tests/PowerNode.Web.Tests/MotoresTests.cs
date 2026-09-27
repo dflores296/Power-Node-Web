@@ -36,7 +36,7 @@ public class MotoresTests
     private static CircuitoDelCuadro ConMotor(CuadroDeCarga cuadro, int espacio, decimal hp, int polos)
     {
         var c = Espacio(cuadro, espacio);
-        c.Categoria = CategoriaDeCarga.MotorOAireAcondicionado;
+        c.Categoria = CategoriaDeCarga.Motor;
         c.Hp = hp;
         if (polos > 1)
             Assert.Null(cuadro.CambiarPolos(c, polos));
@@ -179,7 +179,7 @@ public class MotoresTests
         Assert.False(c.EsMotor);
         Assert.Equal(1000m, c.CargaInstaladaVA);
 
-        c.Categoria = CategoriaDeCarga.MotorOAireAcondicionado;
+        c.Categoria = CategoriaDeCarga.Motor;
         cuadro.Recalcular();
         Assert.True(c.EsMotor);
         Assert.Equal(15.2m, c.Resultado!.CorrienteDisenoA);
@@ -257,7 +257,7 @@ public class MotoresTests
     {
         var cuadro = Nuevo();
         ConMotor(cuadro, 1, 5m, 3);
-        cuadro.Datos.CambiarFactorDeDemanda(CategoriaDeCarga.MotorOAireAcondicionado, 0.5m);
+        cuadro.Datos.CambiarFactorDeDemanda(CategoriaDeCarga.Motor, 0.5m);
         cuadro.Recalcular();
 
         // 430-26: 0.5 × 15.2 = 7.6 A; 125 % = 9.5 A. El derivado no cambia.

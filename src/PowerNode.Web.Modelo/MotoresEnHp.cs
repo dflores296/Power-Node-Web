@@ -5,10 +5,34 @@ using PowerNode.DesignSuite.Normativa;
 
 namespace PowerNode.Web.Modelo;
 
+/// <summary>Cómo se captura un motor — I-74: por sus caballos, o por sus amperes si la placa no trae HP.</summary>
+public enum CapturaDeMotor
+{
+    Hp,
+    Amperes,
+}
+
 /// <summary>
-/// <b>Un renglón de Motor / A/C capturado en HP</b> — I-15. Se calcula como circuito derivado de un
-/// motor (Art. 430): la corriente sale de la tabla (430-6(a)), el conductor al 125 % de ella
-/// (430-22) y la protección con el porcentaje de la Tabla 430-52.
+/// <b>Un motor marcado en amperes, llevado a la tabla</b> — 430-6(a)(1): «se debe asumir que su
+/// potencia en caballos de fuerza es la correspondiente a los valores dados en las Tablas […],
+/// interpolando si fuera necesario». Interpolados, esos caballos tienen en la tabla justo esa
+/// corriente: <see cref="Amperes"/> es la FLC.
+/// </summary>
+/// <param name="Hp">Los caballos que le corresponden.</param>
+/// <param name="DesdeHp">El renglón de la tabla de abajo; 0 si es menor que el motor más chico: ahí no
+/// hay renglón de abajo, y se interpola desde 0 HP y 0 A.</param>
+/// <param name="HastaHp">El renglón de arriba. Igual a <paramref name="DesdeHp"/> si la corriente es
+/// la de un renglón.</param>
+public sealed record MotorEnAmperes(decimal Amperes, decimal Hp, decimal DesdeHp, decimal DesdeA, decimal HastaHp, decimal HastaA)
+{
+    public bool EsDeUnRenglon => DesdeHp == HastaHp;
+}
+
+/// <summary>
+/// <b>Un renglón de tipo Motor</b> — I-15, I-74. Se calcula como circuito derivado de un motor
+/// (Art. 430): la corriente sale de la tabla (430-6(a)), el conductor al 125 % de ella (430-22) y la
+/// protección con el porcentaje de la Tabla 430-52. Se captura en HP, o en amperes
+/// (<see cref="DeAmperes"/>).
 ///
 /// <para>
 /// <b>Lo que no se captura sale del tablero</b>, y aquí está escrito una sola vez:
@@ -61,6 +85,52 @@ public static class MotoresEnHp
     /// <summary>Los HP que la tabla trae para estos polos y esta tensión: los que ofrece el selector.</summary>
     public static IReadOnlyList<decimal> Disponibles(ITablaFlcMotor tabla, int polos, decimal tensionV) =>
         [.. Normalizados.Where(hp => Flc(tabla, hp, polos, tensionV) is not null)];
+
+    /// <summary>
+    /// <b>Los caballos de un motor marcado en amperes</b> — 430-6(a)(1), interpolando entre los dos
+    /// renglones de la tabla que lo rodean. <c>null</c> si pasa del motor más grande que trae la tabla
+    /// a esta tensión (no hay renglón de arriba), o si no es una corriente.
+    /// </summary>
+    public static MotorEnAmperes? DeAmperes(ITablaFlcMotor tabla, decimal amperes, int polos, decimal tensionV)
+    {
+        if (amperes <= 0m)
+            return null;
+
+        var (desdeHp, desdeA) = (0m, 0m);
+        foreach (var hp in Disponibles(tabla, polos, tensionV))
+        {
+            var flc = Flc(tabla, hp, polos, tensionV)!.Value;
+            if (amperes == flc)
+                return new MotorEnAmperes(amperes, hp, hp, flc, hp, flc);
+            if (amperes < flc)
+                return new MotorEnAmperes(amperes, desdeHp + (amperes - desdeA) / (flc - desdeA) * (hp - desdeHp), desdeHp, desdeA, hp, flc);
+            (desdeHp, desdeA) = (hp, flc);
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// «Tabla 430-250: 3 HP, 9.60 A; 5 HP, 15.20 A». Los dos renglones con los que se interpoló, para
+    /// que el número se pueda encontrar en la norma.
+    /// </summary>
+    public static string Interpolacion(MotorEnAmperes m, int polos) =>
+        m.EsDeUnRenglon
+            ? $"Tabla {Tabla(polos)}: {Texto(m.Hp)} HP, {m.Amperes:N2} A"
+            : m.DesdeHp == 0m
+                ? $"menor que el motor más chico de la Tabla {Tabla(polos)} ({Texto(m.HastaHp)} HP, {m.HastaA:N2} A): se interpola desde 0 HP y 0 A"
+                : $"Tabla {Tabla(polos)}: {Texto(m.DesdeHp)} HP, {m.DesdeA:N2} A; {Texto(m.HastaHp)} HP, {m.HastaA:N2} A";
+
+    /// <summary>Por qué un motor en amperes no calcula: pasa del más grande de la tabla.</summary>
+    public static string SinFilaEnAmperes(ITablaFlcMotor tabla, decimal amperes, int polos, decimal tensionV)
+    {
+        var tipo = polos == 3 ? "trifásico" : "monofásico";
+        var disponibles = Disponibles(tabla, polos, tensionV);
+        if (disponibles.Count == 0)
+            return $"La {Fuente(polos, tensionV)} no trae motores {tipo}s a {tensionV:0} V: cambiar los polos.";
+        var mayor = disponibles[^1];
+        return $"Un motor {tipo} de {amperes:N2} A pasa del más grande de la {Fuente(polos, tensionV)}: {Texto(mayor)} HP, " +
+               $"{Flc(tabla, mayor, polos, tensionV):N2} A. No se puede interpolar — 430-6(a)(1). Revisar la corriente o los polos.";
+    }
 
     /// <summary>
     /// «Tabla 430-250, columna de 230 V (220 V: intervalo de 220 a 240 V)». Lo que hace falta para

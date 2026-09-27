@@ -133,7 +133,7 @@ public class ArchivoDelCuadroTests
         var texto = ArchivoDelCuadro.Guardar(TableroCompleto(), Cuando);
 
         Assert.Contains("\"formato\": \"power-node/cuadro-de-carga\"", texto);
-        Assert.Contains("\"version\": 1", texto);
+        Assert.Contains("\"version\": 2", texto); // I-74: seis tipos de carga
         Assert.Contains("\"guardado\": \"2026-09-25T18:30:00-06:00\"", texto);
         Assert.Contains("\"ubicacion\": \"Cocina y baño, planta baja\"", texto); // sin \u00F1
         Assert.Contains("\"justificacionOtra\": {", texto);

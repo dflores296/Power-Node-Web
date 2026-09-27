@@ -316,7 +316,7 @@ public sealed class DatosDelTablero
     /// <summary>
     /// <b>Factor de demanda por tipo de carga</b> — R-17. 220-40: la carga del alimentador es la suma
     /// de los derivados «después de aplicar cualquier factor de demanda aplicable», y el Art. 220 los
-    /// da por tipo. Los captura el proyectista; 1.0 = sin reducción. Motores y A/C (430-26) y
+    /// da por tipo. Los captura el proyectista; 1.0 = sin reducción. Motores (430-26), A/C y
     /// calefacción (220-51, Excepción) también, con su condición — R-18. Sustituye a los dos factores
     /// del Excel (continua y no continua): el 125 % de 215-3 se sigue aplicando a la parte continua.
     /// </summary>
@@ -324,6 +324,7 @@ public sealed class DatosDelTablero
     public decimal FactorDemandaContactos { get; set; } = 1m;
     public decimal FactorDemandaEquipo { get; set; } = 1m;
     public decimal FactorDemandaMotores { get; set; } = 1m;
+    public decimal FactorDemandaAireAcondicionado { get; set; } = 1m;
     public decimal FactorDemandaCalefaccion { get; set; } = 1m;
 
     /// <summary>El factor de un tipo.</summary>
@@ -332,7 +333,8 @@ public sealed class DatosDelTablero
         CategoriaDeCarga.Alumbrado => FactorDemandaAlumbrado,
         CategoriaDeCarga.Contactos => FactorDemandaContactos,
         CategoriaDeCarga.Equipo => FactorDemandaEquipo,
-        CategoriaDeCarga.MotorOAireAcondicionado => FactorDemandaMotores,
+        CategoriaDeCarga.Motor => FactorDemandaMotores,
+        CategoriaDeCarga.AireAcondicionado => FactorDemandaAireAcondicionado,
         _ => FactorDemandaCalefaccion,
     };
 
@@ -344,7 +346,8 @@ public sealed class DatosDelTablero
             case CategoriaDeCarga.Alumbrado: FactorDemandaAlumbrado = factor; break;
             case CategoriaDeCarga.Contactos: FactorDemandaContactos = factor; break;
             case CategoriaDeCarga.Equipo: FactorDemandaEquipo = factor; break;
-            case CategoriaDeCarga.MotorOAireAcondicionado: FactorDemandaMotores = factor; break;
+            case CategoriaDeCarga.Motor: FactorDemandaMotores = factor; break;
+            case CategoriaDeCarga.AireAcondicionado: FactorDemandaAireAcondicionado = factor; break;
             default: FactorDemandaCalefaccion = factor; break;
         }
     }

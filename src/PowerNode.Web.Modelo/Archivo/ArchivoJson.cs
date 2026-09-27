@@ -6,10 +6,12 @@ using PowerNode.DesignSuite.Calculo.Unidades;
 
 namespace PowerNode.Web.Modelo.Archivo;
 
-// LA FORMA DEL ARCHIVO (formato 1). Todo es opcional al leer: lo que falta se queda como en un
+// LA FORMA DEL ARCHIVO (formato 2). Todo es opcional al leer: lo que falta se queda como en un
 // tablero nuevo (ArchivoDelCuadro). Los tipos van por su nombre ("Alumbrado", "VoltAmperes"), no por
 // número: el archivo se lee a simple vista y reordenar un enum no lo rompe. RENOMBRAR un valor sí lo
-// rompe: eso pide subir ArchivoDelCuadro.Version y leer el nombre viejo.
+// rompe: eso pide subir ArchivoDelCuadro.Version y leer el nombre viejo. Así pasó con el tipo de
+// carga (formato 2, I-74): «MotorOAireAcondicionado» se partió en «Motor» y «AireAcondicionado», y el
+// tipo va como texto para poder leer el nombre viejo (CategoriasDeCarga.DelArchivo).
 
 /// <summary>El archivo completo.</summary>
 public sealed class ArchivoJson
@@ -55,9 +57,10 @@ public sealed class DatosJson
     public int? Hilos { get; set; }
     public int? FrecuenciaHz { get; set; }
 
-    public Dictionary<CategoriaDeCarga, decimal>? FactoresDeDemanda { get; set; }
-    public Dictionary<CategoriaDeCarga, List<JustificacionFactorDemanda>>? Justificaciones { get; set; }
-    public Dictionary<CategoriaDeCarga, string>? JustificacionOtra { get; set; }
+    // Por el nombre del tipo, como texto: ver CircuitoJson.Categoria.
+    public Dictionary<string, decimal>? FactoresDeDemanda { get; set; }
+    public Dictionary<string, List<JustificacionFactorDemanda>>? Justificaciones { get; set; }
+    public Dictionary<string, string>? JustificacionOtra { get; set; }
 
     public MaterialConductor? MaterialConductor { get; set; }
     public string? TipoAislamiento { get; set; }
@@ -79,11 +82,23 @@ public sealed class CircuitoJson
 {
     public int? Espacio { get; set; }
     public string? Descripcion { get; set; }
-    public CategoriaDeCarga? Categoria { get; set; }
+    /// <summary>
+    /// El tipo, por su nombre y como texto: así se lee también el de un archivo de formato 1,
+    /// «MotorOAireAcondicionado», que ya no existe — <see cref="CategoriasDeCarga.DelArchivo"/>.
+    /// </summary>
+    public string? Categoria { get; set; }
     public UsoDeContactos? Uso { get; set; }
     public UnidadConsumo? Unidad { get; set; }
-    /// <summary>Los HP de un motor — I-15. Sin él, carga de placa en <see cref="Unidad"/>.</summary>
+    /// <summary>Los HP de un motor — I-15. En formato 1, sin él un Motor / A/C era carga de placa.</summary>
     public decimal? Hp { get; set; }
+    // Motor y A/C y refrigeración — I-74. Solo se escriben si no son los de un renglón nuevo.
+    public CapturaDeMotor? CapturaMotor { get; set; }
+    public decimal? CorrientePlaca { get; set; }
+    public decimal? CorrienteSeleccion { get; set; }
+    public bool? ArranqueAl225 { get; set; }
+    public PlacaDeAireAcondicionado? PlacaAire { get; set; }
+    public decimal? AmpacidadMinima { get; set; }
+    public decimal? ProteccionMaxima { get; set; }
     public decimal? Continua { get; set; }
     public decimal? NoContinua { get; set; }
     public decimal? FactorPotencia { get; set; }
@@ -97,10 +112,17 @@ public sealed class CircuitoJson
     {
         Espacio = c.Espacio,
         Descripcion = c.Descripcion,
-        Categoria = c.Categoria,
+        Categoria = c.Categoria.AlArchivo(),
         Uso = c.Uso,
         Unidad = c.Unidad,
         Hp = c.Hp,
+        CapturaMotor = c.CapturaMotor == CapturaDeMotor.Hp ? null : c.CapturaMotor,
+        CorrientePlaca = c.CorrientePlacaA == 0m ? null : c.CorrientePlacaA,
+        CorrienteSeleccion = c.CorrienteSeleccionA,
+        ArranqueAl225 = c.ArranqueAl225 ? true : null,
+        PlacaAire = c.PlacaAire == PlacaDeAireAcondicionado.AmpacidadYProteccion ? null : c.PlacaAire,
+        AmpacidadMinima = c.AmpacidadMinimaA == 0m ? null : c.AmpacidadMinimaA,
+        ProteccionMaxima = c.ProteccionMaximaA == 0m ? null : c.ProteccionMaximaA,
         Continua = c.Continua,
         NoContinua = c.NoContinua,
         FactorPotencia = c.FactorPotencia,
@@ -123,13 +145,23 @@ public sealed class CircuitoJson
         }
     }
 
-    internal void Aplicar(CircuitoDelCuadro c, DatosDelTablero datos)
+    internal void Aplicar(CircuitoDelCuadro c, DatosDelTablero datos, List<string> avisos)
     {
         c.Descripcion = Descripcion ?? c.Descripcion;
-        c.Categoria = Categoria ?? c.Categoria;
+        var categoria = CategoriasDeCarga.DelArchivo(Categoria, out var eraMotorOAire);
+        if (Categoria is not null && categoria is null && !eraMotorOAire)
+            avisos.Add($"El circuito {Espacio} trae un tipo de carga que no se conoce («{Categoria}»); se abrió como {c.Categoria.Nombre()}.");
+        c.Categoria = categoria ?? c.Categoria;
         c.Uso = Uso ?? c.Uso;
         c.Unidad = Unidad ?? c.Unidad;
         c.Hp = Hp is >= 0m ? Hp : null;
+        c.CapturaMotor = CapturaMotor ?? c.CapturaMotor;
+        c.CorrientePlacaA = CorrientePlaca is >= 0m ? CorrientePlaca.Value : c.CorrientePlacaA;
+        c.CorrienteSeleccionA = CorrienteSeleccion is > 0m ? CorrienteSeleccion : null;
+        c.ArranqueAl225 = ArranqueAl225 ?? c.ArranqueAl225;
+        c.PlacaAire = PlacaAire ?? c.PlacaAire;
+        c.AmpacidadMinimaA = AmpacidadMinima is >= 0m ? AmpacidadMinima.Value : c.AmpacidadMinimaA;
+        c.ProteccionMaximaA = ProteccionMaxima is >= 0m ? ProteccionMaxima.Value : c.ProteccionMaximaA;
         c.Continua = Continua ?? c.Continua;
         c.NoContinua = NoContinua ?? c.NoContinua;
         c.FactorPotencia = FactorPotencia ?? c.FactorPotencia;
@@ -143,6 +175,39 @@ public sealed class CircuitoJson
         c.Aparatos.Clear();
         foreach (var a in Aparatos ?? [])
             c.Aparatos.Add(a.Crear());
+
+        if (eraMotorOAire)
+            DeMotorOAire(c, datos, avisos);
+    }
+
+    /// <summary>
+    /// <b>Un «Motor / A/C» de formato 1</b> — I-74, decisión <c>tipos-de-carga.md</c>. Con HP era un
+    /// motor (I-15): pasa a Motor, igual. Sin HP era carga de placa en VA, W o A: pasa a A/C y
+    /// refrigeración, con esa carga en amperes como corriente de carga nominal, y un aviso para
+    /// revisarlo — pudo ser un motor capturado en amperes.
+    /// </summary>
+    private void DeMotorOAire(CircuitoDelCuadro c, DatosDelTablero datos, List<string> avisos)
+    {
+        if (Hp is not null)
+        {
+            c.Categoria = CategoriaDeCarga.Motor;
+            c.CapturaMotor = CapturaDeMotor.Hp;
+            return;
+        }
+
+        c.Categoria = CategoriaDeCarga.AireAcondicionado;
+        c.PlacaAire = PlacaDeAireAcondicionado.CorrienteNominal;
+        var polos = Polos is >= 1 and <= 3 ? Polos.Value : 1;
+        var va = ConsumoDePlaca.AVoltAmperes(
+            c.Continua + c.NoContinua, c.Unidad, datos.TensionFaseNeutroV, datos.TensionFaseFaseV, polos, c.FactorPotencia);
+        if (va <= 0m)
+            return;
+
+        c.CorrientePlacaA = Math.Round(va / TensionDeCalculo.Divisor(polos, datos.TensionFaseNeutroV, datos.TensionFaseFaseV), 2);
+        avisos.Add(
+            $"El circuito {Espacio} era «Motor / A/C» en VA, W o A. Ahora Motor y A/C son dos tipos: se abrió como " +
+            $"«A/C y refrigeración» con {c.CorrientePlacaA:N2} A de corriente de carga nominal (440-6(a)). Revísalo: si es un " +
+            "motor, cámbialo a «Motor»; si la placa trae ampacidad mínima y protección máxima, captúralas en «MCA».");
     }
 }
 

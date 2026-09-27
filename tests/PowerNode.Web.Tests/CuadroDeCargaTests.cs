@@ -550,24 +550,33 @@ public class CuadroDeCargaTests
         foreach (var (espacio, categoria) in new[]
                  {
                      (1, CategoriaDeCarga.Alumbrado), (2, CategoriaDeCarga.Contactos), (3, CategoriaDeCarga.Equipo),
-                     (4, CategoriaDeCarga.MotorOAireAcondicionado), (5, CategoriaDeCarga.CalefaccionFija),
+                     (5, CategoriaDeCarga.CalefaccionFija),
                  })
         {
             Espacio(cuadro, espacio).Categoria = categoria;
             Espacio(cuadro, espacio).NoContinua = 1000m;
         }
+        // I-74: Motor y A/C con su placa, a 220 / √3 = 127.02 V. 1 HP, Tabla 430-248, columna de 127 V: 14 A → 1,778.24 VA;
+        // A/C con MCA de 10 A → 1,270.17 VA.
+        Espacio(cuadro, 4).Categoria = CategoriaDeCarga.Motor;
+        Espacio(cuadro, 4).Hp = 1m;
+        Espacio(cuadro, 6).Categoria = CategoriaDeCarga.AireAcondicionado;
+        Espacio(cuadro, 6).AmpacidadMinimaA = 10m;
+        Espacio(cuadro, 6).ProteccionMaximaA = 15m;
         cuadro.Datos.FactorDemandaAlumbrado = 0.5m;
         cuadro.Datos.FactorDemandaContactos = 0.6m;
         cuadro.Datos.FactorDemandaEquipo = 0.75m;
         cuadro.Recalcular();
 
         decimal Demandada(CategoriaDeCarga c) => cuadro.Resumen.PorCategoria!.Single(f => f.Categoria == c).DemandadaVA;
+        Assert.Equal(6, cuadro.Resumen.PorCategoria!.Count);
         Assert.Equal(500m, Demandada(CategoriaDeCarga.Alumbrado));
         Assert.Equal(600m, Demandada(CategoriaDeCarga.Contactos));
         Assert.Equal(750m, Demandada(CategoriaDeCarga.Equipo));
-        Assert.Equal(1000m, Demandada(CategoriaDeCarga.MotorOAireAcondicionado)); // 1.0 por omisión
+        Assert.Equal(1778.24m, Demandada(CategoriaDeCarga.Motor), 2); // 1.0 por omisión
+        Assert.Equal(1270.17m, Demandada(CategoriaDeCarga.AireAcondicionado), 2); // 1.0 por omisión
         Assert.Equal(1000m, Demandada(CategoriaDeCarga.CalefaccionFija));
-        Assert.Equal(3850m, cuadro.Resumen.DemandadaVA);
+        Assert.Equal(5898.41m, cuadro.Resumen.DemandadaVA, 2);
     }
 
     // ---- R-18 · Motores y calefacción también admiten F.D. (430-26, 220-51 Exc.); calefacción, continua
@@ -576,8 +585,8 @@ public class CuadroDeCargaTests
     public void R18_MotoresYCalefaccionSeReducenConSuJustificacion()
     {
         var cuadro = Nuevo(espacios: 6);
-        Espacio(cuadro, 1).Categoria = CategoriaDeCarga.MotorOAireAcondicionado;
-        Espacio(cuadro, 1).NoContinua = 1000m;
+        Espacio(cuadro, 1).Categoria = CategoriaDeCarga.Motor;
+        Espacio(cuadro, 1).Hp = 1m; // 14 A a 127.02 V: 1,778.24 VA
         Espacio(cuadro, 3).Categoria = CategoriaDeCarga.CalefaccionFija;
         Espacio(cuadro, 3).Continua = 1000m;
         cuadro.Datos.FactorDemandaMotores = 0.7m;
@@ -585,18 +594,20 @@ public class CuadroDeCargaTests
         cuadro.Recalcular();
 
         decimal Demandada(CategoriaDeCarga c) => cuadro.Resumen.PorCategoria!.Single(f => f.Categoria == c).DemandadaVA;
-        Assert.Equal(700m, Demandada(CategoriaDeCarga.MotorOAireAcondicionado));
+        Assert.Equal(1244.77m, Demandada(CategoriaDeCarga.Motor), 2); // 0.7 × 1,778.24
         Assert.Equal(800m, Demandada(CategoriaDeCarga.CalefaccionFija));
         Assert.Equal(2, cuadro.Alimentador.Avisos.Count(a => a.Contains("no tiene justificación")));
 
-        Assert.Equal(
-            [JustificacionFactorDemanda.MotoresNoSimultaneos, JustificacionFactorDemanda.CargasNoCoincidentes, JustificacionFactorDemanda.Otra],
-            CategoriaDeCarga.MotorOAireAcondicionado.JustificacionesPosibles(TipoDeInmueble.Otro));
+        // Motor y A/C y refrigeración, con las mismas justificaciones que tenía Motor / A/C (I-74).
+        foreach (var categoria in new[] { CategoriaDeCarga.Motor, CategoriaDeCarga.AireAcondicionado })
+            Assert.Equal(
+                [JustificacionFactorDemanda.MotoresNoSimultaneos, JustificacionFactorDemanda.CargasNoCoincidentes, JustificacionFactorDemanda.Otra],
+                categoria.JustificacionesPosibles(TipoDeInmueble.Otro));
         Assert.Equal(
             [JustificacionFactorDemanda.CalefaccionPorCiclos, JustificacionFactorDemanda.CargasNoCoincidentes, JustificacionFactorDemanda.Otra],
             CategoriaDeCarga.CalefaccionFija.JustificacionesPosibles(TipoDeInmueble.Otro));
 
-        cuadro.Datos.Justificaciones[CategoriaDeCarga.MotorOAireAcondicionado].Add(JustificacionFactorDemanda.MotoresNoSimultaneos);
+        cuadro.Datos.Justificaciones[CategoriaDeCarga.Motor].Add(JustificacionFactorDemanda.MotoresNoSimultaneos);
         cuadro.Datos.Justificaciones[CategoriaDeCarga.CalefaccionFija].Add(JustificacionFactorDemanda.CalefaccionPorCiclos);
         cuadro.Recalcular();
         Assert.DoesNotContain(cuadro.Alimentador.Avisos, a => a.Contains("no tiene justificación"));
@@ -621,7 +632,8 @@ public class CuadroDeCargaTests
     [Fact]
     public void R18_ElTooltipDelTipoTraeEjemplos()
     {
-        Assert.Contains("inverter frío/calor", CategoriaDeCarga.MotorOAireAcondicionado.Descripcion());
+        Assert.Contains("inverter frío/calor", CategoriaDeCarga.AireAcondicionado.Descripcion());
+        Assert.Contains("bombas", CategoriaDeCarga.Motor.Descripcion());
         Assert.Contains("calderas eléctricas", CategoriaDeCarga.CalefaccionFija.Descripcion());
     }
 
@@ -802,15 +814,19 @@ public class CuadroDeCargaTests
     }
 
     [Fact]
-    public void R17_ElTipoDelMotorDeMotorYCalefaccionEsEquipo()
+    public void R17_ElTipoDelMotor_MotorEsFuerza_CalefaccionEsEquipo()
     {
         var cuadro = Nuevo();
         var c = Espacio(cuadro, 1);
-        c.Categoria = CategoriaDeCarga.MotorOAireAcondicionado;
+        c.Categoria = CategoriaDeCarga.Motor;
+        Assert.Equal(TipoCarga.Fuerza, c.Tipo); // I-74
+        c.Categoria = CategoriaDeCarga.CalefaccionFija;
         Assert.Equal(TipoCarga.Equipo, c.Tipo);
 
         c.Tipo = TipoCarga.Contactos;
         Assert.Equal(CategoriaDeCarga.Contactos, c.Categoria);
+        c.Tipo = TipoCarga.Fuerza;
+        Assert.Equal(CategoriaDeCarga.Motor, c.Categoria);
     }
 
     [Fact]

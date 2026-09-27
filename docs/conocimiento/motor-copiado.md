@@ -97,6 +97,7 @@ Llevar estos cambios a `PowerNode-DesignSuite`.
 | 2026-09-26 | `Casos/CaidaPorFase.cs` (`CorrienteDeFaseAlimentador`), `CalculadoraAlimentador.cs` | Agregar `Motores` y `FasorMotores` a cada fase: la fase que gobierna cuenta 430-24; 430-24 y 430-62(a) con los motores de esa fase; caída fasorial con sus FLC al 100 %. `CargaMotores` sin fase sigue igual. | No (por omisión); sí con motores por fase | I-15 |
 | 2026-09-26 | `Casos/CalculadoraProteccionAlimentador.cs` | Techo de 430-63: la otra carga con lo que le pide 215-3 (125 % de la continua + no continua), no al 100 %. | Sí, con motores y carga continua: el techo sube | M-09 |
 | 2026-09-26 | `Normativa/TablaFlcMotorJson.cs` (en escritorio: `Data/TablasNom`) | Agregar `TensionDeColumna` y `TablaDe`: la columna con la que se lee una tensión de sistema, para que la memoria la diga. | No | I-15 |
+| 2026-09-27 | `Casos/DatosEntradaCircuitoDerivadoMotor.cs`, `CalculadoraCircuitoDerivadoMotor.cs` | Agregar `FlcMarcadaEnAmperesA`: un motor marcado en amperes y no en HP entra con esa corriente como FLC —la de los HP que le corresponden en la tabla, interpolando— y cita 430-6(a)(1). `Hp` lleva los HP interpolados, solo para la cita. | No (por omisión) | I-74 |
 
 **Visto en el escritorio, sin cambio aquí (I-15):** `CalculadoraCircuitoDerivadoMotor` calcula la caída
 de un motor monofásico con `TensionFaseNeutroV`, también cuando el motor está entre fases (2 polos,
@@ -122,3 +123,13 @@ Los calculadores de derivado y alimentador **no cambiaron**: siguen recibiendo
 `NumeroConductoresAgrupados`, `TemperaturaAmbienteC` y `MaterialCanalizacion`; lo que cambia es quién
 los llena.
 
+### El derivado del Art. 440 — I-74
+
+El escritorio tiene `CalculadoraCarga440` (corriente base, conductor al 125 %, protección de
+440-22(a)) y dimensiona el conductor en otra parte; no tiene la forma de placa con ampacidad mínima
+y protección máxima (440-4(b)). Decisión: [`../decisiones/tipos-de-carga.md`](../decisiones/tipos-de-carga.md).
+
+| Archivo | Qué es |
+|---|---|
+| `Calculo/Casos/DatosEntradaCircuitoDerivado440.cs` | La placa en una de dos formas: corriente de carga nominal y de selección (440-6(a)), o ampacidad mínima y protección máxima (440-4(b)); y las condiciones del tramo, como el derivado de motor. |
+| `Calculo/Casos/CalculadoraCircuitoDerivado440.cs` | El derivado completo: protección con `CalculadoraCarga440` o con la máxima de placa (el mayor estándar que no la excede, `AnteriorEstandar`); terminales, aislamiento, factores, conductor, caída y tierra con el mismo camino que `CalculadoraCircuitoDerivadoMotor`; cita 240-4(g). |

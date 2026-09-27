@@ -34,15 +34,27 @@ public class CalculadoraCircuitoDerivadoMotor(
         var citas = new List<Cita>();
         var numeroFases = d.NumeroFases;
 
-        // 1. FLC de tabla -- 430-6(a): nunca de placa, para dimensionar conductor y protección.
-        var flc = FlcDeTabla(flcMotor, d.Hp, d.TipoAlimentacion, d.TensionNominalMotorV);
-        citas.Add(new Cita("430-6(a)", $"FLC de tabla ({d.Hp} Hp, {d.TensionNominalMotorV} V, {d.TipoAlimentacion}): {flc:0.##} A"));
+        // 1. FLC de tabla -- 430-6(a): nunca de placa, para dimensionar conductor y protección. Un
+        // motor marcado en amperes y no en HP entra con los caballos que le corresponden en la tabla,
+        // interpolando (430-6(a)(1)): su FLC es esa misma corriente.
+        decimal flc;
+        if (d.FlcMarcadaEnAmperesA is { } marcada)
+        {
+            flc = marcada;
+            citas.Add(new Cita("430-6(a)(1)", $"Motor marcado en amperes y no en HP: {flc:0.##} A es la FLC de un motor de " +
+                $"{d.Hp:0.##} Hp en la tabla, interpolando ({d.TensionNominalMotorV} V, {d.TipoAlimentacion})"));
+        }
+        else
+        {
+            flc = FlcDeTabla(flcMotor, d.Hp, d.TipoAlimentacion, d.TensionNominalMotorV);
+            citas.Add(new Cita("430-6(a)", $"FLC de tabla ({d.Hp} Hp, {d.TensionNominalMotorV} V, {d.TipoAlimentacion}): {flc:0.##} A"));
+        }
 
         // SI EL NÚMERO NO ES EL QUE PUBLICA EL DOF, LA MEMORIA LO DICE. Es la contrapartida de
         // ErratasDeLaNorma: una memoria que se aparta del texto publicado sin declararlo no se puede
         // verificar, y entonces no sirve para lo que se entrega. Null en la inmensa mayoría de los
         // cálculos -- hoy hay una sola errata en toda la norma.
-        if (flcMotor.ErrataAplicada(d.Hp, d.TipoAlimentacion, d.TensionNominalMotorV) is { } errata)
+        if (d.FlcMarcadaEnAmperesA is null && flcMotor.ErrataAplicada(d.Hp, d.TipoAlimentacion, d.TensionNominalMotorV) is { } errata)
             citas.Add(new Cita(
                 $"ERRATA {errata.TablaId}",
                 $"{errata.Descripcion}: se calcula con {errata.ValorCorregido:0.##} A en lugar de los "

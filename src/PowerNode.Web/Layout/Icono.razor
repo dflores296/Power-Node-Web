@@ -87,6 +87,12 @@
             <circle class="trazo" cx="12" cy="12" r="8.5" />
             <path class="trazo" d="M8.5 15.5v-7l3.5 4.5 3.5-4.5v7" />
             break;
+        case "aire":
+            @* A/C y refrigeración (I-74): un copo, con el relleno del círculo como los demás tipos. *@
+            <circle class="relleno" cx="12" cy="12" r="8.5" />
+            <path class="trazo" d="M12 3.5v17M4.6 7.75l14.8 8.5M4.6 16.25l14.8-8.5" />
+            <path class="trazo" d="M9.8 5.3L12 7l2.2-1.7M9.8 18.7L12 17l2.2 1.7" />
+            break;
         case "calefaccion":
             <rect class="relleno" x="3" y="15" width="18" height="5.5" rx="1.5" />
             <rect class="trazo" x="3" y="15" width="18" height="5.5" rx="1.5" />
@@ -99,7 +105,7 @@
 
 @code {
     /// <summary>abrir, guardar, imprimir, agregar, quitar, deshacer, desglose, desglose-abierto, aviso, sistema, claro, oscuro;
-    /// y los tipos de carga: alumbrado, contactos, equipo, motor, calefaccion.</summary>
+    /// y los tipos de carga: alumbrado, contactos, equipo, motor, aire, calefaccion.</summary>
     [Parameter, EditorRequired] public string Nombre { get; set; } = "";
 
     /// <summary>En px; 16 en botones, 14 dentro del cuadro.</summary>
@@ -113,7 +119,8 @@
         CategoriaDeCarga.Alumbrado => "alumbrado",
         CategoriaDeCarga.Contactos => "contactos",
         CategoriaDeCarga.Equipo => "equipo",
-        CategoriaDeCarga.MotorOAireAcondicionado => "motor",
+        CategoriaDeCarga.Motor => "motor",
+        CategoriaDeCarga.AireAcondicionado => "aire",
         _ => "calefaccion",
     };
 }

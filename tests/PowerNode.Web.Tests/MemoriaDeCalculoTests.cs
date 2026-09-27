@@ -157,7 +157,7 @@ public class MemoriaDeCalculoTests
     {
         var cuadro = Sistema(3, 4, 220m);
         var motor = cuadro.Circuitos[0];
-        motor.Categoria = CategoriaDeCarga.MotorOAireAcondicionado;
+        motor.Categoria = CategoriaDeCarga.Motor;
         motor.Hp = 5m;
         Assert.Null(cuadro.CambiarPolos(motor, 3));
         cuadro.Recalcular();

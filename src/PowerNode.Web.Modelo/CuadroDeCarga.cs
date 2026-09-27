@@ -257,10 +257,18 @@ public sealed class CuadroDeCarga
         if (c.EsMotor)
             return DesgloseDeSeleccion.DeMotor(
                 _motor.Ampacidad, Datos,
-                hp: c.Hp!.Value,
+                origenFlc: OrigenDeLaFlc(c),
                 flcA: c.FlcA,
-                fuente: FuenteDeFlc(c),
                 porcentaje: PorcentajeProteccionMotor(c),
+                proteccionA: r.ProteccionA,
+                calibre: r.CalibreFase,
+                conductoresPorFase: r.NumeroConductoresParalelo,
+                d: detalle,
+                citas: r.Citas);
+
+        if (c.EsAireAcondicionado)
+            return DesgloseDeSeleccion.DeAireAcondicionado(
+                _motor.Ampacidad, Datos, c,
                 proteccionA: r.ProteccionA,
                 calibre: r.CalibreFase,
                 conductoresPorFase: r.NumeroConductoresParalelo,
@@ -286,9 +294,23 @@ public sealed class CuadroDeCarga
             referenciaMinimo: c.UsoEfectivo.ReferenciaProteccionMinima());
     }
 
+    /// <summary>
+    /// De dónde sale la FLC de un motor, ya redactado: «FLC = 15.20 A, 5 HP — Tabla 430-250, columna de
+    /// 230 V (…), 430-6(a)», o en amperes, «FLC = 12.00 A: motor marcado en amperes, 3.93 HP — Tabla
+    /// 430-250: 3 HP, 9.60 A; 5 HP, 15.20 A, 430-6(a)(1)».
+    /// </summary>
+    public string OrigenDeLaFlc(CircuitoDelCuadro c) =>
+        c.MotorEnAmperes is { } m
+            ? $"FLC = {c.FlcA:N2} A: motor marcado en amperes, {m.Hp:0.##} HP — {MotoresEnHp.Interpolacion(m, c.Polos)}, 430-6(a)(1)"
+            : $"FLC = {c.FlcA:N2} A, {MotoresEnHp.Texto(c.Hp ?? 0m)} HP — {FuenteDeFlc(c)}, 430-6(a)";
+
     /// <summary>Los HP que la tabla trae para los polos y la tensión de este circuito — I-15. Los ofrece el selector.</summary>
     public IReadOnlyList<decimal> HpDisponibles(CircuitoDelCuadro c) =>
         MotoresEnHp.Disponibles(_motor.FlcMotor, c.Polos, TensionDelMotor(c));
+
+    /// <summary>La FLC de tabla de un motor de <paramref name="hp"/> en este circuito; 0 si la tabla no lo trae. La enseña el selector.</summary>
+    public decimal FlcDe(CircuitoDelCuadro c, decimal hp) =>
+        MotoresEnHp.Flc(_motor.FlcMotor, hp, c.Polos, TensionDelMotor(c)) ?? 0m;
 
     /// <summary>«Tabla 430-250, columna de 230 V (220 V: intervalo de 220 a 240 V)»: de dónde sale la FLC de este circuito.</summary>
     public string FuenteDeFlc(CircuitoDelCuadro c) => MotoresEnHp.Fuente(c.Polos, TensionDelMotor(c));
@@ -299,6 +321,15 @@ public sealed class CuadroDeCarga
     /// </summary>
     public decimal PorcentajeProteccionMotor(CircuitoDelCuadro c) =>
         _motor.ProteccionMotor.PorcentajeMaximo(MotoresEnHp.TipoDeMotor(c.Polos), TipoDispositivoProteccionMotor.InterruptorTiempoInverso);
+
+    /// <summary>Hay equipos de A/C en el tablero: el grupo de motores del alimentador cita también 440-33.</summary>
+    public bool TieneAireAcondicionado => _circuitos.Any(c => c.TieneCarga && c.EsAireAcondicionado);
+
+    /// <summary>«Motores», o «Motores y A/C» con equipos de A/C: el grupo de 430-24 / 440-33.</summary>
+    public string EtiquetaDeMotores => TieneAireAcondicionado ? "Motores y A/C" : "Motores";
+
+    /// <summary>«430-24», o «430-24, 440-33» con equipos de A/C.</summary>
+    public string ReferenciaDeMotores => TieneAireAcondicionado ? "430-24, 440-33" : "430-24";
 
     /// <summary>El desglose del alimentador, con la corriente de la fase que gobierna. <c>null</c> sin cálculo.</summary>
     public DesgloseDeSeleccion? DesgloseDelAlimentador()
@@ -622,7 +653,7 @@ public sealed class CuadroDeCarga
         {
             var nuevo = new CircuitoDelCuadro(i + 1);
             if (i < antes.Circuitos.Count)
-                antes.Circuitos[i].Aplicar(nuevo, Datos);
+                antes.Circuitos[i].Aplicar(nuevo, Datos, []);
             _circuitos[i] = nuevo;
         }
         Datos.EspacioDelPrincipal = antes.EspacioDelPrincipal;
@@ -647,7 +678,7 @@ public sealed class CuadroDeCarga
         foreach (var (a, datos) in tomados)
         {
             var nuevo = new CircuitoDelCuadro(a);
-            datos.Aplicar(nuevo, Datos);
+            datos.Aplicar(nuevo, Datos, []);
             _circuitos[a - 1] = nuevo;
         }
     }
@@ -664,20 +695,22 @@ public sealed class CuadroDeCarga
         {
             // I-46: el uso de los contactos solo cuenta en vivienda (210-11(c), 220-52).
             c.UsoEfectivo = c.Categoria == CategoriaDeCarga.Contactos && Datos.Inmueble.AplicaUsoDeContactos() ? c.Uso : UsoDeContactos.General;
-            c.FlcA = 0m;
+            c.CorrienteDeMotorA = 0m;
+            c.MotorEnAmperes = null;
             c.MotorVA = 0m;
 
-            // I-15: un motor en HP no tiene carga continua ni no continua. Su corriente es la FLC de
-            // tabla (430-6(a)), y sus VA, esa corriente por la tensión del circuito.
-            if (c.EsMotor)
+            // I-15, I-74: un motor o un equipo de A/C no tiene carga continua ni no continua. Su
+            // corriente es la FLC de tabla (430-6(a)) o la de la placa (440-6(a), 440-4(b)), y sus
+            // VA, esa corriente por la tensión del circuito.
+            if (c.EsDeMotor)
             {
                 c.ContinuaVA = 0m;
                 c.NoContinuaVA = 0m;
                 c.Ajuste220_52VA = 0m;
-                if (c.Hp > 0m && MotoresEnHp.Flc(_motor.FlcMotor, c.Hp.Value, c.Polos, TensionDelMotor(c)) is { } flc)
+                if (CorrienteDeMotor(c) is { } corriente)
                 {
-                    c.FlcA = flc;
-                    c.MotorVA = flc * TensionDeCalculo.Divisor(c.Polos, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV);
+                    c.CorrienteDeMotorA = corriente;
+                    c.MotorVA = corriente * TensionDeCalculo.Divisor(c.Polos, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV);
                 }
                 continue;
             }
@@ -729,6 +762,24 @@ public sealed class CuadroDeCarga
         c.FactorPotencia = c.Continua + c.NoContinua > 0m
             ? FactorPotenciaCombinado.De(c.Aparatos.Select(a => (a.TotalVA, a.FactorPotencia)))
             : CircuitoDelCuadro.FactorPotenciaSupuesto;
+    }
+
+    /// <summary>
+    /// La corriente de un motor o un equipo de A/C, de lo capturado: la FLC de la tabla por sus HP, la
+    /// de un motor marcado en amperes (430-6(a)(1), que deja sus HP interpolados en
+    /// <see cref="CircuitoDelCuadro.MotorEnAmperes"/>), o la de la placa del A/C. <c>null</c> si no
+    /// calcula: sin captura, o fuera de la tabla.
+    /// </summary>
+    private decimal? CorrienteDeMotor(CircuitoDelCuadro c)
+    {
+        if (c.EsAireAcondicionado)
+            return AireAcondicionadoDePlaca.Corriente(c);
+
+        if (c.CapturaMotor == CapturaDeMotor.Hp)
+            return c.Hp > 0m ? MotoresEnHp.Flc(_motor.FlcMotor, c.Hp.Value, c.Polos, TensionDelMotor(c)) : null;
+
+        c.MotorEnAmperes = MotoresEnHp.DeAmperes(_motor.FlcMotor, c.CorrientePlacaA, c.Polos, TensionDelMotor(c));
+        return c.MotorEnAmperes?.Amperes;
     }
 
     /// <summary>La tensión con la que se entra a la tabla de FLC: la del circuito — <see cref="MotoresEnHp.Tension"/>.</summary>
@@ -929,6 +980,11 @@ public sealed class CuadroDeCarga
                     CalcularMotor(c, canal);
                     continue;
                 }
+                if (c.EsAireAcondicionado)
+                {
+                    CalcularAireAcondicionado(c, canal);
+                    continue;
+                }
 
                 c.Resultado = _motor.NoMotor(Datos.SerieInterruptores).Calcular(new DatosEntradaCircuitoDerivadoNoMotor(
                     TipoCarga: c.Tipo,
@@ -982,14 +1038,19 @@ public sealed class CuadroDeCarga
     private void CalcularMotor(CircuitoDelCuadro c, CanalizacionDelTablero canal)
     {
         var tension = TensionDelMotor(c);
+        var enAmperes = c.CapturaMotor == CapturaDeMotor.Amperes;
         if (c.FlcA <= 0m)
         {
-            c.Error = MotoresEnHp.SinFila(_motor.FlcMotor, c.Hp!.Value, c.Polos, tension);
+            c.Error = enAmperes
+                ? MotoresEnHp.SinFilaEnAmperes(_motor.FlcMotor, c.CorrientePlacaA, c.Polos, tension)
+                : MotoresEnHp.SinFila(_motor.FlcMotor, c.Hp!.Value, c.Polos, tension);
             return;
         }
 
         c.Resultado = _motor.Motor(Datos.SerieInterruptores).Calcular(new DatosEntradaCircuitoDerivadoMotor(
-            Hp: c.Hp!.Value,
+            // En amperes, los caballos interpolados (430-6(a)(1)) van solo a la cita; la FLC es la corriente.
+            Hp: enAmperes ? c.MotorEnAmperes!.Hp : c.Hp!.Value,
+            FlcMarcadaEnAmperesA: enAmperes ? c.FlcA : null,
             TipoAlimentacion: MotoresEnHp.Alimentacion(c.Polos),
             TipoMotor: MotoresEnHp.TipoDeMotor(c.Polos),
             // Lo que se monta en un tablero de derivados: interruptor automático de tiempo inverso.
@@ -1011,6 +1072,37 @@ public sealed class CuadroDeCarga
             TipoAislamiento: Datos.TipoAislamiento,
             LugarInstalacionSeco: Datos.LugarSeco,
             TerminalesMarcadas75C: Datos.TerminalesMarcadas75C));
+    }
+
+    /// <summary>
+    /// <b>El derivado de un equipo de A/C o refrigeración</b> — I-74, Art. 440: con la corriente de la
+    /// placa (440-6(a), 440-22(a), 440-32) o con su ampacidad mínima y su protección máxima (440-4(b)).
+    /// Las condiciones del tramo, como en cualquier renglón.
+    /// </summary>
+    private void CalcularAireAcondicionado(CircuitoDelCuadro c, CanalizacionDelTablero canal)
+    {
+        var porPlaca = c.PlacaAire == PlacaDeAireAcondicionado.AmpacidadYProteccion;
+        c.Resultado = _motor.AireAcondicionado(Datos.SerieInterruptores).Calcular(new DatosEntradaCircuitoDerivado440(
+            // Un equipo de 2 polos es monofásico entre fases; el de 3, trifásico.
+            NumeroFases: c.Polos == 3 ? 3 : 1,
+            TensionFaseNeutroV: c.Polos == 1 ? Datos.TensionFaseNeutroV : Datos.TensionFaseFaseV,
+            TensionFaseFaseV: Datos.TensionFaseFaseV,
+            LongitudM: c.LongitudM,
+            NumeroConductoresParalelo: 1,
+            NumeroConductoresAgrupados: canal.Ajuste!.ConductoresParaElMotor,
+            TemperaturaAmbienteC: Datos.TemperaturaAmbienteC + canal.SumadorAzoteaC,
+            MaterialConductor: Datos.MaterialConductor,
+            MaterialCanalizacion: canal.MaterialParaTabla9,
+            FactorPotencia: c.FactorPotencia,
+            CaidaTensionMaxPct: Datos.CaidaMaxDerivadoPct,
+            TipoAislamiento: Datos.TipoAislamiento,
+            LugarInstalacionSeco: Datos.LugarSeco,
+            TerminalesMarcadas75C: Datos.TerminalesMarcadas75C,
+            CorrienteNominalPlacaA: porPlaca ? null : c.CorrientePlacaA,
+            CorrienteSeleccionCircuitoA: porPlaca ? null : c.CorrienteSeleccionA,
+            RequiereArranque: !porPlaca && c.ArranqueAl225,
+            AmpacidadMinimaPlacaA: porPlaca ? c.AmpacidadMinimaA : null,
+            ProteccionMaximaPlacaA: porPlaca ? c.ProteccionMaximaA : null));
     }
 
     /// <summary>
@@ -1163,9 +1255,10 @@ public sealed class CuadroDeCarga
     private Dictionary<char, (AgregadoMotores Agregado, Fasor Fasor)> MotoresPorFase()
     {
         var porFase = Datos.Barras.ToDictionary(b => b, _ => (Agregado: AgregadoMotores.Vacio, Fasor: new Fasor(0m, 0m)));
-        foreach (var c in _circuitos.Where(c => c.TieneCarga && c.EsMotor && c.FlcA > 0m))
+        // Motores y equipos de A/C en un solo grupo: 440-33 y 440-7 (el mayor, el de mayor corriente).
+        foreach (var c in _circuitos.Where(c => c.TieneCarga && c.EsDeMotor && c.CorrienteDeMotorA > 0m))
         {
-            var flc = FactorDeDemanda(c) * c.FlcA;
+            var flc = FactorDeDemanda(c) * c.CorrienteDeMotorA;
             // Sin derivado calculado no hay protección que aportar al techo de 430-62(a).
             var motor = c.Resultado is { } r ? AgregadoMotores.DeUnMotor(flc, r.ProteccionA) : AgregadoMotores.DeUnMotor(flc);
             foreach (var (fase, angulo) in Direcciones(c))
@@ -1409,13 +1502,16 @@ public sealed class CuadroDeCarga
         // Aviso, no bloqueo, mientras David no decida otra cosa.
         //
         // CON UN MOTOR, EL DERIVADO ES GRANDE A PROPÓSITO (I-15): 430-52 lo dimensiona para el
-        // arranque, no para la carga. Lo que hay que decir es hasta dónde deja subir el principal
-        // 430-62(a), no que la carga capturada esté mal.
-        if (mayor is { EsMotor: true } && resultado.ProteccionA < mayorDerivado)
+        // arranque, no para la carga; en un equipo de A/C, 440-22(a) o su placa (I-74). Lo que hay que
+        // decir es hasta dónde deja subir el principal 430-62(a), no que la carga capturada esté mal.
+        if (mayor is { EsDeMotor: true } && resultado.ProteccionA < mayorDerivado)
             avisos.Add(
-                $"El interruptor principal ({resultado.ProteccionA:N0} A) es menor que la protección del motor del circuito " +
-                $"{mayor.Espacio} ({mayorDerivado:N0} A), que 430-52 dimensiona para el arranque. El principal podría dispararse " +
-                "al arrancar el motor" +
+                $"El interruptor principal ({resultado.ProteccionA:N0} A) es menor que la protección del " +
+                $"{(mayor.EsMotor ? "motor" : "equipo de A/C")} del circuito {mayor.Espacio} ({mayorDerivado:N0} A), " +
+                (mayor.EsMotor ? "que 430-52 dimensiona para el arranque"
+                    : mayor.PlacaAire == PlacaDeAireAcondicionado.AmpacidadYProteccion ? "la que permite su placa — 440-4(b)"
+                    : "que 440-22(a) dimensiona para el arranque") +
+                $". El principal podría dispararse al arrancar el {(mayor.EsMotor ? "motor" : "equipo")}" +
                 (resultado.TechoProteccion430_62A is { } techo
                     ? $": 430-62(a) y 430-63 permiten subirlo hasta {techo:N2} A. Criterio del proyectista."
                     : ". Criterio del proyectista."));

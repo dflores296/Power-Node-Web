@@ -42,7 +42,17 @@ public sealed record DatosEntradaCircuitoDerivadoMotor(
     /// Falso por omisión: sin declaración, 60 °C, que es la regla general. Igual que en
     /// <see cref="DatosEntradaCircuitoDerivadoNoMotor"/> (M-06); aquí faltaba — I-15.
     /// </summary>
-    bool TerminalesMarcadas75C = false)
+    bool TerminalesMarcadas75C = false,
+
+    /// <summary>
+    /// <b>Un motor marcado en amperes y no en caballos</b> — 430-6(a)(1): «se debe asumir que su
+    /// potencia en caballos de fuerza es la correspondiente a los valores dados en las Tablas
+    /// 430-247, 430-248, 430-249 y 430-250, interpolando si fuera necesario». Interpolado, el motor de
+    /// esos caballos tiene en la tabla justo esa corriente: es la FLC. <see cref="Hp"/> lleva los
+    /// caballos que resultaron, solo para la cita. <c>null</c> = motor en HP, FLC de la tabla
+    /// (Power Node Web, I-74).
+    /// </summary>
+    decimal? FlcMarcadaEnAmperesA = null)
 {
     /// <summary>1 (monofásico o CD), 2 o 3 -- deriva de TipoAlimentacion, no se captura aparte.</summary>
     public int NumeroFases => TipoAlimentacion switch
