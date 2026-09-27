@@ -2,6 +2,15 @@
 
 Registro de acciones por sesión, con hallazgo y commit.
 
+## 2026-09-27
+
+**Revisión de I-15 con David** — comparar en el navegador la versión anterior (`22641fd`) con la del
+Art. 430 (`8099fb1`), el mismo tablero con dos motores trifásicos.
+
+- Quitar el neutro de la memoria en un multipolar sin «+N» y del alimentador en 3F-3H — I-73, `458508d`.
+
+Pruebas: 241 en `PowerNode.Web.Tests`, 23 en `PowerNode.Normativa.Tests`.
+
 ## 2026-09-26
 
 **Ordenar el repositorio como `msa-toolkit` y `NOM-001-SEDE-2012`** (pedido de David) — `c92aafe`
