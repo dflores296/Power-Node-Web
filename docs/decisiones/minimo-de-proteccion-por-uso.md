@@ -40,7 +40,11 @@ salido de 15 A. Por eso el «Uso» entra en el mismo cambio.
 | Cocina (aparatos pequeños) | 20 A — 210-11(c)(1) | 1500 VA — 220-52(a) | 210-52(b)(2) |
 | Lavadora | 20 A — 210-11(c)(2) | 1500 VA — 220-52(b) | 210-11(c)(2) |
 | Baño | 20 A — 210-11(c)(3) | La capturada | 210-11(c)(3), salvo su Excepción 2 |
+| Refrigerador (circuito individual) | 15 A o más — 210-52(b)(1) Excepción 2 | La capturada — fuera de los 1500 VA, 220-52(a) Excepción | Un contacto para el refrigerador |
 
+- **Refrigerador** (David, 2026-09-27 — I-76): el contacto del refrigerador en su propio circuito. Conectado
+  a los contactos de la cocina va en Cocina y no se captura aparte: 210-52(b)(1) exige que esos circuitos
+  alimenten también las salidas de refrigeración, y sus 1500 VA ya lo cubren.
 - **Dos o más circuitos de aparatos pequeños**, 210-11(c)(1). Con uno solo capturado, el programa
   avisa; con ninguno, calla (el tablero puede no ser de vivienda).
 - **Vivienda popular de hasta 60 m²:** exenta de 210-11(c) y 220-52. El programa todavía no sabe el

@@ -16,8 +16,9 @@ Art. 430 (`8099fb1`), el mismo tablero con dos motores trifásicos.
   grupo del alimentador (430-24, 440-33); «Al alimentador» en el resumen; archivo en formato 2 — I-74,
   `ef619d4`. Motor copiado: `FlcMarcadaEnAmperesA` y `CalculadoraCircuitoDerivado440`.
 - Contar el neutro en «Fases / hilos» solo si el derivado lo lleva — I-75, `5bab8a9`.
+- Refrigerador: en los contactos de la cocina va en Cocina; en su propio circuito, uso «Refrigerador» — I-76, `dc339f3`.
 
-Pruebas: 268 en `PowerNode.Web.Tests`, 23 en `PowerNode.Normativa.Tests`.
+Pruebas: 269 en `PowerNode.Web.Tests`, 23 en `PowerNode.Normativa.Tests`.
 
 ## 2026-09-26
 

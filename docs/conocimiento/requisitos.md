@@ -35,7 +35,7 @@ Cada requisito se relaciona con su referencia normativa y con su verificación e
 | P-1 | Calcular la capacidad mínima: 125 % de la continua + 100 % de la no continua. | 210-20(a), 215-3 | `ElDesgloseDeLaProteccion…` |
 | P-2 | Seleccionar el primer tamaño normalizado mayor o igual a la capacidad mínima. | 240-6(a) | `Serie_…` |
 | P-3 | Seleccionar la familia de interruptores: centro de carga (NEMA), riel DIN (IEC) o NOM completa. | 240-6(a) | `Serie_…` |
-| P-4 | Sin mínimo por tipo de carga. Aplicar 20 A a los contactos de vivienda de cocina (aparatos pequeños), lavadora y baño; no fuera de vivienda ni en vivienda popular de hasta 60 m². | 210-11(c) y su Excepción 1 | `SinMinimoPorTipo_…`, `Vivienda_ElUsoPide20A…`, `I46_…` |
+| P-4 | Sin mínimo por tipo de carga. Aplicar 20 A a los contactos de vivienda de cocina (aparatos pequeños), lavadora y baño; no fuera de vivienda ni en vivienda popular de hasta 60 m². El circuito individual del refrigerador, sin mínimo de 20 A, con su cita. | 210-11(c) y su Excepción 1, 210-52(b)(1) Excepción 2 | `SinMinimoPorTipo_…`, `Vivienda_ElUsoPide20A…`, `I46_…`, `I76_…` |
 | P-5 | Proteger el derivado de un motor con el porcentaje de la Tabla 430-52 para interruptor de tiempo inverso (250 %) y el tamaño inmediato superior. | 430-52(c)(1) y su Excepción 1 | `I15_…`, `I74_…` |
 | P-6 | Proteger el derivado de un equipo de A/C con el mayor tamaño estándar que no pase de 175 % de su corriente —225 % si se declara que no arranca—, sin redondear hacia arriba, y no menos de 15 A; o con la protección máxima de placa (el mayor estándar que no la excede). | 440-22(a) y su Excepción, 440-4(b) | `I74_…` |
 
@@ -73,7 +73,7 @@ Cada requisito se relaciona con su referencia normativa y con su verificación e
 | A-7 | Limitar la caída de tensión del alimentador: 2 % por omisión (con el 3 % del derivado, 5 %), capturable. Avisar si los límites suman más de 5 %. | 215-2(a)(4) NOTA 2, 210-19(a)(1) NOTA 4 | `R01_…`, `R15_…` |
 | A-11 | Calcular la caída del alimentador fase por fase, con la caída del neutro (suma fasorial); limitar con la peor fase. | Tabla 9 | `R02_…` |
 | A-8 | Avisar por circuito si la caída del alimentador en su fase más la del derivado excede 5 %. | 215-2(a)(4) NOTA 2, 210-19(a)(1) NOTA 4 | `R01_…` |
-| A-9 | Cargar al alimentador 1500 VA por circuito de aparatos pequeños y de lavadora, solo en vivienda de más de 60 m². | 220-52(a), 220-52(b) y su excepción | `Vivienda_AparatosPequenosYLavadora…`, `I46_…` |
+| A-9 | Cargar al alimentador 1500 VA por circuito de aparatos pequeños y de lavadora, solo en vivienda de más de 60 m²; no al circuito individual del refrigerador. | 220-52(a) y su Excepción, 220-52(b) y su excepción | `Vivienda_AparatosPequenosYLavadora…`, `I46_…`, `I76_…` |
 | A-10 | Avisar si hay un solo circuito de aparatos pequeños. | 210-11(c)(1) | `Vivienda_UnSoloCircuito…` |
 | A-12 | Sumar los motores y los equipos de A/C por fase, en un solo grupo: 125 % de la corriente del mayor + 100 % de los demás, con el F.D. de su tipo; su corriente en la caída fasorial. Máximo de la protección: la mayor de motor o A/C + la corriente de los demás + lo que 215-3 pide para la otra carga; avisar si se excede. En el resumen, «Al alimentador»: continua, no continua, y motores y A/C, que suman el total. | 430-24, 440-33, 440-7, 430-26, 430-62(a), 430-63 | `I15_…`, `M09_…`, `I74_…` |
 

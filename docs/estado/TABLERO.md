@@ -51,7 +51,7 @@ Ejecutar en el navegador (Blazor WebAssembly), sin servidor, publicado en GitHub
   siempre en claro.
 - Canalizaciones: cada circuito con carga nace en su tubo (T1, T2…, EMT); agrupar en la columna
   «Canal.»; configurar nombre, tipo, opciones y tamaño en la tarjeta «Canalizaciones».
-- Pruebas: 268 en `PowerNode.Web.Tests` (20 del documento de pruebas del 2026-09-23).
+- Pruebas: 269 en `PowerNode.Web.Tests` (20 del documento de pruebas del 2026-09-23).
 
 Requisitos con su referencia NOM y su prueba: [`../conocimiento/requisitos.md`](../conocimiento/requisitos.md).
 
