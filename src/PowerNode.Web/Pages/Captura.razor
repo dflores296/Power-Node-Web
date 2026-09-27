@@ -697,7 +697,15 @@
                 <div class="cable">
                     <span class="muestras grande"><i class="color-neutro"></i></span>
                     <span class="rotulo"><span class="ayuda" title="Consultar el conductor de neutro: mismo calibre que la fase. En 2 fases + neutro de estrella lleva ≈ la corriente de fase: contarlo en «Agrupados» — 310-15(b)(5)(2); no reducirlo — 220-61(c)(1). Blanco o gris claro — 200-6.">Neutro</span></span>
-                    <span class="calibre">@ConHilos(a.CalibreNeutro, a.NumeroConductoresParalelo)<small>@a.CalibreNeutro.AreaMm2.ToString("N2") mm²</small></span>
+                    @* I-73: en 3F-3H el alimentador no lleva neutro, como un bipolar sin «+N» — I-41. *@
+                    @if (Cuadro.SistemaConNeutro)
+                    {
+                        <span class="calibre">@ConHilos(a.CalibreNeutro, a.NumeroConductoresParalelo)<small>@a.CalibreNeutro.AreaMm2.ToString("N2") mm²</small></span>
+                    }
+                    else
+                    {
+                        <span class="calibre" title="3F-3H (delta): el sistema no tiene neutro.">—</span>
+                    }
                 </div>
                 <div class="cable">
                     <span class="muestras grande"><i class="color-tierra"></i></span>

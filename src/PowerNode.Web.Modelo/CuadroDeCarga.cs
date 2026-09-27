@@ -159,6 +159,12 @@ public sealed class CuadroDeCarga
     public RenglonDelAlimentador Alimentador { get; private set; } = new(null, null, [], 3);
 
     /// <summary>
+    /// El sistema trae neutro: todos menos 3F-3H (delta). Sin él, ni el alimentador ni un derivado
+    /// llevan neutro, y los documentos ponen «—» en su lugar — I-73.
+    /// </summary>
+    public bool SistemaConNeutro => Configuracion != ConfiguracionTablero.TresFasesTresHilos;
+
+    /// <summary>
     /// El interior del tablero dibujado: un bloque por interruptor, con su renglón, su columna y
     /// cuántos espacios abarca. Nones a la izquierda y pares a la derecha — <b>la geometría no se
     /// decide aquí</b>, sale de <see cref="DistribucionBarras"/>.
@@ -751,11 +757,10 @@ public sealed class CuadroDeCarga
     /// </summary>
     private void PrepararCanalizaciones()
     {
-        var sistemaConNeutro = Configuracion != ConfiguracionTablero.TresFasesTresHilos;
         foreach (var c in _circuitos)
         {
             // I-41: 1 polo siempre con neutro; 2 y 3 polos solo con «+N».
-            c.LlevaNeutro = sistemaConNeutro && (c.Polos == 1 || c.ConNeutro);
+            c.LlevaNeutro = SistemaConNeutro && (c.Polos == 1 || c.ConNeutro);
             c.CanalizacionEfectiva = null;
         }
 
@@ -1267,7 +1272,7 @@ public sealed class CuadroDeCarga
 
         var canal = Datos.CanalizacionAlimentador;
         canal.Limpiar();
-        var conNeutro = Configuracion != ConfiguracionTablero.TresFasesTresHilos;
+        var conNeutro = SistemaConNeutro;
 
         // EL MOTOR RECIBE LA CARGA TOTAL Y LAS CORRIENTES DE CADA FASE — R-04. Con ellas elige la
         // fase que gobierna, aplica el factor de demanda (220-40, con la carga real en su cita) y
@@ -1298,7 +1303,7 @@ public sealed class CuadroDeCarga
                 ConjuntoAprobado100Pct: Datos.ConjuntoAprobado100Pct,
                 TerminalesMarcadas75C: Datos.TerminalesMarcadas75C,
                 CorrientesPorFase: CorrientesParaElMotor(),
-                ConNeutro: SistemaDelTablero.De(Datos.Sistema) != ConfiguracionTablero.TresFasesTresHilos,
+                ConNeutro: SistemaConNeutro,
                 // 230-79: el principal SUBE al mínimo si el tablero es el de la acometida — R-11.
                 ProteccionMinimaA: Datos.Minimo230_79?.Amperes,
                 ReferenciaProteccionMinima: Datos.Minimo230_79?.Referencia));

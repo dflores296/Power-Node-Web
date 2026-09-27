@@ -132,6 +132,51 @@ public class MemoriaDeCalculoTests
         Assert.Null(NotaDeNeutro(MemoriaDeCalculo.DelAlimentador(cuadro)!)); // el alimentador es de 3 fases
     }
 
+    private static string ConductorDeNeutro(HojaDeMemoria hoja) =>
+        MemoriaDeCalculo.Secciones(hoja)[4].Renglones.Single(r => r.Rotulo == "Conductor de neutro").Valor;
+
+    [Theory]
+    [InlineData(2)]
+    [InlineData(3)]
+    public void I73_UnMultipolarSinNeutroNoLoImprimeEnLaMemoria(int polos)
+    {
+        var cuadro = Sistema(3, 4, 220m);
+        Assert.Null(cuadro.CambiarPolos(cuadro.Circuitos[0], polos));
+        cuadro.Recalcular();
+
+        // Sin «+N» la carga va entre fases: la tabla pone «—» (I-41), y la memoria lo mismo.
+        Assert.Equal("No lleva: la carga va entre fases", ConductorDeNeutro(MemoriaDeCalculo.DeCircuito(cuadro, cuadro.Circuitos[0])));
+
+        cuadro.Circuitos[0].ConNeutro = true;
+        cuadro.Recalcular();
+        Assert.EndsWith("AWG/kcmil", ConductorDeNeutro(MemoriaDeCalculo.DeCircuito(cuadro, cuadro.Circuitos[0])));
+    }
+
+    [Fact]
+    public void I73_UnMotorTrifasicoEnHpNoLlevaNeutro()
+    {
+        var cuadro = Sistema(3, 4, 220m);
+        var motor = cuadro.Circuitos[0];
+        motor.Categoria = CategoriaDeCarga.MotorOAireAcondicionado;
+        motor.Hp = 5m;
+        Assert.Null(cuadro.CambiarPolos(motor, 3));
+        cuadro.Recalcular();
+
+        Assert.Equal("No lleva: la carga va entre fases", ConductorDeNeutro(MemoriaDeCalculo.DeCircuito(cuadro, motor)));
+    }
+
+    [Fact]
+    public void I73_En3F3HElAlimentadorNoLlevaNeutro()
+    {
+        var delta = Sistema(3, 3, 220m);
+        Assert.False(delta.SistemaConNeutro);
+        Assert.Equal("No lleva: la carga va entre fases", ConductorDeNeutro(MemoriaDeCalculo.DelAlimentador(delta)!));
+
+        var estrella = Sistema(3, 4, 220m);
+        Assert.True(estrella.SistemaConNeutro);
+        Assert.EndsWith("AWG/kcmil", ConductorDeNeutro(MemoriaDeCalculo.DelAlimentador(estrella)!));
+    }
+
     [Fact]
     public void R02_LaSeccion6DelAlimentadorEsFaseporFaseConElNeutro()
     {

@@ -72,7 +72,9 @@ public static class MemoriaDeCalculo
             CorrienteDisenoA: r.CorrienteDisenoA,
             ProteccionA: r.ProteccionA,
             ConductorFase: r.CalibreFase.Designacion,
-            ConductorNeutro: r.CalibreNeutro.Designacion,
+            // I-73: el motor da un calibre de neutro aunque el circuito no lo lleve (2 o 3 polos sin
+            // «+N», o 3F-3H). La memoria dice lo mismo que la tabla — I-41.
+            ConductorNeutro: circuito.LlevaNeutro ? r.CalibreNeutro.Designacion : null,
             ConductorTierra: r.CalibreTierra.Designacion,
             CaidaTensionPct: r.CaidaTensionPct,
             TablaAmpacidadId: r.TablaAmpacidadId,
@@ -217,7 +219,7 @@ public static class MemoriaDeCalculo
             CorrienteDisenoA: r.CorrienteDisenoA,
             ProteccionA: r.ProteccionA,
             ConductorFase: r.CalibreFase.Designacion,
-            ConductorNeutro: r.CalibreNeutro.Designacion,
+            ConductorNeutro: cuadro.SistemaConNeutro ? r.CalibreNeutro.Designacion : null,
             ConductorTierra: r.CalibreTierra.Designacion,
             CaidaTensionPct: r.CaidaTensionPct,
             TablaAmpacidadId: r.TablaAmpacidadId,
@@ -393,7 +395,7 @@ public static class MemoriaDeCalculo
         // ---- 5
         bloques.Add(Seccion("5. CONDUCTOR DE FASE SELECCIONADO", [
             ("Calibre", CalibreDe(hoja.ConductorFase, hoja.ConductoresPorFase)),
-            ("Conductor de neutro", CalibreDe(hoja.ConductorNeutro, 1)),
+            ("Conductor de neutro", hoja.ConductorNeutro is null ? "No lleva: la carga va entre fases" : CalibreDe(hoja.ConductorNeutro, 1)),
             ("Ampacidad utilizable", d is { AmpacidadConductorA: > 0m } ? $"{d.AmpacidadConductorA:N2} A" : null)]));
 
         // ---- 6

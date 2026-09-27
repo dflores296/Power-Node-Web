@@ -8,6 +8,8 @@ namespace PowerNode.Web.Modelo.Memoria;
 /// </summary>
 /// <param name="Sujeto">Cómo se nombra en el encabezado: «Circuito 3 — Contactos».</param>
 /// <param name="Articulo">«210» en un derivado, «215» en un alimentador — decide qué se cita.</param>
+/// <param name="ConductorNeutro"><c>null</c> si el tramo no lleva neutro: 2 o 3 polos sin «+N», o
+/// 3F-3H — I-73.</param>
 /// <param name="FaseQueGobierna">Solo en el alimentador: cuál barra es la más cargada y con qué
 /// corriente se dimensiona, ya redactado. Sin él, la corriente de diseño no se deduce de la carga
 /// total de la sección 1.</param>
