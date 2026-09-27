@@ -165,6 +165,23 @@ public class MemoriaDeCalculoTests
         Assert.Equal("No lleva: la carga va entre fases", ConductorDeNeutro(MemoriaDeCalculo.DeCircuito(cuadro, motor)));
     }
 
+    [Theory]
+    [InlineData(1, false, "1 / 2")] // 1 polo: fase y neutro
+    [InlineData(2, false, "2 / 2")] // entre fases
+    [InlineData(2, true, "2 / 3")]  // con «+N»
+    [InlineData(3, false, "3 / 3")]
+    public void I75_LosHilosDelDerivadoCuentanElNeutroSoloSiLoLleva(int polos, bool conNeutro, string esperado)
+    {
+        var cuadro = Sistema(3, 4, 220m);
+        if (polos > 1)
+            Assert.Null(cuadro.CambiarPolos(cuadro.Circuitos[0], polos));
+        cuadro.Circuitos[0].ConNeutro = conNeutro;
+        cuadro.Recalcular();
+
+        var s1 = MemoriaDeCalculo.Secciones(MemoriaDeCalculo.DeCircuito(cuadro, cuadro.Circuitos[0]))[0];
+        Assert.Equal(esperado, s1.Renglones.Single(r => r.Rotulo == "Fases / hilos").Valor);
+    }
+
     [Fact]
     public void I73_En3F3HElAlimentadorNoLlevaNeutro()
     {

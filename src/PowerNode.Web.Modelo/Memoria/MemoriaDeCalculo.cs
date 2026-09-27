@@ -58,7 +58,8 @@ public static class MemoriaDeCalculo
             // La tensión del TRAMO, no la del tablero: un circuito de 1 polo va a fase-neutro.
             TensionV: circuito.Polos == 1 ? datos.TensionFaseNeutroV : datos.TensionFaseFaseV,
             NumeroFases: circuito.Polos,
-            NumeroHilos: circuito.Polos + 1,
+            // I-75: el neutro cuenta como hilo solo si el circuito lo lleva — como en la sección 5 (I-73).
+            NumeroHilos: circuito.Polos + (circuito.LlevaNeutro ? 1 : 0),
             FactorPotencia: circuito.FactorPotencia,
             LongitudM: circuito.LongitudM,
             MaterialConductor: Etiqueta(datos.MaterialConductor),
