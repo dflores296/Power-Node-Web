@@ -81,6 +81,7 @@ public static class MemoriaDeCalculo
             CaidaCombinada: CaidaCombinada(cuadro, circuito),
             NeutroPortador: circuito.LlevaNeutro ? NeutroPortador(cuadro, circuito.Polos, alimentador: false) : null,
             Desglose: Desglose(circuito),
+            NotaDelUso: circuito.UsoEfectivo.Nota(),
             Canalizacion: DeLaCanalizacion(cuadro, circuito.CanalizacionEfectiva),
             Equipo: equipo,
             CargaMotoresVa: circuito.MotorVA);
@@ -441,6 +442,7 @@ public static class MemoriaDeCalculo
             bloques.Add(Seccion("3. SELECCIÓN DE LA PROTECCIÓN", [
                 ("Fase que gobierna", hoja.FaseQueGobierna),
                 ("Corriente de diseño (In)", Amperes(hoja.CorrienteDisenoA)),
+                ("Uso del circuito", hoja.NotaDelUso),
                 ($"{hoja.EtiquetaDeMotores} — {hoja.ReferenciaDeMotores}", motores.MayorFlcA is { } mayor
                     ? $"125 % × {mayor:N2} A (el mayor) + {motores.SumaRestoFlcA:N2} A (los demás) = {motores.CapacidadMinimaA:N2} A"
                     : null),

@@ -23,6 +23,14 @@ public enum UsoDeContactos
 
     /// <summary>Contactos de cuarto de baño — 210-11(c)(3), 210-52(d).</summary>
     Bano,
+
+    /// <summary>
+    /// El contacto del refrigerador en su propio circuito — 210-52(b)(1) Excepción 2: «de 15 amperes o
+    /// mayor». Sin el mínimo de 20 A y fuera de los 1500 VA de aparatos pequeños — 220-52(a)
+    /// Excepción. Conectado a los contactos de la cocina, en cambio, va en <see cref="AparatosPequenos"/>
+    /// y no se captura aparte (David, 2026-09-27 — I-76).
+    /// </summary>
+    Refrigerador,
 }
 
 public static class UsosDeContactos
@@ -38,6 +46,7 @@ public static class UsosDeContactos
         UsoDeContactos.AparatosPequenos => "Aparatos pequeños (cocina)",
         UsoDeContactos.Lavadora => "Lavadora",
         UsoDeContactos.Bano => "Baño",
+        UsoDeContactos.Refrigerador => "Refrigerador (circuito individual)",
         _ => "General",
     };
 
@@ -45,7 +54,20 @@ public static class UsosDeContactos
     public static string NombreCorto(this UsoDeContactos uso) => uso switch
     {
         UsoDeContactos.AparatosPequenos => "Cocina",
+        UsoDeContactos.Refrigerador => "Refrigerador",
         _ => uso.Nombre(),
+    };
+
+    /// <summary>
+    /// Lo que la norma dice de este uso cuando no es un mínimo de protección ni de carga, ya redactado:
+    /// el circuito individual del refrigerador. <c>null</c> en los demás.
+    /// </summary>
+    public static string? Nota(this UsoDeContactos uso) => uso switch
+    {
+        UsoDeContactos.Refrigerador =>
+            "Circuito individual del refrigerador: de 15 A o más — 210-52(b)(1) Excepción 2. Fuera de los 1,500 VA de " +
+            "aparatos pequeños — 220-52(a) Excepción: entra al alimentador con su carga.",
+        _ => null,
     };
 
     /// <summary>La referencia del 20 A. <c>null</c> en uso general: no hay mínimo.</summary>

@@ -30,6 +30,8 @@ namespace PowerNode.Web.Modelo.Memoria;
 /// continua.</param>
 /// <param name="MotoresQueGobiernan">Solo en el alimentador: los motores y equipos de A/C de la fase que
 /// gobierna, para 430-24 / 440-33.</param>
+/// <param name="NotaDelUso">Solo en un circuito de contactos con un uso que la norma trata aparte sin
+/// mínimo: el individual del refrigerador — I-76.</param>
 /// <param name="EtiquetaDeMotores">«Motores», o «Motores y A/C»; y su referencia, «430-24» o «430-24,
 /// 440-33».</param>
 /// <param name="Techo430_62A">Solo en el alimentador con motores: el máximo de 430-62(a) más la otra
@@ -73,7 +75,8 @@ public sealed record HojaDeMemoria(
     AgregadoMotores MotoresQueGobiernan = default,
     decimal? Techo430_62A = null,
     string EtiquetaDeMotores = "Motores",
-    string ReferenciaDeMotores = "430-24");
+    string ReferenciaDeMotores = "430-24",
+    string? NotaDelUso = null);
 
 /// <summary>
 /// <b>Un motor o un equipo de A/C, como lo pone la memoria</b> — I-15, I-74. Ya redactado, porque las

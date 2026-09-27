@@ -254,13 +254,17 @@
                             @* El uso solo cuenta en vivienda de más de 60 m² — 210-11(c), 220-52 (I-46). *@
                             @if (c.Tipo == TipoCarga.Contactos && Datos.Inmueble.AplicaUsoDeContactos())
                             {
-                                <select class="tipo uso" data-col="uso" aria-label="Circuito @c.Espacio · Uso de los contactos" title="Seleccionar el uso del circuito de contactos. Cocina = aparatos pequeños (cocina, despensa, comedor, desayunador), lavadora y baño llevan 20 A — 210-11(c) — y solo esas salidas — 210-52(b)(2), 210-11(c)(2) y (3). Aparatos pequeños y lavadora cuentan 1500 VA en el alimentador — 220-52. Solo en vivienda; no en la popular de hasta 60 m² ni fuera de vivienda."
+                                <select class="tipo uso" data-col="uso" aria-label="Circuito @c.Espacio · Uso de los contactos" title="Seleccionar el uso del circuito de contactos. Cocina = aparatos pequeños (cocina, despensa, comedor, desayunador), lavadora y baño llevan 20 A — 210-11(c) — y solo esas salidas — 210-52(b)(2), 210-11(c)(2) y (3). Aparatos pequeños y lavadora cuentan 1500 VA en el alimentador — 220-52. Refrigerador: el contacto del refrigerador en su propio circuito, de 15 A o más — 210-52(b)(1) Excepción 2 —, fuera de los 1500 VA — 220-52(a) Excepción; conectado a los contactos de la cocina, va en Cocina y no se captura aparte. Solo en vivienda; no en la popular de hasta 60 m² ni fuera de vivienda."
                                         @bind="c.Uso" @bind:after="Recalcular">
                                     @foreach (var uso in Enum.GetValues<UsoDeContactos>()) { <option value="@uso">@uso.NombreCorto()</option> }
                                 </select>
                                 @if (c.Ajuste220_52VA > 0m)
                                 {
                                     <span class="en-va">Alimentador: 1,500 VA — @c.UsoEfectivo.ReferenciaCargaMinima()</span>
+                                }
+                                else if (c.UsoEfectivo.Nota() is { } nota)
+                                {
+                                    <span class="en-va" title="@nota">Individual — 210-52(b)(1) Exc. 2</span>
                                 }
                             }
                             </div>

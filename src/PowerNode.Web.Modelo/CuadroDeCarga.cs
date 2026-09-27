@@ -278,7 +278,7 @@ public sealed class CuadroDeCarga
         var divisor = TensionDeCalculo.Divisor(c.Polos, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV);
         var factor = CargaContinua100Pct.Para(Datos.ConjuntoAprobado100Pct, null, "210-20(a)", "210-19(a)(1)").Factor;
 
-        return DesgloseDeSeleccion.De(
+        var desglose = DesgloseDeSeleccion.De(
             _motor.Ampacidad, Datos,
             iContinuaA: c.ContinuaVA / divisor,
             iNoContinuaA: c.NoContinuaVA / divisor,
@@ -292,6 +292,9 @@ public sealed class CuadroDeCarga
             d: detalle,
             citas: r.Citas,
             referenciaMinimo: c.UsoEfectivo.ReferenciaProteccionMinima());
+
+        // I-76: el circuito individual del refrigerador no tiene mínimo que citar, pero sí su excepción.
+        return c.UsoEfectivo.Nota() is { } nota ? desglose with { Proteccion = [.. desglose.Proteccion, nota] } : desglose;
     }
 
     /// <summary>

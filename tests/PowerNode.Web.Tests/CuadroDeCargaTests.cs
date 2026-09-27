@@ -222,6 +222,32 @@ public class CuadroDeCargaTests
         Assert.Contains($"Protección mínima del circuito: 20 A — {referencia}", cuadro.Desglose(c)!.Proteccion);
     }
 
+    [Fact]
+    public void I76_ElRefrigeradorEnSuCircuitoVaEn15AYFueraDeLos1500VA()
+    {
+        // 210-52(b)(1) Excepción 2: un circuito individual «de 15 amperes o mayor»; 220-52(a) Excepción:
+        // fuera de los 1500 VA de aparatos pequeños. Un refrigerador de 4 A a 127 V: 508 VA.
+        var cuadro = Nuevo();
+        cuadro.Datos.Inmueble = TipoDeInmueble.ViviendaUnifamiliar;
+        var c = Espacio(cuadro, 1);
+        c.Tipo = TipoCarga.Contactos;
+        c.Uso = UsoDeContactos.Refrigerador;
+        c.Unidad = UnidadConsumo.Amperes;
+        c.NoContinua = 4m;
+        cuadro.Recalcular();
+
+        Assert.Equal(UsoDeContactos.Refrigerador, c.UsoEfectivo);
+        Assert.Equal(15m, c.Resultado!.ProteccionA);     // sin el mínimo de 20 A de 210-11(c)
+        Assert.Equal(0m, c.Ajuste220_52VA);               // sin los 1500 VA
+        Assert.Equal(0m, cuadro.Resumen.Minimo220_52VA);
+        Assert.Contains(cuadro.Desglose(c)!.Proteccion, x => x.Contains("210-52(b)(1) Excepción 2") && x.Contains("220-52(a) Excepción"));
+        Assert.Equal("Contactos · Refrigerador (circuito individual)", PowerNode.Web.Modelo.Memoria.MemoriaDeCalculo.Etiqueta(c));
+        var s3 = PowerNode.Web.Modelo.Memoria.MemoriaDeCalculo.Secciones(PowerNode.Web.Modelo.Memoria.MemoriaDeCalculo.DeCircuito(cuadro, c))[2];
+        Assert.Contains(s3.Renglones, r => r.Rotulo == "Uso del circuito" && r.Valor.Contains("210-52(b)(1) Excepción 2"));
+        // No es un circuito de aparatos pequeños: no cuenta para el aviso de 210-11(c)(1).
+        Assert.DoesNotContain(cuadro.Alimentador.Avisos, a => a.Contains("aparatos pequeños"));
+    }
+
     [Theory]
     [InlineData(TipoDeInmueble.Otro)]
     [InlineData(TipoDeInmueble.Restaurante)]
