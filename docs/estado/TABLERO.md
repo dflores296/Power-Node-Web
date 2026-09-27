@@ -15,7 +15,7 @@ Ejecutar en el navegador (Blazor WebAssembly), sin servidor, publicado en GitHub
 | Frente | Avance | Pendiente |
 |---|---|---|
 | Motor | 100 % | Llevar al escritorio los cambios listados en [`../conocimiento/motor-copiado.md`](../conocimiento/motor-copiado.md). |
-| Interfaz | ~90 % | Revisión del 2026-09-23: R-01 a R-13 en [`HALLAZGOS.md`](HALLAZGOS.md). Confirmar la propuesta de motores (I-15). Modelar centros de carga de una barra por lado. |
+| Interfaz | ~90 % | Revisión del 2026-09-23: R-01 a R-13 en [`HALLAZGOS.md`](HALLAZGOS.md). Confirmar la propuesta de motores (I-15). Seis tipos de carga: Motor (430) y A/C y refrigeración (440) por separado — I-74, propuesta con cuatro preguntas. Modelar centros de carga de una barra por lado. |
 | Publicación | 100 % | — |
 
 ## Motor
@@ -67,3 +67,4 @@ Requisitos con su referencia NOM y su prueba: [`../conocimiento/requisitos.md`](
 | Guardar y abrir el tablero en un archivo | [`../decisiones/archivo-del-tablero.md`](../decisiones/archivo-del-tablero.md) |
 | Dónde va el interruptor principal dentro del gabinete | [`../decisiones/montaje-del-interruptor-principal.md`](../decisiones/montaje-del-interruptor-principal.md) |
 | Motores en HP: qué se fija y cómo entran al alimentador | [`../decisiones/motores-art-430.md`](../decisiones/motores-art-430.md) |
+| Seis tipos de carga: qué se captura en A/C, archivos viejos, nombres | [`../decisiones/tipos-de-carga.md`](../decisiones/tipos-de-carga.md) |

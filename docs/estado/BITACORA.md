@@ -8,6 +8,10 @@ Registro de acciones por sesión, con hallazgo y commit.
 Art. 430 (`8099fb1`), el mismo tablero con dos motores trifásicos.
 
 - Quitar el neutro de la memoria en un multipolar sin «+N» y del alimentador en 3F-3H — I-73, `458508d`.
+- Motor / A/C: la unidad decidía el artículo (HP, 430; VA, W o A, carga de placa). David aceptó seis
+  tipos de carga, con Motor (430) y A/C y refrigeración (440) por separado — I-74, propuesta en
+  [`../decisiones/tipos-de-carga.md`](../decisiones/tipos-de-carga.md), con cuatro preguntas. El
+  motor copiado ya trae el 440 (`CalculadoraCarga440`).
 
 Pruebas: 241 en `PowerNode.Web.Tests`, 23 en `PowerNode.Normativa.Tests`.
 
