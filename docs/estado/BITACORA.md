@@ -10,10 +10,14 @@ Art. 430 (`8099fb1`), el mismo tablero con dos motores trifásicos.
 - Quitar el neutro de la memoria en un multipolar sin «+N» y del alimentador en 3F-3H — I-73, `458508d`.
 - Motor / A/C: la unidad decidía el artículo (HP, 430; VA, W o A, carga de placa). David aceptó seis
   tipos de carga, con Motor (430) y A/C y refrigeración (440) por separado — I-74, propuesta en
-  [`../decisiones/tipos-de-carga.md`](../decisiones/tipos-de-carga.md), con cuatro preguntas. El
-  motor copiado ya trae el 440 (`CalculadoraCarga440`).
+  [`../decisiones/tipos-de-carga.md`](../decisiones/tipos-de-carga.md), `1f4bea4`.
+- Implementar los seis tipos con las respuestas de David: Motor en HP o en A (interpolado, 430-6(a)(1));
+  A/C por MCA y MOCP o por corriente nominal (440-4(b), 440-6(a), 440-22(a), 440-32); los dos en un
+  grupo del alimentador (430-24, 440-33); «Al alimentador» en el resumen; archivo en formato 2 — I-74,
+  `ef619d4`. Motor copiado: `FlcMarcadaEnAmperesA` y `CalculadoraCircuitoDerivado440`.
+- Contar el neutro en «Fases / hilos» solo si el derivado lo lleva — I-75, `5bab8a9`.
 
-Pruebas: 241 en `PowerNode.Web.Tests`, 23 en `PowerNode.Normativa.Tests`.
+Pruebas: 268 en `PowerNode.Web.Tests`, 23 en `PowerNode.Normativa.Tests`.
 
 ## 2026-09-26
 
