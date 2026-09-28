@@ -15,7 +15,7 @@ Ejecutar en el navegador (Blazor WebAssembly), sin servidor, publicado en GitHub
 | Frente | Avance | Pendiente |
 |---|---|---|
 | Motor | 100 % | Llevar al escritorio los cambios listados en [`../conocimiento/motor-copiado.md`](../conocimiento/motor-copiado.md). |
-| Interfaz | ~90 % | Auditoría del 2026-09-28: I-77 a I-97 y M-10 abiertos en [`HALLAZGOS.md`](HALLAZGOS.md), cuatro P1 (I-77 a I-80). Confirmar las propuestas de motores (I-15) y de los seis tipos de carga (I-74). Modelar centros de carga de una barra por lado. |
+| Interfaz | ~90 % | Auditoría del 2026-09-28 en [`HALLAZGOS.md`](HALLAZGOS.md): P1 cerrados (I-77 a I-80) e I-82; abiertos I-81, I-83 a I-97 (I-84, falta el archivo) y M-10. Confirmar las propuestas de motores (I-15) y de los seis tipos de carga (I-74). Modelar centros de carga de una barra por lado. |
 | Publicación | 100 % | — |
 
 ## Motor
@@ -51,7 +51,7 @@ Ejecutar en el navegador (Blazor WebAssembly), sin servidor, publicado en GitHub
   siempre en claro.
 - Canalizaciones: cada circuito con carga nace en su tubo (T1, T2…, EMT); agrupar en la columna
   «Canal.»; configurar nombre, tipo, opciones y tamaño en la tarjeta «Canalizaciones».
-- Pruebas: 269 en `PowerNode.Web.Tests` (20 del documento de pruebas del 2026-09-23).
+- Pruebas: 273 en `PowerNode.Web.Tests` (20 del documento de pruebas del 2026-09-23).
 
 Requisitos con su referencia NOM y su prueba: [`../conocimiento/requisitos.md`](../conocimiento/requisitos.md).
 

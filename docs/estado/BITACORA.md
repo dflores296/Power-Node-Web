@@ -25,6 +25,21 @@ revisar lo que quedó sin ver y registrar todo. Sin correcciones.
 
 Pruebas: 269 en `PowerNode.Web.Tests`, 23 en `PowerNode.Normativa.Tests` (sin cambios de código).
 
+**Los cuatro P1 de la auditoría** (pedido de David: revisar el registro, llevarlo a `main` y empezar
+por los P1). El registro pasó a `main` por avance rápido en `22ccaca`, con tres precisiones.
+
+- Rechazar tensión menor que 100 V y F.P. fuera de 0.1 a 1: el campo regresa a su valor con un aviso
+  que dice por qué (`js/teclado.js`, con el `min`/`max` de cada campo); el archivo los avisa — I-77,
+  I-80, `42a4957`. De paso, F.D. = 2 ya no se queda escrito (I-82) y no entran negativos en pantalla
+  (I-84, falta el archivo).
+- Contar los circuitos de 1 polo con captura al ampliar los polos; el selector regresa si no se
+  puede — I-79, `42a4957`.
+- Preguntar antes de borrar circuitos al reducir espacios o pasar a 1F-2H, nombrándolos; recordar
+  los espacios elegidos — I-78, `42a4957`.
+- Verificar en el navegador tecleando como usuario: los cuatro, más I-55 y Esc sin cambios.
+
+Pruebas: 273 en `PowerNode.Web.Tests`, 23 en `PowerNode.Normativa.Tests`.
+
 ## 2026-09-27
 
 **Revisión de I-15 con David** — comparar en el navegador la versión anterior (`22641fd`) con la del
