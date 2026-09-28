@@ -65,6 +65,7 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | M-08 · THW rechazado en lugar seco | P1 | **Cerrado** | `23da7ce` |
 | M-09 · Techo de 430-63 con la otra carga al 100 %, no como la pide 215-3 | P2 | **Cerrado** | `8099fb1` |
 | M-10 · Mensaje del motor que remite a «Configuración», pantalla del escritorio | P3 | Abierto | — |
+| M-11 · La Tabla 5 perdía THHN 4/0 a 300 y XHHW de 250 kcmil en adelante: pedía el diámetro del fabricante | P2 | **Cerrado** | `7ffac7a` |
 | I-43 · Canalización de los circuitos sin compartida fijada en Condiciones de cálculo | P2 | **Cerrado** | `58febd2` |
 | I-44 · «Propia» como nombre de tubería; opciones apiladas que ensanchaban el renglón; columna vacía | P2 | **Cerrado** | `c7ab778` |
 | I-45 · El selector «Canal.» mostraba otro tubo que el del circuito | P1 | **Cerrado** | `2ddc0b5` |
@@ -120,6 +121,7 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-95 · Aislamiento no válido para el lugar: error repetido en cada renglón y contradictorio | P3 | Abierto | — |
 | I-96 · Memoria con «60 Hz» fijo aunque se capture otra frecuencia | P3 | Abierto | — |
 | I-97 · 65 ms por tecla con 42 espacios (versión publicada) | P3 | Abierto | — |
+| I-98 · El diámetro del fabricante se pedía al pie de canalizaciones, sin aviso, lejos del aislamiento | P3 | **Cerrado** | `71ff9d9` |
 | R-01 · Caída del alimentador fija en 5 %, sin verificar la combinada — 215-2(a)(4) NOTA 2 | P1 | **Cerrado** | `2a973ea` |
 | R-02 · Caída del alimentador sin la caída del neutro | P2 | **Cerrado** | `d6cd1c6` |
 | R-03 · La publicación no corre `PowerNode.Web.Tests` | P1 | **Cerrado** | `986c9d7` |
@@ -369,6 +371,10 @@ e I-88 a I-93. Formato: **Hecho** · **Corrección** (propuesta, sin hacer) ·
 **I-97** — Hecho: con 42 espacios con carga, cada tecla redibuja la página entera: 65 ms por tecla en la versión publicada (Release), 180 ms en desarrollo; también al teclear en «Tablero» de la ficha, y 110 ms por cambio de carga. En un celular será varias veces más. Corrección: aislar el renglón y la ficha en componentes que no redibujen todo en `oninput`. Prueba: 42 espacios con carga, medir del evento `input` al siguiente cuadro pintado.
 
 **M-10** — Hecho: con una caída que ningún calibre alcanza, el motor dice «…relajar el límite en Configuración» (`SeleccionConductor.cs:173`). «Configuración» es la pantalla del escritorio; en la web es «Condiciones de cálculo». Corrección: mensaje sin nombre de pantalla, o el de la web. Pendiente: reportar en `PowerNode-DesignSuite`. Prueba: 20 000 VA a 8000 m.
+
+**M-11** — Hecho (visto al mover el diámetro del fabricante, I-98): donde el DOF pasa de página, la celda de tipo de la Tabla 5 viene en blanco y continúa el grupo de arriba. `LeerTabla5` la tomaba como «sin tipo» y descartaba esos renglones: THHN, THWN y THWN-2 perdían 4/0, 250 y 300 kcmil, y XHH, XHHW y XHHW-2 todo de 250 kcmil en adelante. Un alimentador de 4/0 en THHN pedía el diámetro del fabricante aunque la norma lo trae (16.31 mm, 208.8 mm²; 0.642 in en la NEC). Corrección: una celda de tipo en blanco conserva los tipos de arriba — `7ffac7a`. Del 14 AWG en adelante, fuera de la Tabla 5 quedan THHW-LS, THW-LS, USE y USE-2 en todos los calibres, y THHN/THWN/THWN-2 de 1250 kcmil arriba. Prueba: `Tabla5_ConductoresAisladosPorDesignacion` (sin la corrección, THHN 4/0 = null). Nacido en la web: no va a `PowerNode-DesignSuite`.
+
+**I-98** — Hecho (David): el diámetro exterior del fabricante —Capítulo 10, Nota 5— se pedía al pie de la tarjeta de canalizaciones, sin aviso; el aislamiento que lo causa está en «Condiciones de cálculo» y es uno para todo el tablero. David creía que THHW tampoco está en la Tabla 5: sí está, del 14 AWG al 2000 kcmil. Corrección (`71ff9d9`): aviso en «Condiciones de cálculo» y un campo por calibre en uso, general para cualquier aislamiento y calibre que la Tabla 5 no traiga; un diámetro ya capturado manda sobre la Tabla 5 y también se enseña, para poder borrarlo. Es el diámetro exterior del conductor aislado, no el espesor del aislamiento: el llenado usa π·d²/4. Prueba: `DiametroDelFabricante_SePideConElAislamiento`; en el navegador, THHW-LS sin carga, con carga, con diámetros (la canalización calcula), THHW y THHN sin aviso, a 1920 y 390 px.
 
 ### Revisión del 2026-09-23
 

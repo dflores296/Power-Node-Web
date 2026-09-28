@@ -40,6 +40,18 @@ por los P1). El registro pasó a `main` por avance rápido en `22ccaca`, con tre
 
 Pruebas: 273 en `PowerNode.Web.Tests`, 23 en `PowerNode.Normativa.Tests`.
 
+P1 a `main` por avance rápido en `e1ef93d` (pedido de David); CI y publicación en verde.
+
+**El diámetro del fabricante con el aislamiento** (pedido de David).
+
+- Pedir el diámetro exterior del fabricante en «Condiciones de cálculo», con un aviso, y quitarlo
+  de la tarjeta de canalizaciones; general para cualquier aislamiento y calibre fuera de la Tabla 5
+  — I-98, `71ff9d9`. THHW sí está en la Tabla 5; los que no: THHW-LS, THW-LS, USE, USE-2.
+- Leer los renglones de la Tabla 5 cuya celda de tipo viene en blanco: THHN 4/0 a 300 y XHHW de 250
+  en adelante se perdían — M-11, `7ffac7a`.
+
+Pruebas: 274 en `PowerNode.Web.Tests`, 23 en `PowerNode.Normativa.Tests`.
+
 ## 2026-09-27
 
 **Revisión de I-15 con David** — comparar en el navegador la versión anterior (`22641fd`) con la del
