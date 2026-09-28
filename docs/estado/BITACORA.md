@@ -2,6 +2,29 @@
 
 Registro de acciones por sesión, con hallazgo y commit.
 
+## 2026-09-28
+
+**Auditoría de interfaz** (pedido de David: botones desalineados, texto cortado o chueco, funcionalidad).
+Completa la del 2026-09-27, que se quedó sin límite: reproducir en el navegador sus catorce puntos,
+revisar lo que quedó sin ver y registrar todo. Sin correcciones.
+
+- Reproducir los catorce puntos de la sesión anterior: todos se confirman. El de la coma resultó
+  distinto: Chrome no la toma como 0, la borra al teclear (0,9 → 9.00) — I-81.
+- Barrer la captura a 1920, 1366, 1024, 768, 390 y 360 px, en claro y oscuro, midiendo texto cortado
+  en campos y selectores, desbordes y desplazamiento de la página; el documento y la memoria, igual.
+- Nuevos: barra superior sin lugar de 761 a 1120 px (I-85), documento que arrastra la página en
+  pantallas chicas (I-86), barra de ayuda que tapa el pie (I-88), selector de uso desalineado (I-89),
+  selectores cortados (I-90), subrayado que tacha los mm² (I-91), documento impreso (I-92), flecha del
+  principal (I-93).
+- Revisar lo que quedó pendiente: guardar y abrir un archivo real (sin diferencias en campos ni
+  resultados; archivos ajenos o vacíos se rechazan con aviso), arrastrar en el gabinete y en la tabla
+  (mover, espacio ocupado, 3 polos, deshacer, principal al espacio: bien) e imprimir en PDF (cabe en
+  carta y A4 horizontal; papel físico sigue sin revisar).
+- Medir la latencia en la versión publicada (Release): 65 ms por tecla con 42 espacios — I-97.
+- Registrar I-77 a I-97 y M-10, abiertos.
+
+Pruebas: 269 en `PowerNode.Web.Tests`, 23 en `PowerNode.Normativa.Tests` (sin cambios de código).
+
 ## 2026-09-27
 
 **Revisión de I-15 con David** — comparar en el navegador la versión anterior (`22641fd`) con la del

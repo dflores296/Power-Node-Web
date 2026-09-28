@@ -64,6 +64,7 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-42 · Selector de aislamiento con 7 de 17 tipos | P1 | **Cerrado** | `23da7ce` |
 | M-08 · THW rechazado en lugar seco | P1 | **Cerrado** | `23da7ce` |
 | M-09 · Techo de 430-63 con la otra carga al 100 %, no como la pide 215-3 | P2 | **Cerrado** | `8099fb1` |
+| M-10 · Mensaje del motor que remite a «Configuración», pantalla del escritorio | P3 | Abierto | — |
 | I-43 · Canalización de los circuitos sin compartida fijada en Condiciones de cálculo | P2 | **Cerrado** | `58febd2` |
 | I-44 · «Propia» como nombre de tubería; opciones apiladas que ensanchaban el renglón; columna vacía | P2 | **Cerrado** | `c7ab778` |
 | I-45 · El selector «Canal.» mostraba otro tubo que el del circuito | P1 | **Cerrado** | `2ddc0b5` |
@@ -98,6 +99,27 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-74 · Motor / A/C: la unidad decide el artículo — un motor en A sale como carga de placa, un A/C en HP por el 430; sin Art. 440 | P1 | **Cerrado** (propuesta contestada, por confirmar) | `ef619d4` |
 | I-75 · La memoria contaba un neutro en los hilos de todo derivado: «2 / 3» en un bipolar sin neutro | P3 | **Cerrado** | `5bab8a9` |
 | I-76 · Sin uso de contactos para el circuito individual del refrigerador — 210-52(b)(1) Excepción 2 | P3 | **Cerrado** | `dc339f3` |
+| I-77 · Tensión 0 tumba la app; negativa muestra la excepción cruda | P1 | Abierto | — |
+| I-78 · Bajar los espacios (o pasar a 1F-2H) borra los circuitos capturados en los que desaparecen | P1 | Abierto | — |
+| I-79 · Ampliar los polos se come circuitos de 1 polo con carga | P1 | Abierto | — |
+| I-80 · F.P. fuera de 0.1–1: con 1.5 el alimentador truena; con 0 o negativo, caída 0 % o negativa | P1 | Abierto | — |
+| I-81 · Coma en los campos numéricos: Chrome la borra al teclear (0,9 → 9.00; 2,5 m → 25 m) | P2 | Abierto | — |
+| I-82 · El campo muestra un valor que el cálculo rechazó (F.D. = 2) | P2 | Abierto | — |
+| I-83 · Bajar las fases recorta en silencio los multipolares y no los regresa | P2 | Abierto | — |
+| I-84 · Negativos y ceros sin aviso: longitud, carga, capacidad de barra, frecuencia | P2 | Abierto | — |
+| I-85 · Barra superior sin lugar entre 761 y 1120 px: la página se desplaza de lado | P2 | Abierto | — |
+| I-86 · «Cuadro de carga» en pantalla menor a 1040 px: la tabla sale de la hoja y arrastra la página | P2 | Abierto | — |
+| I-87 · El cuadro de captura no cabe ni a 1920 px; al desplazar solo «N.º» queda fija | P2 | Abierto | — |
+| I-88 · Barra de ayuda de 701 a 1000 px: texto en columna angosta que tapa el pie | P3 | Abierto | — |
+| I-89 · Selector de uso 11 px a la izquierda del de tipo — regresión de I-51 | P3 | Abierto | — |
+| I-90 · Selectores con el texto cortado: «Refrigerado», «MC», «Centro de carga (NEMA» | P3 | Abierto | — |
+| I-91 · El subrayado punteado del calibre tacha el «mm²» de abajo | P3 | Abierto | — |
+| I-92 · Documento impreso: «Canal.» partido en tres renglones; decimales mezclados | P3 | Abierto | — |
+| I-93 · Gabinete: el principal en espacios dibuja la flecha en 2 de 3 fases | P3 | Abierto | — |
+| I-94 · Canalizaciones con el mismo nombre, iguales en los selectores | P3 | Abierto | — |
+| I-95 · Aislamiento no válido para el lugar: error repetido en cada renglón y contradictorio | P3 | Abierto | — |
+| I-96 · Memoria con «60 Hz» fijo aunque se capture otra frecuencia | P3 | Abierto | — |
+| I-97 · 65 ms por tecla con 42 espacios (versión publicada) | P3 | Abierto | — |
 | R-01 · Caída del alimentador fija en 5 %, sin verificar la combinada — 215-2(a)(4) NOTA 2 | P1 | **Cerrado** | `2a973ea` |
 | R-02 · Caída del alimentador sin la caída del neutro | P2 | **Cerrado** | `d6cd1c6` |
 | R-03 · La publicación no corre `PowerNode.Web.Tests` | P1 | **Cerrado** | `986c9d7` |
@@ -295,6 +317,57 @@ Formato: **Hecho** (defecto observado) · **Corrección** · **Referencia** · *
 **I-75** — Hecho (visto al verificar I-74 en el navegador): la sección 1 de la memoria decía «Fases / hilos: 2 / 3» en un minisplit de 2 polos y «3 / 4» en un motor trifásico: sumaba un neutro a todo derivado (`Polos + 1`, desde `cc92ad5`). Mismo origen que I-73. Corrección: el neutro cuenta como hilo solo si el circuito lo lleva (`LlevaNeutro`). El alimentador ya usaba los hilos del sistema. Prueba: `MemoriaDeCalculoTests.I75_…` (4); navegador — 3 / 3, 2 / 2, 1 / 2 y el alimentador 3 / 4.
 
 **I-76** — Hecho (David, al preguntar en qué tipo entra un refrigerador; pidió la mejora): el refrigerador doméstico va en los contactos de la cocina —210-52(b)(1) exige que los circuitos de aparatos pequeños alimenten las salidas de refrigeración— y no se captura aparte; pero la Excepción 2 permite un circuito individual «de 15 amperes o mayor», y la Excepción de 220-52(a) lo deja fuera de los 1500 VA. Sin uso propio, quedaba en General sin decirlo. Corrección: uso «Refrigerador (circuito individual)» en Contactos de vivienda: sin el mínimo de 20 A, sin los 1500 VA, con la excepción citada en el desglose, en la memoria (sección 3, «Uso del circuito») y bajo el selector. Decisión: [`../decisiones/minimo-de-proteccion-por-uso.md`](../decisiones/minimo-de-proteccion-por-uso.md). Prueba: `I76_…`; navegador — vivienda unifamiliar, refrigerador de 4 A a 127 V: 15 A, 14 AWG, sin los 1500 VA.
+
+### Auditoría de interfaz del 2026-09-28
+
+Todo reproducido en el navegador (Playwright, Chromium) contra `ec37d54`; nada sale solo de leer el
+código. Los doce primeros los encontró la sesión del 2026-09-27, que se quedó sin límite antes de
+registrarlos; esta los volvió a reproducir. Formato: **Hecho** · **Corrección** (propuesta, sin hacer) ·
+**Prueba** (cómo se reproduce).
+
+**I-77** — Hecho: «Tensión F-F» = 0 sale «Algo falló y la página no puede seguir»: división entre cero en `TensionDeCalculo.Divisor` (`CuadroDeCarga.cs:1230`). El tablero solo vive en memoria: al recargar se pierde lo no guardado. Con −220 V, el alimentador enseña la excepción de `Fasor`: «La magnitud de un fasor (valor RMS) no puede ser negativa…». Corrección: rechazar tensión ≤ 0 en el campo (como el F.D.) y avisar. Prueba: capturar 1000 VA en el 1 y teclear 0 en la tensión.
+
+**I-78** — Hecho: de 24 a 12 espacios, los circuitos 13 a 24 se borran (`CuadroDeCarga.AjustarEspacios`, `RemoveRange`); al regresar a 24 no vuelven. Pasar a 1F-2H fuerza 8 espacios y borra igual; de 1F-2H a 3F el gabinete vuelve con 12 (`DatosDelTablero.AjustarEspacios` toma el primero ≥ 8), no con los 24 de antes. Corrección: no borrar circuitos con captura; pedir confirmación nombrándolos, o conservarlos fuera del gabinete hasta que quepan. Prueba: 800 VA en el 20, Espacios 12 y de vuelta 24.
+
+**I-79** — Hecho: el 3 pasa a 3 polos y el 7, con 500 VA, se vuelve continuación: desaparece del cálculo y, al guardar, del archivo. `CambiarPolos` solo revisa los multipolares (`c.Polos > 1`, `CuadroDeCarga.cs:373`). Corrección: contar como ocupados los de 1 polo con captura y dar el motivo, como con los multipolares. Prueba: 1000 VA en el 3, 500 VA en el 7, Polos del 3 = 3.
+
+**I-80** — Hecho: F.P. 1.5 en un circuito: el alimentador no calcula y dice «Value was either too large or too small for a Decimal» (`Math.Acos` de 1.5 da NaN, `CuadroDeCarga.cs:1283`); el renglón sube a 10 AWG. F.P. 0: caída 0.09 %; −0.5: caída −1.82 %. El campo trae `min="0.1" max="1"`, pero `Leer` no lo respeta. Corrección: rechazar fuera de 0.1–1, como el F.D. Prueba: 1000 VA y 30 m en el 1, F.P. 1.5.
+
+**I-81** — Hecho: en Chrome y Edge (es-MX y en-US), el campo numérico descarta la coma al teclear: «1,5» queda 15, «0,9» en F.P. queda 9.00, «2,5» m queda 25 m, «1.500,50» queda 1.5. «1,500» funciona de casualidad. En Firefox y Safari el campo guarda el texto y entrega vacío: por `LeerCarga`, 0 (sin probar aquí: solo hay Chromium). Corrección: capturar como texto y leer coma decimal o de miles con aviso, o rechazar la coma con mensaje. Prueba: teclear «0,9» en el F.P. del 1.
+
+**I-82** — Hecho: F.D. = 2 se queda escrito en la casilla y el resumen sigue con 1.00: `CambiarFactor` regresa sin redibujar. Corrección: devolver la casilla al valor vigente y decir por qué. Prueba: F.D. de Alumbrado = 2.
+
+**I-83** — Hecho: un motor de 5 HP en 3 polos (15.20 A, 40 A) pasa a 1 polo al cambiar a 1 fase: 127 V, 51.00 A, 150 A; de 3F a 2F queda en 2 polos, 28.00 A. El único rastro es un aviso del principal. Al regresar a 3 fases se queda recortado. Corrección: avisar qué circuitos se recortan y guardar sus polos para regresarlos. Prueba: motor de 5 HP en 3 polos y Fases = 1.
+
+**I-84** — Hecho: se aceptan sin aviso longitud del derivado −30 m (caída −3.45 %), del alimentador −50 m (fase A −4.77 %; el resultado dice «1.88 % (fase C)», la de una fase sin corriente), carga −500 VA (la casilla la muestra y el cálculo la ignora), capacidad de barra −100 A y frecuencia 0 o −60 Hz. Corrección: rechazar negativos en el modelo y en el campo. Prueba: cada valor en su campo.
+
+**I-85** — Hecho: la barra compacta (solo iconos) empieza en 760 px; de 761 a unos 1120 px la barra no cabe y la página se desplaza de lado hasta 349 px. A 768 px, «Guardar» sale cortado y el tema y GitHub quedan fuera; a 1024, GitHub fuera y «Oscuro» en la orilla. Corrección: pasar a la barra compacta antes, o esconder los textos por tramos. Prueba: Captura a 768 y 1024 px.
+
+**I-86** — Hecho: en pantalla, la tabla de «Cuadro de carga» (`table.doc-cuadro`, 992 px) sale de su hoja y la página se desplaza de lado 603 px a 320 px, 371 a 560, 43 a 1000. Impreso cabe. Corrección: desplazamiento dentro de la hoja, como el cuadro de la captura. Prueba: documento a 390 px.
+
+**I-87** — Hecho: la tabla de captura mide 1682 px y su contenedor tope 1680: a 1920 px «e (%)» sale cortada 3 px; a 1680, 43; a 1440 quedan fuera los conductores; a 1366 (laptop común), también Protec. (357 px fuera). Al desplazar de lado solo «N.º» queda fija, no «Descripción». La barra de desplazamiento está al pie de la tabla: con 42 espacios, muy abajo. Venía de antes del 2026-09-27. Corrección: fijar también «Descripción» y adelgazar columnas. Prueba: captura a 1366 px, un circuito con carga.
+
+**I-88** — Hecho: de 701 a unos 1000 px la barra de ayuda deja la leyenda de teclas en una línea y aprieta la ayuda del campo en una columna de unos 120 px: la barra crece a 129 px y tapa la última línea del pie («Los resultados no sustituyen el criterio…»). Corrección: ayuda arriba y teclas abajo en ese tramo, y reservar el alto real al pie. Prueba: 768 px, foco en L (m), bajar hasta el final.
+
+**I-89** — Hecho: el selector «Uso» (Cocina, General…) empieza en x = 426 y el de «Tipo» en 437: 11 px de diferencia, visible. I-51 los había alineado; el icono de tipo (I-63) corrió el de arriba. Corrección: la misma sangría del icono en el renglón del uso. Prueba: vivienda unifamiliar, circuito de Contactos.
+
+**I-90** — Hecho: la flecha del selector tapa la última letra de «Refrigerador» (uso) y de «MCA» (unidad del A/C). A 768-1100 px: «Centro de carga (NEMA» y «60 °C hasta 100 A (reg…» en la ficha. Corrección: ancho mínimo por su texto más largo, o nombres cortos en el selector con el largo en el título. Prueba: A/C con MCA; uso Refrigerador.
+
+**I-91** — Hecho: el subrayado punteado de la ayuda del calibre («12 AWG») cae sobre el «3.31 mm²» de abajo: se lee tachado. En todos los renglones con carga. Corrección: separar la línea de mm² o bajar el subrayado dentro de su caja. Prueba: cualquier circuito con carga, columna Fase.
+
+**I-92** — Hecho: en el documento impreso (carta y A4 horizontal, PDF de Chromium), «Canal.» parte «T1 · 21 mm / ¾ in» en tres renglones y separa número y unidad; «Puesta a tierra» en tres. Formatos mezclados: «MCA 18.00 A · MOCP 30 A»; el motor con «5,791.98» y «1,930.66» junto a enteros. Corrección: tamaño en su propio renglón con `nowrap`; el mismo formato que I-49. Prueba: tablero con motor y A/C, Imprimir.
+
+**I-93** — Hecho: con el principal en espacios, la fase que queda junto a la barra (C en pares, A en nones) no lleva flecha: no hay lugar entre el número y la barra. Se lee como que el principal alimenta dos barras. Corrección: dibujar la flecha sobre la barra. Prueba: Montaje del principal = En espacios.
+
+**I-94** — Hecho: dos canalizaciones pueden llamarse «T4»; en «Canal.» del cuadro se ven dos «T4». Corrección: rechazar el nombre repetido o numerarlo. Prueba: renombrar T1 y T2 a T4.
+
+**I-95** — Hecho: THHN con lugar «Húmedo o mojado» pone el mismo error en cada renglón con carga y en el alimentador: «'THHN' no se reconoce, o no es válido para el lugar capturado… Designaciones reconocidas: … THHN …». Dice que no se reconoce y lo lista. Corrección: un aviso junto a Aislamiento y Lugar que diga que THHN es solo para lugar seco. Prueba: tres circuitos con carga, Lugar mojado.
+
+**I-96** — Hecho: la memoria dice «Frecuencia 60 Hz» fijo (`MemoriaDeCalculo.cs:408`); el documento dice la capturada: con 50 Hz, uno dice 50 y el otro 60. Corrección: leer `FrecuenciaHz`. Prueba: Frecuencia 50, ver Cuadro de carga y Memoria.
+
+**I-97** — Hecho: con 42 espacios con carga, cada tecla redibuja la página entera: 65 ms por tecla en la versión publicada (Release), 180 ms en desarrollo; también al teclear en «Tablero» de la ficha, y 110 ms por cambio de carga. En un celular será varias veces más. Corrección: aislar el renglón y la ficha en componentes que no redibujen todo en `oninput`. Prueba: 42 espacios con carga, medir del evento `input` al siguiente cuadro pintado.
+
+**M-10** — Hecho: con una caída que ningún calibre alcanza, el motor dice «…relajar el límite en Configuración» (`SeleccionConductor.cs:173`). «Configuración» es la pantalla del escritorio; en la web es «Condiciones de cálculo». Corrección: mensaje sin nombre de pantalla, o el de la web. Pendiente: reportar en `PowerNode-DesignSuite`. Prueba: 20 000 VA a 8000 m.
 
 ### Revisión del 2026-09-23
 
