@@ -42,11 +42,47 @@
     // ---- I-55: un campo obligatorio (data-requerido) que se vacía recupera su valor --------------
     // Antes de que Blazor lea el cambio: sin esto el campo quedaba en blanco mientras el cálculo
     // seguía con el valor anterior. Las cargas no son obligatorias: vacío es 0 (lo resuelve la página).
+    //
+    // I-77, I-80: un número fuera de su min/max tampoco entra —0 V dividía entre cero, un F.P. de 1.5
+    // tumbaba el alimentador—. Regresa al valor que tenía al entrar y un aviso dice por qué: si se
+    // quedara escrito, la casilla diría una cosa y el cálculo seguiría con otra (I-82). El min y el
+    // max son los del propio campo; la página los toma del modelo.
     document.addEventListener('change', e => {
         const el = e.target;
-        if (esNumero(el) && el.hasAttribute('data-requerido') && el.value.trim() === '' && el.dataset.previo)
-            el.value = el.dataset.previo;
+        if (!esNumero(el))
+            return;
+        if (el.value.trim() === '') {
+            if (el.hasAttribute('data-requerido') && el.dataset.previo)
+                el.value = el.dataset.previo;
+            return;
+        }
+        const valor = el.valueAsNumber;
+        const min = el.min === '' ? -Infinity : Number(el.min);
+        const max = el.max === '' ? Infinity : Number(el.max);
+        if (Number.isNaN(valor) || (valor >= min && valor <= max) || !('previo' in el.dataset))
+            return;
+        const tecleado = el.value;
+        el.value = el.dataset.previo;
+        rechazar(el, tecleado, min, max);
     }, true);
+
+    let avisoDeRechazo;
+
+    /** «Circuito 1 · F.P.: 1.5 no se admite; va de 0.1 a 1. Se regresó a 0.90.» */
+    function rechazar(el, tecleado, min, max) {
+        const rango = Number.isFinite(min) && Number.isFinite(max) ? `va de ${el.min} a ${el.max}`
+            : Number.isFinite(min) ? `el mínimo es ${el.min}` : `el máximo es ${el.max}`;
+        const queda = el.value === '' ? 'Se dejó vacío.' : `Se regresó a ${el.value}.`;
+        avisoDeRechazo?.remove();
+        const aviso = avisoDeRechazo = document.createElement('div');
+        aviso.className = 'aviso-flotante mal';
+        aviso.setAttribute('role', 'alert');
+        aviso.textContent = `${ayudaDe(el).nombre}: ${tecleado} no se admite; ${rango}. ${queda}`;
+        document.body.appendChild(aviso);
+        setTimeout(() => aviso.remove(), 5500);
+        el.classList.add('rechazado');
+        setTimeout(() => el.classList.remove('rechazado'), 1500);
+    }
 
     // ---- Teclas ----------------------------------------------------------------------------------
     document.addEventListener('keydown', e => {
@@ -223,5 +259,16 @@
             return;
         el.focus();
         el.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    };
+
+    // ---- Para la página: regresar un selector que el modelo no aceptó (I-78, I-79) ---------------
+    // Blazor no toca el DOM si el valor del modelo no cambió: el selector se quedaba diciendo «3
+    // polos» con el circuito en 1. La página lo regresa aquí, y también lo que Esc recuerda.
+    window.powerNode.restablecer = (selector, valor) => {
+        const el = document.querySelector(selector);
+        if (!el)
+            return;
+        el.value = valor;
+        el.dataset.previo = valor;
     };
 })();

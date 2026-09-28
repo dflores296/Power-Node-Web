@@ -983,6 +983,8 @@ body.arrastrando, body.arrastrando * { cursor: grabbing !important; user-select:
 .aviso-flotante.bien { border-color: var(--acento); }
 .aviso-flotante.mal { border-color: var(--alerta); background: var(--alerta-fondo); }
 .aviso-flotante .boton { flex: none; }
+/* El campo que no admitió lo tecleado (I-77, I-80): se marca un momento, junto al aviso. */
+input.rechazado { outline: 2px solid var(--alerta); outline-offset: 1px; }
 @keyframes aparecer { from { opacity: 0; transform: translate(-50%, -6px); } to { opacity: 1; transform: translate(-50%, 0); } }
 @media (prefers-reduced-motion: reduce) { .aviso-flotante { animation: none; } }
 @media print { .aviso-flotante { display: none; } }

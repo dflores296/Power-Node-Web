@@ -1,6 +1,7 @@
 using PowerNode.DesignSuite.Calculo.Casos;
 using PowerNode.DesignSuite.Calculo.Unidades;
 using PowerNode.Web.Modelo;
+using PowerNode.Web.Modelo.Archivo;
 
 namespace PowerNode.Web.Tests;
 
@@ -77,6 +78,80 @@ public class CuadroDeCargaTests
         Assert.NotNull(motivo);
         Assert.Contains("circuito 1", motivo);
         Assert.Equal(1, Espacio(cuadro, 5).Polos); // y no se aplicó
+    }
+
+    /// <summary>
+    /// I-79: el 3 pasaba a 3 polos y el 7, con su carga, se volvía continuación: desaparecía del
+    /// cálculo y del archivo. Un circuito de 1 polo con captura ocupa su espacio igual que un
+    /// multipolar; uno vacío no.
+    /// </summary>
+    [Fact]
+    public void I79_AmpliarLosPolosNoSeComeUnCircuitoDeUnPoloConCaptura()
+    {
+        var cuadro = Nuevo();
+        Espacio(cuadro, 3).NoContinua = 1000m;
+        Espacio(cuadro, 7).NoContinua = 500m;
+        cuadro.Recalcular();
+
+        var motivo = cuadro.CambiarPolos(Espacio(cuadro, 3), 3);
+
+        Assert.NotNull(motivo);
+        Assert.Contains("circuito 7", motivo);
+        Assert.Equal(1, Espacio(cuadro, 3).Polos);
+        Assert.Null(Espacio(cuadro, 7).ContinuacionDe);
+        Assert.Equal(500m, Espacio(cuadro, 7).NoContinua);
+
+        // Con el 7 vacío, el 5 y el 7 sí se ocupan.
+        Espacio(cuadro, 7).NoContinua = 0m;
+        Assert.Null(cuadro.CambiarPolos(Espacio(cuadro, 3), 3));
+        Assert.Equal(3, Espacio(cuadro, 7).ContinuacionDe);
+    }
+
+    /// <summary>
+    /// I-78: bajar de 24 a 12 espacios borraba sin aviso los circuitos 13 a 24. Antes de reducir, el
+    /// cuadro dice cuáles se pierden —solo los que tienen captura— para que la página pregunte.
+    /// </summary>
+    [Fact]
+    public void I78_AntesDeReducirElGabineteSeSabeQueCircuitosSeBorran()
+    {
+        var cuadro = Nuevo(espacios: 24);
+        Espacio(cuadro, 7).NoContinua = 500m;              // adentro: no se pierde
+        Espacio(cuadro, 20).NoContinua = 800m;              // afuera, sin descripción
+        Assert.Null(cuadro.CambiarPolos(Espacio(cuadro, 11), 2)); // 11-13: empieza adentro, se recorta
+
+        Assert.Equal([20], cuadro.QuedanFuera(12).Select(c => c.Espacio));
+        Assert.Equal("Con 12 espacios no cabe el circuito 20: se borra.", cuadro.AvisoAlReducirA(12));
+
+        Assert.Null(cuadro.CambiarPolos(Espacio(cuadro, 11), 1)); // el 13 vuelve a ser suyo
+        Espacio(cuadro, 13).Descripcion = "Bomba de agua";  // afuera, con captura
+        Assert.Equal("Con 12 espacios no caben los circuitos 13 (Bomba de agua) y 20: se borran.", cuadro.AvisoAlReducirA(12));
+        Assert.Null(cuadro.AvisoAlReducirA(24));
+        Assert.Null(cuadro.AvisoAlReducirA(30));
+    }
+
+    /// <summary>
+    /// I-78: pasar a 1F-2H deja el gabinete en 8; al regresar a 3F volvía con 12, no con los 24 que
+    /// se habían elegido. Y la página sabe cuántos quedarían antes de cambiar.
+    /// </summary>
+    [Fact]
+    public void I78_AlRegresarDe1F2HElGabineteVuelveConLosEspaciosElegidos()
+    {
+        var cuadro = Nuevo(espacios: 24);
+
+        Assert.Equal(("1F-2H", 8), cuadro.Datos.AlCambiar(1));
+        Assert.Equal(("1F-3H (derivación central)", 24), cuadro.Datos.AlCambiar(1, hilos: 3));
+        Assert.Equal(24, cuadro.Datos.NumeroEspacios); // preguntar no cambia nada
+
+        cuadro.Datos.Fases = 1;
+        Assert.Equal(8, cuadro.Datos.NumeroEspacios);
+        cuadro.Datos.Fases = 3;
+        Assert.Equal(24, cuadro.Datos.NumeroEspacios);
+
+        // Lo elegido en 1F-2H también se recuerda: 4 no existe en 3F y pasa al más cercano.
+        cuadro.Datos.Fases = 1;
+        cuadro.Datos.NumeroEspacios = 4;
+        cuadro.Datos.Fases = 3;
+        Assert.Equal(6, cuadro.Datos.NumeroEspacios);
     }
 
     [Fact]
@@ -384,9 +459,17 @@ public class CuadroDeCargaTests
     [Fact]
     public void UnRenglonOcupadoPorUnMultipolarNoAportaCarga()
     {
-        var cuadro = Nuevo();
-        Espacio(cuadro, 3).Continua = 1000m;   // se va a quedar tapado
-        Assert.Null(cuadro.CambiarPolos(Espacio(cuadro, 1), 2)); // ocupa 1 y 3
+        // Desde I-79 la captura ya no deja tapar un renglón con carga; un archivo editado a mano sí
+        // puede traerlo, y ahí gana el interruptor que empieza antes (ArchivoJson.Aplicar).
+        const string texto = """
+            {
+              "formato": "power-node/cuadro-de-carga",
+              "version": 2,
+              "datos": { "numeroEspacios": 12 },
+              "circuitos": [ { "espacio": 1, "polos": 2 }, { "espacio": 3, "continua": 1000 } ]
+            }
+            """;
+        var cuadro = ArchivoDelCuadro.Abrir(texto, new MotorNom(Json)).Cuadro!;
 
         Assert.True(Espacio(cuadro, 3).EsContinuacion);
         Assert.Null(Espacio(cuadro, 3).Resultado);

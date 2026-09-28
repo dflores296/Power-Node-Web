@@ -55,27 +55,49 @@ public sealed class DatosDelTablero
     /// de nones y 21 de pares, y para un tablero más chico se ocultaban renglones a mano. Aquí no
     /// hace falta ocultar nada — el cuadro se dibuja con los espacios que se declaren.
     /// </summary>
-    public int NumeroEspacios { get; set; } = 24;
+    public int NumeroEspacios
+    {
+        get => _espacios;
+        set => _espacios = _espaciosElegidos = value;
+    }
+    private int _espacios = 24;
+
+    /// <summary>
+    /// Los espacios que eligió el ingeniero. Al pasar a 1F-2H el gabinete queda en 8; al regresar
+    /// vuelven estos, no el tamaño más cercano a 8 (I-78: de 24 regresaba con 12).
+    /// </summary>
+    private int _espaciosElegidos = 24;
 
     /// <summary>
     /// Los tamaños de gabinete que se ofrecen. 1F-2H tiene una sola barra: centros de carga de 1, 2,
     /// 4, 6 y 8 espacios, los que se venden; de 12 en adelante no existen para 1F-2H (David,
     /// 2026-09-25 — I-54). Los demás, de 6 a 42 como el Excel.
     /// </summary>
-    public IReadOnlyList<int> EspaciosValidos =>
-        SistemaDelTablero.De(Sistema) == ConfiguracionTablero.UnaFaseDosHilos
+    public IReadOnlyList<int> EspaciosValidos => EspaciosValidosDe(Sistema);
+
+    private static IReadOnlyList<int> EspaciosValidosDe(SistemaTablero sistema) =>
+        SistemaDelTablero.De(sistema) == ConfiguracionTablero.UnaFaseDosHilos
             ? [1, 2, 4, 6, 8]
             : [6, 12, 18, 24, 30, 36, 42];
 
     /// <summary>
-    /// Al cambiar de configuración, un gabinete que no existe para la nueva pasa al más cercano: de
-    /// 24 espacios a 1F-2H, 8; de 4 en 1F-2H a 3F, 6.
+    /// Al cambiar de configuración, los espacios elegidos si existen para la nueva; si no, el más
+    /// cercano: de 24 espacios a 1F-2H, 8, y de regreso, 24; de 4 en 1F-2H a 3F, 6.
     /// </summary>
-    private void AjustarEspacios()
+    private void AjustarEspacios() => _espacios = EspaciosPara(EspaciosValidos);
+
+    private int EspaciosPara(IReadOnlyList<int> validos) =>
+        validos.Contains(_espaciosElegidos) ? _espaciosElegidos : validos.FirstOrDefault(e => e >= _espaciosElegidos, validos[^1]);
+
+    /// <summary>
+    /// La configuración y los espacios que quedarían con otras fases o hilos, sin cambiarlos: para
+    /// preguntar antes de borrar circuitos — I-78. Las fases llevan sus hilos más comunes, como
+    /// <see cref="Fases"/>.
+    /// </summary>
+    public (string Etiqueta, int Espacios) AlCambiar(int fases, int? hilos = null)
     {
-        var validos = EspaciosValidos;
-        if (!validos.Contains(NumeroEspacios))
-            NumeroEspacios = validos.FirstOrDefault(e => e >= NumeroEspacios, validos[^1]);
+        var sistema = new SistemaTablero(fases, hilos ?? (fases == Fases ? Hilos : HilosPorOmision(fases)));
+        return (EtiquetaDe(sistema), EspaciosPara(EspaciosValidosDe(sistema)));
     }
 
     /// <summary>
@@ -164,6 +186,13 @@ public sealed class DatosDelTablero
     /// neutro (127 V). Por eso la pantalla la rotula «Tensión F-N» en 1F-2H — I-53.
     /// </summary>
     public decimal TensionFaseFaseV { get; set; } = 220m;
+
+    /// <summary>
+    /// La tensión más baja que se admite — I-77. Con 0 el cálculo dividía entre cero y tumbaba la
+    /// página; con una negativa, el fasor del alimentador truena. 100 V deja fuera eso y nada de lo que
+    /// da la NOM: la nominal más baja es 120 V (110-4).
+    /// </summary>
+    public const decimal TensionMinimaV = 100m;
 
     /// <summary>
     /// Al cambiar las fases, los hilos pasan a los del sistema más común de esas fases: «1 fase,
@@ -300,7 +329,9 @@ public sealed class DatosDelTablero
     /// configuración que reconoce el motor, no de concatenar fases e hilos, para que un 1F-3H diga
     /// que es derivación central y no se lea como un monofásico cualquiera.
     /// </summary>
-    public string EtiquetaSistema => SistemaDelTablero.De(Sistema) switch
+    public string EtiquetaSistema => EtiquetaDe(Sistema);
+
+    private static string EtiquetaDe(SistemaTablero sistema) => SistemaDelTablero.De(sistema) switch
     {
         ConfiguracionTablero.UnaFaseDosHilos => "1F-2H",
         ConfiguracionTablero.UnaFaseTresHilos => "1F-3H (derivación central)",

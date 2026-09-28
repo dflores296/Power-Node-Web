@@ -180,7 +180,14 @@ public static class ArchivoDelCuadro
                 else
                     avisos.Add($"{d.Fases} fase(s) con {hilos} hilos no es un sistema; se dejó en {d.Hilos} hilos.");
             }
-            d.TensionFaseFaseV = a.TensionFaseFaseV ?? d.TensionFaseFaseV;
+            // I-77: con 0 V el cálculo divide entre cero, también al convertir un archivo de formato 1.
+            if (a.TensionFaseFaseV is { } tension)
+            {
+                if (tension >= DatosDelTablero.TensionMinimaV)
+                    d.TensionFaseFaseV = tension;
+                else
+                    avisos.Add($"El archivo dice {tension:0.##} V; la tensión va de {DatosDelTablero.TensionMinimaV:0} V en adelante. Se abrió con {d.TensionFaseFaseV:0.##} V.");
+            }
             d.FrecuenciaHz = a.FrecuenciaHz ?? d.FrecuenciaHz;
             if (a.NumeroEspacios is { } espacios)
             {

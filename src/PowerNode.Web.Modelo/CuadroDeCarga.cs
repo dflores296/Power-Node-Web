@@ -370,10 +370,9 @@ public sealed class CuadroDeCarga
         if (!DistribucionBarras.PolosValidos(polos, Datos.Sistema))
             return $"Este tablero tiene {Datos.Barras.Count} barra(s), así que un interruptor de {polos} polos repetiría fase.";
 
-        var ocupados = _circuitos
-            .Where(c => c != circuito && !c.EsContinuacion && !c.EsDelPrincipal && c.Polos > 1)
-            .Select(c => new MontajeEnGabinete(c.Espacio, c.Polos, $"el circuito {c.Espacio}"))
-            .ToList();
+        // Los mismos que al mover (I-69): todo lo capturado, también de 1 polo. Antes solo los
+        // multipolares: el 3 pasaba a 3 polos y se comía el 7 con su carga — I-79.
+        var ocupados = MontajesCapturados(excepto: circuito);
         if (EspaciosDelPrincipal.Count > 0)
             ocupados.Add(new MontajeEnGabinete(EspaciosDelPrincipal[0], EspaciosDelPrincipal.Count, "el interruptor principal"));
 
@@ -384,6 +383,35 @@ public sealed class CuadroDeCarga
         circuito.Polos = polos;
         Recalcular();
         return null;
+    }
+
+    /// <summary>
+    /// Los circuitos con captura que no caben en un gabinete de <paramref name="espacios"/>: al
+    /// reducirlo se borran — I-78. Un multipolar que empieza adentro no está aquí: se recorta.
+    /// </summary>
+    public IReadOnlyList<CircuitoDelCuadro> QuedanFuera(int espacios) =>
+        [.. _circuitos.Where(c => c.Espacio > espacios && !c.EsContinuacion && !c.EsDelPrincipal && c.TieneCaptura)];
+
+    /// <summary>
+    /// «Con 12 espacios no caben los circuitos 13 (Bomba de agua) y 20: se borran.», o <c>null</c> si
+    /// no se pierde nada. La página lo pregunta antes de reducir — I-78: antes se borraban sin aviso.
+    /// </summary>
+    public string? AvisoAlReducirA(int espacios)
+    {
+        var fuera = QuedanFuera(espacios);
+        if (fuera.Count == 0)
+            return null;
+
+        const int maximo = 8;
+        var nombres = fuera.Take(maximo)
+            .Select(c => string.IsNullOrWhiteSpace(c.Descripcion) ? $"{c.Espacio}" : $"{c.Espacio} ({c.Descripcion.Trim()})")
+            .ToList();
+        if (fuera.Count > maximo)
+            nombres.Add($"{fuera.Count - maximo} más");
+        var lista = nombres.Count == 1 ? nombres[0] : $"{string.Join(", ", nombres[..^1])} y {nombres[^1]}";
+        return fuera.Count == 1
+            ? $"Con {espacios} espacios no cabe el circuito {lista}: se borra."
+            : $"Con {espacios} espacios no caben los circuitos {lista}: se borran.";
     }
 
     // ---- Adentro -------------------------------------------------------------------------------

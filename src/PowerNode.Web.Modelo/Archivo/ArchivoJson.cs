@@ -164,7 +164,13 @@ public sealed class CircuitoJson
         c.ProteccionMaximaA = ProteccionMaxima is >= 0m ? ProteccionMaxima.Value : c.ProteccionMaximaA;
         c.Continua = Continua ?? c.Continua;
         c.NoContinua = NoContinua ?? c.NoContinua;
-        c.FactorPotencia = FactorPotencia ?? c.FactorPotencia;
+        if (FactorPotencia is { } fp)
+        {
+            if (CircuitoDelCuadro.FactorPotenciaValido(fp))
+                c.FactorPotencia = fp;
+            else
+                avisos.Add(FueraDeRango($"El circuito {Espacio}", fp, c.FactorPotencia));
+        }
         c.LongitudM = LongitudM ?? c.LongitudM;
         // Los polos se ponen directo: el recálculo resuelve qué renglones se come cada uno, y gana
         // el que empieza antes, igual que al capturarlo.
@@ -173,12 +179,16 @@ public sealed class CircuitoJson
         c.ConNeutro = ConNeutro ?? c.ConNeutro;
         c.Canalizacion = Canalizacion ?? c.Canalizacion;
         c.Aparatos.Clear();
-        foreach (var a in Aparatos ?? [])
-            c.Aparatos.Add(a.Crear());
+        foreach (var (a, n) in (Aparatos ?? []).Select((a, i) => (a, i + 1)))
+            c.Aparatos.Add(a.Crear($"El aparato {n} del circuito {Espacio}", avisos));
 
         if (eraMotorOAire)
             DeMotorOAire(c, datos, avisos);
     }
+
+    /// <summary>I-80: un F.P. fuera de 0.1 a 1 no se abre; se avisa y queda el de omisión.</summary>
+    internal static string FueraDeRango(string quien, decimal fp, decimal queda) =>
+        $"{quien} trae F.P. {fp:0.##}, fuera de {CircuitoDelCuadro.FactorPotenciaMinimo:0.0} a 1; se abrió con {queda:0.00}.";
 
     /// <summary>
     /// <b>Un «Motor / A/C» de formato 1</b> — I-74, decisión <c>tipos-de-carga.md</c>. Con HP era un
@@ -231,7 +241,7 @@ public sealed class AparatoJson
         FactorPotencia = a.FactorPotencia,
     };
 
-    internal AparatoDelCircuito Crear()
+    internal AparatoDelCircuito Crear(string quien, List<string> avisos)
     {
         var a = new AparatoDelCircuito();
         a.Descripcion = Descripcion ?? a.Descripcion;
@@ -239,7 +249,13 @@ public sealed class AparatoJson
         a.Unidad = Unidad ?? a.Unidad;
         a.CargaUnitaria = CargaUnitaria ?? a.CargaUnitaria;
         a.Continua = Continua ?? a.Continua;
-        a.FactorPotencia = FactorPotencia ?? a.FactorPotencia;
+        if (FactorPotencia is { } fp)
+        {
+            if (CircuitoDelCuadro.FactorPotenciaValido(fp))
+                a.FactorPotencia = fp;
+            else
+                avisos.Add(CircuitoJson.FueraDeRango(quien, fp, a.FactorPotencia));
+        }
         return a;
     }
 }

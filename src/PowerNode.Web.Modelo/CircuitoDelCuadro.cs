@@ -201,6 +201,15 @@ public sealed class CircuitoDelCuadro
     /// <summary>El F.P. con el que nace cada renglón. Decisión de David del 2026-09-23.</summary>
     public const decimal FactorPotenciaSupuesto = 0.9m;
 
+    /// <summary>
+    /// El F.P. más bajo que se admite — I-80. Arriba de 1, el ángulo de la corriente no existe y el
+    /// alimentador tronaba; con 0 o negativo, la caída salía 0 % o negativa.
+    /// </summary>
+    public const decimal FactorPotenciaMinimo = 0.1m;
+
+    /// <summary>Entre <see cref="FactorPotenciaMinimo"/> y 1, de un circuito o de un aparato.</summary>
+    public static bool FactorPotenciaValido(decimal fp) => fp is >= FactorPotenciaMinimo and <= 1m;
+
     /// <summary>Polos del interruptor. Se cambia por <see cref="CuadroDeCarga.CambiarPolos"/>, que verifica que quepa.</summary>
     public int Polos { get; internal set; } = 1;
 

@@ -232,6 +232,40 @@ public class ArchivoDelCuadroTests
         Assert.Contains(apertura.Avisos, a => a.Contains("circuito 30"));
     }
 
+    /// <summary>
+    /// I-77, I-80: una tensión de 0 V dividía entre cero y un F.P. de 1.5 tumbaba el alimentador. Un
+    /// archivo editado a mano puede traerlos: se abre con el valor de omisión y se avisa.
+    /// </summary>
+    [Fact]
+    public void I77_I80_UnaTensionOUnFPFueraDeRangoSeAvisaYNoSeAbre()
+    {
+        const string texto = """
+            {
+              "formato": "power-node/cuadro-de-carga",
+              "version": 2,
+              "datos": { "tensionFaseFaseV": 0 },
+              "circuitos": [
+                { "espacio": 1, "descripcion": "Alumbrado", "noContinua": 900, "factorPotencia": 1.5 },
+                { "espacio": 3, "descripcion": "Contactos",
+                  "aparatos": [ { "descripcion": "Contacto", "cantidad": 2, "cargaUnitaria": 180, "factorPotencia": 0 } ] }
+              ]
+            }
+            """;
+
+        var apertura = ArchivoDelCuadro.Abrir(texto, Motor);
+
+        Assert.Null(apertura.Error);
+        var cuadro = apertura.Cuadro!;
+        Assert.Equal(new CuadroDeCarga(Motor).Datos.TensionFaseFaseV, cuadro.Datos.TensionFaseFaseV);
+        Assert.Equal(CircuitoDelCuadro.FactorPotenciaSupuesto, cuadro.Circuitos[0].FactorPotencia);
+        Assert.Equal(CircuitoDelCuadro.FactorPotenciaSupuesto, cuadro.Circuitos[2].Aparatos[0].FactorPotencia);
+        Assert.Contains(apertura.Avisos, a => a.Contains("0 V") && a.Contains("100 V en adelante"));
+        Assert.Contains(apertura.Avisos, a => a.StartsWith("El circuito 1 trae F.P. 1.5"));
+        Assert.Contains(apertura.Avisos, a => a.StartsWith("El aparato 1 del circuito 3 trae F.P. 0"));
+        // Y calcula: el alimentador sale, sin excepción.
+        Assert.NotNull(cuadro.Alimentador.Resultado);
+    }
+
     [Theory]
     [InlineData("Tablero cocina", "", "Tablero cocina.powernode.json")]
     [InlineData("TC: 1/2", "", "TC- 1-2.powernode.json")]
