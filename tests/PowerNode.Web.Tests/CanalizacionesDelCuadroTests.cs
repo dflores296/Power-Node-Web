@@ -161,6 +161,47 @@ public class CanalizacionesDelCuadroTests
         Assert.NotNull(c.CanalizacionEfectiva!.Ocupacion!.Tamano);
     }
 
+    /// <summary>
+    /// El diámetro del fabricante se pide en «Condiciones de cálculo», con el aislamiento (David,
+    /// 2026-09-28): un aviso que dice por qué y un campo por calibre de los que van en alguna
+    /// canalización. THHW está en la Tabla 5 del 14 AWG al 2000 kcmil; THHW-LS, en ningún calibre.
+    /// </summary>
+    [Fact]
+    public void DiametroDelFabricante_SePideConElAislamiento()
+    {
+        var cuadro = Nuevo();
+        cuadro.Datos.TipoAislamiento = "THHW";
+        var c = Carga(cuadro, 1, 10m);
+        cuadro.Recalcular();
+
+        Assert.False(cuadro.AislamientoFueraDeTabla5);
+        Assert.Null(cuadro.AvisoDiametroDelFabricante);
+        Assert.Empty(cuadro.CalibresConDiametroDelFabricante);
+
+        cuadro.Datos.TipoAislamiento = "THHW-LS";
+        cuadro.Recalcular();
+        var fase = c.Resultado!.CalibreFase.Designacion;
+        Assert.True(cuadro.AislamientoFueraDeTabla5);
+        Assert.StartsWith("THHW-LS no está en la Tabla 5 del Capítulo 10", cuadro.AvisoDiametroDelFabricante);
+        Assert.EndsWith("Capturar el de cada calibre.", cuadro.AvisoDiametroDelFabricante);
+        Assert.Contains(fase, cuadro.CalibresConDiametroDelFabricante);
+        Assert.Equal(cuadro.CalibresConDiametroDelFabricante.Distinct().Count(), cuadro.CalibresConDiametroDelFabricante.Count);
+
+        // Sin carga no hay calibres que pedir: el aviso lo dice.
+        var vacio = Nuevo();
+        vacio.Datos.TipoAislamiento = "USE-2";
+        vacio.Recalcular();
+        Assert.Empty(vacio.CalibresConDiametroDelFabricante);
+        Assert.EndsWith("al capturar la carga de algún circuito.", vacio.AvisoDiametroDelFabricante);
+
+        // Un diámetro capturado manda sobre la Tabla 5: se enseña para poder borrarlo.
+        cuadro.Datos.TipoAislamiento = "THHN";
+        cuadro.Datos.DiametrosFabricante[DatosDelTablero.ClaveDiametro("THHN", fase)] = 3.5m;
+        cuadro.Recalcular();
+        Assert.Equal([fase], cuadro.CalibresConDiametroDelFabricante);
+        Assert.StartsWith("Hay diámetros del fabricante capturados para THHN", cuadro.AvisoDiametroDelFabricante);
+    }
+
     [Fact]
     public void CadaCircuitoConCargaNaceEnSuTubo_EMT_YSeGuardaEnLaLista()
     {

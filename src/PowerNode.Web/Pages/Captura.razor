@@ -139,6 +139,21 @@
         {
             <p class="aviso"><Icono Nombre="aviso" Clase="aviso-icono" /><span>@avisoLimites</span></p>
         }
+        @* El diámetro del fabricante va con el aislamiento, que es uno para todo el tablero (David,
+           2026-09-28); antes se pedía al pie de la tarjeta de canalizaciones. Capítulo 10, Nota 5. *@
+        @if (Cuadro.AvisoDiametroDelFabricante is { } avisoDiametro)
+        {
+            <p class="aviso"><Icono Nombre="aviso" Clase="aviso-icono" /><span>@avisoDiametro</span></p>
+            @foreach (var designacion in Cuadro.CalibresConDiametroDelFabricante)
+            {
+                var clave = DatosDelTablero.ClaveDiametro(Datos.TipoAislamiento, designacion);
+                var calibre = Calibre.UnidadDe(designacion);
+                <label><span class="ayuda" title="Capturar el diámetro exterior del conductor @Datos.TipoAislamiento de @calibre, del catálogo del fabricante — Capítulo 10, Nota 5. Vacío: sin dato; si la Tabla 5 lo trae, regresa a ella.">Ø @calibre (mm)</span>
+                    <input type="number" min="0" step="0.01" placeholder="—" aria-label="Diámetro exterior del fabricante · @calibre (mm)"
+                           value="@(Datos.DiametrosFabricante.TryGetValue(clave, out var d) ? Numero(d) : "")"
+                           @onchange="e => CambiarDiametro(clave, e.Value?.ToString())" /></label>
+            }
+        }
     </div>
 </section>
 
@@ -565,21 +580,6 @@
     </table>
     </div>
 
-    @{ var sinDiametro = DesignacionesSinDiametro(); }
-    @if (sinDiametro.Count > 0 || Datos.DiametrosFabricante.Keys.Any(k => k.StartsWith(Datos.TipoAislamiento + "|")))
-    {
-        <div class="fabricante">
-            <h2 class="separado"><span class="ayuda" title="El aislamiento @Datos.TipoAislamiento no está en la Tabla 5 del Capítulo 10: el llenado se calcula con el diámetro exterior real del fabricante — Nota 5.">Diámetro exterior del fabricante · @Datos.TipoAislamiento</span></h2>
-            @foreach (var designacion in DesignacionesEnUso())
-            {
-                var clave = DatosDelTablero.ClaveDiametro(Datos.TipoAislamiento, designacion);
-                <label class="suelto">@Calibre.UnidadDe(designacion) (mm)
-                    <input type="number" min="0" step="0.01" value="@(Datos.DiametrosFabricante.TryGetValue(clave, out var d) ? Numero(d) : "")"
-                           @onchange="e => CambiarDiametro(clave, e.Value?.ToString())" />
-                </label>
-            }
-        </div>
-    }
 </section>
 
 @if (_aviso is { } flotante)
@@ -1051,19 +1051,6 @@
             Datos.DiametrosFabricante.Remove(clave);
         Recalcular();
     }
-
-    /// <summary>Los calibres aislados que se usan en alguna canalización, de menor a mayor.</summary>
-    private List<string> DesignacionesEnUso() =>
-        Cuadro.TodasLasCanalizaciones
-            .SelectMany(t => t.Ocupacion?.Renglones ?? [])
-            .Where(r => r.Conductor.TipoAislamiento is not null)
-            .Select(r => r.Conductor.Designacion)
-            .Distinct()
-            .OrderBy(d => Motor.Calibres.BuscarPorDesignacion(d)?.AreaMm2 ?? 0m)
-            .ToList();
-
-    private List<string> DesignacionesSinDiametro() =>
-        Cuadro.TodasLasCanalizaciones.SelectMany(t => t.Ocupacion?.Faltantes ?? []).Distinct().ToList();
 
     private static string Opcional(decimal? v) => v is { } x ? Numero(x) : "";
 

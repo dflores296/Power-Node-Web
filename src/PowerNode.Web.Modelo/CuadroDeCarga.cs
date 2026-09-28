@@ -223,6 +223,62 @@ public sealed class CuadroDeCarga
     public IEnumerable<CanalizacionDelTablero> TodasLasCanalizaciones =>
         Datos.Canalizaciones.Append(Datos.CanalizacionAlimentador);
 
+    // ---- Diámetro del fabricante (Capítulo 10, Nota 5) ----------------------------------------------
+    // El aislamiento es uno para todo el tablero, así que el dato que falta va con él, en
+    // «Condiciones de cálculo», y no escondido al pie de la tarjeta de canalizaciones (David,
+    // 2026-09-28).
+
+    /// <summary>
+    /// El aislamiento del tablero no está en la Tabla 5 con ningún calibre: THHW-LS, THW-LS, USE,
+    /// USE-2. THHW sí está, del 14 AWG al 2000 kcmil.
+    /// </summary>
+    public bool AislamientoFueraDeTabla5 =>
+        _motor.Calibres.Listar().All(c => _motor.Dimensiones.Aislado(c.Designacion, Datos.TipoAislamiento) is null);
+
+    /// <summary>
+    /// Los calibres aislados que van en alguna canalización y piden el diámetro exterior del
+    /// fabricante: los que la Tabla 5 no trae con el aislamiento del tablero (THHN en 1250 kcmil o
+    /// más; todos en un LS) y los que ya traen uno capturado, que manda sobre la Tabla 5 y así se ve.
+    /// De menor a mayor.
+    /// </summary>
+    public IReadOnlyList<string> CalibresConDiametroDelFabricante =>
+        [.. TodasLasCanalizaciones
+            .SelectMany(t => t.Ocupacion?.Renglones ?? [])
+            .Where(r => r.Conductor.TipoAislamiento is not null)
+            .Select(r => r.Conductor.Designacion)
+            .Distinct()
+            .Where(d => _motor.Dimensiones.Aislado(d, Datos.TipoAislamiento) is null
+                        || Datos.DiametrosFabricante.ContainsKey(DatosDelTablero.ClaveDiametro(Datos.TipoAislamiento, d)))
+            .OrderBy(d => _motor.Calibres.BuscarPorDesignacion(d)?.AreaMm2 ?? 0m)];
+
+    /// <summary>
+    /// El aviso de «Condiciones de cálculo» cuando el llenado de las canalizaciones pide el diámetro
+    /// del fabricante — Capítulo 10, Nota 5. <c>null</c> si todo sale de la Tabla 5.
+    /// </summary>
+    public string? AvisoDiametroDelFabricante
+    {
+        get
+        {
+            var tipo = Datos.TipoAislamiento;
+            var calibres = CalibresConDiametroDelFabricante;
+            if (AislamientoFueraDeTabla5)
+                return $"{tipo} no está en la Tabla 5 del Capítulo 10: las canalizaciones se calculan con el diámetro exterior del conductor que da su fabricante — Nota 5. "
+                       + (calibres.Count == 0 ? "Los calibres aparecen aquí al capturar la carga de algún circuito." : "Capturar el de cada calibre.");
+
+            var sinTabla = calibres.Where(d => _motor.Dimensiones.Aislado(d, tipo) is null).ToList();
+            if (sinTabla.Count > 0)
+            {
+                var nombres = sinTabla.Select(Calibre.UnidadDe).ToList();
+                var lista = nombres.Count == 1 ? nombres[0] : $"{string.Join(", ", nombres[..^1])} y {nombres[^1]}";
+                return $"La Tabla 5 del Capítulo 10 no trae {tipo} en {lista}: {(sinTabla.Count == 1 ? "ese calibre se calcula" : "esos calibres se calculan")} con el diámetro exterior del conductor que da su fabricante — Nota 5.";
+            }
+
+            return calibres.Count > 0
+                ? $"Hay diámetros del fabricante capturados para {tipo}: mandan sobre la Tabla 5 del Capítulo 10 — Nota 5. Borrado, el calibre regresa a la tabla."
+                : null;
+        }
+    }
+
     /// <summary>Los avisos de todas las canalizaciones, con la canalización al frente.</summary>
     public IEnumerable<string> AvisosDeCanalizaciones =>
         TodasLasCanalizaciones.SelectMany(t => t.Avisos.Select(a => $"{NombreDe(t)}: {a}"));

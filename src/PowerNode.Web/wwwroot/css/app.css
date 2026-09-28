@@ -878,7 +878,6 @@ polygon.riel-a { fill: var(--barra-a); } polygon.riel-b { fill: var(--barra-b); 
 .canal-tabla .medidas input { width: 64px; }
 .canal-tabla input.corto { width: 56px; }
 .canal-tabla td.vacia { color: var(--tenue); font-style: italic; }
-.fabricante { margin-top: 14px; max-width: 420px; }
 .doc-titulo-canal { margin: 14px 0 6px; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
 .doc-canal { width: 100%; }
 .doc-canal td, .doc-canal th { text-align: center; }
