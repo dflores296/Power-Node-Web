@@ -196,7 +196,10 @@ public class TablaDimensionesConductorJson(IFuenteTablas fuente) : ITablaDimensi
                 tipos = []; // «Tipo: …» a todo lo ancho: empieza grupo
                 continue;
             }
-            if (c0 is not null)
+            // Una celda de tipo en blanco continúa el grupo de arriba: es donde el DOF pasa de página
+            // (THHN 4/0 a 300, XHHW de 250 en adelante). Se leía como «sin tipo» y esos renglones se
+            // perdían — M-11.
+            if (!string.IsNullOrWhiteSpace(c0))
                 tipos = c0.Split(',').Select(NormalizarTipo).Where(t => t.Length > 0).ToArray();
 
             var designacion = NormaParsing.DesignacionLimpia(f.Texto(2) ?? "");

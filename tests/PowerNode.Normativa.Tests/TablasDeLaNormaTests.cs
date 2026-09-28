@@ -191,6 +191,15 @@ public class TablasDeLaNormaTests
         Assert.Null(tabla.Aislado("12", "THW-LS"));
         Assert.Null(tabla.Aislado("12", "THHW-LS"));
 
+        // M-11: donde el DOF pasa de página, la celda de tipo viene en blanco y continúa el grupo de
+        // arriba. Se leía como «sin tipo» y se perdían THHN 4/0 a 300 y XHHW de 250 en adelante.
+        Assert.Equal((16.31m, 208.8m), tabla.Aislado("4/0", "THHN"));
+        Assert.Equal((18.06m, 256.1m), tabla.Aislado("250", "THWN-2"));
+        Assert.Equal((19.46m, 297.3m), tabla.Aislado("300", "THHN"));
+        Assert.Equal((17.91m, 251.9m), tabla.Aislado("250", "XHHW"));
+        Assert.Equal((37.57m, 1108m), tabla.Aislado("1250", "XHHW-2"));
+        Assert.Null(tabla.Aislado("1250", "THHN")); // este sí no lo trae la norma
+
         // Desnudo, Tabla 8 (trenzado).
         Assert.NotNull(tabla.Desnudo("10"));
     }
