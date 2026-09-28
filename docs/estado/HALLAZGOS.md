@@ -321,8 +321,9 @@ Formato: **Hecho** (defecto observado) · **Corrección** · **Referencia** · *
 ### Auditoría de interfaz del 2026-09-28
 
 Todo reproducido en el navegador (Playwright, Chromium) contra `ec37d54`; nada sale solo de leer el
-código. Los doce primeros los encontró la sesión del 2026-09-27, que se quedó sin límite antes de
-registrarlos; esta los volvió a reproducir. Formato: **Hecho** · **Corrección** (propuesta, sin hacer) ·
+código. La sesión del 2026-09-27 encontró catorce y se quedó sin límite antes de registrarlos; esta
+los volvió a reproducir: I-77 a I-84, I-87, I-94 a I-97 y M-10. Los nuevos de esta sesión: I-85, I-86
+e I-88 a I-93. Formato: **Hecho** · **Corrección** (propuesta, sin hacer) ·
 **Prueba** (cómo se reproduce).
 
 **I-77** — Hecho: «Tensión F-F» = 0 sale «Algo falló y la página no puede seguir»: división entre cero en `TensionDeCalculo.Divisor` (`CuadroDeCarga.cs:1230`). El tablero solo vive en memoria: al recargar se pierde lo no guardado. Con −220 V, el alimentador enseña la excepción de `Fasor`: «La magnitud de un fasor (valor RMS) no puede ser negativa…». Corrección: rechazar tensión ≤ 0 en el campo (como el F.D.) y avisar. Prueba: capturar 1000 VA en el 1 y teclear 0 en la tensión.
@@ -343,7 +344,7 @@ registrarlos; esta los volvió a reproducir. Formato: **Hecho** · **Corrección
 
 **I-85** — Hecho: la barra compacta (solo iconos) empieza en 760 px; de 761 a unos 1120 px la barra no cabe y la página se desplaza de lado hasta 349 px. A 768 px, «Guardar» sale cortado y el tema y GitHub quedan fuera; a 1024, GitHub fuera y «Oscuro» en la orilla. Corrección: pasar a la barra compacta antes, o esconder los textos por tramos. Prueba: Captura a 768 y 1024 px.
 
-**I-86** — Hecho: en pantalla, la tabla de «Cuadro de carga» (`table.doc-cuadro`, 992 px) sale de su hoja y la página se desplaza de lado 603 px a 320 px, 371 a 560, 43 a 1000. Impreso cabe. Corrección: desplazamiento dentro de la hoja, como el cuadro de la captura. Prueba: documento a 390 px.
+**I-86** — Hecho: en pantalla, la tabla de «Cuadro de carga» (`table.doc-cuadro`) sale de su hoja —a 390 px su orilla llega a 992 px— y la página se desplaza de lado 603 px a 320 px, 371 a 560, 43 a 1000. Impreso cabe. Corrección: desplazamiento dentro de la hoja, como el cuadro de la captura. Prueba: documento a 390 px.
 
 **I-87** — Hecho: la tabla de captura mide 1682 px y su contenedor tope 1680: a 1920 px «e (%)» sale cortada 3 px; a 1680, 43; a 1440 quedan fuera los conductores; a 1366 (laptop común), también Protec. (357 px fuera). Al desplazar de lado solo «N.º» queda fija, no «Descripción». La barra de desplazamiento está al pie de la tabla: con 42 espacios, muy abajo. Venía de antes del 2026-09-27. Corrección: fijar también «Descripción» y adelgazar columnas. Prueba: captura a 1366 px, un circuito con carga.
 
@@ -353,11 +354,11 @@ registrarlos; esta los volvió a reproducir. Formato: **Hecho** · **Corrección
 
 **I-90** — Hecho: la flecha del selector tapa la última letra de «Refrigerador» (uso) y de «MCA» (unidad del A/C). A 768-1100 px: «Centro de carga (NEMA» y «60 °C hasta 100 A (reg…» en la ficha. Corrección: ancho mínimo por su texto más largo, o nombres cortos en el selector con el largo en el título. Prueba: A/C con MCA; uso Refrigerador.
 
-**I-91** — Hecho: el subrayado punteado de la ayuda del calibre («12 AWG») cae sobre el «3.31 mm²» de abajo: se lee tachado. En todos los renglones con carga. Corrección: separar la línea de mm² o bajar el subrayado dentro de su caja. Prueba: cualquier circuito con carga, columna Fase.
+**I-91** — Hecho: el subrayado punteado de la ayuda del calibre («12 AWG») cae sobre el «3.31 mm²» de abajo: se lee tachado. En la columna Fase de todos los renglones con carga. Corrección: separar la línea de mm² o bajar el subrayado dentro de su caja. Prueba: cualquier circuito con carga, columna Fase.
 
 **I-92** — Hecho: en el documento impreso (carta y A4 horizontal, PDF de Chromium), «Canal.» parte «T1 · 21 mm / ¾ in» en tres renglones y separa número y unidad; «Puesta a tierra» en tres. Formatos mezclados: «MCA 18.00 A · MOCP 30 A»; el motor con «5,791.98» y «1,930.66» junto a enteros. Corrección: tamaño en su propio renglón con `nowrap`; el mismo formato que I-49. Prueba: tablero con motor y A/C, Imprimir.
 
-**I-93** — Hecho: con el principal en espacios, la fase que queda junto a la barra (C en pares, A en nones) no lleva flecha: no hay lugar entre el número y la barra. Se lee como que el principal alimenta dos barras. Corrección: dibujar la flecha sobre la barra. Prueba: Montaje del principal = En espacios.
+**I-93** — Hecho: con el principal en espacios, la fase que queda junto a la barra (C en pares, A en nones; los dos vistos) no lleva flecha: no hay lugar entre el número y la barra. Se lee como que el principal alimenta dos barras. Corrección: dibujar la flecha sobre la barra. Prueba: Montaje del principal = En espacios.
 
 **I-94** — Hecho: dos canalizaciones pueden llamarse «T4»; en «Canal.» del cuadro se ven dos «T4». Corrección: rechazar el nombre repetido o numerarlo. Prueba: renombrar T1 y T2 a T4.
 
