@@ -97,6 +97,7 @@ A `main` por avance rápido (pedido de David). Sin listas de revisión hasta que
 - La columna N.º fija otra vez al desplazar de lado (I-101 le había quitado el sticky) — I-105, `aa9e585`.
 - 6 px menos por columna para que el cuadro quepa; sin muestras de color en Fase, Neutro y Tierra —
   I-106, `aa9e585`. A `main` por avance rápido.
+- La casilla de «+N» dentro de la celda en 2 polos — I-107, `2d2d621`. A `main` por avance rápido.
 
 ## 2026-09-28
 

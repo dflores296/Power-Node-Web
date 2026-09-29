@@ -130,6 +130,7 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-104 · Columnas de resultados de distinto ancho: «In (A)» y «e (%)» apretadas | P3 | **Cerrado** | `5125dbd` |
 | I-105 · Al desplazar el cuadro de lado, el N.º se iba y dejaba un hueco | P2 | **Cerrado** | `aa9e585` |
 | I-106 · El cuadro ya no cabía completo; muestras de color en Fase, Neutro y Tierra | P3 | **Cerrado** | `aa9e585` |
+| I-107 · La casilla de «+N» se salía de la celda en 2 polos | P3 | **Cerrado** | `2d2d621` |
 | R-01 · Caída del alimentador fija en 5 %, sin verificar la combinada — 215-2(a)(4) NOTA 2 | P1 | **Cerrado** | `2a973ea` |
 | R-02 · Caída del alimentador sin la caída del neutro | P2 | **Cerrado** | `d6cd1c6` |
 | R-03 · La publicación no corre `PowerNode.Web.Tests` | P1 | **Cerrado** | `986c9d7` |
@@ -399,6 +400,8 @@ e I-88 a I-93. Formato: **Hecho** · **Corrección** (propuesta, sin hacer) ·
 **I-105** — Hecho (David, en la versión publicada): al recorrer el cuadro de lado con el trackpad, la columna N.º se iba con la tabla y quedaba un hueco blanco junto a la descripción, que sí se quedaba fija. Causa: `position: relative` en las celdas del renglón, puesto en I-101 para anclar las notas, pesaba más que el `position: sticky` del N.º. Corrección: no se aplica a la primera columna, y el N.º mide exactamente 32 px, que es donde se fija la descripción. Cerrado en `aa9e585`. Prueba: en el navegador, a 1500 px, desplazar 300 px: N.º y descripción fijos, el resto pasa por debajo.
 
 **I-106** — Hecho (David): con las columnas de 76 px (I-104) el cuadro ya no cabía completo en su pantalla, y pidió quitar las muestras de color de Fase, Neutro y Tierra. Corrección: la misma proporción con 6 px menos por columna —3 px de relleno a cada lado en vez de 6; resultados y balanceo de 76 a 70 px—; sin datos, de 1672 a 1570 px. Encabezados de conductores solo con su nombre (las muestras siguen en la tarjeta del alimentador). Cerrado en `aa9e585`.
+
+**I-107** — Hecho (David): en un circuito de 2 polos la casilla de «+N» quedaba sobre el borde del renglón. La casilla del navegador mide 13 px con 3 de margen; la nota tenía 12 px reservados y el renglón de 2 polos mide 60: terminaba 3 px abajo de la celda. Corrección: la casilla de 12 px sin margen, como las demás notas (también la de 225 % del A/C); queda 4 px arriba del borde. Cerrado en `2d2d621`.
 
 ### Revisión del 2026-09-23
 
