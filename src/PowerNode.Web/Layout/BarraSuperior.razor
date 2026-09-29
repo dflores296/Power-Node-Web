@@ -61,7 +61,7 @@
         @if (EnDocumento)
         {
             @* En el celular, solo el icono: con el texto la barra se iba a tres renglones (I-60). *@
-            <button class="boton primario con-icono" type="button" @onclick="Imprimir">
+            <button class="boton primario con-icono" type="button" @onclick="Imprimir" title="Imprimir el documento, o guardarlo como PDF desde el diálogo de impresión.">
                 <Icono Nombre="imprimir" Clase="boton-icono" />
                 <span class="boton-texto">Imprimir / PDF</span>
             </button>

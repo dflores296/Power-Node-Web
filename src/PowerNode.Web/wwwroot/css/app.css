@@ -196,6 +196,28 @@ html { scroll-padding-top: calc(var(--alto-barra) + 8px); -webkit-text-size-adju
 .nota-archivo .cerrar { border: 0; background: none; cursor: pointer; color: var(--tenue); font-size: 17px; line-height: 1; padding: 0 2px; }
 .nota-archivo .cerrar:hover { color: var(--tinta); }
 
+/* LA BARRA SE COMPACTA POR ESCALONES (I-85). Entre la de escritorio y la del celular no había nada: de
+   761 a 1120 px no cabía y la página entera se desplazaba de lado; a 768 px «Guardar» salía cortado y el
+   tema y GitHub quedaban fuera. */
+
+/* Hasta 1180 px: las acciones, solo con su icono. El tema con símbolos (◐ ☀ ☾). Los nombres se quedan
+   para el lector de pantalla (I-60). */
+@media (max-width: 1180px) {
+    .tema-opciones .tema-simbolo { display: block; }
+    .tema-nombre { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    .tema-opciones button { padding: 4px 9px; }
+    .boton-texto { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    .boton.con-icono { padding: 7px 10px; }
+    .github-texto { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+}
+
+/* Hasta 960 px: además, las páginas con su nombre corto y la marca sin la norma. */
+@media (max-width: 960px) {
+    .pagina-corta { display: inline; }
+    .pagina-larga { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    .marca-texto small { display: none; }
+}
+
 /* En el celular no cabe en un renglón: las páginas bajan a un segundo renglón, a lo ancho, y se
    recorren de lado si no caben. */
 @media (max-width: 760px) {
@@ -203,22 +225,12 @@ html { scroll-padding-top: calc(var(--alto-barra) + 8px); -webkit-text-size-adju
     .barra-superior-interior { flex-wrap: wrap; row-gap: 6px; column-gap: 10px; padding: 8px 14px; }
     .barra-superior .espaciador { display: none; }
     .marca { margin-right: auto; } /* lo demás del renglón, a la derecha */
-    /* El tema con símbolos (◐ ☀ ☾): con el nombre no cabía junto a Imprimir y la barra se iba a tres
-       renglones en el documento. El nombre se queda para el lector de pantalla (I-60). */
-    .tema-opciones .tema-simbolo { display: block; }
-    .tema-nombre { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-    .tema-opciones button { padding: 4px 9px; }
-    .boton-texto { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-    .boton.con-icono { padding: 7px 10px; }
     .nota-archivo { right: 14px; }
-    .marca-texto small, .barra-superior .vsep { display: none; }
+    .barra-superior .vsep { display: none; }
     /* Las páginas y GitHub, en el segundo renglón: GitHub a la derecha, solo con la marca y el número. */
     .paginas { order: 3; flex: 1 1 calc(100% - 120px); min-width: 0; overflow-x: auto; }
     .paginas a { padding: 6px 8px; }
-    .pagina-corta { display: inline; }
-    .pagina-larga { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
     .github { order: 4; padding: 6px 8px; }
-    .github-texto { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
     html { scroll-padding-top: 108px; }
 }
 /* 360 px, el Android más común: con Abrir y Guardar no cabe el nombre junto al logo, y queda el logo
@@ -457,6 +469,10 @@ select.tipo { width: 108px; padding: 2px 4px 2px 6px; border-radius: var(--radio
 .con-icono-carga { display: inline-flex; align-items: center; gap: 7px; }
 .con-icono-carga .icono { color: var(--tenue); }
 .cuadro .tipo-uso .en-va { text-align: center; padding-right: 0; }
+/* La nota del uso («Individual — 210-52(b)(1) Exc. 2», «Alimentador: 1,500 VA — 220-52(a)») se parte
+   al ancho del icono y el selector: en una línea ensanchaba la columna y el cuadro no cabía ni a
+   1920 px (I-87). */
+.cuadro .tipo-uso .en-va { white-space: normal; max-width: 136px; line-height: 1.25; }
 
 /* ------------------------------------------------------------------------------------------------
    LA FICHA DEL TABLERO — el bloque de identificación que el Excel lleva arriba del cuadro
@@ -538,6 +554,12 @@ select.tipo { width: 108px; padding: 2px 4px 2px 6px; border-radius: var(--radio
     .datos.resumen { font-size: 12px; }
     .datos.resumen th { letter-spacing: 0; }
     .datos.resumen input.chico { width: 56px; }
+}
+/* A 320 px (iPhone SE de primera generación) todavía se salía 32 px y arrastraba la página (I-85). */
+@media (max-width: 360px) {
+    .datos.resumen { font-size: 11px; }
+    .datos.resumen th { font-size: 9px; overflow-wrap: anywhere; }
+    .datos.resumen input.chico { width: 44px; padding-left: 4px; padding-right: 4px; }
 }
 
 .tarjeta { background: var(--papel); border: 1px solid var(--linea);
@@ -649,6 +671,11 @@ label.suelto input { width: 90px; }
 .doc-resumen td { border: 1px solid var(--linea-suave); padding: 3px 6px; text-align: right; }
 .doc-resumen tr.total td { font-weight: 600; }
 .doc-resumen .rotulo { color: var(--tenue); width: 42%; }
+/* A 320 px el resumen del documento se salía 7 px de la hoja (I-85). Solo en pantalla. */
+@media screen and (max-width: 360px) {
+    .doc-resumen th, .doc-resumen td { padding-left: 3px; padding-right: 3px; }
+    .doc-resumen th { white-space: normal; }
+}
 .doc-resumen.separado { margin-top: 12px; }
 .doc-nota { margin-top: 16px; font-size: 10px; color: var(--tenue); line-height: 1.5; }
 
@@ -856,6 +883,7 @@ polygon.riel-a { fill: var(--barra-a); } polygon.riel-b { fill: var(--barra-b); 
 .encabezado-tarjeta { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .encabezado-tarjeta h2 { margin: 0; }
 .desplazable { overflow-x: auto; }
+@media print { .desplazable { overflow: visible; } } /* impreso no hay desplazamiento (I-86) */
 .subtitulo-canal { margin: 16px 0 6px; font-size: 11px; font-weight: 600; text-transform: uppercase;
                    letter-spacing: .04em; color: var(--tenue); }
 /* Las dos tablas de canalizaciones se ven como el cuadro (.cuadro): fondo, bordes y encabezados
@@ -891,6 +919,22 @@ polygon.riel-a { fill: var(--barra-a); } polygon.riel-b { fill: var(--barra-b); 
 }
 .cuadro tbody tr:not(.separador) > td:first-child { background: var(--papel); }
 .cuadro thead tr:first-child > th:first-child { background: var(--encabezado); z-index: 2; }
+
+/* Y la descripción junto a él, fuera del celular (I-87): con solo el número, a la altura de los
+   conductores no se sabía qué circuito era. En el celular no: las dos juntas se comen media pantalla.
+   Solo en el cuadro de la captura (la tabla de canalizaciones también es .cuadro) y sin bajar al
+   desglose, que es otra tabla adentro. La N.º mide 32 px. */
+@media (min-width: 761px) {
+    #sec-cuadro > .cuadro > thead > tr:first-child > th:nth-child(2),
+    #sec-cuadro > .cuadro > tbody > tr:not(.separador):not(.fila-principal):not(.fila-error):not(.fila-desglose) > td:nth-child(2) {
+        position: sticky; left: 32px; z-index: 1;
+        box-shadow: 1px 0 0 var(--linea);
+    }
+    #sec-cuadro > .cuadro > tbody > tr:not(.separador) > td:nth-child(2) { background: var(--papel); }
+    #sec-cuadro > .cuadro > thead > tr:first-child > th:nth-child(2) { background: var(--encabezado); z-index: 2; }
+    #sec-cuadro > .cuadro > thead > tr:first-child > th:first-child,
+    #sec-cuadro > .cuadro > tbody > tr:not(.separador) > td:first-child { width: 32px; min-width: 32px; max-width: 32px; box-sizing: border-box; }
+}
 
 /* ------------------------------------------------------------------------------------------------
    TECLADO — I-56 (David, 2026-09-25).

@@ -43,6 +43,9 @@
             literalmente como está armado el Excel. Una sola tabla para que las columnas de los dos
             bloques queden alineadas.
         *@
+        @* En pantalla, la tabla se desplaza dentro de la hoja: en el celular salía de ella y arrastraba
+           la página entera de lado (I-86). Impresa cabe y no se desplaza. *@
+        <div class="desplazable">
         <table class="doc-cuadro">
             <thead>
                 <tr>
@@ -137,6 +140,7 @@
                 }
             </tbody>
         </table>
+        </div>
 
         <section class="doc-pie">
             <div>
@@ -245,6 +249,7 @@
         @if (canales.Count > 0)
         {
             <h3 class="doc-titulo-canal">Canalizaciones</h3>
+            <div class="desplazable">
             <table class="doc-resumen doc-canal">
                 <tr>
                     <th rowspan="2">Canal.</th><th rowspan="2">Tipo</th><th rowspan="2">Circuitos</th>
@@ -273,6 +278,7 @@
                     </tr>
                 }
             </table>
+            </div>
         }
 
         @foreach (var aviso in Cuadro.Alimentador.Avisos)
