@@ -103,6 +103,8 @@ A `main` por avance rápido (pedido de David). Sin listas de revisión hasta que
 - El texto de ejemplo se va al enfocar el campo — I-109, `8013249`. A `main` por avance rápido.
 - La pantalla de carga centrada desde el principio: dos animaciones con el mismo nombre — I-110, `e5e13b5`.
   A `main` por avance rápido.
+- El tipo se elige: «—» por omisión y sin calcular hasta elegirlo — I-111; sin icono en el cuadro — I-112,
+  `1472560`. A `main` por avance rápido. Sigue: varios motores en un circuito (430-53), por platicar.
 
 ## 2026-09-28
 
