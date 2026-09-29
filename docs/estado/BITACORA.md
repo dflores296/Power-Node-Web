@@ -83,6 +83,14 @@ rápido (pedido de David). **Auditoría del 2026-09-28 cerrada** (David). Siguen
 
 I-99 a I-103 a `main` por avance rápido (pedido de David).
 
+**Revisión de David de I-99 a I-103 publicados**: el N.º con contorno «se ve horrible» y la alineación no
+era la que pedía. Con sus reglas:
+
+- El N.º como los rótulos de fase: relleno del color y número blanco en negritas — I-99, `5125dbd`.
+- Todo centrado; todos los campos de 28 px; lo de abajo, notas que no mueven el campo; tipo y uso
+  repartidos centrados — I-101 rehecho, `5125dbd`.
+- Las columnas de resultados parejas, de 76 px — I-104, `5125dbd`.
+
 ## 2026-09-28
 
 **Auditoría de interfaz** (pedido de David: botones desalineados, texto cortado o chueco, funcionalidad).
