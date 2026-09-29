@@ -12,6 +12,23 @@ Registro de acciones por sesión, con hallazgo y commit.
 
 Pruebas: 274 en `PowerNode.Web.Tests`, 23 en `PowerNode.Normativa.Tests`.
 
+**Los P2 de la auditoría** (pedido de David: «¿por qué solo I-81? aviéntate P2»). I-82 y M-11 ya
+estaban.
+
+- Avisar en el archivo cargas, longitudes y capacidad de barra negativas y frecuencia menor que 50 Hz
+  — I-84, `e52ad3c`.
+- Nombrar en la confirmación los multipolares que pierden polos al bajar fases o espacios; recordar
+  los polos elegidos y regresarlos al crecer, si hay lugar; `@key` en las opciones de HP — I-83,
+  `15aa643`.
+- Leer la coma igual en todos los navegadores: números como texto (`inputmode="decimal"`), coma de
+  miles y coma decimal con aviso — I-81, `b8c497b`.
+- Compactar la barra por escalones, desplazar las tablas del documento dentro de la hoja y hacer que
+  el cuadro quepa a 1920 con «Descripción» fija — I-85, I-86, I-87, `6c0e8aa`.
+- Verificar en el navegador lo nuevo y todo lo anterior: P1, I-79, diámetros, arrastre, guardar y
+  abrir sin diferencias, impresión, y sin desplazamiento de página de 320 a 1280 px.
+
+Pruebas: 278 en `PowerNode.Web.Tests`, 23 en `PowerNode.Normativa.Tests`.
+
 ## 2026-09-28
 
 **Auditoría de interfaz** (pedido de David: botones desalineados, texto cortado o chueco, funcionalidad).
