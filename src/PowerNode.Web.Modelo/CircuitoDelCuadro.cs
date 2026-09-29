@@ -120,6 +120,53 @@ public sealed class CircuitoDelCuadro
     /// <summary>A/C: la protección máxima de la placa (MOCP) — 440-4(b).</summary>
     public decimal ProteccionMaximaA { get; set; }
 
+    /// <summary>Motor con variador: la corriente nominal de entrada del variador — 430-122(a), I-119.</summary>
+    public decimal CorrienteEntradaVariadorA { get; set; }
+
+    /// <summary>Motor con variador: la protección máxima que marca su fabricante — 110-3(b), I-119.</summary>
+    public decimal ProteccionMaximaVariadorA { get; set; }
+
+    /// <summary>Un motor con variador de velocidad — 430 Parte J, I-119.</summary>
+    public bool EsVariador => EsMotor && CapturaMotor == CapturaDeMotor.Variador;
+
+    /// <summary>
+    /// El servicio de un motor solo, en HP o en amperes: <c>null</c> = continuo, el de casi todos (nota de la
+    /// Tabla 430-22(e)); si no, corta duración, intermitente, periódico o variable — 430-22(e), I-120.
+    /// </summary>
+    public PowerNode.DesignSuite.Calculo.TablasNom.ServicioDeMotor? Servicio { get; set; }
+
+    /// <summary>Para cuánto tiempo está especificado el motor: la columna de la Tabla 430-22(e).</summary>
+    public PowerNode.DesignSuite.Calculo.TablasNom.EspecificacionDeTiempo EspecificacionServicio { get; set; } =
+        PowerNode.DesignSuite.Calculo.TablasNom.EspecificacionDeTiempo.Continuo;
+
+    /// <summary>
+    /// La corriente de placa de un motor en HP de servicio no continuo: 430-22(e) va sobre la placa, no
+    /// sobre la tabla. En amperes es <see cref="CorrientePlacaA"/>.
+    /// </summary>
+    public decimal CorrientePlacaServicioA { get; set; }
+
+    /// <summary>El servicio aplica: un motor solo, en HP o en amperes, con servicio no continuo.</summary>
+    public bool TieneServicioNoContinuo =>
+        EsMotor && Servicio is not null && CapturaMotor is CapturaDeMotor.Hp or CapturaDeMotor.Amperes;
+
+    /// <summary>La corriente de placa con la que se aplica 430-22(e).</summary>
+    public decimal CorrienteDePlacaDelServicioA => CapturaMotor == CapturaDeMotor.Amperes ? CorrientePlacaA : CorrientePlacaServicioA;
+
+    /// <summary>
+    /// Lo que un motor de servicio no continuo aporta al alimentador: el % de la Tabla 430-22(e) por su
+    /// placa — 430-24 Excepción 1. 0 si no aplica. La pone <see cref="CuadroDeCarga"/>.
+    /// </summary>
+    public decimal CorrienteDeServicioA { get; internal set; }
+
+    /// <summary>
+    /// El espacio de un circuito que no funciona a la vez que este: del par, al alimentador va el mayor —
+    /// 220-60, 430-24 Excepción 3, 440-33 Excepción 1 (I-121). <c>null</c> = sin par.
+    /// </summary>
+    public int? NoSimultaneoCon { get; set; }
+
+    /// <summary>No entra al alimentador: es el menor de un par no simultáneo. Lo pone <see cref="CuadroDeCarga"/>.</summary>
+    public bool OmitidoPorNoSimultaneo { get; internal set; }
+
     /// <summary>
     /// Lo capturado del motor o del equipo de A/C, en la forma que corresponde: HP, amperes, corriente
     /// nominal o ampacidad mínima. Con eso el renglón calcula, o dice por qué no (<see cref="Error"/>).
@@ -129,6 +176,7 @@ public sealed class CircuitoDelCuadro
         {
             CapturaDeMotor.Hp => Hp > 0m,
             CapturaDeMotor.Amperes => CorrientePlacaA > 0m,
+            CapturaDeMotor.Variador => CorrienteEntradaVariadorA > 0m,
             _ => Aparatos.Any(a => a.EsMaquina && a.TieneCapturaDeMaquina),
         }
         : EsAireAcondicionado && PlacaAire switch
@@ -404,7 +452,8 @@ public sealed class CircuitoDelCuadro
     /// </summary>
     public bool TieneCaptura =>
         !string.IsNullOrWhiteSpace(Descripcion) || Continua > 0m || NoContinua > 0m || Hp > 0m || CorrientePlacaA > 0m
-        || AmpacidadMinimaA > 0m || Aparatos.Count > 0 || Polos > 1;
+        || AmpacidadMinimaA > 0m || CorrienteEntradaVariadorA > 0m || Aparatos.Count > 0 || Polos > 1
+        || Servicio is not null || NoSimultaneoCon is not null;
 
     /// <summary>
     /// Lo que este circuito le carga a cada una de sus barras, en VA — la banda «BALANCEO DE FASES»

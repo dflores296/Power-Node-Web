@@ -220,6 +220,7 @@ public sealed class CuadroDeCarga
         ResolverFases();
         PrepararCanalizaciones();
         CalcularCircuitos();
+        ResolverNoSimultaneos();
         DibujarGabinete();
         CalcularResumen();
         CalcularAlimentador();
@@ -389,6 +390,11 @@ public sealed class CuadroDeCarga
                 citas: r.Citas);
         }
 
+        if (c.EsVariador)
+            return DesgloseDeSeleccion.DeVariador(
+                _motor.Ampacidad, Datos, c.CorrienteEntradaVariadorA, c.ProteccionMaximaVariadorA,
+                r.ProteccionA, r.CalibreFase, r.NumeroConductoresParalelo, detalle, r.Citas);
+
         if (c.EsMotor)
             return DesgloseDeSeleccion.DeMotor(
                 _motor.Ampacidad, Datos,
@@ -399,7 +405,8 @@ public sealed class CuadroDeCarga
                 calibre: r.CalibreFase,
                 conductoresPorFase: r.NumeroConductoresParalelo,
                 d: detalle,
-                citas: r.Citas);
+                citas: r.Citas,
+                servicio: r.Citas.FirstOrDefault(x => x.Referencia == "430-22(e)")?.Descripcion);
 
         if (c.EsAireAcondicionado)
             return DesgloseDeSeleccion.DeAireAcondicionado(
@@ -935,6 +942,11 @@ public sealed class CuadroDeCarga
             datos.Aplicar(nuevo, Datos, []);
             _circuitos[a - 1] = nuevo;
         }
+        // El par no simultáneo sigue al circuito que se movió — I-121.
+        var destinos = movimientos.ToDictionary(m => m.De, m => m.A);
+        foreach (var c in _circuitos)
+            if (c.NoSimultaneoCon is { } n && destinos.TryGetValue(n, out var ahora))
+                c.NoSimultaneoCon = ahora;
     }
 
     /// <summary>
@@ -962,6 +974,7 @@ public sealed class CuadroDeCarga
             c.MotorEnAmperes = null;
             c.MotorVA = 0m;
             c.MotorAl125 = null;
+            c.CorrienteDeServicioA = 0m;
 
             // I-15, I-74: un motor o un equipo de A/C no tiene carga continua ni no continua. Su
             // corriente es la FLC de tabla (430-6(a)) o la de la placa (440-6(a), 440-4(b)), y sus
@@ -1127,7 +1140,7 @@ public sealed class CuadroDeCarga
 
     /// <summary>Los avisos de los circuitos que no son de caída: por ahora, 440-62 (I-117).</summary>
     public IEnumerable<string> AvisosDeCircuitos =>
-        _circuitos.Where(c => c.AvisoAireDeHabitacion is not null).Select(c => c.AvisoAireDeHabitacion!);
+        _circuitos.Where(c => c.AvisoAireDeHabitacion is not null).Select(c => c.AvisoAireDeHabitacion!).Concat(_avisosNoSimultaneos);
 
     /// <summary>
     /// Más de 93.25 W (⅛ hp) — 220-18(a). En HP, los de la tabla empiezan en ⅙; en amperes, sus HP
@@ -1206,6 +1219,9 @@ public sealed class CuadroDeCarga
 
         if (c.CapturaMotor == CapturaDeMotor.Hp)
             return c.Hp > 0m ? MotoresEnHp.Flc(_motor.FlcMotor, c.Hp.Value, c.Polos, TensionDelMotor(c)) : null;
+        // Con variador, la corriente del circuito es la de entrada del variador — 430-122(a), I-119.
+        if (c.CapturaMotor == CapturaDeMotor.Variador)
+            return c.CorrienteEntradaVariadorA > 0m ? c.CorrienteEntradaVariadorA : null;
 
         c.MotorEnAmperes = MotoresEnHp.DeAmperes(_motor.FlcMotor, c.CorrientePlacaA, c.Polos, TensionDelMotor(c));
         return c.MotorEnAmperes?.Amperes;
@@ -1418,6 +1434,7 @@ public sealed class CuadroDeCarga
                     DatosEntradaCircuitoDerivadoMotor d => _motor.Motor(Datos.SerieInterruptores).Calcular(d),
                     DatosEntradaCircuitoDerivado440 d => _motor.AireAcondicionado(Datos.SerieInterruptores).Calcular(d),
                     DatosEntradaCircuitoDerivadoGrupo d => _motor.Grupo(Datos.SerieInterruptores).Calcular(d),
+                    DatosEntradaCircuitoDerivadoVariador d => _motor.Variador(Datos.SerieInterruptores).Calcular(d),
                     _ => throw new ArgumentException($"Entrada sin calculadora: {typeof(T).Name}"),
                 }, null);
             }
@@ -1452,6 +1469,11 @@ public sealed class CuadroDeCarga
                 if (c.EsGrupo)
                 {
                     CalcularGrupo(c, canal);
+                    continue;
+                }
+                if (c.EsVariador)
+                {
+                    CalcularVariador(c, canal);
                     continue;
                 }
                 if (c.EsMotor)
@@ -1532,8 +1554,29 @@ public sealed class CuadroDeCarga
             return;
         }
 
+        // Servicio no continuo — 430-22(e), I-120: el % de la tabla sobre la corriente de placa.
+        ServicioNoContinuo? servicio = null;
+        if (c.TieneServicioNoContinuo)
+        {
+            var placa = c.CorrienteDePlacaDelServicioA;
+            if (placa <= 0m)
+            {
+                c.Error = "430-22(e): el conductor de un motor de servicio no continuo va sobre la corriente de placa del motor. " +
+                          "Captúrala en el detalle del circuito (la flecha junto a la descripción).";
+                return;
+            }
+            if (_motor.ServicioMotor.Porcentaje(c.Servicio!.Value, c.EspecificacionServicio) is not { } porcentaje)
+            {
+                c.Error = "Tabla 430-22(e): un motor de servicio de corta duración no se especifica para funcionamiento continuo. " +
+                          "Elige para cuántos minutos está especificado.";
+                return;
+            }
+            servicio = new ServicioNoContinuo(c.Servicio.Value, c.EspecificacionServicio, porcentaje, placa);
+            c.CorrienteDeServicioA = porcentaje * placa / 100m;
+        }
+
         // En amperes, los caballos interpolados (430-6(a)(1)) van solo a la cita; la FLC es la corriente.
-        c.Resultado = Recordado(DatosDeUnMotor(c, canal, enAmperes ? c.MotorEnAmperes!.Hp : c.Hp!.Value, enAmperes ? c.FlcA : null));
+        c.Resultado = Recordado(DatosDeUnMotor(c, canal, enAmperes ? c.MotorEnAmperes!.Hp : c.Hp!.Value, enAmperes ? c.FlcA : null) with { Servicio = servicio });
     }
 
     private DatosEntradaCircuitoDerivadoMotor DatosDeUnMotor(CircuitoDelCuadro c, CanalizacionDelTablero canal, decimal hp, decimal? flcMarcadaEnAmperesA)
@@ -1632,6 +1675,29 @@ public sealed class CuadroDeCarga
             LugarInstalacionSeco: Datos.LugarSeco,
             TerminalesMarcadas75C: Datos.TerminalesMarcadas75C));
     }
+
+    /// <summary>
+    /// <b>Un motor con variador</b> — I-119, 430 Parte J: la corriente de entrada del variador al 125 %
+    /// (430-122(a)) y la protección máxima de su fabricante (110-3(b)).
+    /// </summary>
+    private void CalcularVariador(CircuitoDelCuadro c, CanalizacionDelTablero canal) =>
+        c.Resultado = Recordado(new DatosEntradaCircuitoDerivadoVariador(
+            CorrienteEntradaA: c.CorrienteEntradaVariadorA,
+            ProteccionMaximaA: c.ProteccionMaximaVariadorA,
+            NumeroFases: c.Polos == 3 ? 3 : 1,
+            TensionFaseNeutroV: c.Polos == 1 ? Datos.TensionFaseNeutroV : Datos.TensionFaseFaseV,
+            TensionFaseFaseV: Datos.TensionFaseFaseV,
+            LongitudM: c.LongitudM,
+            NumeroConductoresParalelo: 1,
+            NumeroConductoresAgrupados: canal.Ajuste!.ConductoresParaElMotor,
+            TemperaturaAmbienteC: Datos.TemperaturaAmbienteC + canal.SumadorAzoteaC,
+            MaterialConductor: Datos.MaterialConductor,
+            MaterialCanalizacion: canal.MaterialParaTabla9,
+            FactorPotencia: c.FactorPotencia,
+            CaidaTensionMaxPct: Datos.CaidaMaxDerivadoPct,
+            TipoAislamiento: Datos.TipoAislamiento,
+            LugarInstalacionSeco: Datos.LugarSeco,
+            TerminalesMarcadas75C: Datos.TerminalesMarcadas75C));
 
     /// <summary>«Extractor», o «Motor 2» si no se describió: el número de su renglón en el desglose.</summary>
     public static string NombreDeMaquina(CircuitoDelCuadro c, AparatoDelCircuito a) =>
@@ -1783,8 +1849,47 @@ public sealed class CuadroDeCarga
             ]);
     }
 
-    /// <summary>El factor de demanda del tipo del circuito — R-17.</summary>
-    private decimal FactorDeDemanda(CircuitoDelCuadro c) => Datos.FactorDeDemanda(c.Categoria);
+    /// <summary>
+    /// El factor de demanda del tipo del circuito — R-17. Cero en el menor de un par no simultáneo: no
+    /// entra al alimentador — 220-60 (I-121).
+    /// </summary>
+    private decimal FactorDeDemanda(CircuitoDelCuadro c) => c.OmitidoPorNoSimultaneo ? 0m : Datos.FactorDeDemanda(c.Categoria);
+
+    /// <summary>
+    /// <b>Cargas no simultáneas</b> — I-121: de cada par, al alimentador va la mayor; la menor se omite —
+    /// 220-60, 430-24 Excepción 3, 440-33 Excepción 1. La carga que se compara es la que entra al
+    /// alimentador, con su factor de demanda. Un par con un circuito sin carga, o que ya no existe, avisa.
+    /// </summary>
+    private void ResolverNoSimultaneos()
+    {
+        _avisosNoSimultaneos.Clear();
+        foreach (var c in _circuitos)
+            c.OmitidoPorNoSimultaneo = false;
+
+        decimal Carga(CircuitoDelCuadro c) => c.CargaCalculadaVA * Datos.FactorDeDemanda(c.Categoria);
+        var mayorDe = new Dictionary<CircuitoDelCuadro, CircuitoDelCuadro>();
+        foreach (var c in _circuitos.Where(c => c.NoSimultaneoCon is not null && !c.EsContinuacion && !c.EsDelPrincipal))
+        {
+            var otro = _circuitos.FirstOrDefault(x => x.Espacio == c.NoSimultaneoCon);
+            if (otro is null || otro == c || otro.EsContinuacion || otro.EsDelPrincipal || !otro.TieneCarga || !c.TieneCarga)
+            {
+                if (c.TieneCarga)
+                    _avisosNoSimultaneos.Add(
+                        $"Circuito {c.Espacio}: no simultáneo con el {c.NoSimultaneoCon}, que no tiene carga o ya no es un circuito. Revisa el par (220-60).");
+                continue;
+            }
+            // El menor; en un empate, el de número mayor. Un par capturado de los dos lados da lo mismo.
+            var (menor, mayor) = Carga(c) < Carga(otro) || (Carga(c) == Carga(otro) && c.Espacio > otro.Espacio) ? (c, otro) : (otro, c);
+            menor.OmitidoPorNoSimultaneo = true;
+            mayorDe[menor] = mayor;
+        }
+        foreach (var (menor, mayor) in mayorDe)
+            _avisosNoSimultaneos.Add(
+                $"Circuito {menor.Espacio}: no entra al alimentador — no funciona a la vez que el circuito {mayor.Espacio}, que es mayor " +
+                $"(220-60{(menor.EsMotor ? ", 430-24 Excepción 3" : menor.EsAireAcondicionado ? ", 440-33 Excepción 1" : "")}).");
+    }
+
+    private readonly List<string> _avisosNoSimultaneos = [];
 
     /// <summary>
     /// <b>La corriente de cada barra del alimentador</b> — M-02. Cada fase del alimentador lleva su
@@ -1854,7 +1959,7 @@ public sealed class CuadroDeCarga
 
     private IEnumerable<MotorDelAlimentador> MotoresDelAlimentador() =>
         _circuitos
-            .Where(c => c.TieneCarga && c.EsDeMotor && c.CorrienteDeMotorA > 0m)
+            .Where(c => c.TieneCarga && c.EsDeMotor && c.CorrienteDeMotorA > 0m && !c.OmitidoPorNoSimultaneo)
             .SelectMany(c => c.EsGrupo
                 // UN GRUPO ENTRA MOTOR POR MOTOR — I-115: el 125 % de 430-24 es del motor mayor del
                 // alimentador, no del circuito que lo lleva. Todos con la protección de su circuito.
@@ -1862,11 +1967,15 @@ public sealed class CuadroDeCarga
                     .Where(a => a.EsMaquina && a.CorrienteUnitariaA > 0m)
                     .SelectMany(a => Enumerable.Repeat(a.CorrienteUnitariaA, a.Cantidad))
                     .Select(i => new MotorDelAlimentador(c, i, FactorDeDemanda(c), c.Resultado?.ProteccionA, false))
-                : [new MotorDelAlimentador(
-                    c, c.CorrienteDeMotorA, FactorDeDemanda(c),
-                    // Sin derivado calculado no hay protección que aportar al techo de 430-62(a).
-                    c.Resultado?.ProteccionA,
-                    c.EsAireAcondicionado && c.PlacaAire == PlacaDeAireAcondicionado.AmpacidadYProteccion)]);
+                : c.CorrienteDeServicioA > 0m
+                    // SERVICIO NO CONTINUO — 430-24 Excepción 1 (I-120): con el valor de 430-22(e), que ya trae
+                    // su porcentaje; no compite por el 125 % del mayor.
+                    ? [new MotorDelAlimentador(c, c.CorrienteDeServicioA, FactorDeDemanda(c), c.Resultado?.ProteccionA, true)]
+                    : [new MotorDelAlimentador(
+                        c, c.CorrienteDeMotorA, FactorDeDemanda(c),
+                        // Sin derivado calculado no hay protección que aportar al techo de 430-62(a).
+                        c.Resultado?.ProteccionA,
+                        c.EsAireAcondicionado && c.PlacaAire == PlacaDeAireAcondicionado.AmpacidadYProteccion)]);
 
     /// <summary>
     /// <b>El grupo de una barra</b> para 430-24 y 430-62(a):
@@ -2147,6 +2256,7 @@ public sealed class CuadroDeCarga
                 $"El interruptor principal ({resultado.ProteccionA:N0} A) es menor que la protección del " +
                 $"{(mayor.EsMotor ? "motor" : "equipo de A/C")} del circuito {mayor.Espacio} ({mayorDerivado:N0} A), " +
                 (mayor.EsGrupo ? (mayor.EsMotor ? "que 430-53(c)(4) dimensiona para el arranque" : "que 440-22(b) dimensiona para el arranque")
+                    : mayor.EsVariador ? "la que marca el fabricante del variador — 110-3(b)"
                     : mayor.EsMotor ? "que 430-52 dimensiona para el arranque"
                     : mayor.PlacaAire == PlacaDeAireAcondicionado.AmpacidadYProteccion ? "la que permite su placa — 440-4(b)"
                     : mayor.PlacaAire == PlacaDeAireAcondicionado.Habitacion ? "la de su circuito — 440-62"

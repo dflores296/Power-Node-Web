@@ -437,6 +437,7 @@ else
     /// </summary>
     private static string PlacaDelRenglon(CircuitoDelCuadro c) =>
         c.EsGrupo ? PlacaDelGrupo(c)
+        : c.EsVariador ? (c.TieneCarga ? $"Variador: entrada {c.CorrienteEntradaVariadorA:#,0.##} A · máx. {c.ProteccionMaximaVariadorA:#,0.##} A" : "")
         : c.EsAireAcondicionado ? (c.TieneCarga ? AireAcondicionadoDePlaca.Texto(c) : "")
         : c.MotorEnAmperes is { } m ? $"{m.Amperes:#,0.##} A ({m.Hp:0.##} HP) · FLC {c.FlcA:N2} A"
         : (c.Hp > 0m ? $"{MotoresEnHp.Texto(c.Hp.Value)} HP" : "") + (c.FlcA > 0m ? $" · FLC {c.FlcA:N2} A" : "");

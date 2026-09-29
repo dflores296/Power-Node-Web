@@ -60,9 +60,21 @@ public class CalculadoraCircuitoDerivadoMotor(
                 $"{errata.Descripcion}: se calcula con {errata.ValorCorregido:0.##} A en lugar de los "
                 + $"{errata.ValorPublicado:0.##} A publicados en el DOF, porque {errata.Sustento}."));
 
-        // 2. Capacidad mínima de conductor -- 430-22: 125% de la FLC de tabla.
-        var capacidadMinConductor = 1.25m * flc;
-        citas.Add(new Cita("430-22", $"Capacidad mínima del conductor: 125% x {flc:0.##} A = {capacidadMinConductor:0.##} A"));
+        // 2. Capacidad mínima de conductor -- 430-22: 125% de la FLC de tabla. En servicio no continuo,
+        // el porcentaje de la Tabla 430-22(e) sobre la corriente de PLACA -- 430-22(e) (Power Node Web, I-120).
+        decimal capacidadMinConductor;
+        if (d.Servicio is { } servicio)
+        {
+            capacidadMinConductor = servicio.PorcentajeTabla * servicio.CorrientePlacaA / 100m;
+            citas.Add(new Cita("430-22(e)",
+                $"Servicio no continuo: capacidad mínima del conductor {servicio.PorcentajeTabla:0}% x {servicio.CorrientePlacaA:0.##} A " +
+                $"(corriente de placa) = {capacidadMinConductor:0.##} A — Tabla 430-22(e)"));
+        }
+        else
+        {
+            capacidadMinConductor = 1.25m * flc;
+            citas.Add(new Cita("430-22", $"Capacidad mínima del conductor: 125% x {flc:0.##} A = {capacidadMinConductor:0.##} A"));
+        }
 
         // 3. Protección -- Tabla 430-52: techo = FLC x %, redondeado al estándar inmediato superior.
         var porcentaje = proteccionMotor.PorcentajeMaximo(d.TipoMotor, d.TipoDispositivoProteccion);

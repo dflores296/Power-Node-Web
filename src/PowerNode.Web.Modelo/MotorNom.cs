@@ -47,6 +47,7 @@ public sealed class MotorNom
         var aislamiento = new TablaAislamientoJson(fuente);
         var flcMotor = new TablaFlcMotorJson(fuente);
         var proteccionMotor = new TablaProteccionMotorJson(fuente);
+        ServicioMotor = new TablaServicioMotorJson(fuente);
 
         // Un juego de calculadoras por serie de interruptores: la misma norma, elegida dentro de la
         // familia que se instala. Ver SerieDeInterruptores.
@@ -60,6 +61,8 @@ public sealed class MotorNom
             _motor[serie] = new CalculadoraCircuitoDerivadoMotor(
                 Calibres, ampacidad, flcMotor, proteccionMotor, deLaSerie, temperatura, agrupamiento, tierra, impedancia, aislamiento);
             _aire[serie] = new CalculadoraCircuitoDerivado440(
+                Calibres, ampacidad, deLaSerie, temperatura, agrupamiento, tierra, impedancia, aislamiento);
+            _variador[serie] = new CalculadoraCircuitoDerivadoVariador(
                 Calibres, ampacidad, deLaSerie, temperatura, agrupamiento, tierra, impedancia, aislamiento);
             _grupo[serie] = new CalculadoraCircuitoDerivadoGrupo(
                 Calibres, ampacidad, proteccionMotor, deLaSerie, temperatura, agrupamiento, tierra, impedancia, aislamiento);
@@ -82,6 +85,7 @@ public sealed class MotorNom
     private readonly Dictionary<SerieDeInterruptores, CalculadoraCircuitoDerivadoMotor> _motor = [];
     private readonly Dictionary<SerieDeInterruptores, CalculadoraCircuitoDerivado440> _aire = [];
     private readonly Dictionary<SerieDeInterruptores, CalculadoraCircuitoDerivadoGrupo> _grupo = [];
+    private readonly Dictionary<SerieDeInterruptores, CalculadoraCircuitoDerivadoVariador> _variador = [];
 
     public FuenteTablasJson Fuente { get; }
     public ICatalogoCalibres Calibres { get; }
@@ -111,8 +115,14 @@ public sealed class MotorNom
     /// </summary>
     public CalculadoraCircuitoDerivadoGrupo Grupo(SerieDeInterruptores serie) => _grupo[serie];
 
+    /// <summary>Un motor con variador: 125 % de la entrada y la protección del fabricante — 430-122(a), 110-3(b), I-119.</summary>
+    public CalculadoraCircuitoDerivadoVariador Variador(SerieDeInterruptores serie) => _variador[serie];
+
     /// <summary>Tablas 430-247 a 430-250: la corriente a plena carga de un motor — 430-6(a).</summary>
     public ITablaFlcMotor FlcMotor { get; }
+
+    /// <summary>Tabla 430-22(e): el conductor de un motor de servicio no continuo — I-120.</summary>
+    public ITablaServicioMotor ServicioMotor { get; }
 
     /// <summary>Tabla 430-52: el porcentaje de la FLC que puede tener la protección del derivado.</summary>
     public ITablaProteccionMotor ProteccionMotor { get; }

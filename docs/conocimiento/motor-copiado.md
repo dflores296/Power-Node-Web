@@ -99,6 +99,7 @@ Llevar estos cambios a `PowerNode-DesignSuite`.
 | 2026-09-26 | `Normativa/TablaFlcMotorJson.cs` (en escritorio: `Data/TablasNom`) | Agregar `TensionDeColumna` y `TablaDe`: la columna con la que se lee una tensión de sistema, para que la memoria la diga. | No | I-15 |
 | 2026-09-27 | `Casos/DatosEntradaCircuitoDerivadoMotor.cs`, `CalculadoraCircuitoDerivadoMotor.cs` | Agregar `FlcMarcadaEnAmperesA`: un motor marcado en amperes y no en HP entra con esa corriente como FLC —la de los HP que le corresponden en la tabla, interpolando— y cita 430-6(a)(1). `Hp` lleva los HP interpolados, solo para la cita. | No (por omisión) | I-74 |
 | 2026-09-29 | `Casos/SeleccionConductor.cs`, `CaidaTensionExcedidaException.cs` | El mensaje de caída inalcanzable dice «relajar el límite de caída de tensión», sin nombrar la pantalla «Configuración» del escritorio. | No | M-10 |
+| 2026-09-29 | `Casos/DatosEntradaCircuitoDerivadoMotor.cs`, `CalculadoraCircuitoDerivadoMotor.cs` | Agregar `Servicio` (`ServicioNoContinuo`): con él, el conductor va al porcentaje de la Tabla 430-22(e) sobre la corriente de placa y cita 430-22(e); la protección sigue en 430-52. | No (por omisión) | I-120 |
 
 **Visto en el escritorio, sin cambio aquí (I-15):** `CalculadoraCircuitoDerivadoMotor` calcula la caída
 de un motor monofásico con `TensionFaseNeutroV`, también cuando el motor está entre fases (2 polos,
@@ -151,3 +152,11 @@ motocompresor sin nada más, 440-32 y 440-22(a). El acondicionador de aire para 
 una tercera forma de `DatosEntradaCircuitoDerivado440` (`CorrienteTotalHabitacionA`): conductor al
 125 %, circuito que deja la corriente en 80 % (440-62(b)) y conductor que cubre la protección, sin
 240-4(b) (440-62(a)(4)); rechaza trifásico, más de 250 V o más de 40 A (440-60, 440-62(a)(2)).
+
+### Variador y servicio no continuo — I-119, I-120
+
+| Archivo | Qué es |
+|---|---|
+| `Calculo/Casos/CalculadoraCircuitoDerivadoVariador.cs` | `DatosEntradaCircuitoDerivadoVariador` y el derivado de un variador: conductor al 125 % de la corriente de entrada (430-122(a)), protección = mayor estándar que no excede la máxima del fabricante (110-3(b)), cita 430-128 para el desconectador. |
+| `Calculo/TablasNom/ITablaServicioMotor.cs` | `ServicioDeMotor`, `EspecificacionDeTiempo` y la interfaz de la Tabla 430-22(e). |
+| `Normativa/TablaServicioMotorJson.cs` | Su lector. La tabla entra a `tablas-nom.json` con `tools/extraer_tablas.py` (19 tablas). |

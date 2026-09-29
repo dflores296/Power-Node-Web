@@ -6,7 +6,7 @@ Por qué existe
 El repo público `dflores296/NOM-001-SEDE-2012` publica las 245 tablas de la norma
 (`data/tablas_revisadas.json`, 1.1 MB) y el corpus completo (`data/corpus.json`, 8 MB).
 Mandarle eso a un navegador para calcular un circuito sería absurdo: el cálculo de un
-cuadro de carga toca **18 tablas y una sección**, y nada más.
+cuadro de carga toca **19 tablas y una sección**, y nada más.
 
 Este script produce `wwwroot/datos/tablas-nom.json` con exactamente esas, en la MISMA forma
 cruda que publica el repo de origen (celdas con `t`/`rs`/`cs`). **No interpreta nada**: la
@@ -27,7 +27,7 @@ import json
 import sys
 from pathlib import Path
 
-# Las 18 tablas que toca el cálculo de un cuadro de carga, con quién las usa.
+# Las 19 tablas que toca el cálculo de un cuadro de carga, con quién las usa.
 # Si agregas una aquí, hay una implementación de interfaz en Normativa/ que la pide.
 TABLAS = {
     "8": "Propiedades de los conductores (área, resistencia) — ICatalogoCalibres",
@@ -43,6 +43,7 @@ TABLAS = {
     "430-249": "FLC motores de dos fases — ITablaFlcMotor",
     "430-250": "FLC motores trifásicos — ITablaFlcMotor",
     "430-52": "Protección de circuitos de motor — ITablaProteccionMotor",
+    "430-22(e)": "Servicio no continuo de motores — ITablaServicioMotor",
     "430-7(b)": "Letras de código de rotor bloqueado — ITablaRotorBloqueado",
     # Canalizaciones (decisión canalizaciones-y-agrupamiento, 2026-09-24).
     "1": "Porcentaje de ocupación de tubo conduit (Capítulo 10) — ITablaOcupacion",

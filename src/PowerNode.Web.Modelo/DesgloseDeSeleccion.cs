@@ -116,7 +116,8 @@ public sealed record DesgloseDeSeleccion(IReadOnlyList<string> Proteccion, IRead
         Calibre calibre,
         int conductoresPorFase,
         DetalleDelCalculo d,
-        IReadOnlyList<Cita> citas)
+        IReadOnlyList<Cita> citas,
+        string? servicio = null)
     {
         var techo = flcA * porcentaje / 100m;
         var proteccion = new List<string>
@@ -130,9 +131,44 @@ public sealed record DesgloseDeSeleccion(IReadOnlyList<string> Proteccion, IRead
         };
 
         var conductor = LineasDelConductor(ampacidad, datos, proteccionA, calibre, conductoresPorFase, d);
+        // Servicio no continuo (I-120): el % de la Tabla 430-22(e) sobre la placa, en lugar del 125 % de la FLC.
+        conductor.Add(servicio is not null
+            ? $"Con factores: {d.AmpacidadConductorA:N2} A ≥ {d.CapacidadMinimaA:N2} A {(d.AmpacidadConductorA >= d.CapacidadMinimaA ? "✔" : "✘")} — {servicio}, 430-22(e)"
+            : $"Con factores: {d.AmpacidadConductorA:N2} A ≥ 125 % × {flcA:N2} A = {d.CapacidadMinimaA:N2} A " +
+              $"{(d.AmpacidadConductorA >= d.CapacidadMinimaA ? "✔" : "✘")} — 430-22");
+        conductor.AddRange(PorQueCrecio(citas, proteccionA, d));
+        return new DesgloseDeSeleccion(proteccion, conductor);
+    }
+
+    /// <summary>
+    /// <b>El derivado de un variador</b> — I-119: 125 % de la corriente de entrada (430-122(a)) y el mayor
+    /// tamaño que no excede la protección máxima del fabricante (110-3(b)).
+    /// </summary>
+    internal static DesgloseDeSeleccion DeVariador(
+        ITablaAmpacidad ampacidad,
+        DatosDelTablero datos,
+        decimal entradaA,
+        decimal maximaA,
+        decimal proteccionA,
+        Calibre calibre,
+        int conductoresPorFase,
+        DetalleDelCalculo d,
+        IReadOnlyList<Cita> citas)
+    {
+        var proteccion = new List<string>
+        {
+            $"Corriente = {entradaA:N2} A, la nominal de entrada del variador — 430-122(a)",
+            $"Protección máxima del fabricante: {maximaA:N0} A — 110-3(b)",
+            $"Protección: {proteccionA:N0} A, " +
+                (proteccionA == maximaA ? "la máxima del fabricante" : "el mayor tamaño estándar que no la excede") +
+                $" en «{datos.SerieInterruptores.Nombre()}»",
+            "Sobrecarga del motor: la da el variador si así lo marca — 430-124(a)",
+        };
+
+        var conductor = LineasDelConductor(ampacidad, datos, proteccionA, calibre, conductoresPorFase, d);
         conductor.Add(
-            $"Con factores: {d.AmpacidadConductorA:N2} A ≥ 125 % × {flcA:N2} A = {d.CapacidadMinimaA:N2} A " +
-            $"{(d.AmpacidadConductorA >= d.CapacidadMinimaA ? "✔" : "✘")} — 430-22");
+            $"Con factores: {d.AmpacidadConductorA:N2} A ≥ 125 % × {entradaA:N2} A = {d.CapacidadMinimaA:N2} A " +
+            $"{(d.AmpacidadConductorA >= d.CapacidadMinimaA ? "✔" : "✘")} — 430-122(a)");
         conductor.AddRange(PorQueCrecio(citas, proteccionA, d));
         return new DesgloseDeSeleccion(proteccion, conductor);
     }

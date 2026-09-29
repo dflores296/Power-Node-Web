@@ -16,6 +16,12 @@ public enum CapturaDeMotor
     /// del desglose; solo en el circuito, nunca en un aparato.
     /// </summary>
     Grupo,
+
+    /// <summary>
+    /// Un motor con variador de velocidad — 430 Parte J, I-119: la corriente de entrada del variador y la
+    /// protección máxima de su fabricante, no los HP del motor. Solo en el circuito.
+    /// </summary>
+    Variador,
 }
 
 /// <summary>

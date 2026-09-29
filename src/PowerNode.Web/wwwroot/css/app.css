@@ -895,6 +895,14 @@ polygon.riel-a { fill: var(--barra-a); } polygon.riel-b { fill: var(--barra-b); 
 .cuadro table.desglose td.dos-campos { white-space: nowrap; }
 .cuadro table.desglose td.dos-campos input.va { width: 58px; }
 .cuadro table.desglose td.dos-campos input.va + input.va { margin-left: 4px; }
+/* Lo del circuito que no es de un aparato, arriba del desglose (I-120, I-121). */
+.cuadro .opciones-circuito { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px; margin: 0 0 8px;
+                             font-size: 12px; color: var(--tenue); }
+.cuadro .opciones-circuito:last-child { margin-bottom: 0; }
+.cuadro .opciones-circuito label { display: inline-flex; align-items: center; gap: 6px; }
+.cuadro .opciones-circuito select, .cuadro .opciones-circuito input.va { height: 28px; font-size: 12px; color: var(--tinta); }
+.cuadro .opciones-circuito input.va { width: 70px; }
+.cuadro .opciones-circuito .nota-opcion { font-style: italic; }
 .cuadro table.desglose tfoot label.arranque-225 { display: inline-flex; align-items: center; gap: 5px; margin-right: 16px; }
 
 /* ------------------------------------------------------------------------------------------------

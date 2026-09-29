@@ -6,6 +6,7 @@
 @implements IDisposable
 @implements IHandleEvent
 @using System.Globalization
+@using PowerNode.DesignSuite.Calculo.TablasNom
 
 @* La pestaña lleva el nombre del tablero: con varias abiertas, dice cuál es cuál (I-05). *@
 <PageTitle>@Proyecto.TituloDeVentana</PageTitle>
@@ -242,10 +243,10 @@
                         <td class="num @(c.TieneCaptura ? "asa" : null)" data-destino="@c.Espacio" data-arrastre="@(c.TieneCaptura ? c.Espacio : null)" data-etiqueta="@EtiquetaDeArrastre(c)" title="@(c.TieneCaptura ? "Arrastrar para mover el circuito a otro espacio" : null)">@NumeroConFase(c.Espacio)</td>
                         <td rowspan="@c.Polos">
                             <div class="desc-linea">
-                                <button class="desglosar" tabindex="-1" aria-label="Desglose del circuito @c.Espacio" aria-expanded="@(Abierto(c) ? "true" : "false")" disabled="@(c.EsDeMotor && !c.EsGrupo)"
-                                        title="@(c.EsGrupo ? "Los motores y las otras cargas del circuito — 430-53. Con el teclado: Ctrl+Enter."
-                                                 : c.EsMotor ? "Un motor solo no se desglosa — 430-22. Para varios motores, o motores y otras cargas, en un circuito: «Varios» en la unidad — 430-53."
-                                                 : c.EsAireAcondicionado ? "Un equipo de A/C no se desglosa: es una sola máquina con su placa — 440-4(b)."
+                                <button class="desglosar" tabindex="-1" aria-label="Desglose del circuito @c.Espacio" aria-expanded="@(Abierto(c) ? "true" : "false")"
+                                        title="@(c.EsGrupo ? "Los motores y las otras cargas del circuito — 430-53, 440-22(b); y si no funciona a la vez que otro circuito — 220-60. Con el teclado: Ctrl+Enter."
+                                                 : c.EsMotor ? "Detalle del motor: servicio no continuo (430-22(e)) y si no funciona a la vez que otro circuito (430-24 Excepción 3). Para varios motores en un circuito: «Varios» en la unidad — 430-53. Con el teclado: Ctrl+Enter."
+                                                 : c.EsAireAcondicionado ? "Detalle del equipo: si no funciona a la vez que otro circuito — 440-33 Excepción 1, 220-60. Para varias máquinas sin MCA de conjunto: «Varios» en la unidad — 440-22(b). Con el teclado: Ctrl+Enter."
                                                  : "Desglosar los aparatos que alimenta el circuito. La carga del circuito es la suma. Con el teclado: Ctrl+Enter.")"
                                         @onclick="() => AlternarDesglose(c)"><Icono Nombre="@(Abierto(c) ? "desglose-abierto" : "desglose")" Tamano="14" /></button>
                                 <input class="desc" data-col="desc" aria-label="Circuito @c.Espacio · Descripción" @bind="c.Descripcion" @bind:event="oninput" @bind:after="DibujarAlPausar" placeholder="—" />
@@ -298,6 +299,7 @@
                                     <option value="@nameof(CapturaDeMotor.Hp)">HP</option>
                                     <option value="@nameof(CapturaDeMotor.Amperes)">A</option>
                                     <option value="@nameof(CapturaDeMotor.Grupo)">Varios</option>
+                                    <option value="@nameof(CapturaDeMotor.Variador)">VFD</option>
                                 }
                                 else if (c.EsAireAcondicionado)
                                 {
@@ -353,6 +355,20 @@
                                            ? "Suma de las corrientes de las máquinas del desglose (la flecha junto a la descripción): motocompresores con su corriente de placa (440-6(a)), ventiladores con su FLC. Conductor por 440-33 / 440-34; protección por 440-22(b)."
                                            : "Suma de las corrientes de los motores del desglose (la flecha junto a la descripción), cada uno con su FLC de tabla — 430-6(a). Conductor por 430-24; protección por 430-53(c)(4).")" />
                                 <span class="en-va">@(c.EsAireAcondicionado ? $"{MotoresEnHp.AlimentacionTexto(c.Polos, MotoresEnHp.Tension(c.Polos, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV))} · 440-22(b)" : Cuadro.AlimentacionDelMotor(c.Polos))</span>
+                            </td>
+                        }
+                        else if (c.EsVariador)
+                        {
+                            @* I-119: la corriente de entrada del variador y la protección máxima de su fabricante, como la MCA y la MOCP de un A/C. *@
+                            <td rowspan="@c.Polos">
+                                <input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="A" data-col="continua" aria-label="Circuito @c.Espacio · Corriente de entrada del variador (A)" value="@Carga(c.CorrienteEntradaVariadorA)" @onchange="e => { c.CorrienteEntradaVariadorA = LeerCarga(e, c.CorrienteEntradaVariadorA); Recalcular(); }"
+                                       title="Capturar la corriente nominal de entrada del variador, de su placa. El conductor es 125 % de ella — 430-122(a); la FLC del motor no se usa." />
+                                <span class="en-va" title="@AyudaDeEntrada(c)">Entrada</span>
+                            </td>
+                            <td rowspan="@c.Polos">
+                                <input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="Máx." data-col="nocontinua" aria-label="Circuito @c.Espacio · Protección máxima del variador (A)" value="@Carga(c.ProteccionMaximaVariadorA)" @onchange="e => { c.ProteccionMaximaVariadorA = LeerCarga(e, c.ProteccionMaximaVariadorA); Recalcular(); }"
+                                       title="Capturar la protección máxima que marca el fabricante del variador (fusible o interruptor). La del circuito no la excede — 110-3(b)." />
+                                <span class="en-va">Prot. máx.</span>
                             </td>
                         }
                         else if (c.EsMotor)
@@ -485,13 +501,64 @@
                         EL DESGLOSE VA DESPUÉS DEL ÚLTIMO ESPACIO DEL CIRCUITO, en un renglón que ocupa todo
                         el ancho: nunca entre los espacios de un multipolar, y sin mover ninguna columna.
                     *@
-                    @if (Abierto(c) && (!c.EsDeMotor || c.EsGrupo))
+                    @if (Abierto(c))
                     {
                         var calefaccion = c.Categoria == CategoriaDeCarga.CalefaccionFija;
                         var grupo = c.EsGrupo;
                         <tr class="fila-desglose">
                             <td></td>
                             <td colspan="@(Columnas - 1)">
+                                @* I-120, I-121: lo que es del circuito y no de un aparato, arriba del desglose. *@
+                                <div class="opciones-circuito">
+                                    @if (c.EsMotor && c.CapturaMotor is CapturaDeMotor.Hp or CapturaDeMotor.Amperes)
+                                    {
+                                        <label title="El servicio del motor. Continuo, salvo que lo que acciona no lo deje trabajar continuo con carga (nota de la Tabla 430-22(e)). Si no es continuo, el conductor va al porcentaje de la Tabla 430-22(e) sobre la corriente de placa — 430-22(e).">Servicio
+                                            <select aria-label="Circuito @c.Espacio · Servicio del motor" value="@(c.Servicio?.ToString() ?? "")" @onchange="e => CambiarServicio(c, e.Value?.ToString())">
+                                                <option value="">Continuo</option>
+                                                <option value="@ServicioDeMotor.CortaDuracion">Corta duración</option>
+                                                <option value="@ServicioDeMotor.Intermitente">Intermitente</option>
+                                                <option value="@ServicioDeMotor.Periodico">Periódico</option>
+                                                <option value="@ServicioDeMotor.Variable">Variable</option>
+                                            </select>
+                                        </label>
+                                        @if (c.Servicio is not null)
+                                        {
+                                            <label title="Para cuánto tiempo está especificado el motor en su placa: la columna de la Tabla 430-22(e).">Especificado para
+                                                <select aria-label="Circuito @c.Espacio · Especificado para" @bind="c.EspecificacionServicio" @bind:after="Recalcular">
+                                                    <option value="@EspecificacionDeTiempo.Minutos5">5 minutos</option>
+                                                    <option value="@EspecificacionDeTiempo.Minutos15">15 minutos</option>
+                                                    <option value="@EspecificacionDeTiempo.Minutos30y60">30 y 60 minutos</option>
+                                                    <option value="@EspecificacionDeTiempo.Continuo">Funcionamiento continuo</option>
+                                                </select>
+                                            </label>
+                                            @if (c.CapturaMotor == CapturaDeMotor.Hp)
+                                            {
+                                                <label title="La corriente de la placa del motor: 430-22(e) va sobre ella, no sobre la de la tabla.">Corriente de placa
+                                                    <input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="A" aria-label="Circuito @c.Espacio · Corriente de placa del motor (servicio)" value="@Carga(c.CorrientePlacaServicioA)" @onchange="e => { c.CorrientePlacaServicioA = LeerCarga(e, c.CorrientePlacaServicioA); Recalcular(); }" /> A
+                                                </label>
+                                            }
+                                        }
+                                    }
+                                    <label title="Un circuito que no funciona a la vez que este (bombas que alternan, calefacción y aire): del par, al alimentador va el mayor — 220-60, 430-24 Excepción 3, 440-33 Excepción 1.">No simultáneo con
+                                        <select aria-label="Circuito @c.Espacio · No simultáneo con" value="@(c.NoSimultaneoCon?.ToString() ?? "")" @onchange="e => CambiarNoSimultaneo(c, e.Value?.ToString())">
+                                            <option value="">—</option>
+                                            @foreach (var otro in Cuadro.Circuitos.Where(x => x != c && x.TieneCarga))
+                                            {
+                                                <option @key="otro.Espacio" value="@otro.Espacio">@otro.Espacio · @(string.IsNullOrWhiteSpace(otro.Descripcion) ? MemoriaDeCalculo.Etiqueta(otro) : otro.Descripcion)</option>
+                                            }
+                                            @if (c.NoSimultaneoCon is { } par && !Cuadro.Circuitos.Any(x => x.Espacio == par && x.TieneCarga && x != c))
+                                            {
+                                                <option value="@par">@par</option>
+                                            }
+                                        </select>
+                                    </label>
+                                    @if (c.OmitidoPorNoSimultaneo)
+                                    {
+                                        <span class="nota-opcion">No entra al alimentador: es el menor del par.</span>
+                                    }
+                                </div>
+                                @if (!c.EsDeMotor || c.EsGrupo)
+                                {
                                 <table class="desglose" data-circuito="@c.Espacio">
                                     <thead>
                                         <tr>
@@ -635,6 +702,7 @@
                                         </tr>
                                     </tfoot>
                                 </table>
+                                }
                             </td>
                         </tr>
                     }
@@ -1716,6 +1784,30 @@
         Recalcular();
     }
 
+    /// <summary>La alimentación del variador y sus VA, para el título de la nota «Entrada» — I-119.</summary>
+    private string AyudaDeEntrada(CircuitoDelCuadro c) =>
+        MotoresEnHp.AlimentacionTexto(c.Polos, MotoresEnHp.Tension(c.Polos, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV)) +
+        (c.MotorVA > 0m ? $". {c.MotorVA:#,0} VA: la corriente de entrada por la tensión del circuito." : ".");
+
+    /// <summary>Continuo (vacío) o una de las clases de la Tabla 430-22(e) — I-120.</summary>
+    private void CambiarServicio(CircuitoDelCuadro c, string? valor)
+    {
+        c.Servicio = Enum.TryParse<ServicioDeMotor>(valor, out var servicio) ? servicio : null;
+        Recalcular();
+    }
+
+    /// <summary>El par no simultáneo, de los dos lados: marcarlo en uno lo marca en el otro — I-121.</summary>
+    private void CambiarNoSimultaneo(CircuitoDelCuadro c, string? valor)
+    {
+        var antes = c.NoSimultaneoCon;
+        c.NoSimultaneoCon = int.TryParse(valor, out var n) ? n : null;
+        if (antes is { } a && Cuadro.Circuitos.FirstOrDefault(x => x.Espacio == a) is { } exPar && exPar.NoSimultaneoCon == c.Espacio)
+            exPar.NoSimultaneoCon = null;
+        if (c.NoSimultaneoCon is { } nuevo && Cuadro.Circuitos.FirstOrDefault(x => x.Espacio == nuevo) is { } par)
+            par.NoSimultaneoCon = c.Espacio;
+        Recalcular();
+    }
+
     private void CambiarHpDeMiembro(AparatoDelCircuito a, string? valor)
     {
         if (!decimal.TryParse(valor, NumberStyles.Float, CultureInfo.InvariantCulture, out var hp) || hp < 0m)
@@ -1777,7 +1869,7 @@
     }
 
     private static string? AyudaUnidad(CircuitoDelCuadro c) =>
-        c.EsMotor ? "HP: seleccionar los caballos de placa. A: capturar la corriente de placa de un motor que no trae HP; se le asignan los HP de la tabla, interpolando — 430-6(a)(1). Varios: dos o más motores, o motores y otras cargas, en un circuito; se capturan en el desglose — 430-53."
+        c.EsMotor ? "HP: seleccionar los caballos de placa. A: capturar la corriente de placa de un motor que no trae HP; se le asignan los HP de la tabla, interpolando — 430-6(a)(1). Varios: dos o más motores, o motores y otras cargas, en un circuito; se capturan en el desglose — 430-53. VFD: motor con variador de velocidad; la corriente de entrada del variador y la protección máxima de su fabricante — 430-122(a), 110-3(b)."
         : c.EsAireAcondicionado ? "MCA: la placa trae ampacidad mínima y protección máxima (MCA, MOCP) — 440-4(b). A: la placa trae la corriente de carga nominal del compresor — 440-6(a). Varios: motocompresores, ventiladores y otras cargas sin MCA de conjunto; se capturan en el desglose — 440-22(b), 440-33. Hab.: acondicionador de habitación con cordón y clavija, en su circuito — 440-62."
         : SumaDelDesglose(c);
 

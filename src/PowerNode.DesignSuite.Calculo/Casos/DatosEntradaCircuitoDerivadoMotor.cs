@@ -52,7 +52,14 @@ public sealed record DatosEntradaCircuitoDerivadoMotor(
     /// caballos que resultaron, solo para la cita. <c>null</c> = motor en HP, FLC de la tabla
     /// (Power Node Web, I-74).
     /// </summary>
-    decimal? FlcMarcadaEnAmperesA = null)
+    decimal? FlcMarcadaEnAmperesA = null,
+
+    /// <summary>
+    /// <b>Un motor de servicio no continuo</b> — 430-22(e): el conductor va al porcentaje de la Tabla
+    /// 430-22(e) sobre la corriente de <b>placa</b>, no al 125 % de la FLC. La protección sigue en
+    /// 430-52 con la FLC de tabla. <c>null</c> = servicio continuo (Power Node Web, I-120).
+    /// </summary>
+    ServicioNoContinuo? Servicio = null)
 {
     /// <summary>1 (monofásico o CD), 2 o 3 -- deriva de TipoAlimentacion, no se captura aparte.</summary>
     public int NumeroFases => TipoAlimentacion switch
@@ -64,3 +71,13 @@ public sealed record DatosEntradaCircuitoDerivadoMotor(
         _ => throw new ArgumentOutOfRangeException(nameof(TipoAlimentacion)),
     };
 }
+
+/// <summary>
+/// El servicio de un motor que no trabaja continuo — 430-22(e), I-120: la clase, para cuánto tiempo está
+/// especificado, el porcentaje que da la Tabla 430-22(e) para esos dos y la corriente de placa del motor.
+/// </summary>
+public sealed record ServicioNoContinuo(
+    TablasNom.ServicioDeMotor Clase,
+    TablasNom.EspecificacionDeTiempo Especificacion,
+    decimal PorcentajeTabla,
+    decimal CorrientePlacaA);

@@ -47,9 +47,12 @@ public static class MemoriaDeCalculo
             : circuito.Descripcion.Trim();
 
         var equipo = circuito.EsGrupo ? DelGrupo(cuadro, circuito, r)
+            : circuito.EsVariador ? DelVariador(circuito, r)
             : circuito.EsMotor ? DelMotor(cuadro, circuito, r, circuito.Hp, circuito.MotorEnAmperes)
             : circuito.EsAireAcondicionado ? DelAireAcondicionado(cuadro, circuito, r)
             : null;
+        if (equipo is not null && MedioDeDesconexion(cuadro, circuito, r) is { } desconexion)
+            equipo = equipo with { Proteccion = [.. equipo.Proteccion, desconexion] };
 
         return new HojaDeMemoria(
             Sujeto: $"Circuito {circuito.Espacio} — {nombre}  ·  fase {circuito.Fases}",
@@ -116,7 +119,10 @@ public static class MemoriaDeCalculo
             Proteccion:
             [
                 new(rotuloFlc, origen),
-                new("Capacidad mínima del conductor — 430-22", $"125 % × {flc:N2} A = {1.25m * flc:N2} A"),
+                // Servicio no continuo (I-120): el conductor va por la Tabla 430-22(e), sobre la placa.
+                r.Citas.FirstOrDefault(x => x.Referencia == "430-22(e)") is { } servicio
+                    ? new("Capacidad mínima del conductor — 430-22(e)", servicio.Descripcion["Servicio no continuo: capacidad mínima del conductor ".Length..])
+                    : new("Capacidad mínima del conductor — 430-22", $"125 % × {flc:N2} A = {1.25m * flc:N2} A"),
                 new("Protección máxima — Tabla 430-52", $"{porcentaje:0} % × {flc:N2} A = {flc * porcentaje / 100m:N2} A (interruptor automático de tiempo inverso)"),
                 new("Protección seleccionada — 430-52(c)(1) Excepción 1", $"{r.ProteccionA:N0} A"),
             ],
@@ -128,6 +134,35 @@ public static class MemoriaDeCalculo
                 "motor — 430-32. No la da el interruptor del tablero.",
             ],
             Corriente: "FLC");
+    }
+
+    /// <summary>
+    /// <b>La hoja de un motor con variador</b> — I-119, 430 Parte J: la corriente de entrada del variador,
+    /// el conductor al 125 % de ella (430-122(a)) y la protección del fabricante (110-3(b)).
+    /// </summary>
+    private static EquipoDeLaHoja DelVariador(CircuitoDelCuadro c, ResultadoCircuitoDerivado r)
+    {
+        var tipo = c.Polos == 3 ? "trifásico" : "monofásico";
+        var entrada = c.CorrienteEntradaVariadorA;
+        return new EquipoDeLaHoja(
+            Rotulo: "Motor con variador",
+            Descripcion: $"Variador de velocidad · {tipo} · entrada {entrada:N2} A, protección máxima del fabricante {c.ProteccionMaximaVariadorA:N0} A — 430 Parte J",
+            Proteccion:
+            [
+                new("Corriente — 430-122(a)", $"{entrada:N2} A, la nominal de entrada del variador"),
+                new("Capacidad mínima del conductor — 430-122(a)", $"125 % × {entrada:N2} A = {1.25m * entrada:N2} A"),
+                new("Protección máxima — 110-3(b)", $"{c.ProteccionMaximaVariadorA:N0} A, la que marca el fabricante del variador"),
+                new("Protección seleccionada — 110-3(b)", r.ProteccionA == c.ProteccionMaximaVariadorA
+                    ? $"{r.ProteccionA:N0} A"
+                    : $"{r.ProteccionA:N0} A, el mayor tamaño estándar que no excede la máxima del fabricante"),
+            ],
+            Notas:
+            [
+                "Con variador, la corriente del circuito es la de entrada del variador: la FLC del motor y la Tabla 430-52 no se " +
+                "usan. El interruptor del tablero puede quedar arriba de la ampacidad del conductor — 240-4(g).",
+                "La sobrecarga del motor la da el variador si así lo marca; si no, va aparte — 430-124(a).",
+            ],
+            Corriente: "corriente de entrada");
     }
 
     /// <summary>
@@ -184,6 +219,42 @@ public static class MemoriaDeCalculo
             Proteccion: proteccion,
             Notas: notas,
             Corriente: "corriente");
+    }
+
+    /// <summary>
+    /// <b>El medio de desconexión mínimo</b> — I-122: 115 % de la corriente a plena carga de un motor
+    /// (430-110(a)), de la de placa de un motocompresor (440-12(a)(1)) o de la suma de un grupo
+    /// (430-110(c)(2), 440-12(b)(2)). Es del equipo que se instala junto al motor, no del tablero; la
+    /// memoria lo dice para que se especifique.
+    /// </summary>
+    private static RenglonMemoria? MedioDeDesconexion(CuadroDeCarga cuadro, CircuitoDelCuadro c, ResultadoCircuitoDerivado r)
+    {
+        const string Rotulo = "Medio de desconexión";
+        static string Minimo(decimal a, string que) => $"115 % × {a:N2} A = {1.15m * a:N2} A como mínimo: {que}";
+
+        if (c.EsGrupo)
+        {
+            var divisor = TensionDeCalculo.Divisor(c.Polos, cuadro.Datos.TensionFaseNeutroV, cuadro.Datos.TensionFaseFaseV);
+            var suma = c.CorrienteDeMotorA + (c.ContinuaVA + c.NoContinuaVA) / divisor;
+            if (r.Grupo is null)
+                return new($"{Rotulo} — 430-110(a)", Minimo(suma, "la corriente a plena carga del motor, o un interruptor de motor de HP no menores — 430-110(a) Excepción"));
+            return new($"{Rotulo} — {(c.EsAireAcondicionado ? "440-12(b)(2)" : "430-110(c)(2)")}",
+                Minimo(suma, "la suma de las corrientes a plena carga del grupo, las otras cargas incluidas"));
+        }
+        if (c.EsVariador)
+            return new($"{Rotulo} — 430-128", Minimo(c.CorrienteEntradaVariadorA, "la corriente nominal de entrada del variador, en su línea de entrada"));
+        if (c.EsMotor)
+            return new($"{Rotulo} — 430-110(a)", Minimo(c.FlcA, "la corriente a plena carga, o un interruptor de motor de HP no menores — 430-110(a) Excepción"));
+
+        return c.PlacaAire switch
+        {
+            PlacaDeAireAcondicionado.CorrienteNominal => new($"{Rotulo} — 440-12(a)(1)",
+                Minimo(c.CorrienteDeMotorA, "la corriente de carga nominal o la de selección, la mayor")),
+            PlacaDeAireAcondicionado.Habitacion => new($"{Rotulo} — 440-63",
+                "La clavija y el contacto, si los controles están a no más de 1.80 m del piso o hay un desconectador a la vista del aparato"),
+            _ => new($"{Rotulo} — 440-12(b)(2)",
+                "115 % de la suma de las corrientes de placa de los motores del equipo, como mínimo; la placa trae la MCA, no esa suma"),
+        };
     }
 
     /// <summary>«3 motores», «, 1 motocompresor»: cuántas máquinas de una clase lleva el grupo; vacío si ninguna.</summary>
