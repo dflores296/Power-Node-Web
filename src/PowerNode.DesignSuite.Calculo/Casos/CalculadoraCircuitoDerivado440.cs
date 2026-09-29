@@ -32,7 +32,38 @@ public class CalculadoraCircuitoDerivado440(
 
         // 1-3. Corriente, capacidad del conductor y protección, según lo que traiga la placa.
         decimal corriente, capacidadMinConductor, breaker;
-        if (d.EsPorAmpacidadYProteccion)
+        if (d.EsDeHabitacion)
+        {
+            // 440 Parte G — I-117: un aparato monofásico de hasta 250 V y 40 A, con cordón y clavija,
+            // que cuenta como una sola unidad de motor (440-62(a)).
+            corriente = d.CorrienteTotalHabitacionA!.Value;
+            if (corriente <= 0m)
+                throw new InvalidOperationException("440-62(a)(3): falta la corriente total de carga nominal de la placa.");
+            if (d.NumeroFases != 1 || d.TensionFaseNeutroV > 250m)
+                throw new InvalidOperationException(
+                    "440-60: un acondicionador de habitación trifásico o de más de 250 V no es de la Parte G; se conecta directo y se " +
+                    "calcula con su placa (corriente nominal o MCA).");
+            if (corriente > 40m)
+                throw new InvalidOperationException(
+                    $"440-62(a)(2): {corriente:0.##} A pasa de los 40 A de un acondicionador de habitación; se calcula con su placa (corriente nominal o MCA).");
+
+            // Una sola unidad de motor: conductor al 125 % — 440-62(a), 440-32.
+            capacidadMinConductor = 1.25m * corriente;
+            citas.Add(new Cita("440-62(a)",
+                $"Acondicionador de aire para habitación con cordón y clavija: una sola unidad de motor, con su corriente total de " +
+                $"placa, {corriente:0.##} A. Conductor al 125 %: {capacidadMinConductor:0.##} A — 440-32."));
+
+            // 440-62(b): la corriente marcada no excede el 80 % del valor del circuito — el circuito es, al
+            // menos, el tamaño estándar que la deja en 80 %.
+            breaker = proteccionEstandar.SiguienteEstandar(corriente / 0.8m);
+            citas.Add(new Cita("440-62(b)",
+                $"Sin otras cargas, {corriente:0.##} A no debe exceder el 80 % del circuito: {corriente:0.##} A ÷ 0.8 = " +
+                $"{corriente / 0.8m:0.##} A → {breaker:0.##} A."));
+            citas.Add(new Cita("440-62(a)(4)",
+                "La protección no excede la ampacidad del conductor ni el valor nominal del contacto: el contacto, de no menos " +
+                $"de {breaker:0.##} A."));
+        }
+        else if (d.EsPorAmpacidadYProteccion)
         {
             // 440-4(b): la ampacidad y la protección las marcó el fabricante con las Partes C y D.
             var ampacidadMinima = d.AmpacidadMinimaPlacaA!.Value;
@@ -71,9 +102,10 @@ public class CalculadoraCircuitoDerivado440(
             capacidadMinConductor = r.CorrienteConductorA;
             breaker = r.ProteccionCortocircuitoA;
         }
-        citas.Add(new Cita("240-4(g)",
-            "La protección del derivado puede quedar arriba de la ampacidad del conductor: protege contra cortocircuito y falla " +
-            "a tierra (Art. 440, Partes C y F). La sobrecarga la cuida el protector del motocompresor — 440-52."));
+        if (!d.EsDeHabitacion)
+            citas.Add(new Cita("240-4(g)",
+                "La protección del derivado puede quedar arriba de la ampacidad del conductor: protege contra cortocircuito y falla " +
+                "a tierra (Art. 440, Partes C y F). La sobrecarga la cuida el protector del motocompresor — 440-52."));
 
         // 4. Temperatura de terminales -- 110-14(c)(1), con la declaración de 75 °C como en los demás derivados.
         var tempTerminales = TemperaturaTerminales.Para(
@@ -124,6 +156,9 @@ public class CalculadoraCircuitoDerivado440(
             tensionEfectivaV: tensionEfectiva,
             caidaTensionMaxPct: d.CaidaTensionMaxPct,
             pisoPracticoCalibreMm2: null,
+            // En uno de habitación el conductor cubre la protección, sin 240-4(b) — 440-62(a)(4).
+            proteccionEstandar: d.EsDeHabitacion ? proteccionEstandar : null,
+            proteccionA: d.EsDeHabitacion ? breaker : null,
             metodoInstalacion: d.MetodoInstalacion,
             maxNParaleloAutoResuelto: d.MaxConductoresParaleloAutomatico);
         citas.AddRange(seleccion.Citas);

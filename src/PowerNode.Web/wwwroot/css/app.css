@@ -891,6 +891,11 @@ polygon.riel-a { fill: var(--barra-a); } polygon.riel-b { fill: var(--barra-b); 
 .cuadro button.quitar { color: var(--tenue); }
 /* Una máquina del desglose (I-115, I-118): en lugar de la casilla «Continua», qué es. */
 .cuadro table.desglose .clase-motor { font-size: 11px; color: var(--tenue); white-space: nowrap; }
+/* RLA y selección de un motocompresor, lado a lado en la celda de la carga (I-116). */
+.cuadro table.desglose td.dos-campos { white-space: nowrap; }
+.cuadro table.desglose td.dos-campos input.va { width: 58px; }
+.cuadro table.desglose td.dos-campos input.va + input.va { margin-left: 4px; }
+.cuadro table.desglose tfoot label.arranque-225 { display: inline-flex; align-items: center; gap: 5px; margin-right: 16px; }
 
 /* ------------------------------------------------------------------------------------------------
    CANALIZACIONES — decisión canalizaciones-y-agrupamiento (2026-09-24).

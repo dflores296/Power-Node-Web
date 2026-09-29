@@ -373,7 +373,7 @@ public sealed class CuadroDeCarga
         {
             var divisorGrupo = TensionDeCalculo.Divisor(c.Polos, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV);
             var tension = TensionDelMotor(c);
-            var capacidad = r.Citas.First(x => x.Referencia is "430-24" or "440-33" or "440-34");
+            var capacidad = r.Citas.First(x => x.Referencia is "430-24" or "440-32" or "440-33" or "440-34");
             return DesgloseDeSeleccion.DeGrupo(
                 _motor.Ampacidad, Datos, grupo,
                 maquinas: [.. c.Aparatos.Where(a => a.EsMaquina && a.CorrienteUnitariaA > 0m).Select(a =>
@@ -430,6 +430,8 @@ public sealed class CuadroDeCarga
 
         if (NotaDelMotorMayor(c) is { } motor)
             desglose = desglose with { Proteccion = [desglose.Proteccion[0], motor, .. desglose.Proteccion.Skip(1)] };
+        if (c.AvisoAireDeHabitacion is { } habitacion)
+            desglose = desglose with { Proteccion = [.. desglose.Proteccion, $"⚠ {habitacion[(habitacion.IndexOf(':') + 2)..]}"] };
         // I-76: el circuito individual del refrigerador no tiene mínimo que citar, pero sí su excepción.
         return c.UsoEfectivo.Nota() is { } nota ? desglose with { Proteccion = [.. desglose.Proteccion, nota] } : desglose;
     }
@@ -1023,10 +1025,7 @@ public sealed class CuadroDeCarga
             a.Cantidad = Math.Max(1, a.Cantidad);
             // Un aparato con motor (I-118): su corriente, de la tabla o de su placa, por la tensión del circuito.
             CorrienteDeMaquina(a, c.Polos, tension);
-            a.TotalVA = a.EsMaquina
-                ? a.Cantidad * a.CorrienteUnitariaA * divisor
-                : a.Cantidad * ConsumoDePlaca.AVoltAmperes(
-                    a.CargaUnitaria, a.Unidad, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV, c.Polos, a.FactorPotencia);
+            a.TotalVA = a.EsMaquina ? a.Cantidad * a.CorrienteUnitariaA * divisor : VADeCarga(a, c.Polos);
         }
 
         // 220-18(a) — I-118: un aparato con motor de más de ⅛ hp, junto con otras cargas: el motor mayor
@@ -1039,9 +1038,9 @@ public sealed class CuadroDeCarga
         var motorAl125VA = c.MotorAl125 is { } mayor ? mayor.CorrienteUnitariaA * divisor : 0m;
 
         c.Unidad = UnidadConsumo.VoltAmperes;
-        c.Continua = c.Aparatos.Where(a => !a.EsMaquina && a.Continua).Sum(a => a.TotalVA)
+        c.Continua = c.Aparatos.Where(EsContinua).Sum(a => a.TotalVA)
                      + (c.Categoria == CategoriaDeCarga.CalefaccionFija ? motores.Sum(a => a.TotalVA) : motorAl125VA);
-        c.NoContinua = c.Aparatos.Where(a => !a.EsMaquina && !a.Continua).Sum(a => a.TotalVA)
+        c.NoContinua = c.Aparatos.Where(a => !a.EsMaquina && !EsContinua(a)).Sum(a => a.TotalVA)
                        + (c.Categoria == CategoriaDeCarga.CalefaccionFija ? 0m : motores.Sum(a => a.TotalVA) - motorAl125VA);
         c.FactorPotencia = c.Continua + c.NoContinua > 0m
             ? FactorPotenciaCombinado.De(c.Aparatos.Select(a => (a.TotalVA, a.FactorPotencia)))
@@ -1070,8 +1069,7 @@ public sealed class CuadroDeCarga
                     a.Unidad = UnidadConsumo.VoltAmperes;
                     a.CargaUnitaria = AparatoDelCircuito.VAPorContacto;
                 }
-                a.TotalVA = a.Cantidad * ConsumoDePlaca.AVoltAmperes(
-                    a.CargaUnitaria, a.Unidad, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV, c.Polos, a.FactorPotencia);
+                a.TotalVA = VADeCarga(a, c.Polos);
                 continue;
             }
 
@@ -1079,13 +1077,57 @@ public sealed class CuadroDeCarga
             a.TotalVA = a.Cantidad * a.CorrienteUnitariaA * divisor;
         }
 
-        c.ContinuaVA = c.Aparatos.Where(a => !a.EsMaquina && a.Continua).Sum(a => a.TotalVA);
-        c.NoContinuaVA = c.Aparatos.Where(a => !a.EsMaquina && !a.Continua).Sum(a => a.TotalVA);
+        c.ContinuaVA = c.Aparatos.Where(EsContinua).Sum(a => a.TotalVA);
+        c.NoContinuaVA = c.Aparatos.Where(a => !a.EsMaquina && !EsContinua(a)).Sum(a => a.TotalVA);
         c.CorrienteDeMotorA = c.Aparatos.Where(a => a.EsMaquina).Sum(a => a.Cantidad * a.CorrienteUnitariaA);
         c.MotorVA = c.Aparatos.Where(a => a.EsMaquina).Sum(a => a.TotalVA);
         if (c.CargaInstaladaVA > 0m)
             c.FactorPotencia = FactorPotenciaCombinado.De(c.Aparatos.Select(a => (a.TotalVA, a.FactorPotencia)));
     }
+
+    /// <summary>
+    /// Los VA de una carga del desglose: de su placa, en VA, W o A; un acondicionador de habitación, con su
+    /// corriente total por la tensión del circuito (I-117).
+    /// </summary>
+    private decimal VADeCarga(AparatoDelCircuito a, int polos) =>
+        a.Clase == ClaseDeAparato.AireDeHabitacion
+            ? a.Cantidad * a.CorrientePlacaA * TensionDeCalculo.Divisor(polos, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV)
+            : a.Cantidad * ConsumoDePlaca.AVoltAmperes(
+                a.CargaUnitaria, a.Unidad, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV, polos, a.FactorPotencia);
+
+    /// <summary>Una carga marcada continua. Un acondicionador de habitación, no: su regla es la de 440-62.</summary>
+    private static bool EsContinua(AparatoDelCircuito a) => a.Clase == ClaseDeAparato.Carga && a.Continua;
+
+    /// <summary>
+    /// 440-62(b), (c) — I-117: los acondicionadores de habitación del desglose no pasan del 80 % del
+    /// circuito si van solos, ni del 50 % con otras cargas. Solo avisa: el circuito ya calculó.
+    /// </summary>
+    private static string? AvisoDeHabitacion(CircuitoDelCuadro c)
+    {
+        if (!c.TieneDesglose || c.EsDeMotor || c.Resultado is not { } r)
+            return null;
+        var unidades = c.Aparatos.Where(a => a.Clase == ClaseDeAparato.AireDeHabitacion && a.CorrientePlacaA > 0m).ToList();
+        if (unidades.Count == 0)
+            return null;
+        if (c.Polos == 3)
+            return $"Circuito {c.Espacio}: un acondicionador de habitación es monofásico — 440-60. En un circuito trifásico, captúralo con su placa (A/C, corriente nominal o MCA).";
+        if (unidades.FirstOrDefault(a => a.CorrientePlacaA > 40m) is { } grande)
+            return $"Circuito {c.Espacio}: {NombreDeMaquina(c, grande)} ({grande.CorrientePlacaA:0.##} A) pasa de los 40 A de un acondicionador de habitación — 440-62(a)(2).";
+
+        var total = unidades.Sum(a => a.Cantidad * a.CorrientePlacaA);
+        var conOtras = c.Aparatos.Any(a => a.Clase != ClaseDeAparato.AireDeHabitacion && a.TotalVA > 0m);
+        var fraccion = conOtras ? 0.5m : 0.8m;
+        if (total <= fraccion * r.ProteccionA)
+            return null;
+        return $"Circuito {c.Espacio}: {(unidades.Sum(a => a.Cantidad) == 1 ? "el acondicionador de habitación" : "los acondicionadores de habitación")} " +
+               $"({total:0.##} A) pasa{(unidades.Sum(a => a.Cantidad) == 1 ? "" : "n")} del {fraccion * 100m:0} % del circuito de {r.ProteccionA:0} A " +
+               $"({fraccion * r.ProteccionA:0.##} A) — 440-62({(conOtras ? "c" : "b")}). " +
+               (conOtras ? "Llévalo a un circuito propio: A/C, unidad «Hab.»." : "Captúralo como A/C, unidad «Hab.»: el circuito sale del tamaño que lo deja en 80 %.");
+    }
+
+    /// <summary>Los avisos de los circuitos que no son de caída: por ahora, 440-62 (I-117).</summary>
+    public IEnumerable<string> AvisosDeCircuitos =>
+        _circuitos.Where(c => c.AvisoAireDeHabitacion is not null).Select(c => c.AvisoAireDeHabitacion!);
 
     /// <summary>
     /// Más de 93.25 W (⅛ hp) — 220-18(a). En HP, los de la tabla empiezan en ⅙; en amperes, sus HP
@@ -1464,6 +1506,7 @@ public sealed class CuadroDeCarga
                     // SIN MÍNIMO POR TIPO DE CARGA: solo el que exige 210-11(c) según el uso.
                     ProteccionMinimaA: c.UsoEfectivo.ReferenciaProteccionMinima() is null ? null : UsosDeContactos.ProteccionMinimaViviendaA,
                     ReferenciaProteccionMinima: c.UsoEfectivo.ReferenciaProteccionMinima()));
+                c.AvisoAireDeHabitacion = AvisoDeHabitacion(c);
             }
             catch (Exception ex)
             {
@@ -1570,7 +1613,8 @@ public sealed class CuadroDeCarga
             MayorOtraCargaA: otras.Count == 0 ? 0m : otras.Max(a => a.TotalVA / a.Cantidad) / divisor,
             TipoMotor: MotoresEnHp.TipoDeMotor(c.Polos),
             TipoDispositivoProteccion: TipoDispositivoProteccionMotor.InterruptorTiempoInverso,
-            RequiereArranque: false,
+            // El motocompresor mayor no arranca al 175 %: 225 % — 440-22(a), 440-22(b)(1) (I-116).
+            RequiereArranque: c.EsAireAcondicionado && c.ArranqueAl225,
             // Como el derivado de un motor y el de A/C: 2 polos es monofásico entre fases.
             NumeroFases: c.Polos == 3 ? 3 : 1,
             TensionFaseNeutroV: c.Polos == 1 ? Datos.TensionFaseNeutroV : Datos.TensionFaseFaseV,
@@ -1618,6 +1662,7 @@ public sealed class CuadroDeCarga
     private void CalcularAireAcondicionado(CircuitoDelCuadro c, CanalizacionDelTablero canal)
     {
         var porPlaca = c.PlacaAire == PlacaDeAireAcondicionado.AmpacidadYProteccion;
+        var deHabitacion = c.PlacaAire == PlacaDeAireAcondicionado.Habitacion;
         c.Resultado = Recordado(new DatosEntradaCircuitoDerivado440(
             // Un equipo de 2 polos es monofásico entre fases; el de 3, trifásico.
             NumeroFases: c.Polos == 3 ? 3 : 1,
@@ -1634,11 +1679,13 @@ public sealed class CuadroDeCarga
             TipoAislamiento: Datos.TipoAislamiento,
             LugarInstalacionSeco: Datos.LugarSeco,
             TerminalesMarcadas75C: Datos.TerminalesMarcadas75C,
-            CorrienteNominalPlacaA: porPlaca ? null : c.CorrientePlacaA,
-            CorrienteSeleccionCircuitoA: porPlaca ? null : c.CorrienteSeleccionA,
-            RequiereArranque: !porPlaca && c.ArranqueAl225,
+            CorrienteNominalPlacaA: porPlaca || deHabitacion ? null : c.CorrientePlacaA,
+            CorrienteSeleccionCircuitoA: porPlaca || deHabitacion ? null : c.CorrienteSeleccionA,
+            RequiereArranque: !porPlaca && !deHabitacion && c.ArranqueAl225,
             AmpacidadMinimaPlacaA: porPlaca ? c.AmpacidadMinimaA : null,
-            ProteccionMaximaPlacaA: porPlaca ? c.ProteccionMaximaA : null));
+            ProteccionMaximaPlacaA: porPlaca ? c.ProteccionMaximaA : null,
+            // 440 Parte G — I-117: una sola unidad de motor, en su circuito.
+            CorrienteTotalHabitacionA: deHabitacion ? c.CorrientePlacaA : null));
     }
 
     /// <summary>
@@ -2099,8 +2146,10 @@ public sealed class CuadroDeCarga
             avisos.Add(
                 $"El interruptor principal ({resultado.ProteccionA:N0} A) es menor que la protección del " +
                 $"{(mayor.EsMotor ? "motor" : "equipo de A/C")} del circuito {mayor.Espacio} ({mayorDerivado:N0} A), " +
-                (mayor.EsMotor ? "que 430-52 dimensiona para el arranque"
+                (mayor.EsGrupo ? (mayor.EsMotor ? "que 430-53(c)(4) dimensiona para el arranque" : "que 440-22(b) dimensiona para el arranque")
+                    : mayor.EsMotor ? "que 430-52 dimensiona para el arranque"
                     : mayor.PlacaAire == PlacaDeAireAcondicionado.AmpacidadYProteccion ? "la que permite su placa — 440-4(b)"
+                    : mayor.PlacaAire == PlacaDeAireAcondicionado.Habitacion ? "la de su circuito — 440-62"
                     : "que 440-22(a) dimensiona para el arranque") +
                 $". El principal podría dispararse al arrancar el {(mayor.EsMotor ? "motor" : "equipo")}" +
                 (resultado.TechoProteccion430_62A is { } techo

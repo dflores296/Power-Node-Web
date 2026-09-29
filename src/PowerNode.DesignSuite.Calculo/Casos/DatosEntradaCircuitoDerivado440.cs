@@ -16,7 +16,9 @@ namespace PowerNode.DesignSuite.Calculo.Casos;
 /// Parte D (el 125 % del motor mayor incluido) y la protección no puede exceder la marcada.</item>
 /// </list>
 ///
-/// Con <see cref="AmpacidadMinimaPlacaA"/> se usa la segunda; si no, la primera.
+/// Con <see cref="AmpacidadMinimaPlacaA"/> se usa la segunda; si no, la primera. Una tercera, nacida en
+/// Power Node Web (I-117): <b>el acondicionador de aire para habitación</b> (440 Parte G), con
+/// <see cref="CorrienteTotalHabitacionA"/>.
 /// </summary>
 /// <param name="NumeroFases">1 (monofásico, F-N o entre fases) o 3. La caída se calcula con él.</param>
 /// <param name="TensionFaseNeutroV">La tensión a la que está conectado un equipo monofásico: F-N en 1
@@ -55,8 +57,17 @@ public sealed record DatosEntradaCircuitoDerivado440(
     decimal? AmpacidadMinimaPlacaA = null,
 
     /// <summary>440-4(b): el valor nominal máximo de la protección que marca la placa.</summary>
-    decimal? ProteccionMaximaPlacaA = null)
+    decimal? ProteccionMaximaPlacaA = null,
+
+    /// <summary>
+    /// 440-62(a)(3): la corriente total de carga nominal de un acondicionador de aire para habitación
+    /// con cordón y clavija, en su circuito, sin otras cargas — 440 Parte G, I-117.
+    /// </summary>
+    decimal? CorrienteTotalHabitacionA = null)
 {
     /// <summary>La placa trae ampacidad mínima y protección máxima (440-4(b)), no la corriente nominal.</summary>
     public bool EsPorAmpacidadYProteccion => AmpacidadMinimaPlacaA is not null;
+
+    /// <summary>Un acondicionador de aire para habitación — 440 Parte G.</summary>
+    public bool EsDeHabitacion => CorrienteTotalHabitacionA is not null;
 }

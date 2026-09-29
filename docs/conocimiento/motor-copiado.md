@@ -145,3 +145,9 @@ motor. Decisión: [`../decisiones/motores-y-equipos-en-grupo.md`](../decisiones/
 | `Calculo/Casos/DatosEntradaCircuitoDerivadoGrupo.cs` | `MiembroDelGrupo` (motor o motocompresor, cantidad, corriente por unidad, origen de la corriente), `MiembrosDelGrupo` (lista comparable por contenido), la entrada del derivado y `DetalleDelGrupo` (regla, mayor, porcentaje, límite, piso, 240-4(b)). |
 | `Calculo/Casos/CalculadoraCircuitoDerivadoGrupo.cs` | Conductor por 430-24 (440-33/440-34); protección = mayor estándar ≤ límite de 430-53(c)(4) o 440-22(b)(1)/(2), subiendo hasta 240-4(b) solo si no lleva la corriente de operación; notas 430-53(a), (c), (c)(6), 240-4(g). |
 | `Calculo/Casos/ResultadoCircuitoDerivado.cs` | Campo opcional `Grupo` (`DetalleDelGrupo`), null en todos los demás derivados. |
+
+Con motocompresores (I-116): el mismo calculador aplica 440-33/440-34 y 440-22(b)(1)/(2); un solo
+motocompresor sin nada más, 440-32 y 440-22(a). El acondicionador de aire para habitación (I-117) es
+una tercera forma de `DatosEntradaCircuitoDerivado440` (`CorrienteTotalHabitacionA`): conductor al
+125 %, circuito que deja la corriente en 80 % (440-62(b)) y conductor que cubre la protección, sin
+240-4(b) (440-62(a)(4)); rechaza trifásico, más de 250 V o más de 40 A (440-60, 440-62(a)(2)).

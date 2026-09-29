@@ -402,6 +402,221 @@ public class GruposDeMotoresTests
         Assert.Equal(500m + 2m * cuadro.Datos.TensionFaseNeutroV, c.NoContinuaVA);
     }
 
+    // ---- A/C en grupo: 440-22(b), 440-33 — I-116 -----------------------------------------------
+
+    private static CircuitoDelCuadro AireEnGrupo(CuadroDeCarga cuadro, int espacio, int polos)
+    {
+        var c = Espacio(cuadro, espacio);
+        c.Categoria = CategoriaDeCarga.AireAcondicionado;
+        c.LongitudM = 10m;
+        if (polos > 1)
+            Assert.Null(cuadro.CambiarPolos(c, polos));
+        c.PlacaAire = PlacaDeAireAcondicionado.CorrienteNominal;
+        c.PasarAGrupoDeAire();
+        return c;
+    }
+
+    private static AparatoDelCircuito Compresor(CircuitoDelCuadro c, decimal rla, decimal? seleccion = null)
+    {
+        var a = c.AgregarMotor(ClaseDeAparato.Motocompresor);
+        a.Descripcion = "Compresor";
+        a.CorrientePlacaA = rla;
+        a.CorrienteSeleccionA = seleccion;
+        return a;
+    }
+
+    [Fact]
+    public void I116_CompresorYVentiladorSinMcaDeConjunto()
+    {
+        var cuadro = Nuevo();
+        var c = AireEnGrupo(cuadro, 1, 2);
+        Compresor(c, 12m);
+        var ventilador = c.AgregarMotor();
+        ventilador.Descripcion = "Ventilador";
+        ventilador.CapturaMotor = CapturaDeMotor.Amperes;
+        ventilador.CorrientePlacaA = 1.2m;
+        cuadro.Recalcular();
+
+        Assert.Null(c.Error);
+        Assert.True(c.EsGrupo);
+        var r = c.Resultado!;
+        // 440-33: 12 A + 1.2 A + 25 % × 12 A = 16.2 A → 12 AWG (14 AWG da 15 A a 60 °C).
+        Assert.Equal(16.2m, r.Detalle!.CapacidadMinimaA);
+        Assert.Equal("12", r.CalibreFase.Designacion);
+        Assert.Contains(r.Citas, x => x.Referencia == "440-33");
+        // 440-22(b)(1): el motocompresor es la carga más grande: 175 % × 12 + 1.2 = 22.2 A → 20 A.
+        Assert.Equal("440-22(b)(1)", r.Grupo!.Regla);
+        Assert.Equal(22.2m, r.Grupo.TechoA);
+        Assert.Equal(20m, r.ProteccionA);
+
+        // No arranca al 175 %: 225 % × 12 + 1.2 = 28.2 A → 25 A.
+        c.ArranqueAl225 = true;
+        cuadro.Recalcular();
+        Assert.Equal(28.2m, c.Resultado!.Grupo!.TechoA);
+        Assert.Equal(25m, c.Resultado.ProteccionA);
+    }
+
+    [Fact]
+    public void I116_UnSoloMotocompresorVaPor440_22a()
+    {
+        var cuadro = Nuevo();
+        var c = AireEnGrupo(cuadro, 1, 2);
+        Compresor(c, 15m, seleccion: 16m);
+        cuadro.Recalcular();
+
+        var r = c.Resultado!;
+        // La corriente de selección es mayor: cuenta ella — 440-6(a) Exc. 1. 125 % × 16 = 20 A — 440-32.
+        Assert.Equal(20m, r.Detalle!.CapacidadMinimaA);
+        Assert.Contains(r.Citas, x => x.Referencia == "440-32");
+        // 440-22(a): 175 % × 16 = 28 A → 25 A, sin redondear hacia arriba.
+        Assert.Equal("440-22(a)", r.Grupo!.Regla);
+        Assert.Equal(25m, r.ProteccionA);
+    }
+
+    [Fact]
+    public void I116_SiLaCargaMasGrandeNoEsElMotocompresor()
+    {
+        var cuadro = Nuevo();
+        var c = AireEnGrupo(cuadro, 1, 2);
+        Compresor(c, 5m);
+        var resistencia = c.AgregarAparato();
+        resistencia.Descripcion = "Resistencia";
+        resistencia.Unidad = UnidadConsumo.Amperes;
+        resistencia.CargaUnitaria = 20m;
+        cuadro.Recalcular();
+
+        var r = c.Resultado!;
+        Assert.Null(c.Error);
+        // 440-34: 5 A + 25 % × 5 A + 20 A = 26.25 A.
+        Assert.Equal(26.25m, r.Detalle!.CapacidadMinimaA);
+        // 440-22(b)(2), solo con cargas que no son de motor: 5 A + lo de 240-4 para 20 A (20 A) = 25 A.
+        Assert.Equal("440-22(b)(2)", r.Grupo!.Regla);
+        Assert.Equal(25m, r.Grupo.TechoA);
+        Assert.Equal(25m, r.ProteccionA);
+    }
+
+    [Fact]
+    public void I116_ElAlimentadorCuentaCadaMotocompresor()
+    {
+        var cuadro = Nuevo();
+        var c = AireEnGrupo(cuadro, 1, 3);
+        Compresor(c, 10m);
+        Compresor(c, 10m);
+        cuadro.Recalcular();
+
+        var fase = cuadro.Alimentador.Fases.Single(f => f.Fase == 'A');
+        Assert.Equal(10m, fase.Motores.MayorFlcA);
+        Assert.Equal(10m, fase.Motores.SumaRestoFlcA);
+        Assert.Equal(c.Resultado!.ProteccionA, fase.Motores.MayorProteccionDerivadoA);
+        Assert.Equal(20m, fase.Motores.FlcDelMayorProteccionA);
+    }
+
+    // ---- Acondicionador de habitación: 440 Parte G — I-117 -------------------------------------
+
+    private static CircuitoDelCuadro DeCuarto(CuadroDeCarga cuadro, int espacio, int polos, decimal corriente)
+    {
+        var c = Espacio(cuadro, espacio);
+        c.Categoria = CategoriaDeCarga.AireAcondicionado;
+        c.LongitudM = 10m;
+        if (polos > 1)
+            Assert.Null(cuadro.CambiarPolos(c, polos));
+        c.PlacaAire = PlacaDeAireAcondicionado.Habitacion;
+        c.CorrientePlacaA = corriente;
+        cuadro.Recalcular();
+        return c;
+    }
+
+    [Theory]
+    // 440-62(b): 12 A ÷ 0.8 = 15 A → 15 A; el conductor la cubre: 14 AWG (15 A).
+    [InlineData(12, 15, "14")]
+    // 13 A ÷ 0.8 = 16.25 A → 20 A; 12 AWG (20 A).
+    [InlineData(13, 20, "12")]
+    public void I117_ElDeHabitacionNoPasaDel80PorCientoDelCircuito(decimal corriente, decimal proteccion, string calibre)
+    {
+        var cuadro = Nuevo();
+        var c = DeCuarto(cuadro, 1, 1, corriente);
+
+        Assert.Null(c.Error);
+        var r = c.Resultado!;
+        Assert.Equal(proteccion, r.ProteccionA);
+        Assert.Equal(calibre, r.CalibreFase.Designacion);
+        Assert.True(r.Detalle!.AmpacidadConductorA >= r.ProteccionA);
+        Assert.Contains(r.Citas, x => x.Referencia == "440-62(b)");
+        Assert.DoesNotContain(r.Citas, x => x.Referencia == "240-4(g)");
+        Assert.Contains(cuadro.Desglose(c)!.Proteccion, x => x.EndsWith("— 440-62(b)"));
+        Assert.Contains(MemoriaDeCalculo.DeCircuito(cuadro, c).Equipo!.Proteccion, x => x.Rotulo == "Circuito mínimo — 440-62(b)");
+    }
+
+    [Fact]
+    public void I117_UnoTrifasicoODeMasDe40ANoEsDeLaParteG()
+    {
+        var cuadro = Nuevo();
+        Assert.Contains("440-60", DeCuarto(cuadro, 1, 3, 12m).Error);
+        Assert.Contains("440-62(a)(2)", DeCuarto(cuadro, 2, 1, 45m).Error);
+    }
+
+    [Fact]
+    public void I117_EnUnCircuitoDeContactosNoPasaDel50PorCiento()
+    {
+        var cuadro = Nuevo();
+        var c = Espacio(cuadro, 1);
+        c.Categoria = CategoriaDeCarga.Contactos;
+        var contactos = c.AgregarAparato();
+        contactos.Descripcion = "Contacto";
+        contactos.Cantidad = 4;
+        var ventana = c.AgregarAparato();
+        ventana.Descripcion = "A/C de ventana";
+        ventana.Clase = ClaseDeAparato.AireDeHabitacion;
+        ventana.CorrientePlacaA = 12m;
+        cuadro.Recalcular();
+
+        Assert.Null(c.Error);
+        // 720 VA + 12 A a 127 V: 17.67 A → 20 A; 12 A pasa del 50 % (10 A) — 440-62(c).
+        Assert.Equal(20m, c.Resultado!.ProteccionA);
+        Assert.Contains("440-62(c)", c.AvisoAireDeHabitacion);
+        Assert.Contains(cuadro.AvisosDeCircuitos, x => x.StartsWith("Circuito 1: el acondicionador de habitación (12 A)"));
+        Assert.Equal(12m * cuadro.Datos.TensionFaseNeutroV, ventana.TotalVA);
+
+        // Solo, 13 A en un circuito de 15 A: pasa del 80 % — 440-62(b).
+        c.Aparatos.Remove(contactos);
+        ventana.CorrientePlacaA = 13m;
+        cuadro.Recalcular();
+        Assert.Equal(15m, c.Resultado!.ProteccionA);
+        Assert.Contains("440-62(b)", c.AvisoAireDeHabitacion);
+        Assert.Contains("«Hab.»", c.AvisoAireDeHabitacion);
+    }
+
+    // ---- El archivo: formato 4 -----------------------------------------------------------------
+
+    [Fact]
+    public void I116_I117_ElAireEnGrupoYElDeCuartoSeGuardanYAbrenIgual()
+    {
+        var cuadro = Nuevo();
+        var grupo = AireEnGrupo(cuadro, 1, 2);
+        Compresor(grupo, 12m, seleccion: 13m);
+        grupo.ArranqueAl225 = true;
+        DeCuarto(cuadro, 2, 1, 12m); // el 3 es del 2 polos del 1
+        var contactos = Espacio(cuadro, 4);
+        contactos.Categoria = CategoriaDeCarga.Contactos;
+        var ventana = contactos.AgregarAparato();
+        ventana.Clase = ClaseDeAparato.AireDeHabitacion;
+        ventana.CorrientePlacaA = 8m;
+        cuadro.Recalcular();
+
+        var texto = ArchivoDelCuadro.Guardar(cuadro, DateTimeOffset.Now);
+        var apertura = ArchivoDelCuadro.Abrir(texto, Motor);
+
+        Assert.Null(apertura.Error);
+        Assert.Empty(apertura.Avisos);
+        Assert.Equal(ArchivoDelCuadro.Huella(cuadro), ArchivoDelCuadro.Huella(apertura.Cuadro!));
+        Assert.Equal(
+            cuadro.Circuitos.Select(c => (c.Espacio, c.Resultado?.ProteccionA, c.Resultado?.CalibreFase.Designacion)),
+            apertura.Cuadro!.Circuitos.Select(c => (c.Espacio, c.Resultado?.ProteccionA, c.Resultado?.CalibreFase.Designacion)));
+        Assert.Equal(PlacaDeAireAcondicionado.Habitacion, Espacio(apertura.Cuadro, 2).PlacaAire);
+        Assert.Equal(ClaseDeAparato.AireDeHabitacion, Espacio(apertura.Cuadro, 4).Aparatos.Single().Clase);
+        Assert.True(Espacio(apertura.Cuadro, 1).ArranqueAl225);
+    }
+
     // ---- El archivo: formato 3 -----------------------------------------------------------------
 
     [Fact]
@@ -420,7 +635,7 @@ public class GruposDeMotoresTests
         cuadro.Recalcular();
 
         var texto = ArchivoDelCuadro.Guardar(cuadro, DateTimeOffset.Now);
-        Assert.Contains("\"version\": 3", texto);
+        Assert.Contains("\"version\": 4", texto);
         var apertura = ArchivoDelCuadro.Abrir(texto, Motor);
 
         Assert.Null(apertura.Error);
@@ -467,7 +682,7 @@ public class GruposDeMotoresTests
         const string texto = """
             {
               "formato": "power-node/cuadro-de-carga",
-              "version": 4,
+              "version": 5,
               "circuitos": [ { "espacio": 1, "capturaMotor": "AlgoNuevo" } ]
             }
             """;

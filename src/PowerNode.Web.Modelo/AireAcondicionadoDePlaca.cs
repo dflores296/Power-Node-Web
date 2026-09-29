@@ -18,6 +18,18 @@ public enum PlacaDeAireAcondicionado
     /// derivado — 440-6(a). Un compresor suelto, una cámara de refrigeración.
     /// </summary>
     CorrienteNominal,
+
+    /// <summary>
+    /// Varios motocompresores, o motocompresor y ventiladores u otras cargas, sin una MCA de conjunto —
+    /// 440-22(b), 440-33, 440-34 (I-116). Cada uno es un aparato del desglose.
+    /// </summary>
+    Grupo,
+
+    /// <summary>
+    /// Acondicionador de aire para habitación —ventana, consola o pared— con cordón y clavija, en su
+    /// propio circuito: la corriente total de placa — 440 Parte G, 440-62 (I-117).
+    /// </summary>
+    Habitacion,
 }
 
 /// <summary>
@@ -31,6 +43,8 @@ public static class AireAcondicionadoDePlaca
     public static string Nombre(this PlacaDeAireAcondicionado p) => p switch
     {
         PlacaDeAireAcondicionado.AmpacidadYProteccion => "MCA",
+        PlacaDeAireAcondicionado.Grupo => "Varios",
+        PlacaDeAireAcondicionado.Habitacion => "Hab.",
         _ => "A",
     };
 
@@ -42,6 +56,8 @@ public static class AireAcondicionadoDePlaca
     public static decimal? Corriente(CircuitoDelCuadro c) => c.PlacaAire switch
     {
         PlacaDeAireAcondicionado.AmpacidadYProteccion => c.AmpacidadMinimaA > 0m ? c.AmpacidadMinimaA : null,
+        PlacaDeAireAcondicionado.Habitacion => c.CorrientePlacaA > 0m ? c.CorrientePlacaA : null,
+        PlacaDeAireAcondicionado.Grupo => null, // la suma de sus máquinas — CuadroDeCarga.SumarGrupo
         _ => c.CorrientePlacaA > 0m ? Math.Max(c.CorrientePlacaA, c.CorrienteSeleccionA ?? 0m) : null,
     };
 
@@ -53,6 +69,7 @@ public static class AireAcondicionadoDePlaca
     public static string Texto(CircuitoDelCuadro c) => c.PlacaAire switch
     {
         PlacaDeAireAcondicionado.AmpacidadYProteccion => $"MCA {c.AmpacidadMinimaA:#,0.##} A · MOCP {c.ProteccionMaximaA:#,0.##} A",
+        PlacaDeAireAcondicionado.Habitacion => $"De habitación {c.CorrientePlacaA:#,0.##} A",
         _ => $"Nominal {c.CorrientePlacaA:#,0.##} A" + (c.CorrienteSeleccionA is > 0m and { } s ? $" · selección {s:#,0.##} A" : ""),
     };
 }

@@ -85,6 +85,7 @@ public static class MemoriaDeCalculo
             Desglose: Desglose(circuito),
             NotaDelUso: circuito.UsoEfectivo.Nota(),
             NotaDelMotor: cuadro.NotaDelMotorMayor(circuito),
+            AvisoDeHabitacion: circuito.AvisoAireDeHabitacion is { } aviso ? aviso[(aviso.IndexOf(':') + 2)..] : null,
             Canalizacion: DeLaCanalizacion(cuadro, circuito.CanalizacionEfectiva),
             Equipo: equipo,
             CargaMotoresVa: circuito.MotorVA);
@@ -154,7 +155,7 @@ public static class MemoriaDeCalculo
         if (c.ContinuaVA + c.NoContinuaVA > 0m)
             proteccion.Add(new("Otras cargas", $"{c.ContinuaVA / divisor:N2} A continua + {c.NoContinuaVA / divisor:N2} A no continua"));
 
-        var capacidad = r.Citas.First(x => x.Referencia is "430-24" or "440-33" or "440-34");
+        var capacidad = r.Citas.First(x => x.Referencia is "430-24" or "440-32" or "440-33" or "440-34");
         proteccion.Add(new($"Capacidad mínima del conductor — {capacidad.Referencia}", capacidad.Descripcion[(capacidad.Descripcion.IndexOf(':') + 2)..]));
         var limite = r.Citas.First(x => x.Referencia == g.Regla && x.Descripcion.StartsWith("Límite"));
         proteccion.Add(new($"Protección máxima — {g.Regla}", limite.Descripcion["Límite de la protección — ".Length..]));
@@ -176,7 +177,7 @@ public static class MemoriaDeCalculo
         notas.AddRange(r.Citas.Where(x => x.Referencia is "430-53(c)(6)" or "430-53(a)").Select(x => $"{x.Descripcion} — {x.Referencia}."));
 
         return new EquipoDeLaHoja(
-            Rotulo: "Grupo de motores",
+            Rotulo: c.EsAireAcondicionado ? "Equipo de A/C" : "Grupo de motores",
             Descripcion: $"{Cuantas(maquinas, ClaseDeAparato.Motor, "motor", "motores")}{Cuantas(maquinas, ClaseDeAparato.Motocompresor, "motocompresor", "motocompresores")}" +
                          $"{(c.ContinuaVA + c.NoContinuaVA > 0m ? " y otras cargas" : "")} · {tipo} {tension:0} V · varios motores en un circuito — " +
                          (maquinas.Any(a => a.Clase == ClaseDeAparato.Motocompresor) ? "430-53, 440-22(b)" : "430-53"),
@@ -203,7 +204,21 @@ public static class MemoriaDeCalculo
         var tipo = c.Polos == 3 ? "trifásico" : "monofásico";
         List<RenglonMemoria> proteccion;
         string descripcion;
-        if (c.PlacaAire == PlacaDeAireAcondicionado.AmpacidadYProteccion)
+        if (c.PlacaAire == PlacaDeAireAcondicionado.Habitacion)
+        {
+            // 440 Parte G — I-117.
+            var i = c.CorrienteDeMotorA;
+            descripcion = $"Acondicionador de aire para habitación con cordón y clavija · {tipo} · corriente total de placa {c.CorrientePlacaA:N2} A — 440-62(a)";
+            proteccion =
+            [
+                new("Corriente — 440-62(a)", $"{i:N2} A, la total de la placa: una sola unidad de motor"),
+                new("Capacidad mínima del conductor — 440-32", $"125 % × {i:N2} A = {1.25m * i:N2} A"),
+                new("Circuito mínimo — 440-62(b)", $"{i:N2} A ÷ 0.8 = {i / 0.8m:N2} A: sin otras cargas, no más del 80 % del circuito"),
+                new("Protección seleccionada — 440-62(b), 440-62(a)(4)",
+                    $"{r.ProteccionA:N0} A, el primer tamaño estándar que lo cumple; no excede la ampacidad del conductor ni el contacto"),
+            ];
+        }
+        else if (c.PlacaAire == PlacaDeAireAcondicionado.AmpacidadYProteccion)
         {
             descripcion = $"Motocompresor hermético · {tipo} · placa: ampacidad mínima {c.AmpacidadMinimaA:N2} A, protección máxima " +
                           $"{c.ProteccionMaximaA:N0} A — 440-4(b)";
@@ -522,6 +537,7 @@ public static class MemoriaDeCalculo
                 ("Corriente de diseño (In)", Amperes(hoja.CorrienteDisenoA)),
                 ("Uso del circuito", hoja.NotaDelUso),
                 ("Aparato con motor — 220-18(a)", hoja.NotaDelMotor),
+                ("Acondicionador de habitación — 440-62", hoja.AvisoDeHabitacion),
                 ($"{hoja.EtiquetaDeMotores} — {hoja.ReferenciaDeMotores}", motores.MayorFlcA is { } mayor
                     ? (mayor > 0m
                         ? $"125 % × {mayor:N2} A (el mayor, completo) + {motores.SumaRestoFlcA:N2} A (los demás, con su F.D.) = {motores.CapacidadMinimaA:N2} A"

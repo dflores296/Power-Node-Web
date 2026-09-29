@@ -176,7 +176,8 @@ public sealed record DesgloseDeSeleccion(IReadOnlyList<string> Proteccion, IRead
                 ? $"Protección: {proteccionA:N0} A, no se exige menos — 440-22(a) Excepción"
                 : $"Protección: {proteccionA:N0} A, el mayor tamaño estándar que no excede el máximo en «{datos.SerieInterruptores.Nombre()}» — " +
                   $"{g.Regla}, sin el redondeo hacia arriba de 430-52(c)(1) Excepción 1");
-        proteccion.Add("Sobrecarga: la de cada motor, con controlador y relevador aprobados para instalación en grupo — 430-53(c), 430-32");
+        proteccion.Add("Sobrecarga: la de cada motor, con controlador y relevador aprobados para instalación en grupo — 430-53(c), 430-32" +
+                       (g.Regla.StartsWith("440") ? ", 440-52" : ""));
 
         var conductor = LineasDelConductor(ampacidad, datos, proteccionA, calibre, conductoresPorFase, d);
         conductor.Add($"Capacidad mínima = {capacidad} — {articuloCapacidad}");
@@ -205,7 +206,21 @@ public sealed record DesgloseDeSeleccion(IReadOnlyList<string> Proteccion, IRead
     {
         List<string> proteccion;
         string requisito;
-        if (c.PlacaAire == PlacaDeAireAcondicionado.AmpacidadYProteccion)
+        if (c.PlacaAire == PlacaDeAireAcondicionado.Habitacion)
+        {
+            // 440 Parte G — I-117.
+            var i = c.CorrienteDeMotorA;
+            proteccion =
+            [
+                $"Corriente total de placa = {i:N2} A: acondicionador de habitación, una sola unidad de motor — 440-62(a)",
+                $"Sin otras cargas, no más del 80 % del circuito: {i:N2} A ÷ 0.8 = {i / 0.8m:N2} A — 440-62(b)",
+                $"Protección: {proteccionA:N0} A, el primer tamaño estándar que lo cumple en «{datos.SerieInterruptores.Nombre()}»; " +
+                    "no excede la ampacidad del conductor ni el valor del contacto — 440-62(a)(4)",
+            ];
+            requisito = $"125 % × {i:N2} A = {d.CapacidadMinimaA:N2} A y la protección, {proteccionA:N0} A " +
+                        $"{(d.AmpacidadConductorA >= Math.Max(d.CapacidadMinimaA, proteccionA) ? "✔" : "✘")} — 440-32, 440-62(a)(4)";
+        }
+        else if (c.PlacaAire == PlacaDeAireAcondicionado.AmpacidadYProteccion)
         {
             proteccion =
             [

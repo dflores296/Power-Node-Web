@@ -131,13 +131,21 @@ public sealed class CircuitoDelCuadro
             CapturaDeMotor.Amperes => CorrientePlacaA > 0m,
             _ => Aparatos.Any(a => a.EsMaquina && a.TieneCapturaDeMaquina),
         }
-        : EsAireAcondicionado && (PlacaAire == PlacaDeAireAcondicionado.AmpacidadYProteccion ? AmpacidadMinimaA > 0m : CorrientePlacaA > 0m);
+        : EsAireAcondicionado && PlacaAire switch
+        {
+            PlacaDeAireAcondicionado.AmpacidadYProteccion => AmpacidadMinimaA > 0m,
+            PlacaDeAireAcondicionado.Grupo => Aparatos.Any(a => a.EsMaquina && a.TieneCapturaDeMaquina),
+            _ => CorrientePlacaA > 0m,
+        };
 
     /// <summary>
-    /// <b>Varios motores, o motores y otras cargas</b> — 430-53, I-115: un Motor capturado como «Varios».
-    /// Cada motor y cada otra carga es un aparato del desglose.
+    /// <b>Varios motores, o motores y otras cargas</b> — 430-53, I-115: un Motor capturado como «Varios»;
+    /// o varios motocompresores, o motocompresor y ventiladores u otras cargas — 440-22(b), I-116: un A/C
+    /// capturado como «Varios». Cada máquina y cada otra carga es un aparato del desglose.
     /// </summary>
-    public bool EsGrupo => EsMotor && CapturaMotor == CapturaDeMotor.Grupo;
+    public bool EsGrupo =>
+        (EsMotor && CapturaMotor == CapturaDeMotor.Grupo)
+        || (EsAireAcondicionado && PlacaAire == PlacaDeAireAcondicionado.Grupo);
 
     /// <summary>
     /// <b>La corriente del motor o del equipo de A/C</b>: la FLC de tabla de un motor (430-6(a)), la de
@@ -203,12 +211,33 @@ public sealed class CircuitoDelCuadro
     /// </summary>
     public AparatoDelCircuito? MotorAl125 { get; internal set; }
 
-    /// <summary>Agrega un motor al grupo, en HP como el circuito — I-115.</summary>
-    public AparatoDelCircuito AgregarMotor()
+    /// <summary>Agrega un motor al grupo, en HP — I-115; o, con <paramref name="clase"/>, un motocompresor — I-116.</summary>
+    public AparatoDelCircuito AgregarMotor(ClaseDeAparato clase = ClaseDeAparato.Motor)
     {
-        var nuevo = new AparatoDelCircuito { Clase = ClaseDeAparato.Motor, FactorPotencia = FactorPotencia };
+        var nuevo = new AparatoDelCircuito { Clase = clase, FactorPotencia = FactorPotencia };
         Aparatos.Add(nuevo);
         return nuevo;
+    }
+
+    /// <summary>
+    /// El 440-4(b) de un equipo con MCA ya suma sus máquinas; en un grupo se capturan una por una —
+    /// I-116. Pasa un A/C a «Varios»: el motocompresor capturado por corriente nominal se vuelve el
+    /// primero del grupo.
+    /// </summary>
+    public void PasarAGrupoDeAire()
+    {
+        if (!EsAireAcondicionado || EsGrupo)
+            return;
+        if (!Aparatos.Any(a => a.EsMaquina) && PlacaAire == PlacaDeAireAcondicionado.CorrienteNominal && CorrientePlacaA > 0m)
+            Aparatos.Insert(0, new AparatoDelCircuito
+            {
+                Descripcion = string.IsNullOrWhiteSpace(Descripcion) ? "Motocompresor" : Descripcion.Trim(),
+                Clase = ClaseDeAparato.Motocompresor,
+                CorrientePlacaA = CorrientePlacaA,
+                CorrienteSeleccionA = CorrienteSeleccionA,
+                FactorPotencia = FactorPotencia,
+            });
+        PlacaAire = PlacaDeAireAcondicionado.Grupo;
     }
 
     /// <summary>
@@ -390,5 +419,12 @@ public sealed class CircuitoDelCuadro
         CaidaCombinadaPct = null;
         CaidaAlimentadorPct = null;
         AvisoCaidaCombinada = null;
+        AvisoAireDeHabitacion = null;
     }
+
+    /// <summary>
+    /// Un acondicionador de habitación en el desglose que pasa del 80 % del circuito (solo) o del 50 %
+    /// (con otras cargas) — 440-62(b), (c), I-117. Ya redactado; <c>null</c> si cumple o no hay.
+    /// </summary>
+    public string? AvisoAireDeHabitacion { get; internal set; }
 }

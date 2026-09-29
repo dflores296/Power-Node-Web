@@ -68,6 +68,8 @@ public class CalculadoraCircuitoDerivadoGrupo(
         var otrasNoContinua = Math.Max(0m, d.OtrasNoContinuaA);
         var otras = otrasContinua + otrasNoContinua;
         var hayCompresor = miembros.Any(m => m.Clase == ClaseDeMiembro.Motocompresor);
+        // «Cuando la única carga del circuito sea un motocompresor» — 440-22(b): 440-22(a) y 440-32.
+        var compresorSolo = miembros is [{ Clase: ClaseDeMiembro.Motocompresor, Cantidad: 1 }] && otras == 0m;
 
         // 1. Cada máquina con su corriente — 430-6(a) (tabla) o 440-6(a) (placa). El que la redacta es el llamador.
         foreach (var m in miembros)
@@ -92,18 +94,18 @@ public class CalculadoraCircuitoDerivadoGrupo(
             terminos.Add($"125 % × {otrasContinua:0.##} A (otras cargas, continua)");
         if (otrasNoContinua > 0m)
             terminos.Add($"{otrasNoContinua:0.##} A (otras cargas, no continua)");
-        citas.Add(new Cita(!hayCompresor ? "430-24" : otras > 0m ? "440-34" : "440-33",
+        citas.Add(new Cita(!hayCompresor ? "430-24" : compresorSolo ? "440-32" : otras > 0m ? "440-34" : "440-33",
             $"Capacidad mínima del conductor: {string.Join(" + ", terminos)} = {capacidadMinConductor:0.##} A"));
 
         // 3. El límite de la protección — 430-53(c)(4), 440-22(b)(1)/(2).
-        var detalle = LimiteDeProteccion(d, citas, sumaMaquinas, otrasContinua, otrasNoContinua, mayorMotor, mayorCompresor);
+        var detalle = LimiteDeProteccion(d, citas, sumaMaquinas, otrasContinua, otrasNoContinua, mayorMotor, mayorCompresor, compresorSolo);
         var techo = detalle.TechoA;
         var piso = sumaMaquinas + 1.25m * otrasContinua + otrasNoContinua;
 
         // «No exceda»: el mayor tamaño estándar que no lo pase. Con un motocompresor al frente, nunca se
         // exige bajar de 15 A — Excepción de 440-22(a).
         var breaker = proteccionEstandar.AnteriorEstandar(techo);
-        if (detalle.Regla == "440-22(b)(1)" && (breaker is null || breaker < CalculadoraCarga440.ProteccionMinimaA))
+        if (detalle.Regla is "440-22(b)(1)" or "440-22(a)" && (breaker is null || breaker < CalculadoraCarga440.ProteccionMinimaA))
         {
             breaker = proteccionEstandar.SiguienteEstandar(CalculadoraCarga440.ProteccionMinimaA);
             citas.Add(new Cita("440-22(a) Excepción",
@@ -254,7 +256,7 @@ public class CalculadoraCircuitoDerivadoGrupo(
     /// </summary>
     private DetalleDelGrupo LimiteDeProteccion(
         DatosEntradaCircuitoDerivadoGrupo d, List<Cita> citas, decimal sumaMaquinas, decimal otrasContinua, decimal otrasNoContinua,
-        MiembroDelGrupo? mayorMotor, MiembroDelGrupo? mayorCompresor)
+        MiembroDelGrupo? mayorMotor, MiembroDelGrupo? mayorCompresor, bool compresorSolo)
     {
         var otras = otrasContinua + otrasNoContinua;
         var compresorEsLaMayor = mayorCompresor is not null
@@ -267,11 +269,11 @@ public class CalculadoraCircuitoDerivadoGrupo(
         string porQue;
         if (compresorEsLaMayor)
         {
-            regla = "440-22(b)(1)";
+            regla = compresorSolo ? "440-22(a)" : "440-22(b)(1)";
             mayor = mayorCompresor!;
             porcentaje = d.RequiereArranque ? CalculadoraCarga440.TechoProteccionArranquePct : CalculadoraCarga440.TechoProteccionPct;
             otrasEnElLimite = otras;
-            porQue = $"el motocompresor es la carga más grande: {porcentaje:0} % de 440-22(a)" +
+            porQue = (compresorSolo ? "el motocompresor es la única carga" : "el motocompresor es la carga más grande") + $": {porcentaje:0} % de 440-22(a)" +
                      (d.RequiereArranque ? " (el 175 % no conduce la corriente de arranque)" : "");
         }
         else if (mayorMotor is not null)

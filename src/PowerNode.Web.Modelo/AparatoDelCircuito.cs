@@ -16,6 +16,12 @@ public enum ClaseDeAparato
 
     /// <summary>Un motocompresor hermético: corriente de carga nominal de placa — 440-6(a).</summary>
     Motocompresor,
+
+    /// <summary>
+    /// Un acondicionador de aire para habitación con cordón y clavija, en un circuito de contactos o de
+    /// equipo: su corriente total de placa — 440-62(b), (c) (I-117). No es máquina de un grupo.
+    /// </summary>
+    AireDeHabitacion,
 }
 
 /// <summary>
@@ -62,7 +68,7 @@ public sealed class AparatoDelCircuito
     public ClaseDeAparato Clase { get; set; } = ClaseDeAparato.Carga;
 
     /// <summary>Motor o motocompresor: su corriente cuenta en 430-24 y 430-53, no como carga de placa.</summary>
-    public bool EsMaquina => Clase != ClaseDeAparato.Carga;
+    public bool EsMaquina => Clase is ClaseDeAparato.Motor or ClaseDeAparato.Motocompresor;
 
     /// <summary>Un motor se captura en HP o en amperes — 430-6(a)(1). Solo HP o amperes, nunca «Varios».</summary>
     public CapturaDeMotor CapturaMotor { get; set; } = CapturaDeMotor.Hp;
