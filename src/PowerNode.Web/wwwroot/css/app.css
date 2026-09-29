@@ -211,16 +211,17 @@ html { scroll-padding-top: calc(var(--alto-barra) + 8px); -webkit-text-size-adju
     .github-texto { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 }
 
-/* Hasta 960 px: además, las páginas con su nombre corto y la marca sin la norma. */
-@media (max-width: 960px) {
+/* Hasta 1040 px: además, las páginas con su nombre corto y la marca sin la norma. Era 960; con la
+   guía de cargas, la cuarta página (I-126), de 961 a 1004 px la barra ya no cabía. */
+@media (max-width: 1040px) {
     .pagina-corta { display: inline; }
     .pagina-larga { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
     .marca-texto small { display: none; }
 }
 
 /* En el celular no cabe en un renglón: las páginas bajan a un segundo renglón, a lo ancho, y se
-   recorren de lado si no caben. */
-@media (max-width: 760px) {
+   recorren de lado si no caben. Era 760; con la cuarta página no cabía hasta 790 (I-126). */
+@media (max-width: 800px) {
     /* Sin el espaciador y con menos hueco, el tema cabe junto a la marca de 40 px (I-59). */
     .barra-superior-interior { flex-wrap: wrap; row-gap: 6px; column-gap: 10px; padding: 8px 14px; }
     .barra-superior .espaciador { display: none; }
@@ -720,6 +721,97 @@ label.suelto input { width: 90px; }
     @page { size: landscape; margin: 10mm; }
 }
 .intro { margin: 4px 0 2px; font-size: 11px; }
+
+/* ------------------------------------------------------------------------------------------------
+   LA GUÍA DE CARGAS — Pages/Guia.razor (I-126). Una hoja como el documento, más angosta: se lee, no
+   se captura. El mapa arriba (cada tipo con sus subtipos en chips) y el árbol desplegable abajo; cada
+   rama con sus citas en tres niveles: la carga, el circuito derivado, el alimentador.
+   ------------------------------------------------------------------------------------------------ */
+.guia { max-width: 1100px; margin: 0 auto; }
+.guia-encabezado { margin-bottom: 14px; border-bottom: 2px solid var(--tinta); }
+.guia-intro { margin: 0 0 8px; font-size: 13px; line-height: 1.55; max-width: 88ch; }
+.guia-intro.tenue { color: var(--tenue); }
+.guia-intro a, .guia-nota a { color: var(--acento); }
+.guia-acciones { display: flex; gap: 8px; margin: 12px 0 4px; }
+.guia h2 { font-size: 15px; font-weight: 650; margin: 26px 0 8px; padding-bottom: 4px;
+           border-bottom: 1px solid var(--linea); }
+.guia-nota { margin: 0 0 8px; font-size: 12px; color: var(--tenue); line-height: 1.5; max-width: 88ch; }
+
+/* El mapa: un recuadro por tipo, sus subtipos en chips que llevan a la rama. */
+.guia-mapa { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(210px, 100%), 1fr)); gap: 10px; margin: 10px 0 16px; }
+.mapa-rama { border: 1px solid var(--linea); border-radius: var(--radio-sm); background: var(--fondo-suave); padding: 9px 11px; }
+.mapa-raiz { display: flex; align-items: flex-start; gap: 8px; color: var(--tinta); text-decoration: none; font-weight: 650; font-size: 13px; }
+.mapa-raiz .icono { color: var(--tenue); margin-top: 1px; }
+.mapa-raiz small { display: block; font-weight: 400; font-size: 11px; color: var(--tenue); line-height: 1.35; }
+.mapa-raiz small:empty { display: none; }
+.mapa-raiz:hover { color: var(--acento); }
+.mapa-rama ul { list-style: none; margin: 7px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px; }
+.mapa-rama li a { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11.5px; text-decoration: none;
+                  background: var(--acento-suave); border: 1px solid var(--acento-borde); color: var(--acento); }
+.mapa-rama li a:hover { background: var(--papel); }
+
+/* El árbol: cada nivel, con su línea a la izquierda. */
+/* Sin scroll-margin: el scroll-padding-top del html ya deja libre la barra. */
+.rama { border-left: 2px solid var(--linea-suave); padding-left: 12px; margin: 4px 0; }
+.rama.nivel-1 { border-left-color: var(--acento-borde); margin: 8px 0; }
+.rama > summary { cursor: pointer; padding: 5px 6px; margin-left: -6px; border-radius: var(--radio-xs);
+                  display: flex; align-items: center; flex-wrap: wrap; gap: 4px 8px; list-style: none; }
+.rama > summary::-webkit-details-marker { display: none; }
+.rama > summary::before { content: ""; flex: none; width: 0; height: 0; border-style: solid; border-width: 4.5px 0 4.5px 6px;
+                          border-color: transparent transparent transparent var(--tenue); transition: transform .12s; }
+.rama[open] > summary::before { transform: rotate(90deg); }
+.rama > summary:hover { background: var(--hover); }
+.rama > summary .icono { color: var(--tenue); }
+.rama-nombre { font-weight: 650; font-size: 13px; }
+.rama.nivel-1 > summary .rama-nombre { font-size: 14.5px; }
+.rama-nom { color: var(--tenue); font-size: 12px; }
+.rama-nom::before { content: "· "; }
+.rama-cuenta { margin-left: auto; font-size: 11px; color: var(--tenue); }
+.rama-cuerpo { padding: 2px 0 6px 12px; }
+.rama-que { margin: 2px 0 4px; font-size: 12.5px; line-height: 1.5; }
+.rama-captura { margin: 0 0 4px; font-size: 12px; line-height: 1.5; color: var(--tenue); }
+.rama-captura .rotulo { font-size: 10px; text-transform: uppercase; letter-spacing: .05em; color: var(--acento); margin-right: 4px; }
+.refs { border-collapse: collapse; margin: 2px 0 4px; font-size: 12px; }
+.refs th { text-align: left; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em;
+           color: var(--cita); padding: 8px 0 3px; }
+.refs td { padding: 2px 0; vertical-align: top; line-height: 1.45; }
+.refs td.cita { padding-right: 12px; min-width: 110px; }
+.refs code { background: var(--codigo); padding: 1px 6px; border-radius: var(--radio-xs); font-size: 11px; white-space: nowrap; }
+/* Al llegar desde un enlace, la rama se marca un momento. */
+@keyframes resaltar { from { background: var(--acento-suave); } to { background: transparent; } }
+.rama.resaltada > summary { animation: resaltar 1.8s ease-out; }
+@media (prefers-reduced-motion: reduce) { .rama.resaltada > summary { animation: none; background: var(--acento-suave); } }
+@media (max-width: 640px) {
+    .refs, .refs tbody, .refs tr, .refs td, .refs th { display: block; }
+    .refs code { white-space: normal; }
+    .refs td:not(.cita) { padding-bottom: 6px; }
+    .rama-cuerpo { padding-left: 4px; }
+    .rama { padding-left: 9px; }
+}
+
+.guia-glosario td { text-align: left; vertical-align: top; }
+.guia-glosario .corto { font-weight: 600; white-space: nowrap; }
+.guia-glosario .donde { color: var(--cita); }
+.guia-glosario .antes { color: var(--tenue); }
+
+/* El «?» del encabezado Tipo de la captura: abre la guía en otra pestaña. */
+.a-la-guia { display: inline-grid; place-items: center; width: 15px; height: 15px; margin-left: 4px; vertical-align: 1px;
+             border-radius: 50%; border: 1px solid var(--acento-borde); background: var(--acento-suave);
+             color: var(--acento); font-size: 10px; font-weight: 700; text-decoration: none; line-height: 1; }
+.a-la-guia:hover { background: var(--acento); color: var(--sobre-acento); }
+
+@media print {
+    /* Vertical, a diferencia del cuadro; desplegada entera por guia.js. */
+    .guia { page: guia; max-width: none; }
+    .guia-mapa { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .mapa-rama { break-inside: avoid; }
+    .rama > summary { break-after: avoid; }
+    .rama > summary::before { display: none; }
+    .refs tr { break-inside: avoid; }
+    .refs th { break-after: avoid; }
+    .rama.resaltada > summary { animation: none; }
+}
+@page guia { size: portrait; margin: 12mm; }
 
 /* ------------------------------------------------------------------------------------------------
    EL INTERIOR DEL GABINETE EN MULTIFILAR — Layout/InteriorDelGabinete.razor (I-67).

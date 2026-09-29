@@ -41,11 +41,14 @@
             @* En el celular, el nombre corto: con el completo, GitHub no cabía en el renglón (I-61). *@
             <NavLink href="documento" Match="NavLinkMatch.All"><span class="pagina-larga">Cuadro de carga</span><span class="pagina-corta" aria-hidden="true">Cuadro</span></NavLink>
             <NavLink href="documento/memoria" Match="NavLinkMatch.All"><span class="pagina-larga">Memoria de cálculo</span><span class="pagina-corta" aria-hidden="true">Memoria</span></NavLink>
+            @* En qué tipo va cada carga y a qué artículos queda sujeta (I-126). Por prefijo: llega con
+               «#rama-…» y con All no se marcaba. *@
+            <NavLink href="guia" Match="NavLinkMatch.Prefix"><span class="pagina-larga">Guía de cargas</span><span class="pagina-corta" aria-hidden="true">Guía</span></NavLink>
         </nav>
         <span class="espaciador"></span>
         @* Abrir y guardar el tablero (I-05), en la captura: es donde se edita. En el celular, solo los
            iconos, igual que Imprimir (I-60). *@
-        @if (!EnDocumento)
+        @if (!ParaImprimir)
         {
             <button class="boton con-icono" type="button" @onclick="Abrir"
                     title="Abrir un tablero guardado (.powernode.json). Para tener varios a la vez, uno por pestaña.">
@@ -58,10 +61,10 @@
                 <span class="boton-texto">Guardar</span>
             </button>
         }
-        @if (EnDocumento)
+        @if (ParaImprimir)
         {
             @* En el celular, solo el icono: con el texto la barra se iba a tres renglones (I-60). *@
-            <button class="boton primario con-icono" type="button" @onclick="Imprimir" title="Imprimir el documento, o guardarlo como PDF desde el diálogo de impresión.">
+            <button class="boton primario con-icono" type="button" @onclick="Imprimir" title="@(EnGuia ? "Imprimir la guía, o guardarla como PDF desde el diálogo de impresión: sale desplegada." : "Imprimir el documento, o guardarlo como PDF desde el diálogo de impresión.")">
                 <Icono Nombre="imprimir" Clase="boton-icono" />
                 <span class="boton-texto">Imprimir / PDF</span>
             </button>
@@ -91,7 +94,12 @@
 </header>
 
 @code {
-    private bool EnDocumento => Navegacion.ToBaseRelativePath(Navegacion.Uri).StartsWith("documento", StringComparison.Ordinal);
+    private string Pagina => Navegacion.ToBaseRelativePath(Navegacion.Uri);
+
+    private bool EnGuia => Pagina.StartsWith("guia", StringComparison.Ordinal);
+
+    /// <summary>El documento, la memoria y la guía se imprimen; abrir y guardar son de la captura.</summary>
+    private bool ParaImprimir => Pagina.StartsWith("documento", StringComparison.Ordinal) || EnGuia;
 
     protected override void OnInitialized() => Navegacion.LocationChanged += AlCambiarDePagina;
 

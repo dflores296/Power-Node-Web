@@ -1,0 +1,199 @@
+@page "/guia"
+@inject IJSRuntime JS
+
+@*
+    LA GUÍA DE CARGAS — I-126 (David, 2026-09-29, decisión cargas-y-clases-de-circuito.md). En qué tipo
+    va cada carga, sus subtipos y a qué artículos, secciones y tablas queda sujeta; las clases de
+    circuito del Art. 100 con sus reglas; y el glosario de la pantalla contra la norma.
+
+    Todo sale de GuiaDeCargas (el modelo), la misma fuente del selector de tipo: aquí no se escribe
+    ninguna cita. Árbol con <details> para que se despliegue por ramas sin estado en Blazor; al
+    imprimir se despliega entero (js/guia.js).
+
+    Los enlaces a una rama van a «guia#rama-…» y no a «#rama-…»: con <base href>, «#rama-…» apunta a la
+    raíz, que es la captura. guia.js los atiende sin pasar por el enrutador.
+*@
+
+<PageTitle>Guía de cargas · Power Node</PageTitle>
+
+<article class="documento guia">
+    <header class="doc-marca guia-encabezado">
+        <img class="solo-claro" src="marca/powernode-firma.svg" alt="Power Node" height="34" />
+        <img class="solo-oscuro" src="marca/powernode-firma-oscura.svg" alt="Power Node" height="34" />
+        <p class="doc-norma"><strong>Guía de cargas</strong>NOM-001-SEDE-2012</p>
+    </header>
+
+    <p class="guia-intro">
+        <strong>El tipo es de la carga; la clase es del circuito.</strong> Cada carga —una luminaria, un
+        contacto, un motor, otro tablero— lleva su tipo, y su tipo dice cómo se calcula y qué factor de
+        demanda le toca en el alimentador. La clase del circuito sale de sus cargas: un solo equipo es un
+        circuito <em>individual</em>; dos o más salidas, uno <em>de uso general</em> o <em>para aparatos</em>.
+    </p>
+    <p class="guia-intro tenue">
+        Cada rama cita la norma en tres niveles: <strong>la carga</strong> (cuánto vale),
+        <strong>el circuito derivado</strong> (conductor, protección, contactos) y <strong>el alimentador</strong>
+        (la suma y el factor de demanda). Los nombres son los de la pantalla, cortos; el de la NOM va al
+        lado y en el <a href="guia#rama-glosario" data-rama>glosario</a>.
+    </p>
+
+    <div class="guia-acciones no-imprime">
+        <button type="button" class="boton" @onclick="() => Desplegar(true)">Desplegar todo</button>
+        <button type="button" class="boton" @onclick="() => Desplegar(false)">Plegar todo</button>
+    </div>
+
+    <section class="guia-seccion" id="rama-tipos">
+        <h2>Tipos de carga</h2>
+        <nav class="guia-mapa" aria-label="Mapa de los tipos de carga">
+            @foreach (var tipo in GuiaDeCargas.Tipos)
+            {
+                <div class="mapa-rama">
+                    <a class="mapa-raiz" href="@Enlace(tipo)" data-rama>
+                        <Icono Nombre="@IconoDe(tipo)" Tamano="18" />
+                        <span>@tipo.Nombre<small>@tipo.NombreNom</small></span>
+                    </a>
+                    @if (tipo.Ramas.Count > 0)
+                    {
+                        <ul>
+                            @foreach (var sub in tipo.Ramas)
+                            {
+                                <li><a href="@Enlace(sub)" data-rama title="@sub.NombreNom">@sub.Nombre</a></li>
+                            }
+                        </ul>
+                    }
+                </div>
+            }
+        </nav>
+        @foreach (var tipo in GuiaDeCargas.Tipos)
+        {
+            @Rama(tipo, 1)
+        }
+    </section>
+
+    <section class="guia-seccion" id="rama-clases">
+        <h2>Clases de circuito</h2>
+        <p class="guia-nota">
+            La clase no se captura: sale de las cargas del circuito. Cambia las reglas del circuito —el valor
+            de los contactos, las cargas permisibles, el tamaño de la protección—, no el factor de demanda.
+        </p>
+        <nav class="guia-mapa" aria-label="Mapa de las clases de circuito">
+            @foreach (var clase in GuiaDeCargas.Clases)
+            {
+                <div class="mapa-rama">
+                    <a class="mapa-raiz" href="@Enlace(clase)" data-rama>
+                        <span>@clase.Nombre<small>@(clase.NombreNom ?? (clase.Ramas.Count == 0 ? clase.Que : null))</small></span>
+                    </a>
+                    @if (clase.Ramas.Count > 0)
+                    {
+                        <ul>
+                            @foreach (var sub in clase.Ramas)
+                            {
+                                <li><a href="@Enlace(sub)" data-rama title="@sub.NombreNom">@sub.Nombre</a></li>
+                            }
+                        </ul>
+                    }
+                </div>
+            }
+        </nav>
+        @foreach (var clase in GuiaDeCargas.Clases)
+        {
+            @Rama(clase, 1)
+        }
+    </section>
+
+    <section class="guia-seccion" id="rama-glosario">
+        <h2>Glosario</h2>
+        <p class="guia-nota">
+            Lo que dice la pantalla y cómo lo nombra la NOM. «Antes», el nombre que tenía en Power Node.
+        </p>
+        <div class="desplazable">
+            <table class="doc-resumen guia-glosario">
+                <thead>
+                    <tr><th>En pantalla</th><th>En la NOM</th><th>Dónde</th><th>Antes</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var t in GuiaDeCargas.Glosario)
+                    {
+                        <tr>
+                            <td class="corto">@t.Corto</td>
+                            <td>@t.Nom</td>
+                            <td class="donde">@t.Donde</td>
+                            <td class="antes">@(t.Antes ?? "—")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <p class="doc-nota">
+        Texto leído de la NOM-001-SEDE-2012 (repositorio <code>dflores296/NOM-001-SEDE-2012</code>). Los
+        factores de demanda de las Tablas 220-42, 220-44 y 220-54 a 220-56 se citan; en el cuadro los decide el
+        proyectista, con su justificación.
+    </p>
+</article>
+
+@code {
+    /// <summary>Una rama y sus hijas, desplegables. Nivel 1: el tipo o la clase.</summary>
+    private RenderFragment Rama(RamaDeGuia r, int nivel) =>
+        @<details class="rama nivel-@nivel" id="@GuiaDeCargas.Ancla(r)">
+            <summary>
+                @if (nivel == 1 && (r.Tipo is not null || r.Subtipo == SubtipoDeCarga.TableroAlimentado))
+                {
+                    <Icono Nombre="@IconoDe(r)" Tamano="18" />
+                }
+                <span class="rama-nombre">@r.Nombre</span>
+                @if (r.NombreNom is { } nom)
+                {
+                    <span class="rama-nom">@nom</span>
+                }
+                @if (r.Ramas.Count > 0)
+                {
+                    <span class="rama-cuenta">@r.Ramas.Count @(r.Ramas.Count == 1 ? "rama" : "ramas")</span>
+                }
+            </summary>
+            <div class="rama-cuerpo">
+                <p class="rama-que">@r.Que</p>
+                @if (r.Captura is { } captura)
+                {
+                    <p class="rama-captura"><span class="rotulo">Se captura</span> @captura</p>
+                }
+                @* Una tabla por rama, con un renglón de título por nivel: así las citas de la carga, el
+                   circuito y el alimentador quedan en la misma columna. *@
+                <table class="refs">
+                    @foreach (var grupo in r.Referencias.GroupBy(x => x.Alcance).OrderBy(g => g.Key))
+                    {
+                        <tbody>
+                            <tr><th colspan="2" scope="colgroup">@Titulo(grupo.Key)</th></tr>
+                            @foreach (var cita in grupo)
+                            {
+                                <tr><td class="cita"><code>@cita.Cita</code></td><td>@cita.Regla</td></tr>
+                            }
+                        </tbody>
+                    }
+                </table>
+                @foreach (var hija in r.Ramas)
+                {
+                    @Rama(hija, nivel + 1)
+                }
+            </div>
+        </details>;
+
+    private static string Titulo(AlcanceDeReferencia alcance) => alcance switch
+    {
+        AlcanceDeReferencia.Carga => "La carga",
+        AlcanceDeReferencia.Circuito => "El circuito derivado",
+        _ => "El alimentador",
+    };
+
+    private static string Enlace(RamaDeGuia r) => $"guia#{GuiaDeCargas.Ancla(r)}";
+
+    private static string IconoDe(RamaDeGuia r) => r.Tipo is { } tipo ? Icono.De(tipo) : "tablero";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+            await JS.InvokeVoidAsync("powerNode.guia.alLlegar"); // viene de un «?»: abrir su rama
+    }
+
+    private async Task Desplegar(bool abrir) => await JS.InvokeVoidAsync("powerNode.guia.desplegar", abrir);
+}
