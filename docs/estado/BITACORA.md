@@ -71,7 +71,8 @@ P3 a `main` por avance rápido (pedido de David).
 
 Pruebas: 284 en `PowerNode.Web.Tests`, 23 en `PowerNode.Normativa.Tests`.
 
-Sigue: David verifica P3; decidir el formato de los VA del motor en el documento (I-92).
+I-92: los VA del motor se quedan con la regla de I-49 (decisión de David). I-97 a `main` por avance
+rápido (pedido de David). **Auditoría del 2026-09-28 cerrada** (David). Siguen los puntos de David.
 
 ## 2026-09-28
 
