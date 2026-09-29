@@ -90,14 +90,14 @@ public sealed class DatosDelTablero
         validos.Contains(_espaciosElegidos) ? _espaciosElegidos : validos.FirstOrDefault(e => e >= _espaciosElegidos, validos[^1]);
 
     /// <summary>
-    /// La configuración y los espacios que quedarían con otras fases o hilos, sin cambiarlos: para
-    /// preguntar antes de borrar circuitos — I-78. Las fases llevan sus hilos más comunes, como
+    /// La configuración, los espacios y los polos que quedarían con otras fases o hilos, sin
+    /// cambiarlos: para preguntar antes de borrar circuitos (I-78) o recortar polos (I-83). Las fases llevan sus hilos más comunes, como
     /// <see cref="Fases"/>.
     /// </summary>
-    public (string Etiqueta, int Espacios) AlCambiar(int fases, int? hilos = null)
+    public (string Etiqueta, int Espacios, int MaximoPolos) AlCambiar(int fases, int? hilos = null)
     {
         var sistema = new SistemaTablero(fases, hilos ?? (fases == Fases ? Hilos : HilosPorOmision(fases)));
-        return (EtiquetaDe(sistema), EspaciosPara(EspaciosValidosDe(sistema)));
+        return (EtiquetaDe(sistema), EspaciosPara(EspaciosValidosDe(sistema)), SistemaDelTablero.MaximoPolos(sistema));
     }
 
     /// <summary>

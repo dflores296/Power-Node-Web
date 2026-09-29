@@ -310,12 +310,14 @@
                             <td rowspan="@c.Polos" colspan="2">
                                 <select class="hp" data-col="continua" aria-label="Circuito @c.Espacio · HP" value="@ValorHp(c.Hp ?? 0m)" @onchange="e => CambiarHp(c, e.Value?.ToString())"
                                         title="Seleccionar los caballos de placa del motor, con su corriente de tabla. Solo los que trae la tabla a la tensión y los polos del circuito: la corriente sale de la tabla, no de la placa — 430-6(a). Si la placa solo trae amperes, elegir A en la unidad.">
-                                    <option value="@ValorHp(0m)">—</option>
+                                    <option @key="0m" value="@ValorHp(0m)">—</option>
+                                    @* @key: la lista cambia con los polos (1 fase ↔ 3 fases); sin llave, Blazor reutilizaba las
+                                       opciones por posición y el selector decía «15 HP» con el motor en 5 (como I-45). *@
                                     @{ var disponibles = Cuadro.HpDisponibles(c); }
-                                    @foreach (var hp in disponibles) { <option value="@ValorHp(hp)">@MotoresEnHp.Texto(hp) HP — @Cuadro.FlcDe(c, hp).ToString("N2") A</option> }
+                                    @foreach (var hp in disponibles) { <option @key="hp" value="@ValorHp(hp)">@MotoresEnHp.Texto(hp) HP — @Cuadro.FlcDe(c, hp).ToString("N2") A</option> }
                                     @if (c.Hp is > 0m and { } fuera && !disponibles.Contains(fuera))
                                     {
-                                        <option value="@ValorHp(fuera)">@MotoresEnHp.Texto(fuera) HP</option>
+                                        <option @key="fuera" value="@ValorHp(fuera)">@MotoresEnHp.Texto(fuera) HP</option>
                                     }
                                 </select>
                                 @if (c.FlcA > 0m)
@@ -924,15 +926,16 @@
         }));
     }
 
-    // ---- Reducir el gabinete sin borrar a escondidas (I-78) ---------------------------------------
-    // Bajar los espacios, o pasar a 1F-2H (hasta 8), borraba los circuitos que quedaban fuera, sin
-    // aviso y sin regreso. Ahora se pregunta nombrándolos; si se cancela, el selector regresa.
+    // ---- Reducir el gabinete sin borrar ni recortar a escondidas (I-78, I-83) -------------------------
+    // Bajar los espacios, o pasar a 1F-2H (hasta 8), borraba los circuitos que quedaban fuera, y bajar
+    // las fases recortaba los multipolares; sin aviso y sin regreso. Ahora se pregunta nombrándolos; si
+    // se cancela, el selector regresa. Los polos recortados vuelven al regresar, si hay lugar.
 
     private async Task CambiarEspacios(ChangeEventArgs e)
     {
         if (!int.TryParse(e.Value?.ToString(), out var espacios) || espacios == Datos.NumeroEspacios)
             return;
-        if (!await SePuedeReducir(espacios, "¿Reducir el gabinete de todos modos?"))
+        if (!await SePuedeCambiar(Cuadro.AvisoAlCambiar(espacios, Datos.MaximoPolos), "¿Reducir el gabinete de todos modos?"))
         {
             await Restablecer("#campo-espacios", Datos.NumeroEspacios.ToString(CultureInfo.InvariantCulture));
             return;
@@ -945,8 +948,8 @@
     {
         if (!int.TryParse(e.Value?.ToString(), out var fases) || fases == Datos.Fases)
             return;
-        var (etiqueta, espacios) = Datos.AlCambiar(fases);
-        if (!await SePuedeReducir(espacios, $"¿Cambiar a {etiqueta} de todos modos?", $"{etiqueta} llega hasta {espacios} espacios. "))
+        var (etiqueta, espacios, maximoPolos) = Datos.AlCambiar(fases);
+        if (!await SePuedeCambiar(Cuadro.AvisoAlCambiar(espacios, maximoPolos, etiqueta), $"¿Cambiar a {etiqueta} de todos modos?"))
         {
             await Restablecer("#campo-fases", Datos.Fases.ToString(CultureInfo.InvariantCulture));
             return;
@@ -959,8 +962,8 @@
     {
         if (!int.TryParse(e.Value?.ToString(), out var hilos) || hilos == Datos.Hilos)
             return;
-        var (etiqueta, espacios) = Datos.AlCambiar(Datos.Fases, hilos);
-        if (!await SePuedeReducir(espacios, $"¿Cambiar a {etiqueta} de todos modos?", $"{etiqueta} llega hasta {espacios} espacios. "))
+        var (etiqueta, espacios, maximoPolos) = Datos.AlCambiar(Datos.Fases, hilos);
+        if (!await SePuedeCambiar(Cuadro.AvisoAlCambiar(espacios, maximoPolos, etiqueta), $"¿Cambiar a {etiqueta} de todos modos?"))
         {
             await Restablecer("#campo-hilos", Datos.Hilos.ToString(CultureInfo.InvariantCulture));
             return;
@@ -969,10 +972,9 @@
         Recalcular();
     }
 
-    /// <summary>Sin circuitos que perder, sí; con alguno, lo que conteste el ingeniero.</summary>
-    private async Task<bool> SePuedeReducir(int espacios, string pregunta, string porque = "") =>
-        Cuadro.AvisoAlReducirA(espacios) is not { } aviso
-        || await JS.InvokeAsync<bool>("powerNode.archivo.confirmar", $"{porque}{aviso}\n\n{pregunta}");
+    /// <summary>Sin nada que se pierda o se recorte, sí; si no, lo que conteste el ingeniero.</summary>
+    private async Task<bool> SePuedeCambiar(string? aviso, string pregunta) =>
+        aviso is null || await JS.InvokeAsync<bool>("powerNode.archivo.confirmar", $"{aviso}\n\n{pregunta}");
 
     private void CambiarEspacioDelPrincipal(ChangeEventArgs e)
     {

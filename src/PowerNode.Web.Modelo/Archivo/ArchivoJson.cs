@@ -175,7 +175,7 @@ public sealed class CircuitoJson
         // Los polos se ponen directo: el recálculo resuelve qué renglones se come cada uno, y gana
         // el que empieza antes, igual que al capturarlo.
         if (Polos is { } polos && polos >= 1 && polos <= datos.MaximoPolos)
-            c.Polos = polos;
+            c.Polos = c.PolosElegidos = polos;
         c.ConNeutro = ConNeutro ?? c.ConNeutro;
         c.Canalizacion = Canalizacion ?? c.Canalizacion;
         c.Aparatos.Clear();

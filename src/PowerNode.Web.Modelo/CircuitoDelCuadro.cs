@@ -214,6 +214,13 @@ public sealed class CircuitoDelCuadro
     public int Polos { get; internal set; } = 1;
 
     /// <summary>
+    /// Los polos que eligió el ingeniero. Al bajar las fases o los espacios, <see cref="Polos"/> se
+    /// recorta; al regresar, vuelve a estos si hay lugar — I-83: un motor trifásico pasado a 1 fase
+    /// se quedaba en 1 polo.
+    /// </summary>
+    public int PolosElegidos { get; internal set; } = 1;
+
+    /// <summary>
     /// El espacio del interruptor multipolar que se comió este renglón, o <c>null</c> si el renglón
     /// es suyo. Lo mantiene <see cref="CuadroDeCarga"/>.
     /// </summary>

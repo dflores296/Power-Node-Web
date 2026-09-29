@@ -436,7 +436,7 @@ public sealed class CuadroDeCarga
         if (motivo is not null)
             return motivo;
 
-        circuito.Polos = polos;
+        circuito.Polos = circuito.PolosElegidos = polos;
         Recalcular();
         return null;
     }
@@ -449,25 +449,67 @@ public sealed class CuadroDeCarga
         [.. _circuitos.Where(c => c.Espacio > espacios && !c.EsContinuacion && !c.EsDelPrincipal && c.TieneCaptura)];
 
     /// <summary>
-    /// «Con 12 espacios no caben los circuitos 13 (Bomba de agua) y 20: se borran.», o <c>null</c> si
-    /// no se pierde nada. La página lo pregunta antes de reducir — I-78: antes se borraban sin aviso.
+    /// Los multipolares que se quedan en el gabinete pero con menos polos, con <paramref name="espacios"/>
+    /// y hasta <paramref name="maximoPolos"/> — I-83: un motor trifásico pasaba a 1 polo sin aviso.
     /// </summary>
-    public string? AvisoAlReducirA(int espacios)
-    {
-        var fuera = QuedanFuera(espacios);
-        if (fuera.Count == 0)
-            return null;
+    public IReadOnlyList<(CircuitoDelCuadro Circuito, int Quedan)> SeRecortan(int espacios, int maximoPolos) =>
+        [.. _circuitos
+            .Where(c => c.Espacio <= espacios && !c.EsContinuacion && !c.EsDelPrincipal && c.Polos > 1)
+            .Select(c =>
+            {
+                var quedan = Math.Min(c.Polos, maximoPolos);
+                while (quedan > 1 && !DistribucionBarras.CabeEnElTablero(c.Espacio, quedan, espacios))
+                    quedan--;
+                return (Circuito: c, Quedan: quedan);
+            })
+            .Where(x => x.Quedan < x.Circuito.Polos)];
 
-        const int maximo = 8;
-        var nombres = fuera.Take(maximo)
-            .Select(c => string.IsNullOrWhiteSpace(c.Descripcion) ? $"{c.Espacio}" : $"{c.Espacio} ({c.Descripcion.Trim()})")
-            .ToList();
-        if (fuera.Count > maximo)
-            nombres.Add($"{fuera.Count - maximo} más");
-        var lista = nombres.Count == 1 ? nombres[0] : $"{string.Join(", ", nombres[..^1])} y {nombres[^1]}";
-        return fuera.Count == 1
-            ? $"Con {espacios} espacios no cabe el circuito {lista}: se borra."
-            : $"Con {espacios} espacios no caben los circuitos {lista}: se borran.";
+    /// <summary>
+    /// Lo que pasa al gabinete con <paramref name="espacios"/> y hasta <paramref name="maximoPolos"/>,
+    /// o <c>null</c> si nada: los circuitos que se borran (I-78) y los que pierden polos (I-83). La
+    /// página lo pregunta antes. Con <paramref name="etiqueta"/>, el cambio es de fases o hilos: «1F-2H
+    /// llega hasta 8 espacios: no caben los circuitos 9 y 13; se borran.»
+    /// </summary>
+    public string? AvisoAlCambiar(int espacios, int maximoPolos, string? etiqueta = null)
+    {
+        var partes = new List<string>();
+
+        var fuera = QuedanFuera(espacios);
+        if (fuera.Count > 0)
+        {
+            var lista = Lista(fuera.Select(Nombre).ToList());
+            partes.Add((etiqueta, fuera.Count == 1) switch
+            {
+                (null, true) => $"Con {espacios} espacios no cabe el circuito {lista}: se borra.",
+                (null, false) => $"Con {espacios} espacios no caben los circuitos {lista}: se borran.",
+                (_, true) => $"{etiqueta} llega hasta {espacios} espacios: no cabe el circuito {lista}; se borra.",
+                (_, false) => $"{etiqueta} llega hasta {espacios} espacios: no caben los circuitos {lista}; se borran.",
+            });
+        }
+
+        var recortados = SeRecortan(espacios, maximoPolos);
+        if (recortados.Count == 1)
+        {
+            var (c, quedan) = recortados[0];
+            partes.Add($"El circuito {Nombre(c)} pasa de {c.Polos} a {Polos(quedan)}; al regresar recupera sus polos si hay lugar.");
+        }
+        else if (recortados.Count > 1)
+            partes.Add($"Pierden polos: {string.Join("; ", recortados.Select(x => $"{Nombre(x.Circuito)}, de {x.Circuito.Polos} a {x.Quedan}"))}. Al regresar recuperan sus polos si hay lugar.");
+
+        return partes.Count == 0 ? null : string.Join(" ", partes);
+
+        static string Nombre(CircuitoDelCuadro c) =>
+            string.IsNullOrWhiteSpace(c.Descripcion) ? $"{c.Espacio}" : $"{c.Espacio} ({c.Descripcion.Trim()})";
+
+        static string Polos(int n) => n == 1 ? "1 polo" : $"{n} polos";
+
+        static string Lista(List<string> nombres)
+        {
+            const int maximo = 8;
+            if (nombres.Count > maximo)
+                nombres = [.. nombres.Take(maximo), $"{nombres.Count - maximo} más"];
+            return nombres.Count == 1 ? nombres[0] : $"{string.Join(", ", nombres[..^1])} y {nombres[^1]}";
+        }
     }
 
     // ---- Adentro -------------------------------------------------------------------------------
@@ -490,6 +532,12 @@ public sealed class CuadroDeCarga
         foreach (var c in _circuitos)
             c.ContinuacionDe = null;
 
+        // I-83: solo al crecer el tablero —más fases o más espacios— se regresan los polos recortados.
+        // En cualquier otro recálculo no: borrar un circuito no debe hacer crecer al de arriba.
+        var crecio = Datos.MaximoPolos > _maximoPolosVisto || Datos.NumeroEspacios > _espaciosVistos;
+        _maximoPolosVisto = Datos.MaximoPolos;
+        _espaciosVistos = Datos.NumeroEspacios;
+
         foreach (var c in _circuitos)
         {
             if (c.EsContinuacion)
@@ -504,12 +552,30 @@ public sealed class CuadroDeCarga
             while (c.Polos > 1 && !DistribucionBarras.CabeEnElTablero(c.Espacio, c.Polos, Datos.NumeroEspacios))
                 c.Polos--;
 
+            // Y al crecer, regresan a los que eligió el ingeniero si el lugar está libre. Si no lo
+            // está, se quedan así y se olvida: el ingeniero decide si los amplía.
+            if (crecio && c.PolosElegidos > c.Polos)
+            {
+                var objetivo = Math.Min(c.PolosElegidos, Datos.MaximoPolos);
+                while (c.Polos < objetivo && DistribucionBarras.CabeEnElTablero(c.Espacio, c.Polos + 1, Datos.NumeroEspacios)
+                       && Libre(DistribucionBarras.EspaciosQueOcupa(c.Espacio, c.Polos + 1)[^1]))
+                    c.Polos++;
+                if (c.Polos < objetivo)
+                    c.PolosElegidos = c.Polos;
+            }
+
             foreach (var ocupado in DistribucionBarras.EspaciosQueOcupa(c.Espacio, c.Polos).Skip(1))
                 _circuitos[ocupado - 1].ContinuacionDe = c.Espacio;
         }
 
         MontarPrincipal();
+
+        bool Libre(int espacio) =>
+            _circuitos[espacio - 1] is { EsContinuacion: false, TieneCaptura: false };
     }
+
+    private int _maximoPolosVisto;
+    private int _espaciosVistos;
 
     /// <summary>
     /// El interruptor principal en espacios se come los suyos — decisión

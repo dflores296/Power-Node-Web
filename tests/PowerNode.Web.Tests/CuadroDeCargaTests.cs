@@ -120,13 +120,15 @@ public class CuadroDeCargaTests
         Assert.Null(cuadro.CambiarPolos(Espacio(cuadro, 11), 2)); // 11-13: empieza adentro, se recorta
 
         Assert.Equal([20], cuadro.QuedanFuera(12).Select(c => c.Espacio));
-        Assert.Equal("Con 12 espacios no cabe el circuito 20: se borra.", cuadro.AvisoAlReducirA(12));
+        // El 11-13 no se borra: se recorta a 1 polo, y el aviso también lo dice (I-83).
+        Assert.Equal("Con 12 espacios no cabe el circuito 20: se borra. El circuito 11 pasa de 2 a 1 polo; al regresar recupera sus polos si hay lugar.",
+            cuadro.AvisoAlCambiar(12, 3));
 
         Assert.Null(cuadro.CambiarPolos(Espacio(cuadro, 11), 1)); // el 13 vuelve a ser suyo
         Espacio(cuadro, 13).Descripcion = "Bomba de agua";  // afuera, con captura
-        Assert.Equal("Con 12 espacios no caben los circuitos 13 (Bomba de agua) y 20: se borran.", cuadro.AvisoAlReducirA(12));
-        Assert.Null(cuadro.AvisoAlReducirA(24));
-        Assert.Null(cuadro.AvisoAlReducirA(30));
+        Assert.Equal("Con 12 espacios no caben los circuitos 13 (Bomba de agua) y 20: se borran.", cuadro.AvisoAlCambiar(12, 3));
+        Assert.Null(cuadro.AvisoAlCambiar(24, 3));
+        Assert.Null(cuadro.AvisoAlCambiar(30, 3));
     }
 
     /// <summary>
@@ -138,8 +140,8 @@ public class CuadroDeCargaTests
     {
         var cuadro = Nuevo(espacios: 24);
 
-        Assert.Equal(("1F-2H", 8), cuadro.Datos.AlCambiar(1));
-        Assert.Equal(("1F-3H (derivación central)", 24), cuadro.Datos.AlCambiar(1, hilos: 3));
+        Assert.Equal(("1F-2H", 8, 1), cuadro.Datos.AlCambiar(1));
+        Assert.Equal(("1F-3H (derivación central)", 24, 2), cuadro.Datos.AlCambiar(1, hilos: 3));
         Assert.Equal(24, cuadro.Datos.NumeroEspacios); // preguntar no cambia nada
 
         cuadro.Datos.Fases = 1;
@@ -152,6 +154,75 @@ public class CuadroDeCargaTests
         cuadro.Datos.NumeroEspacios = 4;
         cuadro.Datos.Fases = 3;
         Assert.Equal(6, cuadro.Datos.NumeroEspacios);
+    }
+
+    /// <summary>
+    /// I-83: un motor trifásico pasaba a menos polos al bajar las fases, sin aviso, y al regresar se
+    /// quedaba recortado. El aviso lo dice antes y al regresar recupera sus polos.
+    /// </summary>
+    [Fact]
+    public void I83_BajarLasFasesAvisaDelRecorteYAlRegresarRecuperaLosPolos()
+    {
+        var cuadro = Nuevo(espacios: 24);
+        var motor = Espacio(cuadro, 1);
+        motor.Descripcion = "Bomba";
+        motor.NoContinua = 3000m;
+        Assert.Null(cuadro.CambiarPolos(motor, 3));
+
+        var (etiqueta, espacios, maximoPolos) = cuadro.Datos.AlCambiar(2);
+        Assert.Equal("El circuito 1 (Bomba) pasa de 3 a 2 polos; al regresar recupera sus polos si hay lugar.",
+            cuadro.AvisoAlCambiar(espacios, maximoPolos, etiqueta));
+
+        cuadro.Datos.Fases = 2;
+        cuadro.Recalcular();
+        Assert.Equal(2, Espacio(cuadro, 1).Polos);
+        Assert.False(Espacio(cuadro, 5).EsContinuacion);
+
+        cuadro.Datos.Fases = 3;
+        cuadro.Recalcular();
+        Assert.Equal(3, Espacio(cuadro, 1).Polos);
+        Assert.Equal(1, Espacio(cuadro, 5).ContinuacionDe);
+    }
+
+    /// <summary>
+    /// I-83: si al regresar el lugar ya tiene otro circuito, no se lo come (I-79): se queda recortado y
+    /// se olvida, para que borrar ese circuito después no haga crecer al de arriba por su cuenta.
+    /// </summary>
+    [Fact]
+    public void I83_AlRegresarNoSeComeLoQueSeCapturoEnElLugar()
+    {
+        var cuadro = Nuevo(espacios: 24);
+        var motor = Espacio(cuadro, 1);
+        motor.NoContinua = 3000m;
+        Assert.Null(cuadro.CambiarPolos(motor, 3));
+        cuadro.Datos.Fases = 2;
+        cuadro.Recalcular();
+        Espacio(cuadro, 5).NoContinua = 500m;
+
+        cuadro.Datos.Fases = 3;
+        cuadro.Recalcular();
+        Assert.Equal(2, Espacio(cuadro, 1).Polos);
+        Assert.Equal(500m, Espacio(cuadro, 5).NoContinua);
+
+        Espacio(cuadro, 5).NoContinua = 0m;
+        cuadro.Recalcular();
+        Assert.Equal(2, Espacio(cuadro, 1).Polos);
+    }
+
+    /// <summary>I-83: lo mismo con los espacios: un tripolar recortado al reducir el gabinete regresa.</summary>
+    [Fact]
+    public void I83_AlAmpliarElGabineteElMultipolarRecuperaSusPolos()
+    {
+        var cuadro = Nuevo(espacios: 24);
+        Assert.Null(cuadro.CambiarPolos(Espacio(cuadro, 11), 3)); // 11-13-15
+
+        cuadro.Datos.NumeroEspacios = 12;
+        cuadro.Recalcular();
+        Assert.Equal(1, Espacio(cuadro, 11).Polos);
+
+        cuadro.Datos.NumeroEspacios = 24;
+        cuadro.Recalcular();
+        Assert.Equal(3, Espacio(cuadro, 11).Polos);
     }
 
     [Fact]
