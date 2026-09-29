@@ -118,9 +118,12 @@ propuesta en tabla). Texto de la NOM leído del corpus de `dflores296/NOM-001-SE
   motores, calculadora de grupo (430-24, 430-53(c)(4), 240-4(b)), cada motor por separado en el
   alimentador, archivo formato 3 — I-115, `3b7b4d2`.
 - Fase 3 (antes que la 2: toca el mismo desglose): aparato con motor en el desglose de carga, el mayor
-  al 125 % — 220-18(a), I-118, `502b7b4`.
+  al 125 % — 220-18(a), I-118, `502b7b4`. Fases 1 y 3 a `main` por avance rápido.
+- Fase 2: A/C «Varios» (440-22(b), 440-33/440-34) y «Hab.» (440 Parte G); A/C de cuarto en el
+  desglose de contactos con el aviso de 440-62(b)/(c) — I-116, I-117, `940ddb9`. Archivo formato 4:
+  el 3 ya estaba publicado y no conoce los valores nuevos.
 
-Pruebas: 308 en `PowerNode.Web.Tests`, 23 en `PowerNode.Normativa.Tests`.
+Pruebas: 317 en `PowerNode.Web.Tests`, 23 en `PowerNode.Normativa.Tests`.
 
 ## 2026-09-28
 

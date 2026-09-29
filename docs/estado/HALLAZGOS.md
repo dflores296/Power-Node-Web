@@ -141,8 +141,8 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-113 · La memoria de un Motor o A/C imprime aparatos que no cuentan | P2 | **Cerrado** | `ee6f3ac` |
 | I-114 · Sin la alimentación ni la tabla bajo el HP; «+N» en motor trifásico; sin guía para clasificar | P3 | **Cerrado** | `4e24e18` |
 | I-115 · Un circuito admite un solo motor: sin 430-53 ni 430-24 en el circuito | P1 | **Cerrado** | `3b7b4d2` |
-| I-116 · Sin varios motocompresores en un circuito (440-22(b), 440-33) | P2 | Abierto | — |
-| I-117 · Sin acondicionador de habitación (440 Parte G) | P3 | Abierto | — |
+| I-116 · Sin varios motocompresores en un circuito (440-22(b), 440-33) | P2 | **Cerrado** | `940ddb9` |
+| I-117 · Sin acondicionador de habitación (440 Parte G) | P3 | **Cerrado** | `940ddb9` |
 | I-118 · Aparato con motor mezclado con otras cargas sin el 125 % del motor (220-18(a)) | P2 | **Cerrado** | `502b7b4` |
 | I-119 · Motor con variador calculado como motor: 250 % (430-122) | P2 | Abierto | — |
 | I-120 · Sin servicio no continuo (430-22(e)) | P3 | Abierto | — |
@@ -446,9 +446,9 @@ NOM (corpus de `dflores296/NOM-001-SEDE-2012`). Propuesta y decisiones en
 
 **I-115** — Hecho: Motor no se desglosa y la ayuda manda a «usar Equipo», que calcula como carga de placa (210): sin 430-24, sin 430-53 y fuera del grupo de motores del alimentador. Tres motores de ½ hp a 127 V (8.9 A c/u) salen 30 A y fuera de 430-24; por 430-53(c)(4), hasta 2.5 × 8.9 + 8.9 + 8.9 = 40.05 → 40 A, conductor por 430-24 de 28.9 A. Cerrado en `3b7b4d2`: unidad «Varios» en Motor; el desglose lleva motores (HP o A, con su FLC de tabla) y otras cargas; `CalculadoraCircuitoDerivadoGrupo` (nacida en la web): conductor por 430-24, protección = mayor estándar que no excede 430-53(c)(4), subiendo hasta 240-4(b) solo si no lleva la corriente de operación; notas 430-53(a), (c), (c)(6), 240-4(g). En el alimentador, cada motor del grupo por separado (430-24) y el interruptor del grupo cubre a todos (430-62(a)). Un grupo de un solo motor se calcula como motor (con el redondeo de 430-52(c)(1) Exc. 1). Archivo formato 3, con la versión leída antes que lo demás. Pruebas: `GruposDeMotoresTests` (15); en el navegador, grupo de 3 × ½ hp + motor en A + alumbrado, desglose, documento, memoria, 1366 y 1920 px, claro y oscuro.
 
-**I-116** — Hecho: A/C no se desglosa; un equipo sin MCA de conjunto con compresor y ventiladores no se puede capturar (440-22(b), 440-33).
+**I-116** — Hecho: A/C no se desglosa; un equipo sin MCA de conjunto con compresor y ventiladores no se puede capturar (440-22(b), 440-33). Cerrado en `940ddb9`: A/C «Varios» con motocompresores (RLA y selección), ventiladores y otras cargas en el desglose; conductor por 440-33/440-34, protección por 440-22(b)(1)/(2) (un solo motocompresor: 440-32, 440-22(a)); el 225 % en el pie del desglose; cada motocompresor por separado en el alimentador. Pruebas: `I116_…` (4); en el navegador, condensadora de 12 A + ventilador de 1.2 A a 220 V: 16.2 A, 12 AWG, 20 A (25 A con el 225 %).
 
-**I-117** — Hecho: un aire de ventana con clavija se calcula como motocompresor (175 %); la Parte G lo trata como una unidad con tope de 80 % del circuito (50 % con otras cargas), 440-62.
+**I-117** — Hecho: un aire de ventana con clavija se calcula como motocompresor (175 %); la Parte G lo trata como una unidad con tope de 80 % del circuito (50 % con otras cargas), 440-62. Cerrado en `940ddb9`: A/C «Hab.» (440 Parte G): una sola unidad de motor, circuito que deja la corriente en 80 % (440-62(b)), conductor que cubre la protección (440-62(a)(4)); rechaza trifásico, más de 250 V o más de 40 A. En un desglose de contactos o equipo, «A/C de cuarto» con aviso si pasa del 80 % o del 50 % del circuito (440-62(b), (c)). Pruebas: `I117_…` (4); en el navegador, 13 A → 20 A con 12 AWG y el aviso de 50 % en contactos.
 
 **I-118** — Hecho: en el desglose no se puede decir que un aparato tiene motor; mezclado con otras cargas, 220-18(a) pide 125 % del motor mayor. Cerrado en `502b7b4`: en el desglose de Alumbrado, Contactos, Equipo y Calefacción, un aparato «con motor» (HP con su FLC de tabla, o A de placa — 430-6(a)(1) Exc. 3); con otras cargas, el motor mayor de más de ⅛ hp entra como continua (125 %) y los demás al 100 % — 220-18(a); si el circuito solo alimenta motores, pide el Art. 430 (Motor «Varios»). Desglose y memoria con la línea de 220-18(a). Pruebas: `I118_…` (4); en el navegador, cuarto de lavado con alumbrado y lavadora de 5 A.
 
