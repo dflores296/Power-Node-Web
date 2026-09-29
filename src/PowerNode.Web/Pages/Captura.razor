@@ -180,7 +180,6 @@
                 <th rowspan="2" data-col="l"><span class="ayuda" title="Capturar la longitud del circuito. Determina la caída de tensión — Tabla 9."><span class="simbolo">L (m)</span></span></th>
                 <th rowspan="2" data-col="canal"><span class="ayuda" title="Seleccionar la canalización del circuito de la lista de la tarjeta «Canalizaciones». Al capturar la carga, cada circuito nace en la suya (T1, T2…); para agrupar, elegir la de otro circuito, o «+ Nueva». Los circuitos de una misma canalización se agrupan y el programa cuenta sus portadores — 310-15(b)(3)(a). Si el circuito pasa por varias, la del tramo más desfavorable — 310-15(a)(2). Debajo: el tamaño que resultó.">Canal.</span></th>
                 <th rowspan="2" data-col="polos masn"><span class="ayuda" title="Seleccionar los polos del interruptor. Un multipolar ocupa los espacios N, N+2 y N+4 del mismo lado.">P</span></th>
-                <th rowspan="2"><span class="ayuda" title="Consultar las barras que toca el interruptor. Las determina el espacio de montaje.">Barras</span></th>
                 <th rowspan="2"><span class="ayuda" title="Consultar la corriente de diseño de la carga capturada — 210-19(a)(1)."><span class="simbolo">In (A)</span></span></th>
                 <th rowspan="2"><span class="ayuda" title="Consultar la protección: primer tamaño normalizado mayor o igual a la capacidad mínima — 240-6(a), 210-20(a). Pasar el cursor sobre el valor para consultar el desglose.">Protec. <span class="simbolo">(A)</span></span></th>
                 <th rowspan="2"><span class="muestras">@foreach (var barra in Datos.Barras) { <i class="color-@char.ToLowerInvariant(barra)"></i> }</span><span class="ayuda" title="Consultar el conductor de fase: designación AWG/kcmil y, debajo, su sección (mm²) — Tabla 8. Si lleva conductores en paralelo, «2 ×» antes del calibre. Pasar el cursor sobre el calibre para consultar el desglose.&#10;&#10;Colores de fase: la NOM no los fija — 210-5(c)(2) —; se usan negro, rojo y azul, la práctica común.">Fase</span></th>
@@ -228,19 +227,19 @@
                     if (c.EsDelPrincipal)
                     {
                         <tr class="fila-principal" data-espacio="@c.Espacio">
-                            <td class="num asa" data-arrastre="@c.Espacio" data-destino="@c.Espacio" data-etiqueta="Interruptor principal" data-principal="1" title="Arrastrar para mover el interruptor principal, también al zócalo">@c.Espacio</td>
+                            <td class="num asa" data-arrastre="@c.Espacio" data-destino="@c.Espacio" data-etiqueta="Interruptor principal" data-principal="1" title="Arrastrar para mover el interruptor principal, también al zócalo">@NumeroConFase(c.Espacio)</td>
                             <td colspan="@(Columnas - 1)" rowspan="@Cuadro.EspaciosDelPrincipal.Count">
                                 <strong>Interruptor principal</strong>@(Cuadro.InterruptorPrincipalA > 0m ? $" · {Cuadro.InterruptorPrincipalA:N0} A" : "") · @Polos(Datos.PolosDelPrincipal) · @(Datos.Barras.Count == 1 ? "alimenta la barra" : "alimenta las barras")
                             </td>
                         </tr>
                         @foreach (var seguido in lado.Where(x => x.ContinuacionDe == c.Espacio))
                         {
-                            <tr class="fila-principal"><td class="num asa" data-arrastre="@seguido.Espacio" data-destino="@seguido.Espacio" data-etiqueta="Interruptor principal" data-principal="1" title="Arrastrar para mover el interruptor principal, también al zócalo">@seguido.Espacio</td></tr>
+                            <tr class="fila-principal"><td class="num asa" data-arrastre="@seguido.Espacio" data-destino="@seguido.Espacio" data-etiqueta="Interruptor principal" data-principal="1" title="Arrastrar para mover el interruptor principal, también al zócalo">@NumeroConFase(seguido.Espacio)</td></tr>
                         }
                         continue;
                     }
                     <tr class="@(c.Resultado is null ? "vacio" : null)" data-espacio="@c.Espacio">
-                        <td class="num @(c.TieneCaptura ? "asa" : null)" data-destino="@c.Espacio" data-arrastre="@(c.TieneCaptura ? c.Espacio : null)" data-etiqueta="@EtiquetaDeArrastre(c)" title="@(c.TieneCaptura ? "Arrastrar para mover el circuito a otro espacio" : null)">@c.Espacio</td>
+                        <td class="num @(c.TieneCaptura ? "asa" : null)" data-destino="@c.Espacio" data-arrastre="@(c.TieneCaptura ? c.Espacio : null)" data-etiqueta="@EtiquetaDeArrastre(c)" title="@(c.TieneCaptura ? "Arrastrar para mover el circuito a otro espacio" : null)">@NumeroConFase(c.Espacio)</td>
                         <td rowspan="@c.Polos">
                             <div class="desc-linea">
                                 <button class="desglosar" tabindex="-1" aria-label="Desglose del circuito @c.Espacio" aria-expanded="@(Abierto(c) ? "true" : "false")" disabled="@c.EsDeMotor"
@@ -419,12 +418,6 @@
                                     <input type="checkbox" data-col="masn" aria-label="Circuito @c.Espacio · Con neutro" checked="@c.ConNeutro" @onchange="e => { c.ConNeutro = e.Value is true; Recalcular(); }" />+N</label>
                             }
                         </td>
-                        <td rowspan="@c.Polos" class="fase">
-                            @foreach (var barra in c.Fases)
-                            {
-                                <span class="fase-rect fase-rect-@char.ToLowerInvariant(barra)">@barra</span>
-                            }
-                        </td>
                         <td rowspan="@c.Polos" class="num">@c.Resultado?.CorrienteDisenoA.ToString("N2")</td>
                         @{ var desglose = Cuadro.Desglose(c); }
                         <td rowspan="@c.Polos" class="num">@Ayuda(c.Resultado?.ProteccionA.ToString("N0"), desglose?.Proteccion)</td>
@@ -437,7 +430,7 @@
                     @foreach (var seguido in lado.Where(x => x.ContinuacionDe == c.Espacio))
                     {
                         <tr class="@(c.Resultado is null ? "vacio" : null)">
-                            <td class="num @(c.TieneCaptura ? "asa" : null)" data-destino="@seguido.Espacio" data-arrastre="@(c.TieneCaptura ? seguido.Espacio : null)" data-etiqueta="@EtiquetaDeArrastre(c)">@seguido.Espacio</td>
+                            <td class="num @(c.TieneCaptura ? "asa" : null)" data-destino="@seguido.Espacio" data-arrastre="@(c.TieneCaptura ? seguido.Espacio : null)" data-etiqueta="@EtiquetaDeArrastre(c)">@NumeroConFase(seguido.Espacio)</td>
                         </tr>
                     }
 
@@ -1400,7 +1393,23 @@
     /// Cuántas columnas tiene el cuadro, para los <c>colspan</c> de los renglones que abarcan todo.
     /// Depende de las barras: un tablero de dos barras no tiene columna de balanceo para la C.
     /// </summary>
-    private int Columnas => 17 + Datos.Barras.Count;
+    /// <summary>
+    /// El número del espacio con el contorno del color de su barra, como en el gabinete: dice en qué
+    /// fase cae el circuito aunque el renglón esté vacío. Reemplaza a la columna «Barras» (I-99).
+    /// </summary>
+    private RenderFragment NumeroConFase(int espacio) => builder =>
+    {
+        var fase = DistribucionBarras.FaseDe(espacio, Datos.Sistema);
+        builder.OpenElement(0, "span");
+        builder.AddAttribute(1, "class", $"num-fase num-fase-{char.ToLowerInvariant(fase)}");
+        builder.AddAttribute(2, "title", $"Barra {fase}");
+        builder.OpenElement(3, "span");
+        builder.AddContent(4, espacio);
+        builder.CloseElement();
+        builder.CloseElement();
+    };
+
+    private int Columnas => 16 + Datos.Barras.Count;
 
     /// <summary>Los dos bloques del cuadro, ya materializados: cada uno se recorre más de una vez.</summary>
     private IReadOnlyList<IReadOnlyList<CircuitoDelCuadro>> Lados => Cuadro.Lados;

@@ -356,11 +356,19 @@ input.desc:focus, input.va:focus {
 
    Rectángulo de esquinas redondeadas, no círculo, con la letra en blanco: los tres pasan 4.5:1.
 */
-.fase { font-weight: 600; white-space: nowrap; }
 .fase-rect { display: inline-flex; align-items: center; justify-content: center;
          min-width: 20px; height: 17px; padding: 0 5px; border-radius: 5px;
          font-size: 10px; font-weight: 700; letter-spacing: 0; color: #fff; }
-.fase .fase-rect + .fase-rect { margin-left: 3px; }
+/* El N.º del cuadro con el contorno del color de su barra, como la etiqueta del gabinete (I-99): en
+   qué fase cae el circuito, con o sin carga. Reemplaza a la columna «Barras». */
+.num-fase { display: inline-flex; align-items: center; justify-content: center; min-width: 22px;
+            height: 19px; padding: 0 3px; box-sizing: border-box; border: 1.5px solid; border-radius: 4px;
+            line-height: 1; font-variant-numeric: tabular-nums; vertical-align: middle; }
+/* Centrado de verdad, como .etq (I-72): recortada a la altura de los dígitos. */
+.num-fase > span { display: block; text-box: trim-both cap alphabetic; }
+.num-fase-a { border-color: var(--barra-a); }
+.num-fase-b { border-color: var(--barra-b); }
+.num-fase-c { border-color: var(--barra-c); }
 .fase-rect-a { background: #1b1f23; box-shadow: inset 0 0 0 1px var(--fase-borde); }
 .fase-rect-b { background: #c62828; }
 .fase-rect-c { background: #1565c0; }
