@@ -436,9 +436,22 @@ else
     /// 15.20 A», «12 A (3.93 HP) · FLC 12.00 A», «MCA 18 A · MOCP 30 A».
     /// </summary>
     private static string PlacaDelRenglon(CircuitoDelCuadro c) =>
-        c.EsAireAcondicionado ? (c.TieneCarga ? AireAcondicionadoDePlaca.Texto(c) : "")
+        c.EsGrupo ? PlacaDelGrupo(c)
+        : c.EsAireAcondicionado ? (c.TieneCarga ? AireAcondicionadoDePlaca.Texto(c) : "")
         : c.MotorEnAmperes is { } m ? $"{m.Amperes:#,0.##} A ({m.Hp:0.##} HP) · FLC {c.FlcA:N2} A"
         : (c.Hp > 0m ? $"{MotoresEnHp.Texto(c.Hp.Value)} HP" : "") + (c.FlcA > 0m ? $" · FLC {c.FlcA:N2} A" : "");
+
+    /// <summary>«3 × ½ HP + 5 HP · 41.90 A · otras 1,000 VA»: los motores de un grupo y su corriente — I-115.</summary>
+    private static string PlacaDelGrupo(CircuitoDelCuadro c)
+    {
+        var maquinas = c.Aparatos.Where(a => a.EsMaquina && a.TieneCapturaDeMaquina).Select(a =>
+            (a.Cantidad > 1 ? $"{a.Cantidad} × " : "") +
+            (a.CapturaMotor == CapturaDeMotor.Hp && a.Clase == ClaseDeAparato.Motor ? $"{MotoresEnHp.Texto(a.Hp ?? 0m)} HP" : $"{a.CorrientePlacaA:#,0.##} A"));
+        var otras = c.ContinuaVA + c.NoContinuaVA;
+        return string.Join(" + ", maquinas)
+            + (c.CorrienteDeMotorA > 0m ? $" · {c.CorrienteDeMotorA:N2} A" : "")
+            + (otras > 0m ? $" · otras {otras:#,0} VA" : "");
+    }
 
     private static string DePapel(CanalizacionDelTablero t, PapelConductor papel) =>
         t.Ocupacion is { } o ? o.Renglones.Where(r => r.Conductor.Papel == papel).Sum(r => r.Conductor.Cantidad).ToString() : "";

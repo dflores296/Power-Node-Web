@@ -134,3 +134,14 @@ y protección máxima (440-4(b)). Decisión: [`../decisiones/tipos-de-carga.md`]
 |---|---|
 | `Calculo/Casos/DatosEntradaCircuitoDerivado440.cs` | La placa en una de dos formas: corriente de carga nominal y de selección (440-6(a)), o ampacidad mínima y protección máxima (440-4(b)); y las condiciones del tramo, como el derivado de motor. |
 | `Calculo/Casos/CalculadoraCircuitoDerivado440.cs` | El derivado completo: protección con `CalculadoraCarga440` o con la máxima de placa (el mayor estándar que no la excede, `AnteriorEstandar`); terminales, aislamiento, factores, conductor, caída y tierra con el mismo camino que `CalculadoraCircuitoDerivadoMotor`; cita 240-4(g). |
+
+### Varios motores en un circuito — I-115
+
+El escritorio agrupa motores solo en el alimentador (430-24, `AgregadoMotores`); un derivado es de un
+motor. Decisión: [`../decisiones/motores-y-equipos-en-grupo.md`](../decisiones/motores-y-equipos-en-grupo.md).
+
+| Archivo | Qué es |
+|---|---|
+| `Calculo/Casos/DatosEntradaCircuitoDerivadoGrupo.cs` | `MiembroDelGrupo` (motor o motocompresor, cantidad, corriente por unidad, origen de la corriente), `MiembrosDelGrupo` (lista comparable por contenido), la entrada del derivado y `DetalleDelGrupo` (regla, mayor, porcentaje, límite, piso, 240-4(b)). |
+| `Calculo/Casos/CalculadoraCircuitoDerivadoGrupo.cs` | Conductor por 430-24 (440-33/440-34); protección = mayor estándar ≤ límite de 430-53(c)(4) o 440-22(b)(1)/(2), subiendo hasta 240-4(b) solo si no lleva la corriente de operación; notas 430-53(a), (c), (c)(6), 240-4(g). |
+| `Calculo/Casos/ResultadoCircuitoDerivado.cs` | Campo opcional `Grupo` (`DetalleDelGrupo`), null en todos los demás derivados. |

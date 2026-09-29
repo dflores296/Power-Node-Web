@@ -138,6 +138,56 @@ public sealed record DesgloseDeSeleccion(IReadOnlyList<string> Proteccion, IRead
     }
 
     /// <summary>
+    /// <b>Varios motores, o motores y otras cargas, en un circuito</b> — I-115. Cada máquina con su
+    /// corriente, el límite de 430-53(c)(4) (o de 440-22(b)) y el mayor tamaño que no lo pasa; el
+    /// conductor, contra la capacidad mínima de 430-24.
+    /// </summary>
+    /// <param name="maquinas">Una línea por máquina, ya redactada: «Extractor: 3 × 8.90 A — ½ HP, Tabla 430-248…».</param>
+    /// <param name="capacidad">La suma de 430-24 ya redactada, de la cita del motor.</param>
+    internal static DesgloseDeSeleccion DeGrupo(
+        ITablaAmpacidad ampacidad,
+        DatosDelTablero datos,
+        DetalleDelGrupo g,
+        IReadOnlyList<string> maquinas,
+        decimal otrasContinuaA,
+        decimal otrasNoContinuaA,
+        string capacidad,
+        string articuloCapacidad,
+        decimal proteccionA,
+        Calibre calibre,
+        int conductoresPorFase,
+        DetalleDelCalculo d,
+        IReadOnlyList<Cita> citas)
+    {
+        var proteccion = new List<string>(maquinas);
+        if (otrasContinuaA + otrasNoContinuaA > 0m)
+            proteccion.Add($"Otras cargas: {otrasContinuaA:N2} A (continua) + {otrasNoContinuaA:N2} A (no continua)");
+
+        var partes = new List<string> { $"{g.PorcentajeMayor:0} % × {g.Mayor.CorrienteUnitariaA:N2} A ({g.Mayor.Nombre})" };
+        if (g.SumaDemasA > 0m)
+            partes.Add($"{g.SumaDemasA:N2} A (las demás máquinas)");
+        if (g.OtrasCargasA > 0m)
+            partes.Add($"{g.OtrasCargasA:N2} A (otras cargas)");
+        proteccion.Add($"Máximo = {string.Join(" + ", partes)} = {g.TechoA:N2} A — {g.Regla}");
+        proteccion.Add(g.Limite240_4bA is { } limite
+            ? $"Protección: {proteccionA:N0} A, el primer tamaño que lleva la corriente de operación ({g.PisoA:N2} A): el máximo queda abajo de " +
+              $"la ampacidad del conductor y se permite subir hasta {limite:N0} A — 430-53(c)(4), 240-4(b)"
+            : proteccionA > g.TechoA
+                ? $"Protección: {proteccionA:N0} A, no se exige menos — 440-22(a) Excepción"
+                : $"Protección: {proteccionA:N0} A, el mayor tamaño estándar que no excede el máximo en «{datos.SerieInterruptores.Nombre()}» — " +
+                  $"{g.Regla}, sin el redondeo hacia arriba de 430-52(c)(1) Excepción 1");
+        proteccion.Add("Sobrecarga: la de cada motor, con controlador y relevador aprobados para instalación en grupo — 430-53(c), 430-32");
+
+        var conductor = LineasDelConductor(ampacidad, datos, proteccionA, calibre, conductoresPorFase, d);
+        conductor.Add($"Capacidad mínima = {capacidad} — {articuloCapacidad}");
+        conductor.Add(
+            $"Con factores: {d.AmpacidadConductorA:N2} A ≥ {d.CapacidadMinimaA:N2} A " +
+            $"{(d.AmpacidadConductorA >= d.CapacidadMinimaA ? "✔" : "✘")} — {articuloCapacidad}");
+        conductor.AddRange(PorQueCrecio(citas, proteccionA, d));
+        return new DesgloseDeSeleccion(proteccion, conductor);
+    }
+
+    /// <summary>
     /// <b>El derivado de un equipo de A/C o refrigeración</b> — I-74, Art. 440. Con la corriente de
     /// placa: 125 % para el conductor (440-32) y el mayor tamaño estándar que no pase de 175 % —o
     /// 225 % si no arranca— para la protección (440-22(a)), sin redondear hacia arriba. Con la

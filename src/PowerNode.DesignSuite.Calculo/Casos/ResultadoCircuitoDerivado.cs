@@ -16,4 +16,7 @@ public sealed record ResultadoCircuitoDerivado(
     DetalleDelCalculo? Detalle = null,
     // Ver CargaContinua100Pct: van aparte de las citas porque no sustentan el número, dicen qué
     // revisar en campo.
-    IReadOnlyList<string>? AvisosCargaContinua = null);
+    IReadOnlyList<string>? AvisosCargaContinua = null,
+    // Solo en un circuito con varios motores (430-53(c)(4), 440-22(b)): de dónde sale el límite de
+    // la protección. Nació en Power Node Web — ver CalculadoraCircuitoDerivadoGrupo.
+    DetalleDelGrupo? Grupo = null);

@@ -46,7 +46,8 @@ public static class MemoriaDeCalculo
             ? Etiqueta(circuito)
             : circuito.Descripcion.Trim();
 
-        var equipo = circuito.EsMotor ? DelMotor(cuadro, circuito, r)
+        var equipo = circuito.EsGrupo ? DelGrupo(cuadro, circuito, r)
+            : circuito.EsMotor ? DelMotor(cuadro, circuito, r, circuito.Hp, circuito.MotorEnAmperes)
             : circuito.EsAireAcondicionado ? DelAireAcondicionado(cuadro, circuito, r)
             : null;
 
@@ -94,18 +95,18 @@ public static class MemoriaDeCalculo
     /// 125 % de ella (430-22); la protección, el porcentaje de la Tabla 430-52 y el tamaño inmediato
     /// superior.
     /// </summary>
-    private static EquipoDeLaHoja DelMotor(CuadroDeCarga cuadro, CircuitoDelCuadro c, ResultadoCircuitoDerivado r)
+    private static EquipoDeLaHoja DelMotor(CuadroDeCarga cuadro, CircuitoDelCuadro c, ResultadoCircuitoDerivado r, decimal? hp, MotorEnAmperes? enAmperes)
     {
         var tipo = c.Polos == 3 ? "trifásico" : "monofásico";
         var flc = c.FlcA;
         var porcentaje = cuadro.PorcentajeProteccionMotor(c);
-        var (rotuloFlc, origen, descripcion) = c.MotorEnAmperes is { } m
+        var (rotuloFlc, origen, descripcion) = enAmperes is { } m
             ? ("Corriente a plena carga (FLC) — 430-6(a)(1)",
                $"{flc:N2} A — motor marcado en amperes: {m.Hp:0.##} HP, {MotoresEnHp.Interpolacion(m, c.Polos)}",
                $"Marcado en {flc:N2} A · {tipo} · {m.Hp:0.##} HP por interpolación — {MotoresEnHp.Interpolacion(m, c.Polos)}, 430-6(a)(1)")
             : ("Corriente a plena carga (FLC) — 430-6(a)",
                $"{flc:N2} A — {cuadro.FuenteDeFlc(c)}",
-               $"{MotoresEnHp.Texto(c.Hp ?? 0m)} HP · {tipo} · FLC {flc:N2} A — {cuadro.FuenteDeFlc(c)}, 430-6(a)");
+               $"{MotoresEnHp.Texto(hp ?? 0m)} HP · {tipo} · FLC {flc:N2} A — {cuadro.FuenteDeFlc(c)}, 430-6(a)");
 
         return new EquipoDeLaHoja(
             Rotulo: "Motor",
@@ -125,6 +126,70 @@ public static class MemoriaDeCalculo
                 "motor — 430-32. No la da el interruptor del tablero.",
             ],
             Corriente: "FLC");
+    }
+
+    /// <summary>
+    /// <b>La hoja de un grupo de motores</b> — I-115: cada máquina con su corriente, la capacidad mínima
+    /// de 430-24 y el límite de 430-53(c)(4) (o de 440-22(b)) con sus números. Un grupo de un solo motor
+    /// y nada más se calculó como motor, y así se imprime.
+    /// </summary>
+    private static EquipoDeLaHoja DelGrupo(CuadroDeCarga cuadro, CircuitoDelCuadro c, ResultadoCircuitoDerivado r)
+    {
+        var maquinas = c.Aparatos.Where(a => a.EsMaquina && a.CorrienteUnitariaA > 0m).ToList();
+        if (r.Grupo is not { } g)
+        {
+            var solo = maquinas.Single();
+            return DelMotor(cuadro, c, r, solo.Hp, solo.MotorEnAmperes);
+        }
+
+        var tipo = c.Polos == 3 ? "trifásico" : "monofásico";
+        var tension = c.Polos == 1 ? cuadro.Datos.TensionFaseNeutroV : cuadro.Datos.TensionFaseFaseV;
+        var proteccion = new List<RenglonMemoria>();
+        foreach (var a in maquinas)
+            proteccion.Add(new(
+                $"{CuadroDeCarga.NombreDeMaquina(c, a)} — {(a.Clase == ClaseDeAparato.Motocompresor ? "440-6(a)" : a.MotorEnAmperes is null ? "430-6(a)" : "430-6(a)(1)")}",
+                $"{(a.Cantidad > 1 ? $"{a.Cantidad} × " : "")}{a.CorrienteUnitariaA:N2} A — {cuadro.OrigenDeLaCorriente(a, c.Polos)}"));
+        var divisor = TensionDeCalculo.Divisor(c.Polos, cuadro.Datos.TensionFaseNeutroV, cuadro.Datos.TensionFaseFaseV);
+        if (c.ContinuaVA + c.NoContinuaVA > 0m)
+            proteccion.Add(new("Otras cargas", $"{c.ContinuaVA / divisor:N2} A continua + {c.NoContinuaVA / divisor:N2} A no continua"));
+
+        var capacidad = r.Citas.First(x => x.Referencia is "430-24" or "440-33" or "440-34");
+        proteccion.Add(new($"Capacidad mínima del conductor — {capacidad.Referencia}", capacidad.Descripcion[(capacidad.Descripcion.IndexOf(':') + 2)..]));
+        var limite = r.Citas.First(x => x.Referencia == g.Regla && x.Descripcion.StartsWith("Límite"));
+        proteccion.Add(new($"Protección máxima — {g.Regla}", limite.Descripcion["Límite de la protección — ".Length..]));
+        proteccion.Add(new($"Protección seleccionada — {(g.Limite240_4bA is null ? g.Regla : "430-53(c)(4), 240-4(b)")}",
+            g.Limite240_4bA is { } hasta
+                ? $"{r.ProteccionA:N0} A: el máximo no lleva la corriente de operación ({g.PisoA:N2} A) y queda abajo de la ampacidad del " +
+                  $"conductor; se permite subir hasta {hasta:N0} A"
+                : r.ProteccionA > g.TechoA
+                    ? $"{r.ProteccionA:N0} A, no se exige menos — 440-22(a) Excepción"
+                    : $"{r.ProteccionA:N0} A, el mayor tamaño estándar que no excede el máximo"));
+
+        var notas = new List<string>
+        {
+            "Todas las máquinas van a la tensión y los polos del circuito. El interruptor del tablero protege el circuito contra " +
+            "cortocircuito y falla a tierra; puede quedar arriba de la ampacidad del conductor — 240-4(g).",
+            "Cada motor lleva su protección contra sobrecarga (430-32); controladores y relevadores aprobados para instalación " +
+            "en grupo con este interruptor, que no pase del que permite 430-40 al relevador del motor más chico — 430-53(c).",
+        };
+        notas.AddRange(r.Citas.Where(x => x.Referencia is "430-53(c)(6)" or "430-53(a)").Select(x => $"{x.Descripcion} — {x.Referencia}."));
+
+        return new EquipoDeLaHoja(
+            Rotulo: "Grupo de motores",
+            Descripcion: $"{Cuantas(maquinas, ClaseDeAparato.Motor, "motor", "motores")}{Cuantas(maquinas, ClaseDeAparato.Motocompresor, "motocompresor", "motocompresores")}" +
+                         $"{(c.ContinuaVA + c.NoContinuaVA > 0m ? " y otras cargas" : "")} · {tipo} {tension:0} V · varios motores en un circuito — " +
+                         (maquinas.Any(a => a.Clase == ClaseDeAparato.Motocompresor) ? "430-53, 440-22(b)" : "430-53"),
+            Proteccion: proteccion,
+            Notas: notas,
+            Corriente: "corriente");
+    }
+
+    /// <summary>«3 motores», «, 1 motocompresor»: cuántas máquinas de una clase lleva el grupo; vacío si ninguna.</summary>
+    private static string Cuantas(IEnumerable<AparatoDelCircuito> maquinas, ClaseDeAparato clase, string una, string varias)
+    {
+        var n = maquinas.Where(a => a.Clase == clase).Sum(a => a.Cantidad);
+        var primera = clase == ClaseDeAparato.Motor || !maquinas.Any(a => a.Clase == ClaseDeAparato.Motor);
+        return n == 0 ? "" : $"{(primera ? "" : ", ")}{n} {(n == 1 ? una : varias)}";
     }
 
     /// <summary>
@@ -344,9 +409,14 @@ public static class MemoriaDeCalculo
     private static IReadOnlyList<RenglonMemoria> Desglose(CircuitoDelCuadro circuito) => !circuito.TieneDesglose ? [] :
     [
         .. circuito.Aparatos.Select((a, i) => new RenglonMemoria(
-            $"Aparato {i + 1}: {(string.IsNullOrWhiteSpace(a.Descripcion) ? "—" : a.Descripcion.Trim())}",
-            $"{a.Cantidad} × {a.CargaUnitaria:N0} {Simbolo(a.Unidad)} = {a.TotalVA:N0} VA · " +
-            $"{(a.Continua ? "continua" : "no continua")} · F.P. {a.FactorPotencia:N2}")),
+            $"{(a.EsMaquina ? a.Clase == ClaseDeAparato.Motocompresor ? "Motocompresor" : "Motor" : "Aparato")} {i + 1}: " +
+            $"{(string.IsNullOrWhiteSpace(a.Descripcion) ? "—" : a.Descripcion.Trim())}",
+            // Una máquina de un grupo (I-115): su corriente por unidad, que es con la que calcula.
+            a.EsMaquina
+                ? $"{a.Cantidad} × {(a.Clase == ClaseDeAparato.Motor && a.MotorEnAmperes is null ? $"{MotoresEnHp.Texto(a.Hp ?? 0m)} HP · " : "")}" +
+                  $"{a.CorrienteUnitariaA:N2} A = {a.TotalVA:N0} VA · F.P. {a.FactorPotencia:N2}"
+                : $"{a.Cantidad} × {a.CargaUnitaria:N0} {Simbolo(a.Unidad)} = {a.TotalVA:N0} VA · " +
+                  $"{(a.Continua ? "continua" : "no continua")} · F.P. {a.FactorPotencia:N2}")),
     ];
 
     private static string Simbolo(UnidadConsumo unidad) => unidad switch

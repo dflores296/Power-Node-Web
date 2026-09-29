@@ -31,9 +31,11 @@ public static class ArchivoDelCuadro
 
     /// <summary>
     /// Sube cuando un archivo nuevo ya no se puede leer igual que uno anterior. 2: seis tipos de carga,
-    /// «Motor / A/C» partido en Motor y A/C y refrigeración (I-74). El 1 se sigue leyendo.
+    /// «Motor / A/C» partido en Motor y A/C y refrigeración (I-74). 3: varios motores en un circuito
+    /// — el Motor «Varios» y la clase de cada aparato (I-115). El 1 y el 2 se siguen leyendo: sus
+    /// aparatos son cargas.
     /// </summary>
-    public const int Version = 2;
+    public const int Version = 3;
 
     /// <summary>El archivo, listo para escribirse.</summary>
     public static string Guardar(CuadroDeCarga cuadro, DateTimeOffset cuando) =>
@@ -52,6 +54,23 @@ public static class ArchivoDelCuadro
     /// </summary>
     public static Apertura Abrir(string texto, MotorNom motor)
     {
+        // LA VERSIÓN, ANTES QUE TODO LO DEMÁS (I-115): un formato más nuevo puede traer valores que
+        // esta versión no conoce —un «Grupo» en la captura del motor— y la lectura completa fallaría
+        // con «no es de Power Node» en vez de pedir que se recargue la página.
+        try
+        {
+            using var documento = JsonDocument.Parse(texto);
+            if (documento.RootElement.ValueKind == JsonValueKind.Object
+                && documento.RootElement.TryGetProperty("formato", out var formato) && formato.ValueKind == JsonValueKind.String
+                && formato.GetString() == Formato
+                && documento.RootElement.TryGetProperty("version", out var v) && v.TryGetInt32(out var leida) && leida > Version)
+                return MasNueva(leida);
+        }
+        catch (JsonException)
+        {
+            return Apertura.Fallo("El archivo no es de Power Node: no se pudo leer.");
+        }
+
         ArchivoJson? archivo;
         try
         {
@@ -67,7 +86,7 @@ public static class ArchivoDelCuadro
         if (archivo.Version is not { } version || version < 1)
             return Apertura.Fallo("El archivo no dice de qué versión es.");
         if (version > Version)
-            return Apertura.Fallo($"El archivo es de una versión más nueva de Power Node (formato {version}; esta lee hasta el {Version}). Recarga la página con Ctrl+F5 y vuelve a abrirlo.");
+            return MasNueva(version);
 
         var cuadro = new CuadroDeCarga(motor);
         var avisos = new List<string>();
@@ -82,6 +101,9 @@ public static class ArchivoDelCuadro
         cuadro.Recalcular();
         return new Apertura(cuadro, null, avisos);
     }
+
+    private static Apertura MasNueva(int version) =>
+        Apertura.Fallo($"El archivo es de una versión más nueva de Power Node (formato {version}; esta lee hasta el {Version}). Recarga la página con Ctrl+F5 y vuelve a abrirlo.");
 
     /// <summary>El nombre sugerido del archivo: el del tablero, o su clave, sin caracteres que el sistema no acepte.</summary>
     public static string NombreSugerido(DatosDelTablero datos)

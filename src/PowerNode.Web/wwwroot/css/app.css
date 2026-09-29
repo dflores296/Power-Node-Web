@@ -1097,6 +1097,8 @@ body.arrastrando-principal .zona-zocalo .al-arrastrar { display: inline; }
 #sec-cuadro > .cuadro input.va { text-align: center; }
 #sec-cuadro > .cuadro select.canal { min-width: 76px; }
 #sec-cuadro > .cuadro select.polos { width: 52px; }
+/* «Varios» del motor (I-115) completo; cabe en la celda sin moverla. */
+#sec-cuadro > .cuadro select.unidad { width: 66px; }
 #sec-cuadro > .cuadro select.tipo { width: 122px; } /* «Refrigerador» completo con la letra de 13 px */
 
 /* Las notas se posicionan contra su celda. No el N.º: es la columna fija (sticky), y relative la

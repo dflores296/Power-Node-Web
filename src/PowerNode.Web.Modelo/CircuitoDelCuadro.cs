@@ -125,14 +125,25 @@ public sealed class CircuitoDelCuadro
     /// nominal o ampacidad mínima. Con eso el renglón calcula, o dice por qué no (<see cref="Error"/>).
     /// </summary>
     public bool TieneCapturaDeMotor =>
-        EsMotor ? (CapturaMotor == CapturaDeMotor.Hp ? Hp > 0m : CorrientePlacaA > 0m)
+        EsMotor ? CapturaMotor switch
+        {
+            CapturaDeMotor.Hp => Hp > 0m,
+            CapturaDeMotor.Amperes => CorrientePlacaA > 0m,
+            _ => Aparatos.Any(a => a.EsMaquina && a.TieneCapturaDeMaquina),
+        }
         : EsAireAcondicionado && (PlacaAire == PlacaDeAireAcondicionado.AmpacidadYProteccion ? AmpacidadMinimaA > 0m : CorrientePlacaA > 0m);
 
     /// <summary>
+    /// <b>Varios motores, o motores y otras cargas</b> — 430-53, I-115: un Motor capturado como «Varios».
+    /// Cada motor y cada otra carga es un aparato del desglose.
+    /// </summary>
+    public bool EsGrupo => EsMotor && CapturaMotor == CapturaDeMotor.Grupo;
+
+    /// <summary>
     /// <b>La corriente del motor o del equipo de A/C</b>: la FLC de tabla de un motor (430-6(a)), la de
-    /// 440-6(a) o la ampacidad mínima de un equipo de A/C (440-4(b)). Es la que entra al alimentador
-    /// (430-24, 440-33) y a la caída. 0 si no calcula (el renglón lleva <see cref="Error"/>). La pone
-    /// <see cref="CuadroDeCarga"/>.
+    /// 440-6(a) o la ampacidad mínima de un equipo de A/C (440-4(b)); en un grupo, la suma de sus
+    /// máquinas. Es la que entra al alimentador (430-24, 440-33) y a la caída. 0 si no calcula (el
+    /// renglón lleva <see cref="Error"/>). La pone <see cref="CuadroDeCarga"/>.
     /// </summary>
     public decimal CorrienteDeMotorA { get; internal set; }
 
@@ -160,17 +171,19 @@ public sealed class CircuitoDelCuadro
 
     /// <summary>
     /// Se desglosa. Un motor o un equipo de A/C es un solo equipo: no se desglosa, y los aparatos que
-    /// trajera de otro tipo se conservan sin contar, como la continua y la no continua.
+    /// trajera de otro tipo se conservan sin contar, como la continua y la no continua. Un grupo
+    /// (<see cref="EsGrupo"/>) sí: sus aparatos son los motores y las otras cargas.
     /// </summary>
-    public bool TieneDesglose => Aparatos.Count > 0 && !EsDeMotor;
+    public bool TieneDesglose => Aparatos.Count > 0 && (!EsDeMotor || EsGrupo);
 
     /// <summary>
     /// Abre el desglose. Si el circuito ya traía carga, se convierte en los primeros aparatos —
-    /// continua y no continua por separado— para no perder lo capturado.
+    /// continua y no continua por separado— para no perder lo capturado. En un motor la continua y la
+    /// no continua son de otro tipo y no cuentan: no se convierten.
     /// </summary>
     public AparatoDelCircuito AgregarAparato()
     {
-        if (!TieneDesglose)
+        if (!TieneDesglose && !EsDeMotor)
         {
             var nombre = string.IsNullOrWhiteSpace(Descripcion) ? "Carga capturada" : Descripcion.Trim();
             if (Continua > 0m)
@@ -182,6 +195,35 @@ public sealed class CircuitoDelCuadro
         var nuevo = new AparatoDelCircuito();
         Aparatos.Add(nuevo);
         return nuevo;
+    }
+
+    /// <summary>Agrega un motor al grupo, en HP como el circuito — I-115.</summary>
+    public AparatoDelCircuito AgregarMotor()
+    {
+        var nuevo = new AparatoDelCircuito { Clase = ClaseDeAparato.Motor, FactorPotencia = FactorPotencia };
+        Aparatos.Add(nuevo);
+        return nuevo;
+    }
+
+    /// <summary>
+    /// Pasa un Motor a «Varios» — 430-53, I-115. El motor que ya estaba capturado (HP o amperes) se
+    /// vuelve el primer motor del grupo, para no perderlo; si el desglose ya trae motores, se quedan.
+    /// </summary>
+    public void PasarAGrupo()
+    {
+        if (!EsMotor || EsGrupo)
+            return;
+        if (!Aparatos.Any(a => a.EsMaquina) && TieneCapturaDeMotor)
+            Aparatos.Insert(0, new AparatoDelCircuito
+            {
+                Descripcion = string.IsNullOrWhiteSpace(Descripcion) ? "Motor" : Descripcion.Trim(),
+                Clase = ClaseDeAparato.Motor,
+                CapturaMotor = CapturaMotor,
+                Hp = Hp,
+                CorrientePlacaA = CorrientePlacaA,
+                FactorPotencia = FactorPotencia,
+            });
+        CapturaMotor = CapturaDeMotor.Grupo;
     }
 
     /// <summary>La carga continua <b>tal como viene en la placa</b>, en <see cref="Unidad"/>.</summary>

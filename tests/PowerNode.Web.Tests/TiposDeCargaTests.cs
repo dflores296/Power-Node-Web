@@ -400,7 +400,7 @@ public class TiposDeCargaTests
         AireConPlaca(original, 7, 18m, 30m, 2);
 
         var texto = ArchivoDelCuadro.Guardar(original, new DateTimeOffset(2026, 9, 27, 12, 0, 0, TimeSpan.FromHours(-6)));
-        Assert.Contains("\"version\": 2", texto);
+        Assert.Contains("\"version\": 3", texto); // I-115 subió el formato; la placa se guarda igual
         Assert.Contains("\"categoria\": \"AireAcondicionado\"", texto);
 
         var abierto = ArchivoDelCuadro.Abrir(texto, Motor).Cuadro!;

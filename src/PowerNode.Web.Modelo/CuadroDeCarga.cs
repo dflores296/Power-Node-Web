@@ -369,6 +369,26 @@ public sealed class CuadroDeCarga
         if (c.Resultado is not { Detalle: { } detalle } r)
             return null;
 
+        if (r.Grupo is { } grupo)
+        {
+            var divisorGrupo = TensionDeCalculo.Divisor(c.Polos, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV);
+            var tension = TensionDelMotor(c);
+            var capacidad = r.Citas.First(x => x.Referencia is "430-24" or "440-33" or "440-34");
+            return DesgloseDeSeleccion.DeGrupo(
+                _motor.Ampacidad, Datos, grupo,
+                maquinas: [.. c.Aparatos.Where(a => a.EsMaquina && a.CorrienteUnitariaA > 0m).Select(a =>
+                    $"{NombreDeMaquina(c, a)}: {(a.Cantidad > 1 ? $"{a.Cantidad} × " : "")}{a.CorrienteUnitariaA:N2} A — {OrigenDeLaCorriente(a, c.Polos, tension)}")],
+                otrasContinuaA: c.ContinuaVA / divisorGrupo,
+                otrasNoContinuaA: c.NoContinuaVA / divisorGrupo,
+                capacidad: capacidad.Descripcion[(capacidad.Descripcion.IndexOf(':') + 2)..],
+                articuloCapacidad: capacidad.Referencia,
+                proteccionA: r.ProteccionA,
+                calibre: r.CalibreFase,
+                conductoresPorFase: r.NumeroConductoresParalelo,
+                d: detalle,
+                citas: r.Citas);
+        }
+
         if (c.EsMotor)
             return DesgloseDeSeleccion.DeMotor(
                 _motor.Ampacidad, Datos,
@@ -418,7 +438,13 @@ public sealed class CuadroDeCarga
     /// 430-250: 3 HP, 9.60 A; 5 HP, 15.20 A, 430-6(a)(1)».
     /// </summary>
     public string OrigenDeLaFlc(CircuitoDelCuadro c) =>
-        c.MotorEnAmperes is { } m
+        c.EsGrupo
+            // Un grupo de un solo motor se calcula como motor: la FLC es la de ese motor (I-115).
+            ? c.Aparatos.FirstOrDefault(a => a.EsMaquina && a.CorrienteUnitariaA > 0m) is { } a
+                ? $"FLC = {a.CorrienteUnitariaA:N2} A, {NombreDeMaquina(c, a)}: {OrigenDeLaCorriente(a, c.Polos, TensionDelMotor(c))}" +
+                  (a.MotorEnAmperes is null ? ", 430-6(a)" : "")
+                : ""
+        : c.MotorEnAmperes is { } m
             ? $"FLC = {c.FlcA:N2} A: motor marcado en amperes, {m.Hp:0.##} HP — {MotoresEnHp.Interpolacion(m, c.Polos)}, 430-6(a)(1)"
             : $"FLC = {c.FlcA:N2} A, {MotoresEnHp.Texto(c.Hp ?? 0m)} HP — {FuenteDeFlc(c)}, 430-6(a)";
 
@@ -940,6 +966,11 @@ public sealed class CuadroDeCarga
                 c.ContinuaVA = 0m;
                 c.NoContinuaVA = 0m;
                 c.Ajuste220_52VA = 0m;
+                if (c.EsGrupo)
+                {
+                    SumarGrupo(c);
+                    continue;
+                }
                 if (CorrienteDeMotor(c) is { } corriente)
                 {
                     c.CorrienteDeMotorA = corriente;
@@ -995,6 +1026,64 @@ public sealed class CuadroDeCarga
         c.FactorPotencia = c.Continua + c.NoContinua > 0m
             ? FactorPotenciaCombinado.De(c.Aparatos.Select(a => (a.TotalVA, a.FactorPotencia)))
             : CircuitoDelCuadro.FactorPotenciaSupuesto;
+    }
+
+    /// <summary>
+    /// <b>Un grupo de motores</b> — I-115, 430-53. Cada máquina con su corriente por unidad (la FLC de
+    /// tabla, o la de un motor en amperes, 430-6(a)(1)); las otras cargas, a VA como en cualquier
+    /// desglose. Las máquinas suman <see cref="CircuitoDelCuadro.MotorVA"/> y
+    /// <see cref="CircuitoDelCuadro.CorrienteDeMotorA"/>; las otras, la continua y la no continua. El
+    /// F.P. del circuito, el combinado de todos.
+    /// </summary>
+    private void SumarGrupo(CircuitoDelCuadro c)
+    {
+        var divisor = TensionDeCalculo.Divisor(c.Polos, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV);
+        var tension = TensionDelMotor(c);
+        foreach (var a in c.Aparatos)
+        {
+            a.Cantidad = Math.Max(1, a.Cantidad);
+            a.CorrienteUnitariaA = 0m;
+            a.MotorEnAmperes = null;
+            a.Error = null;
+            if (!a.EsMaquina)
+            {
+                if (a.EsContactoSinCarga)
+                {
+                    a.Unidad = UnidadConsumo.VoltAmperes;
+                    a.CargaUnitaria = AparatoDelCircuito.VAPorContacto;
+                }
+                a.TotalVA = a.Cantidad * ConsumoDePlaca.AVoltAmperes(
+                    a.CargaUnitaria, a.Unidad, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV, c.Polos, a.FactorPotencia);
+                continue;
+            }
+
+            if (a.TieneCapturaDeMaquina)
+            {
+                if (a.Clase == ClaseDeAparato.Motocompresor)
+                    a.CorrienteUnitariaA = CalculadoraCarga440.CorrienteBase(a.CorrientePlacaA, a.CorrienteSeleccionA);
+                else if (a.CapturaMotor == CapturaDeMotor.Amperes)
+                {
+                    a.MotorEnAmperes = MotoresEnHp.DeAmperes(_motor.FlcMotor, a.CorrientePlacaA, c.Polos, tension);
+                    a.CorrienteUnitariaA = a.MotorEnAmperes?.Amperes ?? 0m;
+                    if (a.MotorEnAmperes is null)
+                        a.Error = MotoresEnHp.SinFilaEnAmperes(_motor.FlcMotor, a.CorrientePlacaA, c.Polos, tension);
+                }
+                else
+                {
+                    a.CorrienteUnitariaA = MotoresEnHp.Flc(_motor.FlcMotor, a.Hp!.Value, c.Polos, tension) ?? 0m;
+                    if (a.CorrienteUnitariaA == 0m)
+                        a.Error = MotoresEnHp.SinFila(_motor.FlcMotor, a.Hp.Value, c.Polos, tension);
+                }
+            }
+            a.TotalVA = a.Cantidad * a.CorrienteUnitariaA * divisor;
+        }
+
+        c.ContinuaVA = c.Aparatos.Where(a => !a.EsMaquina && a.Continua).Sum(a => a.TotalVA);
+        c.NoContinuaVA = c.Aparatos.Where(a => !a.EsMaquina && !a.Continua).Sum(a => a.TotalVA);
+        c.CorrienteDeMotorA = c.Aparatos.Where(a => a.EsMaquina).Sum(a => a.Cantidad * a.CorrienteUnitariaA);
+        c.MotorVA = c.Aparatos.Where(a => a.EsMaquina).Sum(a => a.TotalVA);
+        if (c.CargaInstaladaVA > 0m)
+            c.FactorPotencia = FactorPotenciaCombinado.De(c.Aparatos.Select(a => (a.TotalVA, a.FactorPotencia)));
     }
 
     /// <summary>
@@ -1221,6 +1310,7 @@ public sealed class CuadroDeCarga
                     DatosEntradaCircuitoDerivadoNoMotor d => _motor.NoMotor(Datos.SerieInterruptores).Calcular(d),
                     DatosEntradaCircuitoDerivadoMotor d => _motor.Motor(Datos.SerieInterruptores).Calcular(d),
                     DatosEntradaCircuitoDerivado440 d => _motor.AireAcondicionado(Datos.SerieInterruptores).Calcular(d),
+                    DatosEntradaCircuitoDerivadoGrupo d => _motor.Grupo(Datos.SerieInterruptores).Calcular(d),
                     _ => throw new ArgumentException($"Entrada sin calculadora: {typeof(T).Name}"),
                 }, null);
             }
@@ -1252,6 +1342,11 @@ public sealed class CuadroDeCarga
 
             try
             {
+                if (c.EsGrupo)
+                {
+                    CalcularGrupo(c, canal);
+                    continue;
+                }
                 if (c.EsMotor)
                 {
                     CalcularMotor(c, canal);
@@ -1324,10 +1419,16 @@ public sealed class CuadroDeCarga
             return;
         }
 
-        c.Resultado = Recordado(new DatosEntradaCircuitoDerivadoMotor(
-            // En amperes, los caballos interpolados (430-6(a)(1)) van solo a la cita; la FLC es la corriente.
-            Hp: enAmperes ? c.MotorEnAmperes!.Hp : c.Hp!.Value,
-            FlcMarcadaEnAmperesA: enAmperes ? c.FlcA : null,
+        // En amperes, los caballos interpolados (430-6(a)(1)) van solo a la cita; la FLC es la corriente.
+        c.Resultado = Recordado(DatosDeUnMotor(c, canal, enAmperes ? c.MotorEnAmperes!.Hp : c.Hp!.Value, enAmperes ? c.FlcA : null));
+    }
+
+    private DatosEntradaCircuitoDerivadoMotor DatosDeUnMotor(CircuitoDelCuadro c, CanalizacionDelTablero canal, decimal hp, decimal? flcMarcadaEnAmperesA)
+    {
+        var tension = TensionDelMotor(c);
+        return new DatosEntradaCircuitoDerivadoMotor(
+            Hp: hp,
+            FlcMarcadaEnAmperesA: flcMarcadaEnAmperesA,
             TipoAlimentacion: MotoresEnHp.Alimentacion(c.Polos),
             TipoMotor: MotoresEnHp.TipoDeMotor(c.Polos),
             // Lo que se monta en un tablero de derivados: interruptor automático de tiempo inverso.
@@ -1348,8 +1449,96 @@ public sealed class CuadroDeCarga
             PisoPracticoCalibreMm2: null,
             TipoAislamiento: Datos.TipoAislamiento,
             LugarInstalacionSeco: Datos.LugarSeco,
+            TerminalesMarcadas75C: Datos.TerminalesMarcadas75C);
+    }
+
+    /// <summary>
+    /// <b>Varios motores, o motores y otras cargas, en un circuito</b> — I-115: conductor por 430-24 y
+    /// protección por 430-53(c)(4) (<see cref="CalculadoraCircuitoDerivadoGrupo"/>). Todas las máquinas
+    /// van a la tensión y los polos del circuito.
+    ///
+    /// <para>
+    /// Un grupo de un solo motor y nada más es un motor: se calcula como tal, con el redondeo hacia
+    /// arriba de 430-52(c)(1) Excepción 1, que 430-53(c)(4) no trae.
+    /// </para>
+    /// </summary>
+    private void CalcularGrupo(CircuitoDelCuadro c, CanalizacionDelTablero canal)
+    {
+        if (c.Aparatos.FirstOrDefault(a => a.EsMaquina && a.Error is not null) is { } malo)
+        {
+            c.Error = $"{NombreDeMaquina(c, malo)}: {malo.Error}";
+            return;
+        }
+
+        var maquinas = c.Aparatos.Where(a => a.EsMaquina && a.CorrienteUnitariaA > 0m).ToList();
+        var otras = c.Aparatos.Where(a => !a.EsMaquina && a.TotalVA > 0m).ToList();
+        if (maquinas.Count == 0)
+        {
+            c.Error = "430-53: el grupo no tiene motores. Agrégalos en el desglose (la flecha junto a la descripción), o cambia la unidad.";
+            return;
+        }
+
+        if (maquinas is [{ Clase: ClaseDeAparato.Motor, Cantidad: 1 } solo] && otras.Count == 0)
+        {
+            c.Resultado = Recordado(DatosDeUnMotor(c, canal, solo.MotorEnAmperes?.Hp ?? solo.Hp!.Value,
+                solo.CapturaMotor == CapturaDeMotor.Amperes ? solo.CorrienteUnitariaA : null));
+            return;
+        }
+
+        var divisor = TensionDeCalculo.Divisor(c.Polos, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV);
+        var tension = TensionDelMotor(c);
+        c.Resultado = Recordado(new DatosEntradaCircuitoDerivadoGrupo(
+            Miembros: new MiembrosDelGrupo(maquinas.Select(a => new MiembroDelGrupo(
+                NombreDeMaquina(c, a),
+                a.Clase == ClaseDeAparato.Motocompresor ? ClaseDeMiembro.Motocompresor : ClaseDeMiembro.Motor,
+                a.Cantidad,
+                a.CorrienteUnitariaA,
+                OrigenDeLaCorriente(a, c.Polos, tension),
+                a.Clase == ClaseDeAparato.Motor ? a.MotorEnAmperes?.Hp ?? a.Hp : null))),
+            OtrasContinuaA: c.ContinuaVA / divisor,
+            OtrasNoContinuaA: c.NoContinuaVA / divisor,
+            MayorOtraCargaA: otras.Count == 0 ? 0m : otras.Max(a => a.TotalVA / a.Cantidad) / divisor,
+            TipoMotor: MotoresEnHp.TipoDeMotor(c.Polos),
+            TipoDispositivoProteccion: TipoDispositivoProteccionMotor.InterruptorTiempoInverso,
+            RequiereArranque: false,
+            // Como el derivado de un motor y el de A/C: 2 polos es monofásico entre fases.
+            NumeroFases: c.Polos == 3 ? 3 : 1,
+            TensionFaseNeutroV: c.Polos == 1 ? Datos.TensionFaseNeutroV : Datos.TensionFaseFaseV,
+            TensionFaseFaseV: Datos.TensionFaseFaseV,
+            LongitudM: c.LongitudM,
+            NumeroConductoresParalelo: 1,
+            NumeroConductoresAgrupados: canal.Ajuste!.ConductoresParaElMotor,
+            TemperaturaAmbienteC: Datos.TemperaturaAmbienteC + canal.SumadorAzoteaC,
+            MaterialConductor: Datos.MaterialConductor,
+            MaterialCanalizacion: canal.MaterialParaTabla9,
+            FactorPotencia: c.FactorPotencia,
+            CaidaTensionMaxPct: Datos.CaidaMaxDerivadoPct,
+            PisoPracticoCalibreMm2: null,
+            TipoAislamiento: Datos.TipoAislamiento,
+            LugarInstalacionSeco: Datos.LugarSeco,
             TerminalesMarcadas75C: Datos.TerminalesMarcadas75C));
     }
+
+    /// <summary>«Extractor», o «Motor 2» si no se describió: el número de su renglón en el desglose.</summary>
+    public static string NombreDeMaquina(CircuitoDelCuadro c, AparatoDelCircuito a) =>
+        !string.IsNullOrWhiteSpace(a.Descripcion) ? a.Descripcion.Trim()
+        : $"{(a.Clase == ClaseDeAparato.Motocompresor ? "Motocompresor" : "Motor")} {c.Aparatos.IndexOf(a) + 1}";
+
+    /// <summary>
+    /// De dónde sale la corriente de una máquina del grupo, para la cita: «½ HP, Tabla 430-248, columna
+    /// de 127 V», «marcado en amperes: …, 430-6(a)(1)» o la placa de un motocompresor.
+    /// </summary>
+    public string OrigenDeLaCorriente(AparatoDelCircuito a, int polos) =>
+        OrigenDeLaCorriente(a, polos, MotoresEnHp.Tension(polos, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV));
+
+    private string OrigenDeLaCorriente(AparatoDelCircuito a, int polos, decimal tension) =>
+        a.Clase == ClaseDeAparato.Motocompresor
+            ? a.CorrienteSeleccionA > a.CorrientePlacaA
+                ? $"corriente de selección del circuito derivado de la placa (mayor que la de carga nominal, {a.CorrientePlacaA:0.##} A) — 440-6(a) Exc. 1"
+                : "corriente de carga nominal de la placa — 440-6(a)"
+            : a.MotorEnAmperes is { } m
+                ? $"marcado en amperes, {m.Hp:0.##} HP por interpolación ({MotoresEnHp.Interpolacion(m, polos)}) — 430-6(a)(1)"
+                : $"{MotoresEnHp.Texto(a.Hp ?? 0m)} HP, {MotoresEnHp.Fuente(polos, tension)}";
 
     /// <summary>
     /// <b>El derivado de un equipo de A/C o refrigeración</b> — I-74, Art. 440: con la corriente de la
@@ -1531,8 +1720,8 @@ public sealed class CuadroDeCarga
     /// </summary>
     private Dictionary<char, (AgregadoMotores Agregado, Fasor Fasor)> MotoresPorFase()
     {
-        var miembros = Datos.Barras.ToDictionary(b => b, _ => new List<(MiembroDelGrupo Miembro, decimal Angulo)>());
-        foreach (var m in MiembrosDelGrupoDeMotores())
+        var miembros = Datos.Barras.ToDictionary(b => b, _ => new List<(MotorDelAlimentador Miembro, decimal Angulo)>());
+        foreach (var m in MotoresDelAlimentador())
             foreach (var (fase, angulo) in Direcciones(m.Circuito))
                 miembros[fase].Add((m, angulo));
 
@@ -1544,16 +1733,23 @@ public sealed class CuadroDeCarga
     /// la protección de su derivado (para 430-62(a)) y si su corriente ya trae el 25 % de su motor
     /// mayor (la MCA de placa, 440-4(b)).
     /// </summary>
-    private sealed record MiembroDelGrupo(CircuitoDelCuadro Circuito, decimal CorrienteA, decimal FactorDemanda, decimal? ProteccionA, bool YaMayorada);
+    private sealed record MotorDelAlimentador(CircuitoDelCuadro Circuito, decimal CorrienteA, decimal FactorDemanda, decimal? ProteccionA, bool YaMayorada);
 
-    private IEnumerable<MiembroDelGrupo> MiembrosDelGrupoDeMotores() =>
+    private IEnumerable<MotorDelAlimentador> MotoresDelAlimentador() =>
         _circuitos
             .Where(c => c.TieneCarga && c.EsDeMotor && c.CorrienteDeMotorA > 0m)
-            .Select(c => new MiembroDelGrupo(
-                c, c.CorrienteDeMotorA, FactorDeDemanda(c),
-                // Sin derivado calculado no hay protección que aportar al techo de 430-62(a).
-                c.Resultado?.ProteccionA,
-                c.EsAireAcondicionado && c.PlacaAire == PlacaDeAireAcondicionado.AmpacidadYProteccion));
+            .SelectMany(c => c.EsGrupo
+                // UN GRUPO ENTRA MOTOR POR MOTOR — I-115: el 125 % de 430-24 es del motor mayor del
+                // alimentador, no del circuito que lo lleva. Todos con la protección de su circuito.
+                ? c.Aparatos
+                    .Where(a => a.EsMaquina && a.CorrienteUnitariaA > 0m)
+                    .SelectMany(a => Enumerable.Repeat(a.CorrienteUnitariaA, a.Cantidad))
+                    .Select(i => new MotorDelAlimentador(c, i, FactorDeDemanda(c), c.Resultado?.ProteccionA, false))
+                : [new MotorDelAlimentador(
+                    c, c.CorrienteDeMotorA, FactorDeDemanda(c),
+                    // Sin derivado calculado no hay protección que aportar al techo de 430-62(a).
+                    c.Resultado?.ProteccionA,
+                    c.EsAireAcondicionado && c.PlacaAire == PlacaDeAireAcondicionado.AmpacidadYProteccion)]);
 
     /// <summary>
     /// <b>El grupo de una barra</b> para 430-24 y 430-62(a):
@@ -1569,24 +1765,27 @@ public sealed class CuadroDeCarga
     /// </list>
     /// La suma fasorial, para la caída, con las mismas corrientes.
     /// </summary>
-    private static (AgregadoMotores Agregado, Fasor Fasor) AgregarPorFase(IReadOnlyList<(MiembroDelGrupo Miembro, decimal Angulo)> miembros)
+    private static (AgregadoMotores Agregado, Fasor Fasor) AgregarPorFase(IReadOnlyList<(MotorDelAlimentador Miembro, decimal Angulo)> miembros)
     {
         if (miembros.Count == 0)
             return (AgregadoMotores.Vacio, new Fasor(0m, 0m));
 
         var mayor = miembros.Where(x => !x.Miembro.YaMayorada).Select(x => x.Miembro)
-            .Aggregate((MiembroDelGrupo?)null, (a, m) => a is null || m.CorrienteA > a.CorrienteA ? m : a);
-        decimal Cuenta(MiembroDelGrupo m) => ReferenceEquals(m, mayor) ? m.CorrienteA : m.FactorDemanda * m.CorrienteA;
+            .Aggregate((MotorDelAlimentador?)null, (a, m) => a is null || m.CorrienteA > a.CorrienteA ? m : a);
+        decimal Cuenta(MotorDelAlimentador m) => ReferenceEquals(m, mayor) ? m.CorrienteA : m.FactorDemanda * m.CorrienteA;
 
-        // 430-62(a): la mayor protección de derivado; en un empate cuenta el primero.
+        // 430-62(a): la mayor protección de derivado; en un empate cuenta el primero. Es del circuito:
+        // en un grupo protege a todos sus motores, y todos se descuentan de «los demás» (I-115).
         var conProteccion = miembros.Select(x => x.Miembro).Where(m => m.ProteccionA is not null)
-            .Aggregate((MiembroDelGrupo?)null, (a, m) => a is null || m.ProteccionA > a.ProteccionA ? m : a);
+            .GroupBy(m => m.Circuito)
+            .Select(g => (Proteccion: g.First().ProteccionA!.Value, Corriente: g.Sum(Cuenta)))
+            .Aggregate(((decimal Proteccion, decimal Corriente)?)null, (a, p) => a is null || p.Proteccion > a.Value.Proteccion ? p : a);
 
         var agregado = new AgregadoMotores(
             MayorFlcA: mayor?.CorrienteA ?? 0m,
             SumaRestoFlcA: miembros.Where(x => !ReferenceEquals(x.Miembro, mayor)).Sum(x => Cuenta(x.Miembro)),
-            MayorProteccionDerivadoA: conProteccion?.ProteccionA,
-            FlcDelMayorProteccionA: conProteccion is null ? 0m : Cuenta(conProteccion));
+            MayorProteccionDerivadoA: conProteccion?.Proteccion,
+            FlcDelMayorProteccionA: conProteccion?.Corriente ?? 0m);
         var fasor = miembros.Aggregate(new Fasor(0m, 0m), (f, x) => f + new Fasor(Cuenta(x.Miembro), x.Angulo));
         return (agregado, fasor);
     }
@@ -1633,8 +1832,9 @@ public sealed class CuadroDeCarga
         var fasorContinua = barras.ToDictionary(b => b, _ => new Fasor(0m, 0m));
         var fasorNoContinua = barras.ToDictionary(b => b, _ => new Fasor(0m, 0m));
 
-        // Un motor en HP no tiene continua ni no continua: aporta cero aquí y entra con sus motores.
-        foreach (var c in _circuitos.Where(c => c.TieneCarga && !c.EsMotor))
+        // Un motor en HP no tiene continua ni no continua: aporta cero aquí y entra con sus motores. Las
+        // otras cargas de un grupo, sí (I-115).
+        foreach (var c in _circuitos.Where(c => c.TieneCarga && (!c.EsMotor || c.EsGrupo)))
         {
             var divisor = TensionDeCalculo.Divisor(c.Polos, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV);
             var iContinua = FactorDeDemanda(c) * c.ContinuaVA / divisor;

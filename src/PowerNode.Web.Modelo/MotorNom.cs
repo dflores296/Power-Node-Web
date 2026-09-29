@@ -61,6 +61,8 @@ public sealed class MotorNom
                 Calibres, ampacidad, flcMotor, proteccionMotor, deLaSerie, temperatura, agrupamiento, tierra, impedancia, aislamiento);
             _aire[serie] = new CalculadoraCircuitoDerivado440(
                 Calibres, ampacidad, deLaSerie, temperatura, agrupamiento, tierra, impedancia, aislamiento);
+            _grupo[serie] = new CalculadoraCircuitoDerivadoGrupo(
+                Calibres, ampacidad, proteccionMotor, deLaSerie, temperatura, agrupamiento, tierra, impedancia, aislamiento);
         }
 
         ProteccionEstandar = proteccion;
@@ -79,6 +81,7 @@ public sealed class MotorNom
     private readonly Dictionary<SerieDeInterruptores, CalculadoraAlimentador> _alimentador = [];
     private readonly Dictionary<SerieDeInterruptores, CalculadoraCircuitoDerivadoMotor> _motor = [];
     private readonly Dictionary<SerieDeInterruptores, CalculadoraCircuitoDerivado440> _aire = [];
+    private readonly Dictionary<SerieDeInterruptores, CalculadoraCircuitoDerivadoGrupo> _grupo = [];
 
     public FuenteTablasJson Fuente { get; }
     public ICatalogoCalibres Calibres { get; }
@@ -101,6 +104,12 @@ public sealed class MotorNom
     /// (Art. 440) — I-74. Con la corriente de placa, no con los HP.
     /// </summary>
     public CalculadoraCircuitoDerivado440 AireAcondicionado(SerieDeInterruptores serie) => _aire[serie];
+
+    /// <summary>
+    /// Un renglón con varios motores, o motores y otras cargas: 430-24 y 430-53(c)(4); con
+    /// motocompresores, 440-22(b) — I-115.
+    /// </summary>
+    public CalculadoraCircuitoDerivadoGrupo Grupo(SerieDeInterruptores serie) => _grupo[serie];
 
     /// <summary>Tablas 430-247 a 430-250: la corriente a plena carga de un motor — 430-6(a).</summary>
     public ITablaFlcMotor FlcMotor { get; }

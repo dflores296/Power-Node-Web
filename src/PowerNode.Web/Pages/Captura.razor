@@ -242,14 +242,19 @@
                         <td class="num @(c.TieneCaptura ? "asa" : null)" data-destino="@c.Espacio" data-arrastre="@(c.TieneCaptura ? c.Espacio : null)" data-etiqueta="@EtiquetaDeArrastre(c)" title="@(c.TieneCaptura ? "Arrastrar para mover el circuito a otro espacio" : null)">@NumeroConFase(c.Espacio)</td>
                         <td rowspan="@c.Polos">
                             <div class="desc-linea">
-                                <button class="desglosar" tabindex="-1" aria-label="Desglose del circuito @c.Espacio" aria-expanded="@(Abierto(c) ? "true" : "false")" disabled="@c.EsDeMotor"
-                                        title="@(c.EsMotor ? "Un motor no se desglosa: es el circuito de un motor — 430-22. Para varios aparatos, usar Equipo."
+                                <button class="desglosar" tabindex="-1" aria-label="Desglose del circuito @c.Espacio" aria-expanded="@(Abierto(c) ? "true" : "false")" disabled="@(c.EsDeMotor && !c.EsGrupo)"
+                                        title="@(c.EsGrupo ? "Los motores y las otras cargas del circuito — 430-53. Con el teclado: Ctrl+Enter."
+                                                 : c.EsMotor ? "Un motor solo no se desglosa — 430-22. Para varios motores, o motores y otras cargas, en un circuito: «Varios» en la unidad — 430-53."
                                                  : c.EsAireAcondicionado ? "Un equipo de A/C no se desglosa: es una sola máquina con su placa — 440-4(b)."
                                                  : "Desglosar los aparatos que alimenta el circuito. La carga del circuito es la suma. Con el teclado: Ctrl+Enter.")"
                                         @onclick="() => AlternarDesglose(c)"><Icono Nombre="@(Abierto(c) ? "desglose-abierto" : "desglose")" Tamano="14" /></button>
                                 <input class="desc" data-col="desc" aria-label="Circuito @c.Espacio · Descripción" @bind="c.Descripcion" @bind:event="oninput" @bind:after="DibujarAlPausar" placeholder="—" />
                             </div>
-                            @if (c.TieneDesglose)
+                            @if (c.EsGrupo)
+                            {
+                                <span class="en-va izq">(@TextoDelGrupo(c))</span>
+                            }
+                            else if (c.TieneDesglose)
                             {
                                 <span class="en-va izq">(@c.Aparatos.Sum(x => x.Cantidad) aparato@(c.Aparatos.Sum(x => x.Cantidad) == 1 ? "" : "s"))</span>
                             }
@@ -287,11 +292,12 @@
                             </div>
                         </td>
                         <td rowspan="@c.Polos">
-                            <select class="unidad" data-col="unidad" aria-label="Circuito @c.Espacio · Unidad" value="@UnidadDe(c)" @onchange="e => CambiarUnidad(c, e.Value?.ToString())" disabled="@c.TieneDesglose" title="@AyudaUnidad(c)">
+                            <select class="unidad" data-col="unidad" aria-label="Circuito @c.Espacio · Unidad" value="@UnidadDe(c)" @onchange="e => CambiarUnidad(c, e.Value?.ToString())" disabled="@(c.TieneDesglose && !c.EsGrupo)" title="@AyudaUnidad(c)">
                                 @if (c.EsMotor)
                                 {
                                     <option value="@nameof(CapturaDeMotor.Hp)">HP</option>
                                     <option value="@nameof(CapturaDeMotor.Amperes)">A</option>
+                                    <option value="@nameof(CapturaDeMotor.Grupo)">Varios</option>
                                 }
                                 else if (c.EsAireAcondicionado)
                                 {
@@ -333,6 +339,16 @@
                                     }
                                 </select>
                                 <span class="en-va" title="@(c.FlcA > 0m ? $"Corriente a plena carga de la {Cuadro.FuenteDeFlc(c)} — 430-6(a): {c.FlcA:N2} A. La carga en VA es la FLC por la tensión del circuito{(c.Polos == 3 ? " por √3" : "")}: {c.MotorVA:#,0} VA." : $"La FLC sale de la {Cuadro.FuenteDeFlc(c)} — 430-6(a).")">@Cuadro.AlimentacionDelMotor(c.Polos)</span>
+                            </td>
+                        }
+                        else if (c.EsGrupo)
+                        {
+                            @* I-115: la corriente del grupo es la suma de sus máquinas; se captura en el desglose. *@
+                            <td rowspan="@c.Polos" colspan="2">
+                                <input class="va" type="text" data-col="continua" aria-label="Circuito @c.Espacio · Corriente de los motores (A)" disabled
+                                       value="@(c.CorrienteDeMotorA > 0m ? $"{c.CorrienteDeMotorA:N2} A" : "")" placeholder="A"
+                                       title="Suma de las corrientes de los motores del desglose (la flecha junto a la descripción), cada uno con su FLC de tabla — 430-6(a). Conductor por 430-24; protección por 430-53(c)(4)." />
+                                <span class="en-va">@Cuadro.AlimentacionDelMotor(c.Polos)</span>
                             </td>
                         }
                         else if (c.EsMotor)
@@ -456,20 +472,21 @@
                         EL DESGLOSE VA DESPUÉS DEL ÚLTIMO ESPACIO DEL CIRCUITO, en un renglón que ocupa todo
                         el ancho: nunca entre los espacios de un multipolar, y sin mover ninguna columna.
                     *@
-                    @if (Abierto(c) && !c.EsDeMotor)
+                    @if (Abierto(c) && (!c.EsDeMotor || c.EsGrupo))
                     {
                         var calefaccion = c.Categoria == CategoriaDeCarga.CalefaccionFija;
+                        var grupo = c.EsGrupo;
                         <tr class="fila-desglose">
                             <td></td>
                             <td colspan="@(Columnas - 1)">
                                 <table class="desglose" data-circuito="@c.Espacio">
                                     <thead>
                                         <tr>
-                                            <th class="izq" data-col="ap-desc">Aparato del circuito @c.Espacio</th>
+                                            <th class="izq" data-col="ap-desc">@(grupo ? $"Motores y cargas del circuito {c.Espacio}" : $"Aparato del circuito {c.Espacio}")</th>
                                             <th data-col="ap-cant">Cant.</th>
-                                            <th data-col="ap-unidad">Unidad</th>
+                                            <th data-col="ap-unidad">@if (grupo) { <span class="ayuda" title="Motor: en HP, con su FLC de tabla (430-6(a)), o en A si la placa no trae HP (430-6(a)(1)). Otra carga: VA, W o A de placa. Todos a la tensión y los polos del circuito.">Unidad</span> } else { <text>Unidad</text> }</th>
                                             <th data-col="ap-carga">Carga c/u</th>
-                                            <th data-col="ap-continua"><span class="ayuda" title="Opera 3 h o más: 125 % — 210-19(a)(1). Calefacción: siempre — 424-3(b).">Continua</span></th>
+                                            <th data-col="ap-continua"><span class="ayuda" title="@(grupo ? "Otras cargas: opera 3 h o más, 125 % — 430-24. Un motor ya entra con su regla: 125 % del mayor — 430-24." : "Opera 3 h o más: 125 % — 210-19(a)(1). Calefacción: siempre — 424-3(b).")">Continua</span></th>
                                             <th data-col="ap-fp">F.P.</th>
                                             <th>Total <span class="simbolo">(VA)</span></th>
                                             <th></th>
@@ -482,25 +499,84 @@
                                                 <td class="izq"><input class="desc" data-col="ap-desc" aria-label="Circuito @c.Espacio, aparato @n · Descripción" @bind="aparato.Descripcion" @bind:after="Recalcular" placeholder="Aparato (Contacto: 180 VA)" /></td>
                                                 <td><input data-requerido data-col="ap-cant" aria-label="Circuito @c.Espacio, aparato @n · Cantidad" class="va corto" type="text" inputmode="decimal" autocomplete="off" data-numero min="1" step="1" @bind="aparato.Cantidad" @bind:culture="CultureInfo.InvariantCulture" @bind:after="Recalcular" /></td>
                                                 <td>
-                                                    <select class="unidad" data-col="ap-unidad" aria-label="Circuito @c.Espacio, aparato @n · Unidad" @bind="aparato.Unidad" @bind:after="Recalcular">
-                                                        <option value="@UnidadConsumo.VoltAmperes">VA</option>
-                                                        <option value="@UnidadConsumo.Watts">W</option>
-                                                        <option value="@UnidadConsumo.Amperes">A</option>
-                                                    </select>
+                                                    @if (grupo)
+                                                    {
+                                                        @* I-115: la clase y la unidad en un solo selector, como el HP con sus polos. *@
+                                                        <select class="unidad" data-col="ap-unidad" aria-label="Circuito @c.Espacio, aparato @n · Unidad" value="@UnidadDeMiembro(aparato)" @onchange="e => CambiarUnidadDeMiembro(aparato, e.Value?.ToString())">
+                                                            <optgroup label="Motor">
+                                                                <option value="Motor|@CapturaDeMotor.Hp">HP</option>
+                                                                <option value="Motor|@CapturaDeMotor.Amperes">A</option>
+                                                            </optgroup>
+                                                            <optgroup label="Otra carga">
+                                                                <option value="Carga|@UnidadConsumo.VoltAmperes">VA</option>
+                                                                <option value="Carga|@UnidadConsumo.Watts">W</option>
+                                                                <option value="Carga|@UnidadConsumo.Amperes">A</option>
+                                                            </optgroup>
+                                                        </select>
+                                                    }
+                                                    else
+                                                    {
+                                                        <select class="unidad" data-col="ap-unidad" aria-label="Circuito @c.Espacio, aparato @n · Unidad" @bind="aparato.Unidad" @bind:after="Recalcular">
+                                                            <option value="@UnidadConsumo.VoltAmperes">VA</option>
+                                                            <option value="@UnidadConsumo.Watts">W</option>
+                                                            <option value="@UnidadConsumo.Amperes">A</option>
+                                                        </select>
+                                                    }
                                                 </td>
-                                                <td><input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="0" data-col="ap-carga" aria-label="Circuito @c.Espacio, aparato @n · Carga c/u" value="@Carga(aparato.CargaUnitaria)" @onchange="e => { aparato.CargaUnitaria = LeerCarga(e, aparato.CargaUnitaria); Recalcular(); }" /></td>
-                                                <td><input type="checkbox" data-col="ap-continua" aria-label="Circuito @c.Espacio, aparato @n · Continua" @bind="aparato.Continua" @bind:after="Recalcular" disabled="@calefaccion" /></td>
+                                                @if (aparato.Clase == ClaseDeAparato.Motor && aparato.CapturaMotor == CapturaDeMotor.Hp)
+                                                {
+                                                    <td>
+                                                        <select class="hp" data-col="ap-carga" aria-label="Circuito @c.Espacio, aparato @n · HP" value="@(aparato.Hp?.ToString(CultureInfo.InvariantCulture) ?? "0")" @onchange="e => CambiarHpDeMiembro(aparato, e.Value?.ToString())"
+                                                                title="Seleccionar los caballos de placa, con su corriente de tabla a la tensión del circuito (@Cuadro.AlimentacionDelMotor(c.Polos)) — 430-6(a).">
+                                                            <option value="0">—</option>
+                                                            @foreach (var hp in Cuadro.HpDisponibles(c.Polos)) { <option @key="hp" value="@hp.ToString(CultureInfo.InvariantCulture)">@MotoresEnHp.Texto(hp) HP — @Cuadro.FlcDe(hp, c.Polos).ToString("N2") A</option> }
+                                                            @if (aparato.Hp is > 0m and { } fuera && !Cuadro.HpDisponibles(c.Polos).Contains(fuera))
+                                                            {
+                                                                <option value="@fuera.ToString(CultureInfo.InvariantCulture)">@MotoresEnHp.Texto(fuera) HP</option>
+                                                            }
+                                                        </select>
+                                                    </td>
+                                                }
+                                                else if (aparato.EsMaquina)
+                                                {
+                                                    <td><input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="A" data-col="ap-carga" aria-label="Circuito @c.Espacio, aparato @n · Corriente de placa (A)" value="@Carga(aparato.CorrientePlacaA)" @onchange="e => { aparato.CorrientePlacaA = LeerCarga(e, aparato.CorrientePlacaA); Recalcular(); }"
+                                                               title="@(aparato.MotorEnAmperes is { } m ? $"{m.Hp:0.##} HP — {MotoresEnHp.Interpolacion(m, c.Polos)}, 430-6(a)(1)." : "Capturar la corriente de placa de un motor que no trae HP; se le asignan los HP de la tabla, interpolando — 430-6(a)(1).")" /></td>
+                                                }
+                                                else
+                                                {
+                                                    <td><input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="0" data-col="ap-carga" aria-label="Circuito @c.Espacio, aparato @n · Carga c/u" value="@Carga(aparato.CargaUnitaria)" @onchange="e => { aparato.CargaUnitaria = LeerCarga(e, aparato.CargaUnitaria); Recalcular(); }" /></td>
+                                                }
+                                                <td>
+                                                    @if (!aparato.EsMaquina)
+                                                    {
+                                                        <input type="checkbox" data-col="ap-continua" aria-label="Circuito @c.Espacio, aparato @n · Continua" @bind="aparato.Continua" @bind:after="Recalcular" disabled="@calefaccion" />
+                                                    }
+                                                </td>
                                                 <td><input data-requerido class="va fp" type="text" inputmode="decimal" autocomplete="off" data-numero min="@FactorMinimo" max="1" step="0.05" data-col="ap-fp" aria-label="Circuito @c.Espacio, aparato @n · F.P." value="@Factor(aparato.FactorPotencia)" @onchange="e => { aparato.FactorPotencia = LeerFactor(e, aparato.FactorPotencia); Recalcular(); }" /></td>
-                                                <td class="num">@aparato.TotalVA.ToString("#,0.##")</td>
+                                                <td class="num" title="@(aparato.EsMaquina && aparato.CorrienteUnitariaA > 0m ? $"{aparato.Cantidad} × {aparato.CorrienteUnitariaA:N2} A = {aparato.Cantidad * aparato.CorrienteUnitariaA:N2} A, por la tensión del circuito." : null)">@aparato.TotalVA.ToString("#,0.##")</td>
                                                 <td><button class="quitar" title="Quitar el aparato" aria-label="Quitar el aparato @n del circuito @c.Espacio" @onclick="() => QuitarAparato(c, aparato, n)"><Icono Nombre="quitar" Tamano="14" /></button></td>
                                             </tr>
                                         }
                                     </tbody>
                                     <tfoot>
                                         <tr>
-                                            <td class="izq"><button class="agregar" data-agregar="@c.Espacio" @onclick="() => AgregarAparato(c)"><Icono Nombre="agregar" Tamano="14" />Agregar aparato</button></td>
+                                            <td class="izq">
+                                                @if (grupo)
+                                                {
+                                                    <button class="agregar" data-agregar="@c.Espacio" @onclick="() => AgregarMotor(c)"><Icono Nombre="agregar" Tamano="14" />Agregar motor</button>
+                                                    <button class="agregar" data-agregar-carga="@c.Espacio" @onclick="() => AgregarAparato(c)"><Icono Nombre="agregar" Tamano="14" />Agregar otra carga</button>
+                                                }
+                                                else
+                                                {
+                                                    <button class="agregar" data-agregar="@c.Espacio" @onclick="() => AgregarAparato(c)"><Icono Nombre="agregar" Tamano="14" />Agregar aparato</button>
+                                                }
+                                            </td>
                                             <td colspan="7" class="num">
-                                                @if (c.TieneDesglose)
+                                                @if (grupo && c.TieneDesglose)
+                                                {
+                                                    <text>Motores @c.CorrienteDeMotorA.ToString("N2") A · otras cargas: continua @c.ContinuaVA.ToString("#,0.##") · no continua @c.NoContinuaVA.ToString("#,0.##") VA · F.P. @c.FactorPotencia.ToString("N2")</text>
+                                                }
+                                                else if (c.TieneDesglose)
                                                 {
                                                     <text>Total: continua @c.ContinuaVA.ToString("#,0.##") · no continua @c.NoContinuaVA.ToString("#,0.##") VA · F.P. @c.FactorPotencia.ToString("N2")</text>
                                                 }
@@ -1536,6 +1612,52 @@
         _enfocar = DescripcionDeAparato(c.Espacio, c.Aparatos.Count);
     }
 
+    private void AgregarMotor(CircuitoDelCuadro c)
+    {
+        c.AgregarMotor();
+        Recalcular();
+        _enfocar = DescripcionDeAparato(c.Espacio, c.Aparatos.Count);
+    }
+
+    /// <summary>«3 motores», «2 motores, 1 carga»: lo que lleva un grupo — I-115.</summary>
+    private static string TextoDelGrupo(CircuitoDelCuadro c)
+    {
+        var motores = c.Aparatos.Where(a => a.EsMaquina).Sum(a => a.Cantidad);
+        var cargas = c.Aparatos.Where(a => !a.EsMaquina).Sum(a => a.Cantidad);
+        var texto = $"{motores} motor{(motores == 1 ? "" : "es")}";
+        return cargas == 0 ? texto : $"{texto}, {cargas} carga{(cargas == 1 ? "" : "s")}";
+    }
+
+    /// <summary>«Motor|Hp», «Carga|Watts»: la clase y la unidad de un miembro del grupo en un valor — I-115.</summary>
+    private static string UnidadDeMiembro(AparatoDelCircuito a) =>
+        a.EsMaquina ? $"Motor|{a.CapturaMotor}" : $"Carga|{a.Unidad}";
+
+    private void CambiarUnidadDeMiembro(AparatoDelCircuito a, string? valor)
+    {
+        var partes = valor?.Split('|');
+        if (partes is not { Length: 2 })
+            return;
+        if (partes[0] == "Motor" && Enum.TryParse<CapturaDeMotor>(partes[1], out var captura) && captura != CapturaDeMotor.Grupo)
+        {
+            a.Clase = ClaseDeAparato.Motor;
+            a.CapturaMotor = captura;
+        }
+        else if (partes[0] == "Carga" && Enum.TryParse<UnidadConsumo>(partes[1], out var unidad))
+        {
+            a.Clase = ClaseDeAparato.Carga;
+            a.Unidad = unidad;
+        }
+        Recalcular();
+    }
+
+    private void CambiarHpDeMiembro(AparatoDelCircuito a, string? valor)
+    {
+        if (!decimal.TryParse(valor, NumberStyles.Float, CultureInfo.InvariantCulture, out var hp) || hp < 0m)
+            return;
+        a.Hp = hp > 0m ? hp : null;
+        Recalcular();
+    }
+
     /// <summary>Quita el aparato <paramref name="n"/> y deja el foco en el que queda en su lugar, o en «+ Agregar aparato».</summary>
     private void QuitarAparato(CircuitoDelCuadro c, AparatoDelCircuito a, int n)
     {
@@ -1560,7 +1682,17 @@
     private void CambiarUnidad(CircuitoDelCuadro c, string? valor)
     {
         if (c.EsMotor && Enum.TryParse<CapturaDeMotor>(valor, out var captura))
-            c.CapturaMotor = captura;
+        {
+            // «Varios» (I-115): el motor capturado pasa a ser el primero del grupo, y el desglose se abre.
+            if (captura == CapturaDeMotor.Grupo)
+            {
+                c.PasarAGrupo();
+                if (_desgloseAbierto.Add(c.Espacio))
+                    _enfocar = c.Aparatos.Count > 0 ? DescripcionDeAparato(c.Espacio, 1) : AgregarDe(c.Espacio);
+            }
+            else
+                c.CapturaMotor = captura;
+        }
         else if (c.EsAireAcondicionado && Enum.TryParse<PlacaDeAireAcondicionado>(valor, out var placa))
             c.PlacaAire = placa;
         else if (Enum.TryParse<UnidadConsumo>(valor, out var unidad))
@@ -1569,7 +1701,7 @@
     }
 
     private static string? AyudaUnidad(CircuitoDelCuadro c) =>
-        c.EsMotor ? "HP: seleccionar los caballos de placa. A: capturar la corriente de placa de un motor que no trae HP; se le asignan los HP de la tabla, interpolando — 430-6(a)(1)."
+        c.EsMotor ? "HP: seleccionar los caballos de placa. A: capturar la corriente de placa de un motor que no trae HP; se le asignan los HP de la tabla, interpolando — 430-6(a)(1). Varios: dos o más motores, o motores y otras cargas, en un circuito; se capturan en el desglose — 430-53."
         : c.EsAireAcondicionado ? "MCA: la placa trae ampacidad mínima y protección máxima (MCA, MOCP) — 440-4(b). A: la placa trae la corriente de carga nominal del compresor — 440-6(a)."
         : SumaDelDesglose(c);
 

@@ -245,6 +245,12 @@ public sealed class AparatoJson
     public decimal? CargaUnitaria { get; set; }
     public bool? Continua { get; set; }
     public decimal? FactorPotencia { get; set; }
+    // Formato 3 — I-115: un motor o un motocompresor de un grupo. Solo se escriben si no son los de una carga.
+    public ClaseDeAparato? Clase { get; set; }
+    public CapturaDeMotor? CapturaMotor { get; set; }
+    public decimal? Hp { get; set; }
+    public decimal? CorrientePlaca { get; set; }
+    public decimal? CorrienteSeleccion { get; set; }
 
     public static AparatoJson De(AparatoDelCircuito a) => new()
     {
@@ -254,6 +260,11 @@ public sealed class AparatoJson
         CargaUnitaria = a.CargaUnitaria,
         Continua = a.Continua,
         FactorPotencia = a.FactorPotencia,
+        Clase = a.Clase == ClaseDeAparato.Carga ? null : a.Clase,
+        CapturaMotor = a.CapturaMotor == CapturaDeMotor.Hp ? null : a.CapturaMotor,
+        Hp = a.Hp,
+        CorrientePlaca = a.CorrientePlacaA == 0m ? null : a.CorrientePlacaA,
+        CorrienteSeleccion = a.CorrienteSeleccionA,
     };
 
     internal AparatoDelCircuito Crear(string quien, List<string> avisos)
@@ -271,6 +282,12 @@ public sealed class AparatoJson
             else
                 avisos.Add(CircuitoJson.FueraDeRango(quien, fp, a.FactorPotencia));
         }
+        a.Clase = Clase ?? a.Clase;
+        // Un aparato es HP o amperes; «Varios» es solo del circuito.
+        a.CapturaMotor = CapturaMotor is CapturaDeMotor.Amperes ? CapturaDeMotor.Amperes : CapturaDeMotor.Hp;
+        a.Hp = Hp is > 0m ? Hp : null;
+        a.CorrientePlacaA = CircuitoJson.NoNegativo(CorrientePlaca, a.CorrientePlacaA, $"{quien}, en la corriente,", avisos);
+        a.CorrienteSeleccionA = CorrienteSeleccion is > 0m ? CorrienteSeleccion : null;
         return a;
     }
 }

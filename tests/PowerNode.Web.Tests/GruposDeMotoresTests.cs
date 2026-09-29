@@ -1,0 +1,388 @@
+using PowerNode.DesignSuite.Calculo.Casos;
+using PowerNode.DesignSuite.Calculo.Unidades;
+using PowerNode.Web.Modelo;
+using PowerNode.Web.Modelo.Archivo;
+using PowerNode.Web.Modelo.Memoria;
+
+namespace PowerNode.Web.Tests;
+
+/// <summary>
+/// <b>Varios motores, o motores y otras cargas, en un circuito</b> — I-115, 430-53. Los números salen de
+/// la norma, no de la implementación: FLC de la Tabla 430-248 (½ HP a 127 V: 8.9 A; 1 HP: 14 A) y de la
+/// 430-250 (5 HP a 230 V: 15.2 A; ½ HP: 2.2 A); conductor por 430-24 (125 % del mayor + los demás +
+/// 125 % de la continua); protección por 430-53(c)(4): el mayor tamaño estándar que no exceda el 250 %
+/// del motor mayor más los demás y las otras cargas (decisión de David, 2026-09-29).
+/// </summary>
+public class GruposDeMotoresTests
+{
+    private static readonly string Json = File.ReadAllText(
+        Path.Combine(AppContext.BaseDirectory, "datos", "tablas-nom.json"));
+
+    private static readonly MotorNom Motor = new(Json);
+
+    private static CuadroDeCarga Nuevo()
+    {
+        var cuadro = new CuadroDeCarga(Motor);
+        cuadro.Datos.NumeroEspacios = 12;
+        cuadro.Datos.Fases = 3;
+        cuadro.Datos.Hilos = 4;
+        cuadro.Datos.TensionFaseFaseV = 220m;
+        return EnPvc.Todo(cuadro);
+    }
+
+    private static CircuitoDelCuadro Espacio(CuadroDeCarga cuadro, int numero) =>
+        cuadro.Circuitos.Single(c => c.Espacio == numero);
+
+    /// <summary>Un circuito de Motor en «Varios», con sus polos y 10 m para que la caída no mueva el calibre.</summary>
+    private static CircuitoDelCuadro Grupo(CuadroDeCarga cuadro, int espacio, int polos)
+    {
+        var c = Espacio(cuadro, espacio);
+        c.Categoria = CategoriaDeCarga.Motor;
+        c.LongitudM = 10m;
+        if (polos > 1)
+            Assert.Null(cuadro.CambiarPolos(c, polos));
+        c.PasarAGrupo();
+        return c;
+    }
+
+    private static AparatoDelCircuito MotorHp(CircuitoDelCuadro c, string nombre, decimal hp, int cantidad = 1)
+    {
+        var a = c.AgregarMotor();
+        a.Descripcion = nombre;
+        a.Hp = hp;
+        a.Cantidad = cantidad;
+        return a;
+    }
+
+    private static decimal Flc(decimal hp, int polos, decimal tension) =>
+        Motor.FlcMotor.CorrientePlenaCargaA(hp, MotoresEnHp.Alimentacion(polos), tension)!.Value;
+
+    [Fact]
+    public void I115_TresMotoresDeMedioHpEnUnCircuito()
+    {
+        var cuadro = Nuevo();
+        var c = Grupo(cuadro, 1, 1);
+        MotorHp(c, "Extractor", 0.5m, cantidad: 3);
+        cuadro.Recalcular();
+
+        Assert.Null(c.Error);
+        Assert.True(c.EsGrupo && c.TieneDesglose);
+        Assert.Equal(8.9m, c.Aparatos[0].CorrienteUnitariaA);
+        Assert.Equal(26.7m, c.CorrienteDeMotorA);
+        var r = c.Resultado!;
+        // 430-24: 125 % × 8.9 + 8.9 + 8.9 = 28.925 A → 10 AWG (30 A a 60 °C).
+        Assert.Equal(28.925m, r.Detalle!.CapacidadMinimaA);
+        Assert.Equal("10", r.CalibreFase.Designacion);
+        // 430-53(c)(4): 250 % × 8.9 + 8.9 + 8.9 = 40.05 A → 40 A, el mayor que no lo excede.
+        Assert.Equal(40.05m, r.Grupo!.TechoA);
+        Assert.Equal("430-53(c)(4)", r.Grupo.Regla);
+        Assert.Equal(40m, r.ProteccionA);
+        Assert.Equal(26.7m, r.CorrienteDisenoA);
+        Assert.Contains(r.Citas, x => x.Referencia == "430-24");
+        Assert.Contains(r.Citas, x => x.Referencia == "240-4(g)");
+        Assert.Contains(r.Citas, x => x.Referencia == "430-53(c)");
+        // 8.9 A pasa de los 6 A de 430-53(a)(1): esa regla no aplica.
+        Assert.DoesNotContain(r.Citas, x => x.Referencia == "430-53(a)");
+    }
+
+    [Fact]
+    public void I115_UnMotorGrandeYUnoChicoTrifasicos()
+    {
+        var cuadro = Nuevo();
+        var c = Grupo(cuadro, 1, 3);
+        MotorHp(c, "Compresor de aire", 5m);
+        MotorHp(c, "Ventilador", 0.5m);
+        cuadro.Recalcular();
+
+        var r = c.Resultado!;
+        Assert.Null(c.Error);
+        // 430-24: 125 % × 15.2 + 2.2 = 21.2 A → 10 AWG (12 AWG da 20 A a 60 °C).
+        Assert.Equal(21.2m, r.Detalle!.CapacidadMinimaA);
+        Assert.Equal("10", r.CalibreFase.Designacion);
+        // 430-53(c)(4): 250 % × 15.2 + 2.2 = 40.2 A → 40 A.
+        Assert.Equal(40.2m, r.Grupo!.TechoA);
+        Assert.Equal("Compresor de aire", r.Grupo.Mayor.Nombre);
+        Assert.Equal(40m, r.ProteccionA);
+    }
+
+    [Fact]
+    public void I115_UnGrupoDeUnSoloMotorSeCalculaComoMotor()
+    {
+        var cuadro = Nuevo();
+        var c = Espacio(cuadro, 1);
+        c.Categoria = CategoriaDeCarga.Motor;
+        c.Descripcion = "Bomba";
+        c.Hp = 5m;
+        Assert.Null(cuadro.CambiarPolos(c, 3));
+        cuadro.Recalcular();
+        Assert.Equal(40m, c.Resultado!.ProteccionA);
+
+        // El motor capturado pasa a ser el primero del grupo, y el resultado no cambia: 250 % × 15.2 = 38 A
+        // sube a 40 A por 430-52(c)(1) Excepción 1, que 430-53(c)(4) no trae (daría 35 A).
+        c.PasarAGrupo();
+        cuadro.Recalcular();
+
+        Assert.True(c.EsGrupo);
+        var motor = Assert.Single(c.Aparatos);
+        Assert.Equal(ClaseDeAparato.Motor, motor.Clase);
+        Assert.Equal("Bomba", motor.Descripcion);
+        Assert.Equal(5m, motor.Hp);
+        Assert.Null(c.Resultado!.Grupo);
+        Assert.Equal(40m, c.Resultado.ProteccionA);
+        Assert.Contains("FLC = 15.20 A", cuadro.OrigenDeLaFlc(c));
+    }
+
+    [Fact]
+    public void I115_UnMotorYAlumbradoEnElMismoCircuito()
+    {
+        var cuadro = Nuevo();
+        var c = Grupo(cuadro, 1, 1);
+        MotorHp(c, "Extractor", 1m);
+        var luz = c.AgregarAparato();
+        luz.Descripcion = "Alumbrado";
+        luz.CargaUnitaria = 1000m;
+        luz.Continua = true;
+        cuadro.Recalcular();
+
+        var r = c.Resultado!;
+        Assert.Null(c.Error);
+        var iLuz = 1000m / cuadro.Datos.TensionFaseNeutroV; // 220 / √3 = 127.02 V
+        // 430-24: 125 % × 14 + 125 % × 7.874 = 27.34 A.
+        Assert.Equal(1.25m * 14m + 1.25m * iLuz, r.Detalle!.CapacidadMinimaA);
+        // 430-53(c)(4): 250 % × 14 + 7.874 = 42.87 A → 40 A.
+        Assert.Equal(35m + iLuz, r.Grupo!.TechoA);
+        Assert.Equal(40m, r.ProteccionA);
+        // La otra carga lleva su propia protección si el interruptor del grupo pasa sus derivaciones.
+        Assert.Contains(r.Citas, x => x.Referencia == "430-53(c)(6)");
+        Assert.Equal(1000m, c.ContinuaVA);
+        Assert.Equal(14m * cuadro.Datos.TensionFaseNeutroV, c.MotorVA);
+    }
+
+    [Fact]
+    public void I115_MotoresChicosCumplenTambien430_53a()
+    {
+        var cuadro = Nuevo();
+        var c = Grupo(cuadro, 1, 1);
+        MotorHp(c, "Ventilador", 1m / 6m, cantidad: 2);
+        cuadro.Recalcular();
+
+        var flc = Flc(1m / 6m, 1, 127m);
+        Assert.True(flc <= 6m);
+        var r = c.Resultado!;
+        Assert.Equal(3.5m * flc, r.Grupo!.TechoA);
+        Assert.True(r.ProteccionA <= 20m);
+        Assert.Contains(r.Citas, x => x.Referencia == "430-53(a)");
+    }
+
+    [Fact]
+    public void I115_SiElLimiteNoLlevaLaCargaSubeHasta240_4b()
+    {
+        var cuadro = Nuevo();
+        var c = Grupo(cuadro, 1, 1);
+        MotorHp(c, "Ventilador", 1m / 6m);
+        var luz = c.AgregarAparato();
+        luz.Descripcion = "Alumbrado";
+        luz.CargaUnitaria = 3300m;
+        luz.Continua = true;
+        cuadro.Recalcular();
+
+        var flc = Flc(1m / 6m, 1, 127m);
+        var iLuz = 3300m / cuadro.Datos.TensionFaseNeutroV;
+        var r = c.Resultado!;
+        Assert.Null(c.Error);
+        var g = r.Grupo!;
+        // 250 % × FLC + 25.98 A queda abajo de lo que el alumbrado continuo pide al interruptor
+        // (FLC + 125 % × 25.98 A): el límite no deja un tamaño que lo lleve, y el conductor sí.
+        Assert.Equal(2.5m * flc + iLuz, g.TechoA);
+        Assert.Equal(flc + 1.25m * iLuz, g.PisoA);
+        Assert.NotNull(g.Limite240_4bA);
+        Assert.True(r.ProteccionA >= g.PisoA);
+        Assert.True(r.ProteccionA <= g.Limite240_4bA);
+        Assert.Contains(r.Citas, x => x.Referencia == "430-53(c)(4)" && x.Descripcion.Contains("240-4(b)"));
+    }
+
+    [Fact]
+    public void I115_UnGrupoSinMotoresDiceQueFaltan()
+    {
+        var cuadro = Nuevo();
+        var c = Grupo(cuadro, 1, 1);
+        var luz = c.AgregarAparato();
+        luz.CargaUnitaria = 500m;
+        cuadro.Recalcular();
+
+        Assert.Null(c.Resultado);
+        Assert.Contains("no tiene motores", c.Error);
+    }
+
+    [Fact]
+    public void I115_UnMotorQueLaTablaNoTraeLoDiceConSuNombre()
+    {
+        var cuadro = Nuevo();
+        var c = Grupo(cuadro, 1, 1);
+        MotorHp(c, "Extractor", 0.5m);
+        MotorHp(c, "Bomba grande", 50m); // la 430-248 no trae monofásicos de 50 HP
+        cuadro.Recalcular();
+
+        Assert.Null(c.Resultado);
+        Assert.StartsWith("Bomba grande:", c.Error);
+    }
+
+    [Fact]
+    public void I115_ElAlimentadorCuentaCadaMotorDelGrupo()
+    {
+        var cuadro = Nuevo();
+        var c = Grupo(cuadro, 1, 1);
+        MotorHp(c, "Extractor", 0.5m, cantidad: 3);
+        cuadro.Recalcular();
+
+        // En la fase A, tres motores de 8.9 A: 125 % del mayor + los otros dos, igual que si fueran
+        // tres circuitos — 430-24. El 125 % no es de los 26.7 A del circuito.
+        var fase = cuadro.Alimentador.Fases.Single(f => f.Fase == 'A');
+        Assert.Equal(8.9m, fase.Motores.MayorFlcA);
+        Assert.Equal(17.8m, fase.Motores.SumaRestoFlcA);
+        Assert.Equal(28.925m, fase.Motores.CapacidadMinimaA);
+        // 430-62(a): la protección del grupo cubre a sus tres motores; ninguno queda en «los demás».
+        Assert.Equal(40m, fase.Motores.MayorProteccionDerivadoA);
+        Assert.Equal(26.7m, fase.Motores.FlcDelMayorProteccionA);
+        Assert.Equal(40m, cuadro.Alimentador.Resultado!.TechoProteccion430_62A);
+    }
+
+    [Fact]
+    public void I115_LasOtrasCargasDelGrupoVanAlAlimentadorComoCarga()
+    {
+        var cuadro = Nuevo();
+        var c = Grupo(cuadro, 1, 1);
+        MotorHp(c, "Extractor", 1m);
+        var luz = c.AgregarAparato();
+        luz.CargaUnitaria = 1000m;
+        luz.Continua = true;
+        cuadro.Recalcular();
+
+        var fase = cuadro.Alimentador.Fases.Single(f => f.Fase == 'A');
+        var iLuz = 1000m / cuadro.Datos.TensionFaseNeutroV;
+        Assert.Equal(iLuz, fase.ContinuaA);
+        Assert.Equal(14m, fase.Motores.MayorFlcA);
+        // 125 % × 7.874 + 125 % × 14.
+        Assert.Equal(1.25m * iLuz + 17.5m, fase.CapacidadA);
+    }
+
+    [Fact]
+    public void I115_ElDesgloseYLaMemoriaDicenElGrupo()
+    {
+        var cuadro = Nuevo();
+        var c = Grupo(cuadro, 1, 3);
+        MotorHp(c, "Compresor de aire", 5m);
+        MotorHp(c, "Ventilador", 0.5m);
+        cuadro.Recalcular();
+
+        var d = cuadro.Desglose(c)!;
+        Assert.Contains(d.Proteccion, x => x.StartsWith("Compresor de aire: 15.20 A"));
+        Assert.Contains(d.Proteccion, x => x.Contains("250 % × 15.20 A (Compresor de aire) + 2.20 A") && x.EndsWith("= 40.20 A — 430-53(c)(4)"));
+        Assert.Contains(d.Proteccion, x => x.StartsWith("Protección: 40 A, el mayor tamaño estándar"));
+        Assert.Contains(d.Conductor, x => x.StartsWith("Capacidad mínima = 125 % × 15.2 A") && x.EndsWith("— 430-24"));
+
+        var hoja = MemoriaDeCalculo.DeCircuito(cuadro, c);
+        Assert.Equal("Grupo de motores", hoja.Equipo!.Rotulo);
+        Assert.Contains(hoja.Equipo.Proteccion, x => x.Rotulo == "Protección máxima — 430-53(c)(4)" && x.Valor.EndsWith("= 40.2 A"));
+        Assert.Contains(hoja.Equipo.Proteccion, x => x.Rotulo == "Capacidad mínima del conductor — 430-24" && x.Valor.EndsWith("= 21.2 A"));
+        Assert.Contains(hoja.Desglose!, x => x.Rotulo == "Motor 1: Compresor de aire" && x.Valor.StartsWith("1 × 5 HP · 15.20 A"));
+        var texto = string.Join("\n", MemoriaDeCalculo.Secciones(hoja).SelectMany(s => s.Renglones).Select(x => $"{x.Rotulo} {x.Valor}"));
+        Assert.Contains("Compresor de aire", texto);
+        Assert.Contains("430-53(c)(4)", texto);
+    }
+
+    [Fact]
+    public void I115_MoverYDeshacerUnGrupoLoConserva()
+    {
+        var cuadro = Nuevo();
+        var c = Grupo(cuadro, 1, 1);
+        MotorHp(c, "Extractor", 0.5m, cantidad: 3);
+        cuadro.Recalcular();
+
+        Assert.True(cuadro.MoverCircuito(1, 5).Movio);
+        var movido = Espacio(cuadro, 5);
+        Assert.True(movido.EsGrupo);
+        Assert.Equal(3, movido.Aparatos.Single().Cantidad);
+        Assert.Equal(40m, movido.Resultado!.ProteccionA);
+
+        cuadro.Deshacer();
+        Assert.True(Espacio(cuadro, 1).EsGrupo);
+        Assert.Equal(40m, Espacio(cuadro, 1).Resultado!.ProteccionA);
+    }
+
+    // ---- El archivo: formato 3 -----------------------------------------------------------------
+
+    [Fact]
+    public void I115_ElGrupoSeGuardaYAbreIgual()
+    {
+        var cuadro = Nuevo();
+        var c = Grupo(cuadro, 1, 3);
+        MotorHp(c, "Compresor de aire", 5m);
+        var ventilador = c.AgregarMotor();
+        ventilador.Descripcion = "Ventilador";
+        ventilador.CapturaMotor = CapturaDeMotor.Amperes;
+        ventilador.CorrientePlacaA = 2m;
+        var luz = c.AgregarAparato();
+        luz.Descripcion = "Alumbrado";
+        luz.CargaUnitaria = 300m;
+        cuadro.Recalcular();
+
+        var texto = ArchivoDelCuadro.Guardar(cuadro, DateTimeOffset.Now);
+        Assert.Contains("\"version\": 3", texto);
+        var apertura = ArchivoDelCuadro.Abrir(texto, Motor);
+
+        Assert.Null(apertura.Error);
+        Assert.Empty(apertura.Avisos);
+        var abierto = Espacio(apertura.Cuadro!, 1);
+        Assert.True(abierto.EsGrupo);
+        Assert.Equal(
+            c.Aparatos.Select(a => (a.Descripcion, a.Clase, a.CapturaMotor, a.Hp, a.CorrientePlacaA, a.CargaUnitaria)),
+            abierto.Aparatos.Select(a => (a.Descripcion, a.Clase, a.CapturaMotor, a.Hp, a.CorrientePlacaA, a.CargaUnitaria)));
+        Assert.Equal(c.Resultado!.ProteccionA, abierto.Resultado!.ProteccionA);
+        Assert.Equal(c.Resultado.Detalle!.CapacidadMinimaA, abierto.Resultado.Detalle!.CapacidadMinimaA);
+        Assert.Equal(ArchivoDelCuadro.Huella(cuadro), ArchivoDelCuadro.Huella(apertura.Cuadro!));
+    }
+
+    [Fact]
+    public void I115_UnArchivoDeFormato2AbreConSusAparatosComoCargas()
+    {
+        const string texto = """
+            {
+              "formato": "power-node/cuadro-de-carga",
+              "version": 2,
+              "circuitos": [
+                { "espacio": 1, "categoria": "Equipo",
+                  "aparatos": [ { "descripcion": "Horno", "cantidad": 1, "cargaUnitaria": 1500 } ] }
+              ]
+            }
+            """;
+
+        var apertura = ArchivoDelCuadro.Abrir(texto, Motor);
+
+        Assert.Null(apertura.Error);
+        var a = Assert.Single(apertura.Cuadro!.Circuitos[0].Aparatos);
+        Assert.Equal(ClaseDeAparato.Carga, a.Clase);
+        Assert.Equal(1500m, apertura.Cuadro.Circuitos[0].NoContinuaVA);
+    }
+
+    /// <summary>
+    /// Un formato más nuevo con un valor que esta versión no conoce: pide recargar la página en vez de
+    /// decir que el archivo no es de Power Node.
+    /// </summary>
+    [Fact]
+    public void I115_UnFormatoMasNuevoConValoresDesconocidosPideRecargar()
+    {
+        const string texto = """
+            {
+              "formato": "power-node/cuadro-de-carga",
+              "version": 4,
+              "circuitos": [ { "espacio": 1, "capturaMotor": "AlgoNuevo" } ]
+            }
+            """;
+
+        var apertura = ArchivoDelCuadro.Abrir(texto, Motor);
+
+        Assert.Null(apertura.Cuadro);
+        Assert.Contains("versión más nueva", apertura.Error);
+    }
+}

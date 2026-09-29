@@ -10,6 +10,12 @@ public enum CapturaDeMotor
 {
     Hp,
     Amperes,
+
+    /// <summary>
+    /// Varios motores, o motores y otras cargas, en el circuito — 430-53, I-115. Cada uno es un aparato
+    /// del desglose; solo en el circuito, nunca en un aparato.
+    /// </summary>
+    Grupo,
 }
 
 /// <summary>
