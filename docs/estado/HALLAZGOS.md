@@ -144,10 +144,10 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-116 · Sin varios motocompresores en un circuito (440-22(b), 440-33) | P2 | **Cerrado** | `940ddb9` |
 | I-117 · Sin acondicionador de habitación (440 Parte G) | P3 | **Cerrado** | `940ddb9` |
 | I-118 · Aparato con motor mezclado con otras cargas sin el 125 % del motor (220-18(a)) | P2 | **Cerrado** | `502b7b4` |
-| I-119 · Motor con variador calculado como motor: 250 % (430-122) | P2 | Abierto | — |
-| I-120 · Sin servicio no continuo (430-22(e)) | P3 | Abierto | — |
-| I-121 · Sin cargas no simultáneas (430-24 Exc. 3, 440-33 Exc. 1, 220-60) | P2 | Abierto | — |
-| I-122 · La memoria no dice el medio de desconexión mínimo (430-110, 440-12, 430-128) | P3 | Abierto | — |
+| I-119 · Motor con variador calculado como motor: 250 % (430-122) | P2 | **Cerrado** | `c571d1b` |
+| I-120 · Sin servicio no continuo (430-22(e)) | P3 | **Cerrado** | `c571d1b` |
+| I-121 · Sin cargas no simultáneas (430-24 Exc. 3, 440-33 Exc. 1, 220-60) | P2 | **Cerrado** | `c571d1b` |
+| I-122 · La memoria no dice el medio de desconexión mínimo (430-110, 440-12, 430-128) | P3 | **Cerrado** | `c571d1b` |
 | R-01 · Caída del alimentador fija en 5 %, sin verificar la combinada — 215-2(a)(4) NOTA 2 | P1 | **Cerrado** | `2a973ea` |
 | R-02 · Caída del alimentador sin la caída del neutro | P2 | **Cerrado** | `d6cd1c6` |
 | R-03 · La publicación no corre `PowerNode.Web.Tests` | P1 | **Cerrado** | `986c9d7` |
@@ -452,13 +452,13 @@ NOM (corpus de `dflores296/NOM-001-SEDE-2012`). Propuesta y decisiones en
 
 **I-118** — Hecho: en el desglose no se puede decir que un aparato tiene motor; mezclado con otras cargas, 220-18(a) pide 125 % del motor mayor. Cerrado en `502b7b4`: en el desglose de Alumbrado, Contactos, Equipo y Calefacción, un aparato «con motor» (HP con su FLC de tabla, o A de placa — 430-6(a)(1) Exc. 3); con otras cargas, el motor mayor de más de ⅛ hp entra como continua (125 %) y los demás al 100 % — 220-18(a); si el circuito solo alimenta motores, pide el Art. 430 (Motor «Varios»). Desglose y memoria con la línea de 220-18(a). Pruebas: `I118_…` (4); en el navegador, cuarto de lavado con alumbrado y lavadora de 5 A.
 
-**I-119** — Hecho: una bomba con variador se captura como motor en A (250 % de Tabla 430-52). 430-122(a): 125 % de la corriente de entrada del variador; protección la que marque el fabricante (110-3(b)).
+**I-119** — Hecho: una bomba con variador se captura como motor en A (250 % de Tabla 430-52). 430-122(a): 125 % de la corriente de entrada del variador; protección la que marque el fabricante (110-3(b)). Cerrado en `c571d1b`: Motor «VFD» con la corriente de entrada y la protección máxima del fabricante; conductor al 125 % de la entrada (430-122(a)), protección = mayor estándar que no la excede (110-3(b)); al alimentador con la corriente de entrada; memoria con 430-128. Pruebas: `I119_…` (2); en el navegador, 20 A / 40 A → 10 AWG, 40 A.
 
-**I-120** — Hecho: sin servicio de corta duración, intermitente, periódico o variable (Tabla 430-22(e), 430-24 Exc. 1).
+**I-120** — Hecho: sin servicio de corta duración, intermitente, periódico o variable (Tabla 430-22(e), 430-24 Exc. 1). Cerrado en `c571d1b`: servicio no continuo en el detalle del motor (clase, minutos y corriente de placa); conductor al % de la Tabla 430-22(e) —extraída del repo de la norma— sobre la placa; protección sigue en 430-52; al alimentador con el valor de 430-22(e), sin el 125 % (430-24 Exc. 1). Pruebas: `I120_…` (3); en el navegador, bomba intermitente de 5 hp, 30 y 60 min, placa 14 A → 12.6 A, 14 AWG.
 
-**I-121** — Hecho: bombas alternadas o calefacción contra A/C solo se pueden bajar con el F.D. (que además tiene M-12); 430-24 Exc. 3, 440-33 Exc. 1 y 220-60 permiten contar solo el mayor.
+**I-121** — Hecho: bombas alternadas o calefacción contra A/C solo se pueden bajar con el F.D. (que además tiene M-12); 430-24 Exc. 3, 440-33 Exc. 1 y 220-60 permiten contar solo el mayor. Cerrado en `c571d1b`: «No simultáneo con» en el detalle de cualquier circuito, de los dos lados; del par, al alimentador va el mayor (220-60, 430-24 Exc. 3, 440-33 Exc. 1), con aviso; el par sigue al circuito que se mueve y va en el archivo. Pruebas: `I121_…` (3); en el navegador, bombas dúplex de 5 hp.
 
-**I-122** — Hecho: la memoria no dice el medio de desconexión mínimo: 115 % FLC (430-110(a)), 115 % RLA o BCSC (440-12(a)(1)), 115 % de la entrada del variador (430-128).
+**I-122** — Hecho: la memoria no dice el medio de desconexión mínimo: 115 % FLC (430-110(a)), 115 % RLA o BCSC (440-12(a)(1)), 115 % de la entrada del variador (430-128). Cerrado en `c571d1b`: la memoria de un motor, grupo, variador o A/C dice el medio de desconexión mínimo: 115 % (430-110(a), 430-110(c)(2), 430-128, 440-12(a)(1), 440-12(b)(2)); 440-63 en uno de habitación. Prueba: `I122_…`.
 
 ### Revisión del 2026-09-23
 

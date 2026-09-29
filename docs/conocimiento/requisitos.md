@@ -63,6 +63,8 @@ Cada requisito se relaciona con su referencia normativa y con su verificación e
 | K-18 | Un aparato con motor fijo en su sitio (HP, o A de placa) junto con otras cargas: el motor mayor de más de ⅛ hp al 125 %, lo demás al 100 %. Un circuito de carga que solo alimenta motores se rechaza: va por el Art. 430. | 220-18(a), 430-6(a)(1) Exc. 3 | `I118_…` |
 | K-19 | Varios motocompresores, o motocompresor y otros motores o cargas, sin MCA de conjunto: conductor por 440-33/440-34; protección por 440-22(b)(1) si el motocompresor es la carga más grande, si no por 440-22(b)(2); un solo motocompresor, 440-32 y 440-22(a). | 440-33, 440-34, 440-22(b) | `I116_…` |
 | K-20 | Acondicionador de habitación con cordón y clavija en su circuito: conductor al 125 %, circuito que deja su corriente en 80 %, protección que no pasa la ampacidad del conductor; rechazar trifásico, > 250 V o > 40 A. En un circuito con otras cargas, avisar si pasa del 50 %; solo, del 80 %. | 440-60, 440-62 | `I117_…` |
+| K-21 | Motor con variador: conductor al 125 % de la corriente de entrada del variador; protección = mayor tamaño estándar que no excede la máxima del fabricante. | 430-122(a), 110-3(b) | `I119_…` |
+| K-22 | Motor de servicio no continuo: conductor al porcentaje de la Tabla 430-22(e) sobre la corriente de placa; protección por 430-52 con la FLC de tabla. | 430-22(e), Tabla 430-22(e) | `I120_…` |
 
 ## Alimentador
 
@@ -80,6 +82,8 @@ Cada requisito se relaciona con su referencia normativa y con su verificación e
 | A-9 | Cargar al alimentador 1500 VA por circuito de aparatos pequeños y de lavadora, solo en vivienda de más de 60 m²; no al circuito individual del refrigerador. | 220-52(a) y su Excepción, 220-52(b) y su excepción | `Vivienda_AparatosPequenosYLavadora…`, `I46_…`, `I76_…` |
 | A-10 | Avisar si hay un solo circuito de aparatos pequeños. | 210-11(c)(1) | `Vivienda_UnSoloCircuito…` |
 | A-12 | Sumar los motores y los equipos de A/C por fase, en un solo grupo —los de un circuito con varios motores, cada uno por separado—: 125 % de la corriente del mayor + 100 % de los demás, con el F.D. de su tipo; su corriente en la caída fasorial. Máximo de la protección: la mayor de motor o A/C + la corriente de los demás + lo que 215-3 pide para la otra carga; avisar si se excede. En el resumen, «Al alimentador»: continua, no continua, y motores y A/C, que suman el total. | 430-24, 440-33, 440-7, 430-26, 430-62(a), 430-63 | `I15_…`, `M09_…`, `I74_…` |
+| A-13 | Un motor de servicio no continuo entra al grupo de motores con el valor de 430-22(e), sin el 125 % del mayor. | 430-24 Excepción 1 | `I120_…` |
+| A-14 | De un par de circuitos que no funcionan a la vez, al alimentador va el mayor (su carga con F.D.); avisar cuál se omite, y si el par no tiene carga. | 220-60, 430-24 Excepción 3, 440-33 Excepción 1 | `I121_…` |
 
 ## Entregable
 
@@ -89,4 +93,5 @@ Cada requisito se relaciona con su referencia normativa y con su verificación e
 | E-2 | Emitir la memoria de cálculo con nueve secciones y fórmulas sustituidas. | — | `LasNueveSecciones…` |
 | E-3 | Mostrar el desglose de la protección y del conductor en tooltip y en la memoria, sección 4. | — | `LaSeccion4CuadraConElConductorElegido` |
 | E-4 | Guardar el tablero en un archivo (`.powernode.json`) y abrirlo de vuelta: lo capturado, sin resultados; se recalcula al abrir. Rechazar lo que no es de Power Node o es de una versión más nueva. Formato 2: un «Motor / A/C» del formato 1 abre como Motor si trae HP, o como A/C y refrigeración con aviso. Formato 3: la clase de cada aparato (carga o motor) y el Motor «Varios»; la versión se lee antes que lo demás. Formato 4: el A/C «Varios» y «Hab.», el motocompresor y el A/C de cuarto en el desglose. | — | `I05_…`, `I74_…`, `I115_…`, `I116_…` |
+| E-6 | Decir en la memoria de un motor, un grupo, un variador o un A/C el medio de desconexión mínimo. | 430-110, 430-128, 440-12, 440-63 | `I122_…` |
 | E-5 | Nombrar la pestaña con el tablero: «Tablero cocina — Power Node». | — | Navegador |

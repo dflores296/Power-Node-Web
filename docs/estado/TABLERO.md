@@ -15,14 +15,14 @@ Ejecutar en el navegador (Blazor WebAssembly), sin servidor, publicado en GitHub
 | Frente | Avance | Pendiente |
 |---|---|---|
 | Motor | 100 % | Llevar al escritorio los cambios listados en [`../conocimiento/motor-copiado.md`](../conocimiento/motor-copiado.md). |
-| Interfaz | ~90 % | Auditoría del 2026-09-28 en [`HALLAZGOS.md`](HALLAZGOS.md): cerrada (David, 2026-09-29). Puntos de David: I-99 a I-112 hechos. Motores y A/C contra la norma: M-12, M-13, I-113 a I-122, en cinco fases — [`../decisiones/motores-y-equipos-en-grupo.md`](../decisiones/motores-y-equipos-en-grupo.md). Confirmar las propuestas de motores (I-15) y de los seis tipos de carga (I-74). Modelar centros de carga de una barra por lado. |
+| Interfaz | ~90 % | Auditoría del 2026-09-28 en [`HALLAZGOS.md`](HALLAZGOS.md): cerrada (David, 2026-09-29). Puntos de David: I-99 a I-112 hechos. Motores y A/C contra la norma: las cinco fases hechas (M-12, M-13, I-113 a I-122); falta que David las revise y confirme [`../decisiones/motores-y-equipos-en-grupo.md`](../decisiones/motores-y-equipos-en-grupo.md). Confirmar las propuestas de motores (I-15) y de los seis tipos de carga (I-74). Modelar centros de carga de una barra por lado. |
 | Publicación | 100 % | — |
 
 ## Motor
 
 - Copiar `Calculo` y `Domain` de `PowerNode-DesignSuite` (commit `29f660f`), sin `Data`, EF Core ni
   SQL Server.
-- Leer 18 tablas de la NOM desde JSON (77 KB) — `PowerNode.DesignSuite.Normativa`.
+- Leer 19 tablas de la NOM desde JSON (78 KB) — `PowerNode.DesignSuite.Normativa`.
 - Canalizaciones (nacido en la web): portadores, ajuste por tipo de canalización y tamaño —
   `Calculo/Canalizaciones/`. Charola, en una segunda entrega.
 - Pruebas: 23 en `PowerNode.Normativa.Tests`.
@@ -42,7 +42,8 @@ Ejecutar en el navegador (Blazor WebAssembly), sin servidor, publicado en GitHub
   alimentador, los dos en un grupo por fase: 430-24, 440-33 y 430-62(a). Varios motores, o motores y
   otras cargas, en un circuito: Motor «Varios», con desglose — 430-24, 430-53(c)(4) (I-115). Aparato con
   motor en el desglose de carga: el mayor al 125 % — 220-18(a) (I-118). A/C «Varios» — 440-22(b)
-  (I-116) — y de habitación — 440-62 (I-117).
+  (I-116) — y de habitación — 440-62 (I-117). Motor con variador (I-119), servicio no continuo (I-120),
+  cargas no simultáneas (I-121) y medio de desconexión en la memoria (I-122).
 - `/documento`: emitir el cuadro de carga (24 columnas) y la memoria de cálculo (nueve secciones).
 - Consultar en tooltip el desglose de la protección y del conductor de cada renglón.
 - Teclado (`wwwroot/js/teclado.js`): Enter/Shift+Enter bajan y suben, ↑↓ cambian de renglón, Esc deshace,
@@ -55,7 +56,7 @@ Ejecutar en el navegador (Blazor WebAssembly), sin servidor, publicado en GitHub
 - Canalizaciones: cada circuito con carga nace en su tubo (T1, T2…, EMT); agrupar en la columna
   «Canal.»; configurar nombre, tipo, opciones y tamaño en la tarjeta «Canalizaciones». El diámetro del
   fabricante de un aislamiento fuera de la Tabla 5 (THHW-LS, THW-LS, USE), en «Condiciones de cálculo» — I-98.
-- Pruebas: 317 en `PowerNode.Web.Tests` (20 del documento de pruebas del 2026-09-23).
+- Pruebas: 326 en `PowerNode.Web.Tests` (20 del documento de pruebas del 2026-09-23).
 
 Requisitos con su referencia NOM y su prueba: [`../conocimiento/requisitos.md`](../conocimiento/requisitos.md).
 

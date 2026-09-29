@@ -42,7 +42,7 @@ de pruebas está para atrapar.
 ## De dónde salen los datos
 
 `tools/extraer_tablas.py` lee el repo público `dflores296/NOM-001-SEDE-2012` y emite
-`wwwroot/datos/tablas-nom.json` con **18 tablas y una sección** (14 hasta el 2026-09-24; las del Capítulo 10, abajo): las que el cálculo de un cuadro de
+`wwwroot/datos/tablas-nom.json` con **19 tablas y una sección** (14 hasta el 2026-09-24; las del Capítulo 10, abajo; la 430-22(e) desde el 2026-09-29, I-120): las que el cálculo de un cuadro de
 carga realmente toca, y nada más. Son **39 KB** contra los ~9 MB del corpus completo.
 
 El JSON viaja **crudo**, con las celdas tal como las publica la norma (`t`/`rs`/`cs`). La expansión

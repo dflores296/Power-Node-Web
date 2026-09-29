@@ -121,9 +121,12 @@ propuesta en tabla). Texto de la NOM leído del corpus de `dflores296/NOM-001-SE
   al 125 % — 220-18(a), I-118, `502b7b4`. Fases 1 y 3 a `main` por avance rápido.
 - Fase 2: A/C «Varios» (440-22(b), 440-33/440-34) y «Hab.» (440 Parte G); A/C de cuarto en el
   desglose de contactos con el aviso de 440-62(b)/(c) — I-116, I-117, `940ddb9`. Archivo formato 4:
-  el 3 ya estaba publicado y no conoce los valores nuevos.
+  el 3 ya estaba publicado y no conoce los valores nuevos. A `main`.
+- Fase 4: motor «VFD» (430-122(a), 110-3(b)); servicio no continuo con la Tabla 430-22(e), extraída del
+  repo de la norma; «No simultáneo con» (220-60, 430-24 Exc. 3); medio de desconexión en la memoria —
+  I-119 a I-122, `c571d1b`. El botón de detalle abre en cualquier circuito.
 
-Pruebas: 317 en `PowerNode.Web.Tests`, 23 en `PowerNode.Normativa.Tests`.
+Pruebas: 326 en `PowerNode.Web.Tests`, 23 en `PowerNode.Normativa.Tests`.
 
 ## 2026-09-28
 
