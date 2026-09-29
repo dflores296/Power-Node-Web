@@ -55,7 +55,12 @@ verifique P2, entregada aparte).
 
 Pruebas: 283 en `PowerNode.Web.Tests`, 23 en `PowerNode.Normativa.Tests`.
 
-Sigue: David verifica P2 y P3; decidir el formato de los VA del motor en el documento (I-92) y si hace
+**Verificado por David en la versión publicada:** el aviso flotante de I-79 y los P2 (I-81 a I-87),
+con la tabla de pruebas de 17 puntos: todos bien.
+
+P3 a `main` por avance rápido (pedido de David).
+
+Sigue: David verifica P3; decidir el formato de los VA del motor en el documento (I-92) y si hace
 falta aislar el renglón para el redibujo al cambiar una carga (I-97).
 
 ## 2026-09-28
