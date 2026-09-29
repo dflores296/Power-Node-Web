@@ -177,15 +177,15 @@
                 <th rowspan="2" data-col="tipo"><span class="ayuda" title="Seleccionar el tipo de carga. Determina el factor de demanda del resumen — Art. 220.&#10;&#10;Alumbrado: luminarias y alumbrado general.&#10;Contactos: contactos de uso general; en vivienda, seleccionar el uso (cocina, lavadora, baño).&#10;Equipo: aparatos con su valor de placa, también con motor: hornos, estufas, secadoras, calentadores de agua, lavavajillas, equipo electrónico — Art. 422.&#10;Motor: bombas, ventiladores, extractores, compresores de aire — Art. 430.&#10;A/C y refrigeración: minisplit, paquete, condensadora, cámara (motocompresor hermético) — Art. 440.&#10;Calefacción: calefacción por resistencia eléctrica: calefactores, cables calefactores, calderas eléctricas; carga continua — 424-3(b).&#10;&#10;Motor y A/C se calculan con su propio artículo y entran al alimentador por 430-24 / 440-33. 240-4(b) no aplica en contactos.">Tipo</span></th>
                 <th colspan="4"><span class="ayuda" title="Capturar la carga de placa en VA, W o A y su factor de potencia. Continua (3 h o más): 125 % — 210-19(a)(1), 210-20(a). No continua: 100 %. En W o A, consultar abajo el VA de cálculo.&#10;&#10;Motor: los HP, o los amperes si la placa no trae HP. La corriente sale de la tabla — 430-6(a).&#10;A/C y refrigeración: MCA y MOCP de la placa (440-4(b)), o la corriente de carga nominal del compresor y la de selección si viene (440-6(a)).">Carga</span></th>
                 <th colspan="@Datos.Barras.Count"><span class="ayuda" title="Consultar la carga del circuito repartida entre las barras que toca.">Balanceo de fases <span class="simbolo">(VA)</span></span></th>
-                <th rowspan="2" data-col="l"><span class="ayuda" title="Capturar la longitud del circuito. Determina la caída de tensión — Tabla 9."><span class="simbolo">L (m)</span></span></th>
+                <th rowspan="2" class="col-res" data-col="l"><span class="ayuda" title="Capturar la longitud del circuito. Determina la caída de tensión — Tabla 9."><span class="simbolo">L (m)</span></span></th>
                 <th rowspan="2" data-col="canal"><span class="ayuda" title="Seleccionar la canalización del circuito de la lista de la tarjeta «Canalizaciones». Al capturar la carga, cada circuito nace en la suya (T1, T2…); para agrupar, elegir la de otro circuito, o «+ Nueva». Los circuitos de una misma canalización se agrupan y el programa cuenta sus portadores — 310-15(b)(3)(a). Si el circuito pasa por varias, la del tramo más desfavorable — 310-15(a)(2). Debajo: el tamaño que resultó.">Canal.</span></th>
-                <th rowspan="2" data-col="polos masn"><span class="ayuda" title="Seleccionar los polos del interruptor. Un multipolar ocupa los espacios N, N+2 y N+4 del mismo lado.">P</span></th>
-                <th rowspan="2"><span class="ayuda" title="Consultar la corriente de diseño de la carga capturada — 210-19(a)(1)."><span class="simbolo">In (A)</span></span></th>
-                <th rowspan="2"><span class="ayuda" title="Consultar la protección: primer tamaño normalizado mayor o igual a la capacidad mínima — 240-6(a), 210-20(a). Pasar el cursor sobre el valor para consultar el desglose.">Protec. <span class="simbolo">(A)</span></span></th>
-                <th rowspan="2"><span class="muestras">@foreach (var barra in Datos.Barras) { <i class="color-@char.ToLowerInvariant(barra)"></i> }</span><span class="ayuda" title="Consultar el conductor de fase: designación AWG/kcmil y, debajo, su sección (mm²) — Tabla 8. Si lleva conductores en paralelo, «2 ×» antes del calibre. Pasar el cursor sobre el calibre para consultar el desglose.&#10;&#10;Colores de fase: la NOM no los fija — 210-5(c)(2) —; se usan negro, rojo y azul, la práctica común.">Fase</span></th>
-                <th rowspan="2"><span class="muestras"><i class="color-neutro"></i></span><span class="ayuda" title="Consultar el conductor de neutro. Blanco o gris claro — 200-6.">Neutro</span></th>
-                <th rowspan="2"><span class="muestras"><i class="color-tierra"></i></span><span class="ayuda" title="Consultar el conductor de puesta a tierra de equipos — Tabla 250-122 y 250-122(b). Verde, o verde con franjas amarillas — 250-119.">Tierra</span></th>
-                <th rowspan="2" class="ultima"><span class="ayuda" title="Consultar la caída de tensión del circuito. Límite recomendado: 3 % en el derivado y 5 % combinada — 210-19(a)(1), nota 4."><span class="simbolo">e (%)</span></span></th>
+                <th rowspan="2" class="col-res" data-col="polos masn"><span class="ayuda" title="Seleccionar los polos del interruptor. Un multipolar ocupa los espacios N, N+2 y N+4 del mismo lado.">P</span></th>
+                <th rowspan="2" class="col-res"><span class="ayuda" title="Consultar la corriente de diseño de la carga capturada — 210-19(a)(1)."><span class="simbolo">In (A)</span></span></th>
+                <th rowspan="2" class="col-res dos-lineas"><span class="ayuda" title="Consultar la protección: primer tamaño normalizado mayor o igual a la capacidad mínima — 240-6(a), 210-20(a). Pasar el cursor sobre el valor para consultar el desglose.">Protec.<br /><span class="simbolo">(A)</span></span></th>
+                <th rowspan="2" class="col-res"><span class="muestras">@foreach (var barra in Datos.Barras) { <i class="color-@char.ToLowerInvariant(barra)"></i> }</span><span class="ayuda" title="Consultar el conductor de fase: designación AWG/kcmil y, debajo, su sección (mm²) — Tabla 8. Si lleva conductores en paralelo, «2 ×» antes del calibre. Pasar el cursor sobre el calibre para consultar el desglose.&#10;&#10;Colores de fase: la NOM no los fija — 210-5(c)(2) —; se usan negro, rojo y azul, la práctica común.">Fase</span></th>
+                <th rowspan="2" class="col-res"><span class="muestras"><i class="color-neutro"></i></span><span class="ayuda" title="Consultar el conductor de neutro. Blanco o gris claro — 200-6.">Neutro</span></th>
+                <th rowspan="2" class="col-res"><span class="muestras"><i class="color-tierra"></i></span><span class="ayuda" title="Consultar el conductor de puesta a tierra de equipos — Tabla 250-122 y 250-122(b). Verde, o verde con franjas amarillas — 250-119.">Tierra</span></th>
+                <th rowspan="2" class="ultima col-res"><span class="ayuda" title="Consultar la caída de tensión del circuito. Límite recomendado: 3 % en el derivado y 5 % combinada — 210-19(a)(1), nota 4."><span class="simbolo">e (%)</span></span></th>
             </tr>
             <tr>
                 <th data-col="unidad"><span class="ayuda" title="Seleccionar la unidad de placa. W: convertir con el factor de potencia. A: convertir con la tensión y los polos del circuito.&#10;&#10;Motor: HP, o A si la placa no trae HP — 430-6(a)(1).&#10;A/C y refrigeración: MCA (ampacidad mínima y protección máxima, 440-4(b)) o A (corriente de carga nominal, 440-6(a)).">Unidad</span></th>
@@ -238,7 +238,7 @@
                         }
                         continue;
                     }
-                    <tr class="@(c.Resultado is null ? "vacio" : null)" data-espacio="@c.Espacio">
+                    <tr class="@(c.Resultado is null ? "vacio" : null) @(LlevaNotas(c) ? "con-nota" : null)" data-espacio="@c.Espacio">
                         <td class="num @(c.TieneCaptura ? "asa" : null)" data-destino="@c.Espacio" data-arrastre="@(c.TieneCaptura ? c.Espacio : null)" data-etiqueta="@EtiquetaDeArrastre(c)" title="@(c.TieneCaptura ? "Arrastrar para mover el circuito a otro espacio" : null)">@NumeroConFase(c.Espacio)</td>
                         <td rowspan="@c.Polos">
                             <div class="desc-linea">
@@ -1410,6 +1410,13 @@
         builder.CloseElement();
         builder.CloseElement();
     };
+
+    /// <summary>
+    /// Un renglón de un espacio con notas debajo de sus campos (tamaño del tubo, mm², VA, MCA…) crece
+    /// para que quepan; un multipolar ya mide dos o tres espacios.
+    /// </summary>
+    private static bool LlevaNotas(CircuitoDelCuadro c) =>
+        c.Polos == 1 && (c.TieneCarga || c.TieneDesglose || c.EsMotor || c.EsAireAcondicionado || c.Unidad != UnidadConsumo.VoltAmperes);
 
     private int Columnas => 16 + Datos.Barras.Count;
 

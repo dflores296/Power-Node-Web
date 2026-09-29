@@ -313,13 +313,9 @@ select, input { font: inherit; padding: 5px 8px; border: 1px solid var(--linea);
 
 /* La descripción se queda con lo que sobra: las demás columnas son de ancho de contenido, así que
    sin esto el navegador le daba lo mínimo y "Alumbrado oficinas" salía cortado. */
-.cuadro th.descripcion { min-width: 240px; }
-/* La PRIMERA LÍNEA de cada celda a la misma altura en todo el renglón (David, 2026-09-29): los
-   selectores, las cifras y los calibres en fila, y lo que va debajo —el uso y su nota, el tamaño del
-   tubo, «+N», los mm²— cuelga de ahí. Centradas, una celda con nota subía su selector y el renglón se
-   veía chueco. */
-.cuadro td { padding: 5px 6px 3px; border-bottom: 1px solid var(--linea); text-align: center; white-space: nowrap;
-             vertical-align: baseline; }
+.cuadro th.descripcion { min-width: 224px; } /* 224 y no 240: con las columnas de resultados parejas (76 px) el cuadro sigue cabiendo a 1920 */
+.cuadro td { padding: 3px 6px; border-bottom: 1px solid var(--linea); text-align: center; white-space: nowrap;
+             vertical-align: middle; }
 .cuadro tr.fila-desglose td { white-space: normal; }
 .cuadro tbody tr:hover { background: var(--hover); }
 .cuadro tr.vacio { color: var(--vacio); }
@@ -364,16 +360,18 @@ input.desc:focus, input.va:focus {
 .fase-rect { display: inline-flex; align-items: center; justify-content: center;
          min-width: 20px; height: 17px; padding: 0 5px; border-radius: 5px;
          font-size: 10px; font-weight: 700; letter-spacing: 0; color: #fff; }
-/* El N.º del cuadro con el contorno del color de su barra, como la etiqueta del gabinete (I-99): en
-   qué fase cae el circuito, con o sin carga. Reemplaza a la columna «Barras». */
+/* El N.º del cuadro con el color de su barra (I-99): en qué fase cae el circuito, con o sin carga.
+   Reemplaza a la columna «Barras». */
 .num-fase { display: inline-flex; align-items: center; justify-content: center; min-width: 22px;
-            height: 19px; padding: 0 3px; box-sizing: border-box; border: 1.5px solid; border-radius: 4px;
-            line-height: 1; font-variant-numeric: tabular-nums; vertical-align: middle; }
+            height: 17px; padding: 0 4px; box-sizing: border-box; border-radius: 5px;
+            font-size: 10px; font-weight: 700; color: #fff; line-height: 1;
+            font-variant-numeric: tabular-nums; vertical-align: middle; }
 /* Centrado de verdad, como .etq (I-72): recortada a la altura de los dígitos. */
 .num-fase > span { display: block; text-box: trim-both cap alphabetic; }
-.num-fase-a { border-color: var(--barra-a); }
-.num-fase-b { border-color: var(--barra-b); }
-.num-fase-c { border-color: var(--barra-c); }
+/* Relleno del color de su fase y el número en blanco, como los rótulos A, B, C (David, 2026-09-29). */
+.num-fase-a { background: #1b1f23; box-shadow: inset 0 0 0 1px var(--fase-borde); }
+.num-fase-b { background: #c62828; }
+.num-fase-c { background: #1565c0; }
 .fase-rect-a { background: #1b1f23; box-shadow: inset 0 0 0 1px var(--fase-borde); }
 .fase-rect-b { background: #c62828; }
 .fase-rect-c { background: #1565c0; }
@@ -483,8 +481,7 @@ select.tipo { width: 108px; padding: 2px 2px 2px 5px; border-radius: var(--radio
 .cuadro .tipo-uso { display: flex; flex-direction: column; align-items: center; gap: 3px; }
 /* El icono del tipo de carga junto al selector (I-63); el hueco del mismo ancho en los renglones vacíos
    mantiene los selectores alineados. */
-.cuadro .tipo-con-icono { display: flex; align-items: baseline; gap: 6px; }
-.cuadro .tipo-con-icono > .icono-carga { align-self: center; } /* fuera de la línea base: la da el selector */
+.cuadro .tipo-con-icono { display: flex; align-items: center; gap: 6px; }
 /* El uso, bajo el selector de tipo y no bajo el icono: la misma sangría que el icono y su hueco
    (16 + 6 px), repartida al centrar — I-89, regresión de I-51 al llegar el icono (I-63). */
 .cuadro .tipo-uso select.uso { margin-left: 22px; }
@@ -546,11 +543,9 @@ select.tipo { width: 108px; padding: 2px 2px 2px 5px; border-radius: var(--radio
     border-top: 1px solid var(--linea); border-bottom: 1px solid var(--linea);
 }
 
-/* La celda combinada de un multipolar: en el documento, su contenido va centrado en el alto que
-   abarca, que es lo que hace que se lea como UN interruptor de tres espacios y no como tres renglones
-   pegados. En la captura va en la línea de su primer espacio, como los demás renglones: centrado,
-   cada celda quedaba a otra altura según lo que llevara debajo. */
-.doc-cuadro td[rowspan] { vertical-align: middle; }
+/* La celda combinada de un multipolar: su contenido va centrado en el alto que abarca, que es lo
+   que hace que se lea como UN interruptor de tres espacios y no como tres renglones pegados. */
+.cuadro td[rowspan], .doc-cuadro td[rowspan] { vertical-align: middle; }
 
 /* ------------------------------------------------------------------------------------------------
    EL CIERRE — resumen de carga y alimentador, que en el Excel son el recuadro de arriba a la
@@ -872,10 +867,7 @@ polygon.riel-a { fill: var(--barra-a); } polygon.riel-b { fill: var(--barra-b); 
 .cuadro tr.fila-principal td.num { text-align: center; }
 
 /* Desglose de aparatos del circuito — I-35 */
-/* Alineados por la línea base del texto, no por el centro: así la línea base de la celda es la del
-   campo y no la del botón, y queda a la altura de los demás del renglón. El botón, centrado. */
-.cuadro .desc-linea { display: flex; align-items: baseline; gap: 4px; }
-.cuadro .desc-linea > button.desglosar { align-self: center; }
+.cuadro .desc-linea { display: flex; align-items: center; gap: 4px; }
 .cuadro button.desglosar { display: inline-flex; align-items: center; border: 0; background: none; cursor: pointer; color: var(--tenue); padding: 0; }
 .cuadro .en-va.izq { text-align: left; }
 .cuadro tr.fila-desglose td { background: var(--fondo-suave); padding: 8px 12px 12px; text-align: left; }
@@ -1088,3 +1080,38 @@ body.arrastrando-principal .zona-zocalo .al-arrastrar { display: inline; }
 .zona-zocalo.destino-activo { outline: none; border-style: solid; }
 .multifilar .zocalo.asa:hover .interruptor { filter: drop-shadow(0 0 3px var(--acento)); }
 
+
+/* ------------------------------------------------------------------------------------------------
+   EL RENGLÓN DEL CUADRO: REGLAS DE ALINEACIÓN (David, 2026-09-29)
+
+   1. Todo centrado, en horizontal y en vertical.
+   2. Todos los campos del renglón —selectores y casillas de texto— miden 28 px de alto, con la misma
+      letra y el mismo relleno; cada uno ocupa el ancho de su celda.
+   3. Lo que va debajo de un campo —el tamaño del tubo, «+N», los mm², el VA de una carga en W— es
+      una nota: cuelga abajo del campo sin moverlo del centro, así que todos los campos del renglón
+      quedan en la misma línea. El renglón crece para que quepa (.con-nota).
+   4. Tipo y uso son dos campos, uno sobre otro: se reparten centrados en la celda, con su nota.
+   ------------------------------------------------------------------------------------------------ */
+#sec-cuadro > .cuadro select, #sec-cuadro > .cuadro input.va, #sec-cuadro > .cuadro input.desc {
+    height: 28px; box-sizing: border-box; padding: 0 6px; font-size: 13px; line-height: 26px;
+    border-radius: var(--radio-xs); vertical-align: middle; }
+#sec-cuadro > .cuadro select { padding-right: 2px; }
+#sec-cuadro > .cuadro input.va { text-align: center; }
+#sec-cuadro > .cuadro select.canal { min-width: 76px; }
+#sec-cuadro > .cuadro select.polos { width: 52px; }
+#sec-cuadro > .cuadro select.tipo { width: 122px; } /* «Refrigerador» completo con la letra de 13 px */
+
+#sec-cuadro > .cuadro > tbody > tr > td { position: relative; }
+#sec-cuadro > .cuadro > tbody > tr > td > .en-va,
+#sec-cuadro > .cuadro > tbody > tr > td > .mas-n,
+#sec-cuadro > .cuadro > tbody > tr > td.conductor > .mm2 {
+    position: absolute; left: 0; right: 0; top: calc(50% + 15px);
+    margin: 0; padding: 0 4px; line-height: 12px; text-align: center; }
+#sec-cuadro > .cuadro > tbody > tr > td > .mas-n { justify-content: center; }
+#sec-cuadro > .cuadro > tbody > tr > td > .en-va.izq { text-align: left; padding-left: 28px; }
+#sec-cuadro > .cuadro > tbody > tr.con-nota { height: 58px; }
+
+/* Proporción: las columnas de resultados miden por lo menos lo mismo, aunque su encabezado sea corto
+   («In (A)», «e (%)» iban apretadas junto a «Protec. (A)»). */
+#sec-cuadro > .cuadro th.col-res { min-width: 76px; box-sizing: border-box; }
+#sec-cuadro > .cuadro th.dos-lineas { line-height: 1.5; }
