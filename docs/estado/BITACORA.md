@@ -81,6 +81,8 @@ rápido (pedido de David). **Auditoría del 2026-09-28 cerrada** (David). Siguen
   celda a la misma altura (I-101), la carga por fase centrada (I-102) y las notas del uso en una línea
   (I-103) — `bceaec3`.
 
+I-99 a I-103 a `main` por avance rápido (pedido de David).
+
 ## 2026-09-28
 
 **Auditoría de interfaz** (pedido de David: botones desalineados, texto cortado o chueco, funcionalidad).
