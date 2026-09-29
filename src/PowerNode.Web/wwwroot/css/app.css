@@ -479,13 +479,9 @@ select.tipo { width: 108px; padding: 2px 2px 2px 5px; border-radius: var(--radio
 /* Tipo y uso, uno bajo otro, centrados y del mismo tamaño; la nota de 220-52 centrada debajo. El
    uso iba en bloque pegado a la izquierda y con otra letra: se veía chueco (David, 2026-09-24). */
 .cuadro .tipo-uso { display: flex; flex-direction: column; align-items: center; gap: 3px; }
-/* El icono del tipo de carga junto al selector (I-63); el hueco del mismo ancho en los renglones vacíos
-   mantiene los selectores alineados. */
-.cuadro .tipo-con-icono { display: flex; align-items: center; gap: 6px; }
-/* El uso, bajo el selector de tipo y no bajo el icono: la misma sangría que el icono y su hueco
-   (16 + 6 px), repartida al centrar — I-89, regresión de I-51 al llegar el icono (I-63). */
-.cuadro .tipo-uso select.uso { margin-left: 22px; }
-.cuadro .icono-carga { width: 16px; height: 16px; flex: none; color: var(--tenue); }
+/* Sin tipo elegido (I-111): «—» en tenue, como los demás campos vacíos. El icono del tipo ya no va en
+   el cuadro (I-112): queda en el resumen de carga (.con-icono-carga). */
+.cuadro select.tipo.sin-elegir { color: var(--tenue); }
 .con-icono-carga { display: inline-flex; align-items: center; gap: 7px; }
 .con-icono-carga .icono { color: var(--tenue); }
 .cuadro .tipo-uso .en-va { text-align: center; padding-right: 0; }

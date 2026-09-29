@@ -101,7 +101,7 @@
                         }
                         <tr class="@(c.TieneCarga ? null : "libre")">
                             <td class="num">@c.Espacio</td>
-                            <td rowspan="@c.Polos" class="izq">@(string.IsNullOrWhiteSpace(c.Descripcion) ? (c.TieneCarga ? MemoriaDeCalculo.Etiqueta(c) : "LIBRE") : c.Descripcion)</td>
+                            <td rowspan="@c.Polos" class="izq">@(c.SinTipo ? $"{(string.IsNullOrWhiteSpace(c.Descripcion) ? "" : c.Descripcion + " · ")}SIN TIPO" : string.IsNullOrWhiteSpace(c.Descripcion) ? (c.TieneCarga ? MemoriaDeCalculo.Etiqueta(c) : "LIBRE") : c.Descripcion)</td>
                             @if (c.EsDeMotor)
                             {
                                 @* I-15, I-74: un motor o un equipo de A/C no es continua ni no continua; va por 430-24 / 440-33. *@

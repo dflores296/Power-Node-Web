@@ -25,7 +25,8 @@ public sealed class ProyectoActual
     public ProyectoActual(MotorNom motor)
     {
         _motor = motor;
-        Cuadro = new CuadroDeCarga(motor);
+        Cuadro = new CuadroDeCarga(motor) { ExigirTipo = true };
+        Cuadro.Recalcular();
         _huellaGuardada = ArchivoDelCuadro.Huella(Cuadro);
     }
 
@@ -70,6 +71,8 @@ public sealed class ProyectoActual
         var apertura = ArchivoDelCuadro.Abrir(texto, _motor);
         if (apertura.Cuadro is { } cuadro)
         {
+            cuadro.ExigirTipo = true;
+            cuadro.Recalcular();
             Cuadro = cuadro;
             _huellaGuardada = ArchivoDelCuadro.Huella(cuadro);
             Cambio?.Invoke();

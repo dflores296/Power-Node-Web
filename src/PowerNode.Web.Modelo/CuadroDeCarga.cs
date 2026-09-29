@@ -137,6 +137,14 @@ public sealed class CuadroDeCarga
 
     public DatosDelTablero Datos { get; } = new();
 
+    /// <summary>
+    /// En la captura, un circuito con carga no calcula hasta que se elige su tipo (I-111). Fuera de ella
+    /// —pruebas, lo que no sea la pantalla— el tipo por omisión sigue siendo Alumbrado.
+    /// </summary>
+    public bool ExigirTipo { get; set; }
+
+    public const string MensajeSinTipo = "Elegir el tipo de carga: de él salen el factor de demanda y el cálculo — Art. 220.";
+
     /// <summary>Un renglón por espacio del tablero, del 1 al <see cref="DatosDelTablero.NumeroEspacios"/>.</summary>
     public IReadOnlyList<CircuitoDelCuadro> Circuitos => _circuitos;
 
@@ -204,8 +212,11 @@ public sealed class CuadroDeCarga
     public void Recalcular()
     {
         AjustarEspacios();
+        foreach (var c in _circuitos)
+            c.SinTipo = false; // lo de antes no cuenta: se vuelve a marcar después de convertir las cargas
         ResolverOcupacion();
         ConvertirCargas();
+        MarcarSinTipo();
         ResolverFases();
         PrepararCanalizaciones();
         CalcularCircuitos();
@@ -890,6 +901,15 @@ public sealed class CuadroDeCarga
     /// los polos del circuito para que unos amperes capturados regresen como los mismos amperes
     /// calculados.
     /// </summary>
+    private void MarcarSinTipo()
+    {
+        foreach (var c in _circuitos)
+        {
+            c.SinTipo = false;
+            c.SinTipo = ExigirTipo && !c.TipoElegido && c.TieneCarga;
+        }
+    }
+
     private void ConvertirCargas()
     {
         foreach (var c in _circuitos)
@@ -1209,6 +1229,11 @@ public sealed class CuadroDeCarga
         {
             c.Limpiar();
 
+            if (c.SinTipo)
+            {
+                c.Error = MensajeSinTipo;
+                continue;
+            }
             if (!c.TieneCarga || c.CanalizacionEfectiva is not { } canal)
                 continue;
 

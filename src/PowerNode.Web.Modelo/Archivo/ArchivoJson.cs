@@ -112,7 +112,7 @@ public sealed class CircuitoJson
     {
         Espacio = c.Espacio,
         Descripcion = c.Descripcion,
-        Categoria = c.Categoria.AlArchivo(),
+        Categoria = c.TipoElegido ? c.Categoria.AlArchivo() : null, // sin elegir, sin tipo (I-111)
         Uso = c.Uso,
         Unidad = c.Unidad,
         Hp = c.Hp,
@@ -150,8 +150,9 @@ public sealed class CircuitoJson
         c.Descripcion = Descripcion ?? c.Descripcion;
         var categoria = CategoriasDeCarga.DelArchivo(Categoria, out var eraMotorOAire);
         if (Categoria is not null && categoria is null && !eraMotorOAire)
-            avisos.Add($"El circuito {Espacio} trae un tipo de carga que no se conoce («{Categoria}»); se abrió como {c.Categoria.Nombre()}.");
-        c.Categoria = categoria ?? c.Categoria;
+            avisos.Add($"El circuito {Espacio} trae un tipo de carga que no se conoce («{Categoria}»); se abrió sin tipo.");
+        if (categoria is { } elegida)
+            c.Categoria = elegida;
         c.Uso = Uso ?? c.Uso;
         c.Unidad = Unidad ?? c.Unidad;
         c.Hp = Hp is >= 0m ? Hp : null;

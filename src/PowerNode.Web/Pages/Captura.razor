@@ -256,20 +256,16 @@
                         </td>
                         <td rowspan="@c.Polos">
                             <div class="tipo-uso">
-                            @* El icono del tipo, solo en los renglones con carga: en los vacíos sería ruido (I-63). *@
-                            <div class="tipo-con-icono">
-                            @if (c.TieneCarga)
-                            {
-                                <Icono Nombre="@Icono.De(c.Categoria)" Tamano="16" Clase="icono-carga" />
-                            }
-                            else
-                            {
-                                <span class="icono-carga" aria-hidden="true"></span>
-                            }
-                            <select class="tipo" data-col="tipo" aria-label="Circuito @c.Espacio · Tipo" title="@c.Categoria.Descripcion()" @bind="c.Categoria" @bind:after="Recalcular">
+                            @* Sin icono (David, 2026-09-29 — I-112): el selector ya dice el tipo; el icono queda en el
+                               resumen de carga. Sin tipo elegido, «—» y el renglón no calcula (I-111). *@
+                            <select class="tipo @(c.TipoElegido ? null : "sin-elegir")" data-col="tipo" aria-label="Circuito @c.Espacio · Tipo" title="@(c.TipoElegido ? c.Categoria.Descripcion() : "Seleccionar el tipo de carga. Decide el factor de demanda y el cálculo.")"
+                                    value="@(c.TipoElegido ? c.Categoria.ToString() : "")" @onchange="e => ElegirTipo(c, e.Value?.ToString())">
+                                @if (!c.TipoElegido)
+                                {
+                                    <option value="">—</option>
+                                }
                                 @foreach (var categoria in Enum.GetValues<CategoriaDeCarga>()) { <option value="@categoria">@categoria.Nombre()</option> }
                             </select>
-                            </div>
                             @* El uso solo cuenta en vivienda de más de 60 m² — 210-11(c), 220-52 (I-46). *@
                             @if (c.Tipo == TipoCarga.Contactos && Datos.Inmueble.AplicaUsoDeContactos())
                             {
@@ -1615,6 +1611,13 @@
             Avisar($"El circuito {circuito.Espacio} no puede pasar a {polos} polos. {motivo}", bien: false);
             await Restablecer($"[aria-label=\"Circuito {circuito.Espacio} · Polos\"]", circuito.Polos.ToString(CultureInfo.InvariantCulture));
         }
+    }
+
+    private void ElegirTipo(CircuitoDelCuadro c, string? valor)
+    {
+        if (Enum.TryParse<CategoriaDeCarga>(valor, out var categoria))
+            c.Categoria = categoria;
+        Recalcular();
     }
 
     /// <summary>Dos canalizaciones con el mismo nombre se verían iguales en «Canal.»: se rechaza — I-94.</summary>

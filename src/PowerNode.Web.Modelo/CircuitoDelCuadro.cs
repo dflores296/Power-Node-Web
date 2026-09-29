@@ -23,7 +23,24 @@ public sealed class CircuitoDelCuadro
 
     public string Descripcion { get; set; } = string.Empty;
     /// <summary>El tipo de carga de los seis del selector — R-17, I-74. Decide el factor de demanda y el cálculo.</summary>
-    public CategoriaDeCarga Categoria { get; set; } = CategoriaDeCarga.Alumbrado;
+    public CategoriaDeCarga Categoria
+    {
+        get => categoria;
+        set { categoria = value; TipoElegido = true; }
+    }
+
+    private CategoriaDeCarga categoria = CategoriaDeCarga.Alumbrado;
+
+    /// <summary>
+    /// Ya se eligió el tipo: asignar <see cref="Categoria"/> lo marca. Un espacio nuevo no lo tiene, y en
+    /// la captura (<see cref="CuadroDeCarga.ExigirTipo"/>) su carga no calcula hasta que se elige: con
+    /// Alumbrado por omisión, un circuito que no se cambiaba quedaba calculado como alumbrado sin que
+    /// nadie lo decidiera (David, 2026-09-29 — I-111).
+    /// </summary>
+    public bool TipoElegido { get; private set; }
+
+    /// <summary>Carga capturada sin tipo elegido: no calcula ni entra al tablero. La pone <see cref="CuadroDeCarga"/>.</summary>
+    public bool SinTipo { get; internal set; }
 
     /// <summary>
     /// El tipo con el que calcula el motor, que sale de <see cref="Categoria"/>: equipo y calefacción
@@ -302,7 +319,7 @@ public sealed class CircuitoDelCuadro
     /// motor que la tabla no trae): así el renglón dice por qué no (<see cref="Error"/>) en vez de
     /// quedarse en blanco.
     /// </summary>
-    public bool TieneCarga => !EsContinuacion && !EsDelPrincipal && (CargaInstaladaVA > 0m || TieneCapturaDeMotor);
+    public bool TieneCarga => !EsContinuacion && !EsDelPrincipal && !SinTipo && (CargaInstaladaVA > 0m || TieneCapturaDeMotor);
 
     /// <summary>
     /// Algo capturado: descripción, carga, placa, aparatos o más de un polo. Un renglón así no se lo

@@ -122,6 +122,43 @@ public class CuadroDeCargaTests
             Assert.Equal(Valores(Espacio(nuevo, n).Resultado!), Valores(Espacio(cuadro, n).Resultado!));
     }
 
+    /// <summary>
+    /// I-111: en la captura, un circuito con carga no calcula hasta que se elige su tipo, y mientras no
+    /// entra al balanceo ni al alimentador. Elegir cualquier tipo lo destraba; moverlo no lo pierde.
+    /// </summary>
+    [Fact]
+    public void I111_SinTipoElegidoLaCargaNoCalculaNiEntraAlTablero()
+    {
+        var cuadro = Nuevo();
+        cuadro.ExigirTipo = true;
+        Espacio(cuadro, 1).NoContinua = 1000m;
+        Espacio(cuadro, 3).Categoria = CategoriaDeCarga.Alumbrado;
+        Espacio(cuadro, 3).NoContinua = 500m;
+        cuadro.Recalcular();
+
+        var c1 = Espacio(cuadro, 1);
+        Assert.False(c1.TipoElegido);
+        Assert.True(c1.SinTipo);
+        Assert.Null(c1.Resultado);
+        Assert.Equal(CuadroDeCarga.MensajeSinTipo, c1.Error);
+        Assert.Equal(500m, cuadro.Resumen.CargaPorFaseVA.Values.Sum());
+
+        cuadro.MoverCircuito(1, 5);
+        Assert.True(Espacio(cuadro, 5).SinTipo);
+
+        Espacio(cuadro, 5).Categoria = CategoriaDeCarga.Alumbrado;
+        cuadro.Recalcular();
+        Assert.False(Espacio(cuadro, 5).SinTipo);
+        Assert.NotNull(Espacio(cuadro, 5).Resultado);
+        Assert.Equal(1500m, cuadro.Resumen.CargaPorFaseVA.Values.Sum());
+
+        // Fuera de la captura, Alumbrado por omisión, como siempre.
+        var otro = Nuevo();
+        Espacio(otro, 1).NoContinua = 1000m;
+        otro.Recalcular();
+        Assert.NotNull(Espacio(otro, 1).Resultado);
+    }
+
     // ---- La geometría del tablero --------------------------------------------------------------
 
     [Fact]

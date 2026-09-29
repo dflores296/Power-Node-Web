@@ -266,6 +266,28 @@ public class ArchivoDelCuadroTests
         Assert.NotNull(cuadro.Alimentador.Resultado);
     }
 
+    /// <summary>
+    /// I-111: el tipo que no se eligió no se guarda, y al abrir sigue sin elegir; el elegido se guarda y
+    /// abre elegido.
+    /// </summary>
+    [Fact]
+    public void I111_ElTipoSinElegirNoSeGuardaYAbreSinElegir()
+    {
+        var cuadro = new CuadroDeCarga(Motor) { ExigirTipo = true };
+        cuadro.Circuitos[0].NoContinua = 1000m;
+        cuadro.Circuitos[2].Categoria = CategoriaDeCarga.Contactos;
+        cuadro.Circuitos[2].NoContinua = 500m;
+        cuadro.Recalcular();
+
+        var texto = ArchivoDelCuadro.Guardar(cuadro, DateTimeOffset.Now);
+        var abierto = ArchivoDelCuadro.Abrir(texto, Motor).Cuadro!;
+
+        Assert.False(abierto.Circuitos[0].TipoElegido);
+        Assert.Equal(1000m, abierto.Circuitos[0].NoContinua);
+        Assert.True(abierto.Circuitos[2].TipoElegido);
+        Assert.Equal(CategoriaDeCarga.Contactos, abierto.Circuitos[2].Categoria);
+    }
+
     /// <summary>I-94: un archivo editado a mano con dos canalizaciones del mismo nombre.</summary>
     [Fact]
     public void I94_DosCanalizacionesDelMismoNombreEnElArchivoSeAvisan()
