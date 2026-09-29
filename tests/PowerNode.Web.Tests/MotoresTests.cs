@@ -253,6 +253,29 @@ public class MotoresTests
     }
 
     /// <summary>
+    /// I-114: el selector ofrece los HP de las tres alimentaciones y dice cuál es cada una; un motor
+    /// trifásico no lleva neutro aunque la casilla haya quedado marcada.
+    /// </summary>
+    [Fact]
+    public void I114_LaAlimentacionDelMotorSeDiceYElTrifasicoNoLlevaNeutro()
+    {
+        var cuadro = Nuevo();
+        Assert.Equal("Monofásico 127 V · Tabla 430-248", cuadro.AlimentacionDelMotor(1));
+        Assert.Equal("Monofásico 220 V · Tabla 430-248", cuadro.AlimentacionDelMotor(2));
+        Assert.Equal("Trifásico 220 V · Tabla 430-250", cuadro.AlimentacionDelMotor(3));
+        Assert.Contains(15m, cuadro.HpDisponibles(3));
+        Assert.DoesNotContain(15m, cuadro.HpDisponibles(1));
+        Assert.Equal(15.2m, cuadro.FlcDe(5m, 3));
+
+        var c = Espacio(cuadro, 1);
+        c.ConNeutro = true;
+        ConMotor(cuadro, 1, 5m, 3);
+        cuadro.Recalcular();
+        Assert.False(c.LlevaNeutro);
+        Assert.Equal("—", c.Resultado is null ? "?" : c.LlevaNeutro ? "N" : "—");
+    }
+
+    /// <summary>
     /// M-12: el F.D. de 430-26 no reduce al motor mayor. Antes, con F.D. 0.5 y un motor de 5 hp, el
     /// alimentador pedía 1.25 × 7.6 = 9.5 A para un motor que consume 15.2 A: 430-26 exige ampacidad
     /// «para la carga máxima determinada de acuerdo con el tamaño y número de los motores».

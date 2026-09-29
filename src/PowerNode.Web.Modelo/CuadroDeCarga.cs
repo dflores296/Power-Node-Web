@@ -423,12 +423,24 @@ public sealed class CuadroDeCarga
             : $"FLC = {c.FlcA:N2} A, {MotoresEnHp.Texto(c.Hp ?? 0m)} HP — {FuenteDeFlc(c)}, 430-6(a)";
 
     /// <summary>Los HP que la tabla trae para los polos y la tensión de este circuito — I-15. Los ofrece el selector.</summary>
-    public IReadOnlyList<decimal> HpDisponibles(CircuitoDelCuadro c) =>
-        MotoresEnHp.Disponibles(_motor.FlcMotor, c.Polos, TensionDelMotor(c));
+    public IReadOnlyList<decimal> HpDisponibles(CircuitoDelCuadro c) => HpDisponibles(c.Polos);
+
+    /// <summary>Los HP que la tabla trae con estos polos, a la tensión del tablero: el selector ofrece todos, por alimentación — I-114.</summary>
+    public IReadOnlyList<decimal> HpDisponibles(int polos) =>
+        MotoresEnHp.Disponibles(_motor.FlcMotor, polos, MotoresEnHp.Tension(polos, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV));
+
+    /// <summary>«Monofásico 127 V · Tabla 430-248»: la alimentación de un motor con estos polos y la tabla de su FLC — I-114.</summary>
+    public string AlimentacionDelMotor(int polos)
+    {
+        var tension = MotoresEnHp.Tension(polos, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV);
+        return $"{MotoresEnHp.AlimentacionTexto(polos, tension)} · Tabla {MotoresEnHp.Tabla(polos)}";
+    }
 
     /// <summary>La FLC de tabla de un motor de <paramref name="hp"/> en este circuito; 0 si la tabla no lo trae. La enseña el selector.</summary>
-    public decimal FlcDe(CircuitoDelCuadro c, decimal hp) =>
-        MotoresEnHp.Flc(_motor.FlcMotor, hp, c.Polos, TensionDelMotor(c)) ?? 0m;
+    public decimal FlcDe(CircuitoDelCuadro c, decimal hp) => FlcDe(hp, c.Polos);
+
+    public decimal FlcDe(decimal hp, int polos) =>
+        MotoresEnHp.Flc(_motor.FlcMotor, hp, polos, MotoresEnHp.Tension(polos, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV)) ?? 0m;
 
     /// <summary>«Tabla 430-250, columna de 230 V (220 V: intervalo de 220 a 240 V)»: de dónde sale la FLC de este circuito.</summary>
     public string FuenteDeFlc(CircuitoDelCuadro c) => MotoresEnHp.Fuente(c.Polos, TensionDelMotor(c));
@@ -1032,7 +1044,8 @@ public sealed class CuadroDeCarga
         foreach (var c in _circuitos)
         {
             // I-41: 1 polo siempre con neutro; 2 y 3 polos solo con «+N».
-            c.LlevaNeutro = SistemaConNeutro && (c.Polos == 1 || c.ConNeutro);
+            // Un motor trifásico no lleva neutro, aunque la casilla se haya marcado antes de pasar a Motor — I-114.
+            c.LlevaNeutro = SistemaConNeutro && (c.Polos == 1 || (c.ConNeutro && !(c.EsMotor && c.Polos == 3)));
             c.CanalizacionEfectiva = null;
         }
 

@@ -174,7 +174,7 @@
             <tr>
                 <th rowspan="2"><span class="ayuda" title="@(Cuadro.UnaSolaBarra ? "Identificar el circuito por su espacio en la barra. Una sola barra: en orden." : "Identificar el circuito por su espacio en la barra. Nones arriba, pares abajo.")">N.º</span></th>
                 <th rowspan="2" class="izq descripcion" data-col="desc" title="Describir el circuito. Ctrl+Enter abre o cierra el desglose de sus aparatos.">Descripción</th>
-                <th rowspan="2" data-col="tipo"><span class="ayuda" title="Seleccionar el tipo de carga. Determina el factor de demanda del resumen — Art. 220.&#10;&#10;Alumbrado: luminarias y alumbrado general.&#10;Contactos: contactos de uso general; en vivienda, seleccionar el uso (cocina, lavadora, baño).&#10;Equipo: aparatos con su valor de placa, también con motor: hornos, estufas, secadoras, calentadores de agua, lavavajillas, equipo electrónico — Art. 422.&#10;Motor: bombas, ventiladores, extractores, compresores de aire — Art. 430.&#10;A/C y refrigeración: minisplit, paquete, condensadora, cámara (motocompresor hermético) — Art. 440.&#10;Calefacción: calefacción por resistencia eléctrica: calefactores, cables calefactores, calderas eléctricas; carga continua — 424-3(b).&#10;&#10;Motor y A/C se calculan con su propio artículo y entran al alimentador por 430-24 / 440-33. 240-4(b) no aplica en contactos.">Tipo</span></th>
+                <th rowspan="2" data-col="tipo"><span class="ayuda" title="Seleccionar el tipo de carga. Determina el factor de demanda del resumen — Art. 220.&#10;&#10;Alumbrado: luminarias y alumbrado general.&#10;Contactos: contactos de uso general; en vivienda, seleccionar el uso (cocina, lavadora, baño).&#10;Equipo: aparatos con su valor de placa, también con motor o compresor: hornos, estufas, secadoras, lavadoras, lavavajillas, calentadores de agua, refrigeradores domésticos (son aparatos — 440-3(c)), equipo electrónico — Art. 422.&#10;Motor: bombas, ventiladores, extractores, compresores de aire; manejadoras sin motocompresor (440-3(b)) — Art. 430.&#10;A/C y refrigeración: minisplit, paquete, condensadora, cámara comercial (motocompresor hermético) — Art. 440.&#10;Calefacción: calefacción por resistencia eléctrica: calefactores, cables calefactores, calderas eléctricas; carga continua — 424-3(b).&#10;&#10;Motor y A/C se calculan con su propio artículo y entran al alimentador por 430-24 / 440-33. 240-4(b) no aplica en contactos.">Tipo</span></th>
                 <th colspan="4"><span class="ayuda" title="Capturar la carga de placa en VA, W o A y su factor de potencia. Continua (3 h o más): 125 % — 210-19(a)(1), 210-20(a). No continua: 100 %. En W o A, consultar abajo el VA de cálculo.&#10;&#10;Motor: los HP, o los amperes si la placa no trae HP. La corriente sale de la tabla — 430-6(a).&#10;A/C y refrigeración: MCA y MOCP de la placa (440-4(b)), o la corriente de carga nominal del compresor y la de selección si viene (440-6(a)).">Carga</span></th>
                 <th colspan="@Datos.Barras.Count"><span class="ayuda" title="Consultar la carga del circuito repartida entre las barras que toca.">Balanceo de fases <span class="simbolo">(VA)</span></span></th>
                 <th rowspan="2" class="col-res" data-col="l"><span class="ayuda" title="Capturar la longitud del circuito. Determina la caída de tensión — Tabla 9."><span class="simbolo">L (m)</span></span></th>
@@ -310,22 +310,29 @@
                         @if (c.EsMotor && c.CapturaMotor == CapturaDeMotor.Hp)
                         {
                             <td rowspan="@c.Polos" colspan="2">
-                                <select class="hp" data-col="continua" aria-label="Circuito @c.Espacio · HP" value="@ValorHp(c.Hp ?? 0m)" @onchange="e => CambiarHp(c, e.Value?.ToString())"
-                                        title="Seleccionar los caballos de placa del motor, con su corriente de tabla. Solo los que trae la tabla a la tensión y los polos del circuito: la corriente sale de la tabla, no de la placa — 430-6(a). Si la placa solo trae amperes, elegir A en la unidad.">
-                                    <option @key="0m" value="@ValorHp(0m)">—</option>
+                                @* Los HP de las tres alimentaciones, agrupados: elegir uno de otra cambia los polos (I-114).
+                                   Antes solo se veían los de los polos del renglón, que nace en 1: un motor trifásico
+                                   pedía cambiar P primero, hasta el otro extremo del renglón. *@
+                                <select class="hp" data-col="continua" aria-label="Circuito @c.Espacio · HP" value="@ValorHpConPolos(c.Polos, c.Hp ?? 0m)" @onchange="e => CambiarHp(c, e.Value?.ToString())"
+                                        title="Seleccionar los caballos de placa del motor, con su corriente de tabla, agrupados por alimentación: elegir uno de otro grupo cambia los polos. La corriente sale de la tabla, no de la placa — 430-6(a). Dos polos a 220 V es monofásico (Tabla 430-248). Si la placa solo trae amperes, elegir A en la unidad.">
+                                    <option @key="@($"{c.Polos}|0")" value="@ValorHpConPolos(c.Polos, 0m)">—</option>
                                     @* @key: la lista cambia con los polos (1 fase ↔ 3 fases); sin llave, Blazor reutilizaba las
                                        opciones por posición y el selector decía «15 HP» con el motor en 5 (como I-45). *@
-                                    @{ var disponibles = Cuadro.HpDisponibles(c); }
-                                    @foreach (var hp in disponibles) { <option @key="hp" value="@ValorHp(hp)">@MotoresEnHp.Texto(hp) HP — @Cuadro.FlcDe(c, hp).ToString("N2") A</option> }
-                                    @if (c.Hp is > 0m and { } fuera && !disponibles.Contains(fuera))
+                                    @for (var p = 1; p <= Datos.MaximoPolos; p++)
                                     {
-                                        <option @key="fuera" value="@ValorHp(fuera)">@MotoresEnHp.Texto(fuera) HP</option>
+                                        var polos = p;
+                                        var disponibles = Cuadro.HpDisponibles(polos);
+                                        if (disponibles.Count == 0) { continue; }
+                                        <optgroup @key="@($"g{polos}")" label="@Cuadro.AlimentacionDelMotor(polos) · @polos @(polos == 1 ? "polo" : "polos")">
+                                            @foreach (var hp in disponibles) { <option @key="@ValorHpConPolos(polos, hp)" value="@ValorHpConPolos(polos, hp)">@MotoresEnHp.Texto(hp) HP — @Cuadro.FlcDe(hp, polos).ToString("N2") A</option> }
+                                        </optgroup>
+                                    }
+                                    @if (c.Hp is > 0m and { } fuera && !Cuadro.HpDisponibles(c).Contains(fuera))
+                                    {
+                                        <option @key="@($"fuera|{fuera}")" value="@ValorHpConPolos(c.Polos, fuera)">@MotoresEnHp.Texto(fuera) HP</option>
                                     }
                                 </select>
-                                @if (c.FlcA > 0m)
-                                {
-                                    <span class="en-va" title="Corriente a plena carga de la @Cuadro.FuenteDeFlc(c) — 430-6(a). La carga en VA es la FLC por la tensión del circuito@(c.Polos == 3 ? " por √3" : "").">FLC @c.FlcA.ToString("N2") A · @c.MotorVA.ToString("#,0") VA</span>
-                                }
+                                <span class="en-va" title="@(c.FlcA > 0m ? $"Corriente a plena carga de la {Cuadro.FuenteDeFlc(c)} — 430-6(a): {c.FlcA:N2} A. La carga en VA es la FLC por la tensión del circuito{(c.Polos == 3 ? " por √3" : "")}: {c.MotorVA:#,0} VA." : $"La FLC sale de la {Cuadro.FuenteDeFlc(c)} — 430-6(a).")">@Cuadro.AlimentacionDelMotor(c.Polos)</span>
                             </td>
                         }
                         else if (c.EsMotor)
@@ -335,7 +342,11 @@
                                        title="Capturar la corriente de placa de un motor que no trae HP. Se toman los HP que le corresponden en la tabla, interpolando; su FLC es esa corriente — 430-6(a)(1)." />
                                 @if (c.MotorEnAmperes is { } m)
                                 {
-                                    <span class="en-va" title="@MotoresEnHp.Interpolacion(m, c.Polos) — 430-6(a)(1). La carga en VA es la FLC por la tensión del circuito@(c.Polos == 3 ? " por √3" : "").">@m.Hp.ToString("0.##") HP de tabla · @c.MotorVA.ToString("#,0") VA</span>
+                                    <span class="en-va" title="@MotoresEnHp.Interpolacion(m, c.Polos) — 430-6(a)(1). La carga en VA es la FLC por la tensión del circuito@(c.Polos == 3 ? " por √3" : ""): @c.MotorVA.ToString("#,0") VA. @Cuadro.AlimentacionDelMotor(c.Polos).">@m.Hp.ToString("0.##") HP · @MotoresEnHp.AlimentacionTexto(c.Polos, MotoresEnHp.Tension(c.Polos, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV))</span>
+                                }
+                                else
+                                {
+                                    <span class="en-va">@Cuadro.AlimentacionDelMotor(c.Polos)</span>
                                 }
                             </td>
                         }
@@ -344,7 +355,7 @@
                             <td rowspan="@c.Polos">
                                 <input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="MCA" data-col="continua" aria-label="Circuito @c.Espacio · Ampacidad mínima (MCA)" value="@Carga(c.AmpacidadMinimaA)" @onchange="e => { c.AmpacidadMinimaA = LeerCarga(e, c.AmpacidadMinimaA); Recalcular(); }"
                                        title="Capturar la ampacidad mínima de los conductores que marca la placa (MCA, «Min. circuit ampacity») — 440-4(b). Ya trae el 125 % del motor mayor." />
-                                <span class="en-va">MCA@(c.MotorVA > 0m ? $" · {c.MotorVA:#,0} VA" : "")</span>
+                                <span class="en-va" title="@(c.MotorVA > 0m ? $"{c.MotorVA:#,0} VA: la MCA por la tensión del circuito." : null)">MCA · @MotoresEnHp.AlimentacionTexto(c.Polos, MotoresEnHp.Tension(c.Polos, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV))</span>
                             </td>
                             <td rowspan="@c.Polos">
                                 <input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="MOCP" data-col="nocontinua" aria-label="Circuito @c.Espacio · Protección máxima (MOCP)" value="@Carga(c.ProteccionMaximaA)" @onchange="e => { c.ProteccionMaximaA = LeerCarga(e, c.ProteccionMaximaA); Recalcular(); }"
@@ -357,7 +368,7 @@
                             <td rowspan="@c.Polos">
                                 <input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="A" data-col="continua" aria-label="Circuito @c.Espacio · Corriente de carga nominal (A)" value="@Carga(c.CorrientePlacaA)" @onchange="e => { c.CorrientePlacaA = LeerCarga(e, c.CorrientePlacaA); Recalcular(); }"
                                        title="Capturar la corriente de carga nominal del motocompresor que marca la placa (RLA) — 440-6(a). Conductor al 125 % (440-32); protección hasta 175 % (440-22(a))." />
-                                <span class="en-va">Nominal@(c.MotorVA > 0m ? $" · {c.MotorVA:#,0} VA" : "")</span>
+                                <span class="en-va" title="@(c.MotorVA > 0m ? $"{c.MotorVA:#,0} VA: la corriente por la tensión del circuito." : null)">Nominal · @MotoresEnHp.AlimentacionTexto(c.Polos, MotoresEnHp.Tension(c.Polos, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV))</span>
                             </td>
                             <td rowspan="@c.Polos">
                                 <input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="—" data-col="nocontinua" aria-label="Circuito @c.Espacio · Corriente de selección del circuito (A)" value="@Carga(c.CorrienteSeleccionA ?? 0m)" @onchange="e => { var v = LeerCarga(e, c.CorrienteSeleccionA ?? 0m); c.CorrienteSeleccionA = v > 0m ? v : null; Recalcular(); }"
@@ -410,7 +421,8 @@
                                     @onchange="e => CambiarPolos(c, e.Value?.ToString())">
                                 @foreach (var p in Enumerable.Range(1, Datos.MaximoPolos)) { <option value="@p">@p</option> }
                             </select>
-                            @if (c.Polos > 1 && TieneNeutro)
+                            @* Un motor trifásico no lleva neutro: sin la casilla (I-114). *@
+                            @if (c.Polos > 1 && TieneNeutro && !(c.EsMotor && c.Polos == 3))
                             {
                                 <label class="mas-n" title="Marcar si la carga es F-N (220/127 V) y el circuito lleva neutro. En 2 fases + neutro de estrella el neutro cuenta como portador — 310-15(b)(5)(2).">
                                     <input type="checkbox" data-col="masn" aria-label="Circuito @c.Espacio · Con neutro" checked="@c.ConNeutro" @onchange="e => { c.ConNeutro = e.Value is true; Recalcular(); }" />+N</label>
@@ -1561,12 +1573,26 @@
         : c.EsAireAcondicionado ? "MCA: la placa trae ampacidad mínima y protección máxima (MCA, MOCP) — 440-4(b). A: la placa trae la corriente de carga nominal del compresor — 440-6(a)."
         : SumaDelDesglose(c);
 
-    private static string ValorHp(decimal hp) => hp.ToString(CultureInfo.InvariantCulture);
+    private static string ValorHpConPolos(int polos, decimal hp) => $"{polos}|{hp.ToString(CultureInfo.InvariantCulture)}";
 
-    private void CambiarHp(CircuitoDelCuadro c, string? valor)
+    /// <summary>
+    /// «3|5»: 5 HP con 3 polos. Si los polos son otros, primero se cambian —puede no poderse, como en
+    /// la columna P— y el motivo sale en el aviso flotante — I-114.
+    /// </summary>
+    private async Task CambiarHp(CircuitoDelCuadro c, string? valor)
     {
-        if (decimal.TryParse(valor, NumberStyles.Float, CultureInfo.InvariantCulture, out var hp) && hp >= 0m)
-            c.Hp = hp;
+        var partes = valor?.Split('|');
+        if (partes is not { Length: 2 } || !int.TryParse(partes[0], out var polos)
+            || !decimal.TryParse(partes[1], NumberStyles.Float, CultureInfo.InvariantCulture, out var hp) || hp < 0m)
+            return;
+
+        if (polos != c.Polos && Cuadro.CambiarPolos(c, polos) is { } motivo)
+        {
+            Avisar($"El circuito {c.Espacio} no puede pasar a {polos} polos. {motivo}", bien: false);
+            await Restablecer($"[aria-label=\"Circuito {c.Espacio} · HP\"]", ValorHpConPolos(c.Polos, c.Hp ?? 0m));
+            return;
+        }
+        c.Hp = hp;
         Recalcular();
     }
 

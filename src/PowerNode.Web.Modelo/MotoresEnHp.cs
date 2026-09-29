@@ -78,6 +78,14 @@ public static class MotoresEnHp
     /// <summary>«430-250».</summary>
     public static string Tabla(int polos) => TablaFlcMotorJson.TablaDe(Alimentacion(polos));
 
+    /// <summary>
+    /// «Monofásico 127 V», «Monofásico 220 V», «Trifásico 220 V»: cómo se alimenta un motor de estos
+    /// polos — I-114. Dos polos a 220 V es monofásico (Tabla 430-248); la Tabla 430-249 es de sistemas
+    /// de dos fases, que aquí no hay.
+    /// </summary>
+    public static string AlimentacionTexto(int polos, decimal tensionV) =>
+        $"{(polos == 3 ? "Trifásico" : "Monofásico")} {tensionV:0} V";
+
     /// <summary>La corriente a plena carga de tabla, o <c>null</c> si la tabla no trae ese motor a esa tensión.</summary>
     public static decimal? Flc(ITablaFlcMotor tabla, decimal hp, int polos, decimal tensionV) =>
         tabla.CorrientePlenaCargaA(hp, Alimentacion(polos), tensionV);

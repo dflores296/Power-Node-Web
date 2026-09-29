@@ -68,9 +68,9 @@ public static class CategoriasDeCarga
     {
         CategoriaDeCarga.Alumbrado => "Alumbrado: luminarias y alumbrado general — Tabla 220-42.",
         CategoriaDeCarga.Contactos => "Contactos: contactos de uso general. En vivienda, seleccionar el uso (cocina, lavadora, baño) — 210-11(c).",
-        CategoriaDeCarga.Equipo => "Equipo: aparatos con su valor de placa, también los que traen motor: hornos, estufas, parrillas, secadoras, calentadores de agua, lavavajillas, equipo electrónico — Art. 422; 220-53 a 220-56.",
-        CategoriaDeCarga.Motor => "Motor: bombas, ventiladores, extractores, compresores de aire, bandas — Art. 430. Se captura en HP, o en A si la placa no trae HP: la corriente sale de la tabla — 430-6(a)(1).",
-        CategoriaDeCarga.AireAcondicionado => "A/C y refrigeración: equipos con motocompresor hermético: minisplit (también inverter frío/calor), bomba de calor, paquete, condensadora, cámara de refrigeración — Art. 440. Se captura la placa: ampacidad mínima y protección máxima (MCA, MOCP — 440-4(b)), o la corriente de carga nominal del compresor (440-6(a)).",
+        CategoriaDeCarga.Equipo => "Equipo: aparatos con su valor de placa, también los que traen motor o compresor: hornos, estufas, parrillas, secadoras, lavadoras, lavavajillas, calentadores de agua, refrigeradores y congeladores domésticos, enfriadores de agua (son aparatos — 440-3(c)), equipo electrónico — Art. 422; 220-53 a 220-56.",
+        CategoriaDeCarga.Motor => "Motor: bombas, ventiladores, extractores, compresores de aire, bandas; también manejadoras de aire y condensadores sin motocompresor (440-3(b)) — Art. 430. Se captura en HP, o en A si la placa no trae HP: la corriente sale de la tabla — 430-6(a)(1). Dos polos a 220 V es monofásico (Tabla 430-248); arranque estrella-delta no cambia el cálculo del tablero (430-22(c)).",
+        CategoriaDeCarga.AireAcondicionado => "A/C y refrigeración: equipos con motocompresor hermético: minisplit (también inverter frío/calor), bomba de calor, paquete, condensadora, cámara de refrigeración comercial — Art. 440. El refrigerador doméstico no: es aparato (Equipo o el contacto de la cocina — 440-3(c)). Se captura la placa: ampacidad mínima y protección máxima (MCA, MOCP — 440-4(b)), o la corriente de carga nominal del compresor (440-6(a)).",
         _ => "Calefacción: calefacción por resistencia eléctrica: calefactores, cables calefactores, calderas eléctricas. Carga continua — 424-3(b); 220-51.",
     };
 
