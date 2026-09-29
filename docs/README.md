@@ -42,6 +42,7 @@ Solo David confirma una decisión.
 | [`decisiones/motores-art-430.md`](decisiones/motores-art-430.md) | PROPUESTA · Claude · 2026-09-26 (en parte reemplazada por `tipos-de-carga.md`) |
 | [`decisiones/tipos-de-carga.md`](decisiones/tipos-de-carga.md) | PROPUESTA · Claude · 2026-09-27 (David aceptó los tipos y contestó las cuatro preguntas; implementada) |
 | [`decisiones/motores-y-equipos-en-grupo.md`](decisiones/motores-y-equipos-en-grupo.md) | PROPUESTA · Claude · 2026-09-29 (David eligió el alcance y contestó tres preguntas) |
+| [`decisiones/cargas-y-clases-de-circuito.md`](decisiones/cargas-y-clases-de-circuito.md) | PROPUESTA · Claude · 2026-09-29 (el tipo es de la carga, la clase es del circuito; David contestó seis preguntas) |
 | [`decisiones/documento-imprimible-en-vez-de-archivo.md`](decisiones/documento-imprimible-en-vez-de-archivo.md) | PROPUESTA · Claude · 2026-09-22 |
 
 ## `conocimiento/` — referencia técnica
@@ -51,6 +52,7 @@ Solo David confirma una decisión.
 | [`conocimiento/requisitos.md`](conocimiento/requisitos.md) | Requisitos con su referencia NOM y la prueba que los verifica. |
 | [`conocimiento/seleccion-conductor-y-proteccion.md`](conocimiento/seleccion-conductor-y-proteccion.md) | Matriz de trazabilidad: selección de conductor y protección contra la NOM. |
 | [`conocimiento/motor-copiado.md`](conocimiento/motor-copiado.md) | Alcance copiado de `PowerNode-DesignSuite`, ajustes y cambios posteriores. |
+| [`conocimiento/trazabilidad-cargas-y-circuitos.md`](conocimiento/trazabilidad-cargas-y-circuitos.md) | Cada commit del cambio «cargas y clases de circuito», con su fase, hallazgo y verificación. |
 | [`conocimiento/tablas-de-la-norma.md`](conocimiento/tablas-de-la-norma.md) | Lectura de la NOM desde JSON y verificación `--check`. |
 | [`conocimiento/cuadro-de-carga-excel.md`](conocimiento/cuadro-de-carga-excel.md) | Estructura del Excel original. |
 | [`conocimiento/marca.md`](conocimiento/marca.md) | Logo, colores y tipografía. |

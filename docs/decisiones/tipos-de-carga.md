@@ -4,6 +4,9 @@
 (abajo, textual) y contestó las cuatro preguntas el mismo día («Decisiones de David», abajo).
 Implementada; falta que David la marque CONFIRMADA.
 
+> **2026-09-29**: el tipo pasa del circuito a cada carga, y la clase del circuito (individual, uso
+> general, para aparatos) sale de sus cargas — [`cargas-y-clases-de-circuito.md`](cargas-y-clases-de-circuito.md).
+
 ## El problema
 
 «Motor / A/C» junta tres cosas que la NOM calcula distinto, y desde I-15 **la unidad decide el

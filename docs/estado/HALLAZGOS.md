@@ -148,6 +148,12 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-120 · Sin servicio no continuo (430-22(e)) | P3 | **Cerrado** | `c571d1b` |
 | I-121 · Sin cargas no simultáneas (430-24 Exc. 3, 440-33 Exc. 1, 220-60) | P2 | **Cerrado** | `c571d1b` |
 | I-122 · La memoria no dice el medio de desconexión mínimo (430-110, 440-12, 430-128) | P3 | **Cerrado** | `c571d1b` |
+| I-123 · El tipo es del circuito y no de cada carga: cargas combinadas con un solo F.D.; 180 VA por el texto | P1 | Abierto | — |
+| I-124 · Sin clase de circuito (individual, uso general, para aparatos): 210-21(b)(1), 210-23(a), 422-11(e), 240-4(b)(1) | P2 | Abierto | — |
+| I-125 · Otro tablero se captura como carga de un derivado: sin 215 y con otro F.D. encima | P2 | Abierto | — |
+| I-126 · Sin guía de clasificación de cargas con sus artículos | P3 | Abierto | — |
+| I-127 · Nombres que no son de la NOM en pantalla, documento y memoria | P3 | Abierto | — |
+| M-14 · Sin el mínimo de alumbrado general por superficie (220-12) en el alimentador; en vivienda, contactos de uso general sumados aparte (220-14(j)) | P1 | Abierto | — |
 | R-01 · Caída del alimentador fija en 5 %, sin verificar la combinada — 215-2(a)(4) NOTA 2 | P1 | **Cerrado** | `2a973ea` |
 | R-02 · Caída del alimentador sin la caída del neutro | P2 | **Cerrado** | `d6cd1c6` |
 | R-03 · La publicación no corre `PowerNode.Web.Tests` | P1 | **Cerrado** | `986c9d7` |
@@ -459,6 +465,22 @@ NOM (corpus de `dflores296/NOM-001-SEDE-2012`). Propuesta y decisiones en
 **I-121** — Hecho: bombas alternadas o calefacción contra A/C solo se pueden bajar con el F.D. (que además tiene M-12); 430-24 Exc. 3, 440-33 Exc. 1 y 220-60 permiten contar solo el mayor. Cerrado en `c571d1b`: «No simultáneo con» en el detalle de cualquier circuito, de los dos lados; del par, al alimentador va el mayor (220-60, 430-24 Exc. 3, 440-33 Exc. 1), con aviso; el par sigue al circuito que se mueve y va en el archivo. Pruebas: `I121_…` (3); en el navegador, bombas dúplex de 5 hp.
 
 **I-122** — Hecho: la memoria no dice el medio de desconexión mínimo: 115 % FLC (430-110(a)), 115 % RLA o BCSC (440-12(a)(1)), 115 % de la entrada del variador (430-128). Cerrado en `c571d1b`: la memoria de un motor, grupo, variador o A/C dice el medio de desconexión mínimo: 115 % (430-110(a), 430-110(c)(2), 430-128, 440-12(a)(1), 440-12(b)(2)); 440-63 en uno de habitación. Prueba: `I122_…`.
+
+### Cargas y clases de circuito, 2026-09-29
+
+Propuesta: [`../decisiones/cargas-y-clases-de-circuito.md`](../decisiones/cargas-y-clases-de-circuito.md).
+
+**I-123** — Hecho: el tipo (seis opciones) es del circuito; los aparatos del desglose no tienen tipo. Un circuito con lámparas y contactos escoge uno y todo entra al alimentador con su F.D. y en su renglón del resumen; los 180 VA de 220-14(i) salen de si la descripción empieza con «contacto». 220 Parte C aplica el F.D. por tipo de carga.
+
+**I-124** — Hecho: no hay clase de circuito. 210-21(b)(1) (contacto sencillo en circuito individual ≥ circuito), 210-23(a) (equipo fijo ≤ 50 % con alumbrado, con clavija ≤ 80 %), 422-11(e) (un solo aparato no operado por motor) y 240-4(b)(1) dependen de si el circuito alimenta un solo equipo o dos o más salidas; hoy 240-4(b) se niega a todo «Contactos».
+
+**I-125** — Hecho: un tablero alimentado solo se puede capturar como carga de un derivado (210), y en el alimentador de este tablero recibe otro F.D. encima de los suyos. Es un alimentador (Art. 100, 215); 220-40: la suma, después de los F.D.
+
+**I-126** — Hecho: no hay una guía que diga en qué tipo va cada carga y a qué artículos, secciones y tablas queda sujeta.
+
+**I-127** — Hecho: la pantalla, el documento y la memoria usan nombres propios («Equipo», «Hab.», «VFD», «Varios», «Neutro comp.», «Carga instalada»…) donde la NOM tiene los suyos.
+
+**M-14** — Hecho: 220-12 fija la carga **mínima** de alumbrado general por m² (Tabla 220-12: oficinas 39 VA/m², vivienda 33, bodegas 3…) y 210-11(b) pide que el tablero la sirva; el alimentador solo suma lo capturado. Una oficina de 200 m² con 200 VA de LED pide 7,800 VA. En vivienda, 220-14(j) incluye los contactos de uso general en los 33 VA/m²; hoy se suman aparte. En oficinas y bancos, contactos = el mayor entre 180 VA por contacto y 11 VA/m² (220-14(k)).
 
 ### Revisión del 2026-09-23
 

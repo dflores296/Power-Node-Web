@@ -128,6 +128,16 @@ propuesta en tabla). Texto de la NOM leído del corpus de `dflores296/NOM-001-SE
 
 Pruebas: 326 en `PowerNode.Web.Tests`, 23 en `PowerNode.Normativa.Tests`.
 
+**Cargas y clases de circuito** (David: «la columna tipo describe el tipo de carga y no tenemos tipo
+de carga para los aparatos… no tenemos clasificación para circuitos dedicados ni mixtos»). Medido el
+modelo y leído el Art. 100 (`definiciones.json`): circuito derivado individual, de uso general y para
+aparatos; «cargas combinadas» en lugar de «mixto».
+
+- Propuesta con las decisiones de David: F.D. por el tipo de cada carga; la captura por renglón se
+  queda; otro tablero es un alimentador sin F.D.; se retira «Varios»; guía de cargas; nombres cortos
+  basados en la NOM — [`../decisiones/cargas-y-clases-de-circuito.md`](../decisiones/cargas-y-clases-de-circuito.md).
+  Hallazgos abiertos: I-123 a I-127 y M-14 (el mínimo de 220-12, que el alimentador no aplica).
+
 ## 2026-09-28
 
 **Auditoría de interfaz** (pedido de David: botones desalineados, texto cortado o chueco, funcionalidad).
