@@ -139,6 +139,10 @@
         {
             <p class="aviso"><Icono Nombre="aviso" Clase="aviso-icono" /><span>@avisoLimites</span></p>
         }
+        @if (Cuadro.AvisoAislamientoDelLugar is { } avisoLugar)
+        {
+            <p class="aviso"><Icono Nombre="aviso" Clase="aviso-icono" /><span>@avisoLugar</span></p>
+        }
         @* El diámetro del fabricante va con el aislamiento, que es uno para todo el tablero (David,
            2026-09-28); antes se pedía al pie de la tarjeta de canalizaciones. Capítulo 10, Nota 5. *@
         @if (Cuadro.AvisoDiametroDelFabricante is { } avisoDiametro)

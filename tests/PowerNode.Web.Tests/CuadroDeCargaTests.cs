@@ -51,6 +51,39 @@ public class CuadroDeCargaTests
         Assert.DoesNotContain("Configuración", error);
     }
 
+    /// <summary>
+    /// I-95: THHN en lugar mojado ponía en cada renglón y en el alimentador que «no se reconoce» y
+    /// lo listaba entre los reconocidos. Un aviso junto a Aislamiento y Lugar lo dice una vez.
+    /// </summary>
+    [Fact]
+    public void I95_AislamientoNoValidoParaElLugar_UnAvisoYUnErrorCorto()
+    {
+        var cuadro = Nuevo();
+        foreach (var n in new[] { 1, 2, 3 })
+            Espacio(cuadro, n).NoContinua = 1000m;
+        cuadro.Recalcular();
+        Assert.Null(cuadro.AvisoAislamientoDelLugar);
+
+        cuadro.Datos.LugarSeco = false;
+        cuadro.Recalcular();
+
+        var aviso = cuadro.AvisoAislamientoDelLugar;
+        Assert.NotNull(aviso);
+        Assert.StartsWith("THHN solo es para lugar seco", aviso);
+        Assert.Contains("THWN-2", aviso);
+        foreach (var n in new[] { 1, 2, 3 })
+        {
+            Assert.DoesNotContain("no se reconoce", Espacio(cuadro, n).Error);
+            Assert.Contains("THHN no vale en lugar húmedo o mojado", Espacio(cuadro, n).Error);
+        }
+        Assert.Contains("THHN no vale en lugar húmedo o mojado", cuadro.Alimentador.Error);
+
+        cuadro.Datos.TipoAislamiento = "THWN-2";
+        cuadro.Recalcular();
+        Assert.Null(cuadro.AvisoAislamientoDelLugar);
+        Assert.Null(Espacio(cuadro, 1).Error);
+    }
+
     // ---- La geometría del tablero --------------------------------------------------------------
 
     [Fact]

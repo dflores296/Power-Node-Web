@@ -214,6 +214,41 @@ public sealed class CuadroDeCarga
         CalcularAlimentador();
         DimensionarCanalizaciones();
         EvaluarCaidaCombinada();
+        AbreviarErrorDeAislamiento();
+    }
+
+    /// <summary>
+    /// El aislamiento es de la tabla pero no vale en el lugar capturado (THHN en lugar mojado): lo
+    /// dice una vez, junto a Aislamiento y Lugar — I-95. Antes cada renglón decía que «no se
+    /// reconoce» y en la misma frase lo listaba entre los reconocidos.
+    /// </summary>
+    public string? AvisoAislamientoDelLugar
+    {
+        get
+        {
+            var tabla = _motor.Aislamiento;
+            var tipo = Datos.TipoAislamiento;
+            if (tabla.TemperaturaMaxima(tipo, Datos.LugarSeco) is not null || tabla.TemperaturaMaxima(tipo, !Datos.LugarSeco) is null)
+                return null;
+
+            var lugar = Datos.LugarSeco ? "seco" : "húmedo o mojado";
+            var validos = tabla.DesignacionesReconocidas.Where(x => tabla.TemperaturaMaxima(x, Datos.LugarSeco) is not null).ToList();
+            return $"{tipo} solo es para lugar {(Datos.LugarSeco ? "húmedo o mojado" : "seco")} — Tabla 310-104(a): ningún circuito calcula. " +
+                   $"Cambiar el lugar o el aislamiento; en lugar {lugar}: {string.Join(", ", validos)}.";
+        }
+    }
+
+    private void AbreviarErrorDeAislamiento()
+    {
+        if (AvisoAislamientoDelLugar is null)
+            return;
+
+        var largo = $"'{Datos.TipoAislamiento}' no se reconoce";
+        var corto = $"{Datos.TipoAislamiento} no vale en lugar {(Datos.LugarSeco ? "seco" : "húmedo o mojado")}: ver el aviso de Condiciones de cálculo.";
+        foreach (var c in Circuitos.Where(c => c.Error?.StartsWith(largo, StringComparison.Ordinal) == true))
+            c.Error = corto;
+        if (Alimentador.Error?.StartsWith(largo, StringComparison.Ordinal) == true)
+            Alimentador = Alimentador with { Error = corto };
     }
 
     /// <summary>
