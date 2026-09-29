@@ -445,7 +445,7 @@ else
     /// <summary>«3 × ½ HP + 5 HP · 41.90 A · otras 1,000 VA»: los motores de un grupo y su corriente — I-115.</summary>
     private static string PlacaDelGrupo(CircuitoDelCuadro c)
     {
-        var maquinas = c.Aparatos.Where(a => a.EsMaquina && a.TieneCapturaDeMaquina).Select(a =>
+        var maquinas = c.Cargas.Where(a => a.EsMaquina && a.TieneCapturaDeMaquina).Select(a =>
             (a.Cantidad > 1 ? $"{a.Cantidad} × " : "") +
             (a.Clase == ClaseDeAparato.Motocompresor ? $"motocompresor {a.CorrienteUnitariaA:#,0.##} A"
              : a.CapturaMotor == CapturaDeMotor.Hp ? $"{MotoresEnHp.Texto(a.Hp ?? 0m)} HP" : $"{a.CorrientePlacaA:#,0.##} A"));

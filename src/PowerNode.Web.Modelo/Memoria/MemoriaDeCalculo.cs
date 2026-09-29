@@ -172,7 +172,7 @@ public static class MemoriaDeCalculo
     /// </summary>
     private static EquipoDeLaHoja DelGrupo(CuadroDeCarga cuadro, CircuitoDelCuadro c, ResultadoCircuitoDerivado r)
     {
-        var maquinas = c.Aparatos.Where(a => a.EsMaquina && a.CorrienteUnitariaA > 0m).ToList();
+        var maquinas = c.Cargas.Where(a => a.EsMaquina && a.CorrienteUnitariaA > 0m).ToList();
         if (r.Grupo is not { } g)
         {
             var solo = maquinas.Single();
@@ -258,7 +258,7 @@ public static class MemoriaDeCalculo
     }
 
     /// <summary>«3 motores», «, 1 motocompresor»: cuántas máquinas de una clase lleva el grupo; vacío si ninguna.</summary>
-    private static string Cuantas(IEnumerable<AparatoDelCircuito> maquinas, ClaseDeAparato clase, string una, string varias)
+    private static string Cuantas(IEnumerable<CargaDelCircuito> maquinas, ClaseDeAparato clase, string una, string varias)
     {
         var n = maquinas.Where(a => a.Clase == clase).Sum(a => a.Cantidad);
         var primera = clase == ClaseDeAparato.Motor || !maquinas.Any(a => a.Clase == ClaseDeAparato.Motor);
@@ -495,7 +495,7 @@ public static class MemoriaDeCalculo
     /// </summary>
     private static IReadOnlyList<RenglonMemoria> Desglose(CircuitoDelCuadro circuito) => !circuito.TieneDesglose ? [] :
     [
-        .. circuito.Aparatos.Select((a, i) => new RenglonMemoria(
+        .. circuito.Cargas.Select((a, i) => new RenglonMemoria(
             $"{(a.EsMaquina ? a.Clase == ClaseDeAparato.Motocompresor ? "Motocompresor" : "Motor" : "Aparato")} {i + 1}: " +
             $"{(string.IsNullOrWhiteSpace(a.Descripcion) ? "—" : a.Descripcion.Trim())}",
             // Una máquina de un grupo (I-115): su corriente por unidad, que es con la que calcula.

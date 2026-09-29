@@ -74,11 +74,11 @@ public class ArchivoDelCuadroTests
         var lavavajillas = cuadro.Circuitos[5];
         lavavajillas.Descripcion = "Lavavajillas y triturador";
         lavavajillas.Categoria = CategoriaDeCarga.Equipo;
-        var a = lavavajillas.AgregarAparato();
+        var a = lavavajillas.AgregarCarga();
         a.Descripcion = "Lavavajillas";
         a.Unidad = UnidadConsumo.Amperes;
         a.CargaUnitaria = 10m;
-        var b = lavavajillas.AgregarAparato();
+        var b = lavavajillas.AgregarCarga();
         b.Descripcion = "Triturador";
         b.Cantidad = 2;
         b.CargaUnitaria = 300m;
@@ -123,7 +123,7 @@ public class ArchivoDelCuadroTests
             original.TodasLasCanalizaciones.Select(t => (t.Id, t.Nombre, t.TamanoRotulo, t.FactorAgrupamiento)),
             abierto.TodasLasCanalizaciones.Select(t => (t.Id, t.Nombre, t.TamanoRotulo, t.FactorAgrupamiento)));
         Assert.Equal("Uso alterno de la cocina", abierto.Datos.JustificacionOtra[CategoriaDeCarga.Equipo]);
-        Assert.Equal(2, abierto.Circuitos[5].Aparatos.Count);
+        Assert.Equal(2, abierto.Circuitos[5].Cargas.Count);
         Assert.Equal(2, abierto.Circuitos[2].Polos);
     }
 
@@ -258,7 +258,7 @@ public class ArchivoDelCuadroTests
         var cuadro = apertura.Cuadro!;
         Assert.Equal(new CuadroDeCarga(Motor).Datos.TensionFaseFaseV, cuadro.Datos.TensionFaseFaseV);
         Assert.Equal(CircuitoDelCuadro.FactorPotenciaSupuesto, cuadro.Circuitos[0].FactorPotencia);
-        Assert.Equal(CircuitoDelCuadro.FactorPotenciaSupuesto, cuadro.Circuitos[2].Aparatos[0].FactorPotencia);
+        Assert.Equal(CircuitoDelCuadro.FactorPotenciaSupuesto, cuadro.Circuitos[2].Cargas[0].FactorPotencia);
         Assert.Contains(apertura.Avisos, a => a.Contains("0 V") && a.Contains("100 V en adelante"));
         Assert.Contains(apertura.Avisos, a => a.StartsWith("El circuito 1 trae F.P. 1.5"));
         Assert.Contains(apertura.Avisos, a => a.StartsWith("El aparato 1 del circuito 3 trae F.P. 0"));
@@ -344,7 +344,7 @@ public class ArchivoDelCuadroTests
         Assert.Equal(0m, cuadro.Circuitos[0].Continua);
         Assert.Equal(900m, cuadro.Circuitos[0].NoContinua);
         Assert.Equal(new CircuitoDelCuadro(1).LongitudM, cuadro.Circuitos[0].LongitudM);
-        Assert.Equal(0m, cuadro.Circuitos[2].Aparatos[0].CargaUnitaria);
+        Assert.Equal(0m, cuadro.Circuitos[2].Cargas[0].CargaUnitaria);
         Assert.Equal(6, apertura.Avisos.Count(a => a.Contains("negativ") || a.Contains("Hz")));
         Assert.True(cuadro.Circuitos[0].Resultado!.CaidaTensionPct > 0m);
     }

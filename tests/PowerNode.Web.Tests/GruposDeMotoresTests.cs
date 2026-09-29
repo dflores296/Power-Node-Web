@@ -45,7 +45,7 @@ public class GruposDeMotoresTests
         return c;
     }
 
-    private static AparatoDelCircuito MotorHp(CircuitoDelCuadro c, string nombre, decimal hp, int cantidad = 1)
+    private static CargaDelCircuito MotorHp(CircuitoDelCuadro c, string nombre, decimal hp, int cantidad = 1)
     {
         var a = c.AgregarMotor();
         a.Descripcion = nombre;
@@ -67,7 +67,7 @@ public class GruposDeMotoresTests
 
         Assert.Null(c.Error);
         Assert.True(c.EsGrupo && c.TieneDesglose);
-        Assert.Equal(8.9m, c.Aparatos[0].CorrienteUnitariaA);
+        Assert.Equal(8.9m, c.Cargas[0].CorrienteUnitariaA);
         Assert.Equal(26.7m, c.CorrienteDeMotorA);
         var r = c.Resultado!;
         // 430-24: 125 % × 8.9 + 8.9 + 8.9 = 28.925 A → 10 AWG (30 A a 60 °C).
@@ -123,7 +123,7 @@ public class GruposDeMotoresTests
         cuadro.Recalcular();
 
         Assert.True(c.EsGrupo);
-        var motor = Assert.Single(c.Aparatos);
+        var motor = Assert.Single(c.Cargas);
         Assert.Equal(ClaseDeAparato.Motor, motor.Clase);
         Assert.Equal("Bomba", motor.Descripcion);
         Assert.Equal(5m, motor.Hp);
@@ -138,7 +138,7 @@ public class GruposDeMotoresTests
         var cuadro = Nuevo();
         var c = Grupo(cuadro, 1, 1);
         MotorHp(c, "Extractor", 1m);
-        var luz = c.AgregarAparato();
+        var luz = c.AgregarCarga();
         luz.Descripcion = "Alumbrado";
         luz.CargaUnitaria = 1000m;
         luz.Continua = true;
@@ -180,7 +180,7 @@ public class GruposDeMotoresTests
         var cuadro = Nuevo();
         var c = Grupo(cuadro, 1, 1);
         MotorHp(c, "Ventilador", 1m / 6m);
-        var luz = c.AgregarAparato();
+        var luz = c.AgregarCarga();
         luz.Descripcion = "Alumbrado";
         luz.CargaUnitaria = 3300m;
         luz.Continua = true;
@@ -206,7 +206,7 @@ public class GruposDeMotoresTests
     {
         var cuadro = Nuevo();
         var c = Grupo(cuadro, 1, 1);
-        var luz = c.AgregarAparato();
+        var luz = c.AgregarCarga();
         luz.CargaUnitaria = 500m;
         cuadro.Recalcular();
 
@@ -253,7 +253,7 @@ public class GruposDeMotoresTests
         var cuadro = Nuevo();
         var c = Grupo(cuadro, 1, 1);
         MotorHp(c, "Extractor", 1m);
-        var luz = c.AgregarAparato();
+        var luz = c.AgregarCarga();
         luz.CargaUnitaria = 1000m;
         luz.Continua = true;
         cuadro.Recalcular();
@@ -302,7 +302,7 @@ public class GruposDeMotoresTests
         Assert.True(cuadro.MoverCircuito(1, 5).Movio);
         var movido = Espacio(cuadro, 5);
         Assert.True(movido.EsGrupo);
-        Assert.Equal(3, movido.Aparatos.Single().Cantidad);
+        Assert.Equal(3, movido.Cargas.Single().Cantidad);
         Assert.Equal(40m, movido.Resultado!.ProteccionA);
 
         cuadro.Deshacer();
@@ -318,10 +318,10 @@ public class GruposDeMotoresTests
         var cuadro = Nuevo();
         var c = Espacio(cuadro, 1);
         c.Categoria = CategoriaDeCarga.Equipo;
-        var luz = c.AgregarAparato();
+        var luz = c.AgregarCarga();
         luz.Descripcion = "Alumbrado";
         luz.CargaUnitaria = 1000m;
-        var lavadora = c.AgregarAparato();
+        var lavadora = c.AgregarCarga();
         lavadora.Descripcion = "Lavadora";
         lavadora.Clase = ClaseDeAparato.Motor;
         lavadora.CapturaMotor = CapturaDeMotor.Amperes;
@@ -348,12 +348,12 @@ public class GruposDeMotoresTests
         var cuadro = Nuevo();
         var c = Espacio(cuadro, 1);
         c.Categoria = CategoriaDeCarga.Equipo;
-        var luz = c.AgregarAparato();
+        var luz = c.AgregarCarga();
         luz.CargaUnitaria = 500m;
-        var chico = c.AgregarAparato();
+        var chico = c.AgregarCarga();
         chico.Clase = ClaseDeAparato.Motor;
         chico.Hp = 0.25m;
-        var grande = c.AgregarAparato();
+        var grande = c.AgregarCarga();
         grande.Clase = ClaseDeAparato.Motor;
         grande.Hp = 0.5m;
         grande.Cantidad = 2;
@@ -373,7 +373,7 @@ public class GruposDeMotoresTests
         var cuadro = Nuevo();
         var c = Espacio(cuadro, 1);
         c.Categoria = CategoriaDeCarga.Equipo;
-        var motor = c.AgregarAparato();
+        var motor = c.AgregarCarga();
         motor.Clase = ClaseDeAparato.Motor;
         motor.Hp = 0.5m;
         cuadro.Recalcular();
@@ -389,9 +389,9 @@ public class GruposDeMotoresTests
         var cuadro = Nuevo();
         var c = Espacio(cuadro, 1);
         c.Categoria = CategoriaDeCarga.Equipo;
-        var luz = c.AgregarAparato();
+        var luz = c.AgregarCarga();
         luz.CargaUnitaria = 500m;
-        var ventilador = c.AgregarAparato();
+        var ventilador = c.AgregarCarga();
         ventilador.Clase = ClaseDeAparato.Motor;
         ventilador.CapturaMotor = CapturaDeMotor.Amperes;
         ventilador.CorrientePlacaA = 2m; // interpolado desde 0: 2 A ÷ 4 A × ⅙ HP = 0.083 HP
@@ -416,7 +416,7 @@ public class GruposDeMotoresTests
         return c;
     }
 
-    private static AparatoDelCircuito Compresor(CircuitoDelCuadro c, decimal rla, decimal? seleccion = null)
+    private static CargaDelCircuito Compresor(CircuitoDelCuadro c, decimal rla, decimal? seleccion = null)
     {
         var a = c.AgregarMotor(ClaseDeAparato.Motocompresor);
         a.Descripcion = "Compresor";
@@ -479,7 +479,7 @@ public class GruposDeMotoresTests
         var cuadro = Nuevo();
         var c = AireEnGrupo(cuadro, 1, 2);
         Compresor(c, 5m);
-        var resistencia = c.AgregarAparato();
+        var resistencia = c.AgregarCarga();
         resistencia.Descripcion = "Resistencia";
         resistencia.Unidad = UnidadConsumo.Amperes;
         resistencia.CargaUnitaria = 20m;
@@ -561,10 +561,10 @@ public class GruposDeMotoresTests
         var cuadro = Nuevo();
         var c = Espacio(cuadro, 1);
         c.Categoria = CategoriaDeCarga.Contactos;
-        var contactos = c.AgregarAparato();
+        var contactos = c.AgregarCarga();
         contactos.Descripcion = "Contacto";
         contactos.Cantidad = 4;
-        var ventana = c.AgregarAparato();
+        var ventana = c.AgregarCarga();
         ventana.Descripcion = "A/C de ventana";
         ventana.Clase = ClaseDeAparato.AireDeHabitacion;
         ventana.CorrientePlacaA = 12m;
@@ -578,7 +578,7 @@ public class GruposDeMotoresTests
         Assert.Equal(12m * cuadro.Datos.TensionFaseNeutroV, ventana.TotalVA);
 
         // Solo, 13 A en un circuito de 15 A: pasa del 80 % — 440-62(b).
-        c.Aparatos.Remove(contactos);
+        c.Cargas.Remove(contactos);
         ventana.CorrientePlacaA = 13m;
         cuadro.Recalcular();
         Assert.Equal(15m, c.Resultado!.ProteccionA);
@@ -598,7 +598,7 @@ public class GruposDeMotoresTests
         DeCuarto(cuadro, 2, 1, 12m); // el 3 es del 2 polos del 1
         var contactos = Espacio(cuadro, 4);
         contactos.Categoria = CategoriaDeCarga.Contactos;
-        var ventana = contactos.AgregarAparato();
+        var ventana = contactos.AgregarCarga();
         ventana.Clase = ClaseDeAparato.AireDeHabitacion;
         ventana.CorrientePlacaA = 8m;
         cuadro.Recalcular();
@@ -613,7 +613,7 @@ public class GruposDeMotoresTests
             cuadro.Circuitos.Select(c => (c.Espacio, c.Resultado?.ProteccionA, c.Resultado?.CalibreFase.Designacion)),
             apertura.Cuadro!.Circuitos.Select(c => (c.Espacio, c.Resultado?.ProteccionA, c.Resultado?.CalibreFase.Designacion)));
         Assert.Equal(PlacaDeAireAcondicionado.Habitacion, Espacio(apertura.Cuadro, 2).PlacaAire);
-        Assert.Equal(ClaseDeAparato.AireDeHabitacion, Espacio(apertura.Cuadro, 4).Aparatos.Single().Clase);
+        Assert.Equal(ClaseDeAparato.AireDeHabitacion, Espacio(apertura.Cuadro, 4).Cargas.Single().Clase);
         Assert.True(Espacio(apertura.Cuadro, 1).ArranqueAl225);
     }
 
@@ -629,7 +629,7 @@ public class GruposDeMotoresTests
         ventilador.Descripcion = "Ventilador";
         ventilador.CapturaMotor = CapturaDeMotor.Amperes;
         ventilador.CorrientePlacaA = 2m;
-        var luz = c.AgregarAparato();
+        var luz = c.AgregarCarga();
         luz.Descripcion = "Alumbrado";
         luz.CargaUnitaria = 300m;
         cuadro.Recalcular();
@@ -643,8 +643,8 @@ public class GruposDeMotoresTests
         var abierto = Espacio(apertura.Cuadro!, 1);
         Assert.True(abierto.EsGrupo);
         Assert.Equal(
-            c.Aparatos.Select(a => (a.Descripcion, a.Clase, a.CapturaMotor, a.Hp, a.CorrientePlacaA, a.CargaUnitaria)),
-            abierto.Aparatos.Select(a => (a.Descripcion, a.Clase, a.CapturaMotor, a.Hp, a.CorrientePlacaA, a.CargaUnitaria)));
+            c.Cargas.Select(a => (a.Descripcion, a.Clase, a.CapturaMotor, a.Hp, a.CorrientePlacaA, a.CargaUnitaria)),
+            abierto.Cargas.Select(a => (a.Descripcion, a.Clase, a.CapturaMotor, a.Hp, a.CorrientePlacaA, a.CargaUnitaria)));
         Assert.Equal(c.Resultado!.ProteccionA, abierto.Resultado!.ProteccionA);
         Assert.Equal(c.Resultado.Detalle!.CapacidadMinimaA, abierto.Resultado.Detalle!.CapacidadMinimaA);
         Assert.Equal(ArchivoDelCuadro.Huella(cuadro), ArchivoDelCuadro.Huella(apertura.Cuadro!));
@@ -667,7 +667,7 @@ public class GruposDeMotoresTests
         var apertura = ArchivoDelCuadro.Abrir(texto, Motor);
 
         Assert.Null(apertura.Error);
-        var a = Assert.Single(apertura.Cuadro!.Circuitos[0].Aparatos);
+        var a = Assert.Single(apertura.Cuadro!.Circuitos[0].Cargas);
         Assert.Equal(ClaseDeAparato.Carga, a.Clase);
         Assert.Equal(1500m, apertura.Cuadro.Circuitos[0].NoContinuaVA);
     }

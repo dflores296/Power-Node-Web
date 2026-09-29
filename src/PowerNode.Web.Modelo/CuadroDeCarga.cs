@@ -377,7 +377,7 @@ public sealed class CuadroDeCarga
             var capacidad = r.Citas.First(x => x.Referencia is "430-24" or "440-32" or "440-33" or "440-34");
             return DesgloseDeSeleccion.DeGrupo(
                 _motor.Ampacidad, Datos, grupo,
-                maquinas: [.. c.Aparatos.Where(a => a.EsMaquina && a.CorrienteUnitariaA > 0m).Select(a =>
+                maquinas: [.. c.Cargas.Where(a => a.EsMaquina && a.CorrienteUnitariaA > 0m).Select(a =>
                     $"{NombreDeMaquina(c, a)}: {(a.Cantidad > 1 ? $"{a.Cantidad} × " : "")}{a.CorrienteUnitariaA:N2} A — {OrigenDeLaCorriente(a, c.Polos, tension)}")],
                 otrasContinuaA: c.ContinuaVA / divisorGrupo,
                 otrasNoContinuaA: c.NoContinuaVA / divisorGrupo,
@@ -451,7 +451,7 @@ public sealed class CuadroDeCarga
     public string OrigenDeLaFlc(CircuitoDelCuadro c) =>
         c.EsGrupo
             // Un grupo de un solo motor se calcula como motor: la FLC es la de ese motor (I-115).
-            ? c.Aparatos.FirstOrDefault(a => a.EsMaquina && a.CorrienteUnitariaA > 0m) is { } a
+            ? c.Cargas.FirstOrDefault(a => a.EsMaquina && a.CorrienteUnitariaA > 0m) is { } a
                 ? $"FLC = {a.CorrienteUnitariaA:N2} A, {NombreDeMaquina(c, a)}: {OrigenDeLaCorriente(a, c.Polos, TensionDelMotor(c))}" +
                   (a.MotorEnAmperes is null ? ", 430-6(a)" : "")
                 : ""
@@ -1026,12 +1026,12 @@ public sealed class CuadroDeCarga
     {
         var divisor = TensionDeCalculo.Divisor(c.Polos, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV);
         var tension = TensionDelMotor(c);
-        foreach (var a in c.Aparatos)
+        foreach (var a in c.Cargas)
         {
             if (a.EsContactoSinCarga)
             {
                 a.Unidad = UnidadConsumo.VoltAmperes;
-                a.CargaUnitaria = AparatoDelCircuito.VAPorContacto;
+                a.CargaUnitaria = CargaDelCircuito.VAPorContacto;
             }
             if (c.Categoria == CategoriaDeCarga.CalefaccionFija)
                 a.Continua = true;
@@ -1044,19 +1044,19 @@ public sealed class CuadroDeCarga
         // 220-18(a) — I-118: un aparato con motor de más de ⅛ hp, junto con otras cargas: el motor mayor
         // al 125 % y lo demás al 100 %. El 125 % se lo da el cálculo del derivado a la continua: el motor
         // mayor —una unidad— va ahí; los demás motores, a la no continua. En calefacción todo es continuo.
-        var motores = c.Aparatos.Where(a => a.EsMaquina && a.CorrienteUnitariaA > 0m).ToList();
-        c.MotorAl125 = c.Aparatos.Any(a => !a.EsMaquina && a.TotalVA > 0m)
+        var motores = c.Cargas.Where(a => a.EsMaquina && a.CorrienteUnitariaA > 0m).ToList();
+        c.MotorAl125 = c.Cargas.Any(a => !a.EsMaquina && a.TotalVA > 0m)
             ? motores.Where(MasDeUnOctavoDeHp).OrderByDescending(a => a.CorrienteUnitariaA).FirstOrDefault()
             : null;
         var motorAl125VA = c.MotorAl125 is { } mayor ? mayor.CorrienteUnitariaA * divisor : 0m;
 
         c.Unidad = UnidadConsumo.VoltAmperes;
-        c.Continua = c.Aparatos.Where(EsContinua).Sum(a => a.TotalVA)
+        c.Continua = c.Cargas.Where(EsContinua).Sum(a => a.TotalVA)
                      + (c.Categoria == CategoriaDeCarga.CalefaccionFija ? motores.Sum(a => a.TotalVA) : motorAl125VA);
-        c.NoContinua = c.Aparatos.Where(a => !a.EsMaquina && !EsContinua(a)).Sum(a => a.TotalVA)
+        c.NoContinua = c.Cargas.Where(a => !a.EsMaquina && !EsContinua(a)).Sum(a => a.TotalVA)
                        + (c.Categoria == CategoriaDeCarga.CalefaccionFija ? 0m : motores.Sum(a => a.TotalVA) - motorAl125VA);
         c.FactorPotencia = c.Continua + c.NoContinua > 0m
-            ? FactorPotenciaCombinado.De(c.Aparatos.Select(a => (a.TotalVA, a.FactorPotencia)))
+            ? FactorPotenciaCombinado.De(c.Cargas.Select(a => (a.TotalVA, a.FactorPotencia)))
             : CircuitoDelCuadro.FactorPotenciaSupuesto;
     }
 
@@ -1071,7 +1071,7 @@ public sealed class CuadroDeCarga
     {
         var divisor = TensionDeCalculo.Divisor(c.Polos, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV);
         var tension = TensionDelMotor(c);
-        foreach (var a in c.Aparatos)
+        foreach (var a in c.Cargas)
         {
             a.Cantidad = Math.Max(1, a.Cantidad);
             if (!a.EsMaquina)
@@ -1080,7 +1080,7 @@ public sealed class CuadroDeCarga
                 if (a.EsContactoSinCarga)
                 {
                     a.Unidad = UnidadConsumo.VoltAmperes;
-                    a.CargaUnitaria = AparatoDelCircuito.VAPorContacto;
+                    a.CargaUnitaria = CargaDelCircuito.VAPorContacto;
                 }
                 a.TotalVA = VADeCarga(a, c.Polos);
                 continue;
@@ -1090,26 +1090,26 @@ public sealed class CuadroDeCarga
             a.TotalVA = a.Cantidad * a.CorrienteUnitariaA * divisor;
         }
 
-        c.ContinuaVA = c.Aparatos.Where(EsContinua).Sum(a => a.TotalVA);
-        c.NoContinuaVA = c.Aparatos.Where(a => !a.EsMaquina && !EsContinua(a)).Sum(a => a.TotalVA);
-        c.CorrienteDeMotorA = c.Aparatos.Where(a => a.EsMaquina).Sum(a => a.Cantidad * a.CorrienteUnitariaA);
-        c.MotorVA = c.Aparatos.Where(a => a.EsMaquina).Sum(a => a.TotalVA);
+        c.ContinuaVA = c.Cargas.Where(EsContinua).Sum(a => a.TotalVA);
+        c.NoContinuaVA = c.Cargas.Where(a => !a.EsMaquina && !EsContinua(a)).Sum(a => a.TotalVA);
+        c.CorrienteDeMotorA = c.Cargas.Where(a => a.EsMaquina).Sum(a => a.Cantidad * a.CorrienteUnitariaA);
+        c.MotorVA = c.Cargas.Where(a => a.EsMaquina).Sum(a => a.TotalVA);
         if (c.CargaInstaladaVA > 0m)
-            c.FactorPotencia = FactorPotenciaCombinado.De(c.Aparatos.Select(a => (a.TotalVA, a.FactorPotencia)));
+            c.FactorPotencia = FactorPotenciaCombinado.De(c.Cargas.Select(a => (a.TotalVA, a.FactorPotencia)));
     }
 
     /// <summary>
     /// Los VA de una carga del desglose: de su placa, en VA, W o A; un acondicionador de habitación, con su
     /// corriente total por la tensión del circuito (I-117).
     /// </summary>
-    private decimal VADeCarga(AparatoDelCircuito a, int polos) =>
+    private decimal VADeCarga(CargaDelCircuito a, int polos) =>
         a.Clase == ClaseDeAparato.AireDeHabitacion
             ? a.Cantidad * a.CorrientePlacaA * TensionDeCalculo.Divisor(polos, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV)
             : a.Cantidad * ConsumoDePlaca.AVoltAmperes(
                 a.CargaUnitaria, a.Unidad, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV, polos, a.FactorPotencia);
 
     /// <summary>Una carga marcada continua. Un acondicionador de habitación, no: su regla es la de 440-62.</summary>
-    private static bool EsContinua(AparatoDelCircuito a) => a.Clase == ClaseDeAparato.Carga && a.Continua;
+    private static bool EsContinua(CargaDelCircuito a) => a.Clase == ClaseDeAparato.Carga && a.Continua;
 
     /// <summary>
     /// 440-62(b), (c) — I-117: los acondicionadores de habitación del desglose no pasan del 80 % del
@@ -1119,7 +1119,7 @@ public sealed class CuadroDeCarga
     {
         if (!c.TieneDesglose || c.EsDeMotor || c.Resultado is not { } r)
             return null;
-        var unidades = c.Aparatos.Where(a => a.Clase == ClaseDeAparato.AireDeHabitacion && a.CorrientePlacaA > 0m).ToList();
+        var unidades = c.Cargas.Where(a => a.Clase == ClaseDeAparato.AireDeHabitacion && a.CorrientePlacaA > 0m).ToList();
         if (unidades.Count == 0)
             return null;
         if (c.Polos == 3)
@@ -1128,7 +1128,7 @@ public sealed class CuadroDeCarga
             return $"Circuito {c.Espacio}: {NombreDeMaquina(c, grande)} ({grande.CorrientePlacaA:0.##} A) pasa de los 40 A de un acondicionador de habitación — 440-62(a)(2).";
 
         var total = unidades.Sum(a => a.Cantidad * a.CorrientePlacaA);
-        var conOtras = c.Aparatos.Any(a => a.Clase != ClaseDeAparato.AireDeHabitacion && a.TotalVA > 0m);
+        var conOtras = c.Cargas.Any(a => a.Clase != ClaseDeAparato.AireDeHabitacion && a.TotalVA > 0m);
         var fraccion = conOtras ? 0.5m : 0.8m;
         if (total <= fraccion * r.ProteccionA)
             return null;
@@ -1146,7 +1146,7 @@ public sealed class CuadroDeCarga
     /// Más de 93.25 W (⅛ hp) — 220-18(a). En HP, los de la tabla empiezan en ⅙; en amperes, sus HP
     /// interpolados (430-6(a)(1)).
     /// </summary>
-    private static bool MasDeUnOctavoDeHp(AparatoDelCircuito a) =>
+    private static bool MasDeUnOctavoDeHp(CargaDelCircuito a) =>
         (a.CapturaMotor == CapturaDeMotor.Hp ? a.Hp : a.MotorEnAmperes?.Hp) > 0.125m;
 
     /// <summary>
@@ -1155,9 +1155,9 @@ public sealed class CuadroDeCarga
     /// </summary>
     private static string? ErrorDeMotoresEnDesglose(CircuitoDelCuadro c)
     {
-        if (c.Aparatos.FirstOrDefault(a => a.EsMaquina && a.Error is not null) is { } malo)
+        if (c.Cargas.FirstOrDefault(a => a.EsMaquina && a.Error is not null) is { } malo)
             return $"{NombreDeMaquina(c, malo)}: {malo.Error}";
-        if (c.Aparatos.Any(a => a.EsMaquina && a.CorrienteUnitariaA > 0m) && !c.Aparatos.Any(a => !a.EsMaquina && a.TotalVA > 0m))
+        if (c.Cargas.Any(a => a.EsMaquina && a.CorrienteUnitariaA > 0m) && !c.Cargas.Any(a => !a.EsMaquina && a.TotalVA > 0m))
             return "220-18(a): el circuito solo alimenta motores, y eso se calcula con el Art. 430. Cambia el tipo a Motor " +
                    "con la unidad «Varios» (430-53), o agrega las otras cargas del circuito.";
         return null;
@@ -1179,9 +1179,9 @@ public sealed class CuadroDeCarga
     /// <summary>
     /// La corriente de una máquina del desglose, por unidad: la FLC de tabla por sus HP, la de un motor
     /// marcado en amperes (sus HP, interpolados — 430-6(a)(1)) o la de 440-6(a) de un motocompresor. En
-    /// cero, con <see cref="AparatoDelCircuito.Error"/> si la tabla no la trae. Una carga queda en cero.
+    /// cero, con <see cref="CargaDelCircuito.Error"/> si la tabla no la trae. Una carga queda en cero.
     /// </summary>
-    private void CorrienteDeMaquina(AparatoDelCircuito a, int polos, decimal tension)
+    private void CorrienteDeMaquina(CargaDelCircuito a, int polos, decimal tension)
     {
         a.CorrienteUnitariaA = 0m;
         a.MotorEnAmperes = null;
@@ -1620,14 +1620,14 @@ public sealed class CuadroDeCarga
     /// </summary>
     private void CalcularGrupo(CircuitoDelCuadro c, CanalizacionDelTablero canal)
     {
-        if (c.Aparatos.FirstOrDefault(a => a.EsMaquina && a.Error is not null) is { } malo)
+        if (c.Cargas.FirstOrDefault(a => a.EsMaquina && a.Error is not null) is { } malo)
         {
             c.Error = $"{NombreDeMaquina(c, malo)}: {malo.Error}";
             return;
         }
 
-        var maquinas = c.Aparatos.Where(a => a.EsMaquina && a.CorrienteUnitariaA > 0m).ToList();
-        var otras = c.Aparatos.Where(a => !a.EsMaquina && a.TotalVA > 0m).ToList();
+        var maquinas = c.Cargas.Where(a => a.EsMaquina && a.CorrienteUnitariaA > 0m).ToList();
+        var otras = c.Cargas.Where(a => !a.EsMaquina && a.TotalVA > 0m).ToList();
         if (maquinas.Count == 0)
         {
             c.Error = "430-53: el grupo no tiene motores. Agrégalos en el desglose (la flecha junto a la descripción), o cambia la unidad.";
@@ -1700,18 +1700,18 @@ public sealed class CuadroDeCarga
             TerminalesMarcadas75C: Datos.TerminalesMarcadas75C));
 
     /// <summary>«Extractor», o «Motor 2» si no se describió: el número de su renglón en el desglose.</summary>
-    public static string NombreDeMaquina(CircuitoDelCuadro c, AparatoDelCircuito a) =>
+    public static string NombreDeMaquina(CircuitoDelCuadro c, CargaDelCircuito a) =>
         !string.IsNullOrWhiteSpace(a.Descripcion) ? a.Descripcion.Trim()
-        : $"{(a.Clase == ClaseDeAparato.Motocompresor ? "Motocompresor" : "Motor")} {c.Aparatos.IndexOf(a) + 1}";
+        : $"{(a.Clase == ClaseDeAparato.Motocompresor ? "Motocompresor" : "Motor")} {c.Cargas.IndexOf(a) + 1}";
 
     /// <summary>
     /// De dónde sale la corriente de una máquina del grupo, para la cita: «½ HP, Tabla 430-248, columna
     /// de 127 V», «marcado en amperes: …, 430-6(a)(1)» o la placa de un motocompresor.
     /// </summary>
-    public string OrigenDeLaCorriente(AparatoDelCircuito a, int polos) =>
+    public string OrigenDeLaCorriente(CargaDelCircuito a, int polos) =>
         OrigenDeLaCorriente(a, polos, MotoresEnHp.Tension(polos, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV));
 
-    private string OrigenDeLaCorriente(AparatoDelCircuito a, int polos, decimal tension) =>
+    private string OrigenDeLaCorriente(CargaDelCircuito a, int polos, decimal tension) =>
         a.Clase == ClaseDeAparato.Motocompresor
             ? a.CorrienteSeleccionA > a.CorrientePlacaA
                 ? $"corriente de selección del circuito derivado de la placa (mayor que la de carga nominal, {a.CorrientePlacaA:0.##} A) — 440-6(a) Exc. 1"
@@ -1963,7 +1963,7 @@ public sealed class CuadroDeCarga
             .SelectMany(c => c.EsGrupo
                 // UN GRUPO ENTRA MOTOR POR MOTOR — I-115: el 125 % de 430-24 es del motor mayor del
                 // alimentador, no del circuito que lo lleva. Todos con la protección de su circuito.
-                ? c.Aparatos
+                ? c.Cargas
                     .Where(a => a.EsMaquina && a.CorrienteUnitariaA > 0m)
                     .SelectMany(a => Enumerable.Repeat(a.CorrienteUnitariaA, a.Cantidad))
                     .Select(i => new MotorDelAlimentador(c, i, FactorDeDemanda(c), c.Resultado?.ProteccionA, false))

@@ -177,12 +177,12 @@ public sealed class CircuitoDelCuadro
             CapturaDeMotor.Hp => Hp > 0m,
             CapturaDeMotor.Amperes => CorrientePlacaA > 0m,
             CapturaDeMotor.Variador => CorrienteEntradaVariadorA > 0m,
-            _ => Aparatos.Any(a => a.EsMaquina && a.TieneCapturaDeMaquina),
+            _ => Cargas.Any(a => a.EsMaquina && a.TieneCapturaDeMaquina),
         }
         : EsAireAcondicionado && PlacaAire switch
         {
             PlacaDeAireAcondicionado.AmpacidadYProteccion => AmpacidadMinimaA > 0m,
-            PlacaDeAireAcondicionado.Grupo => Aparatos.Any(a => a.EsMaquina && a.TieneCapturaDeMaquina),
+            PlacaDeAireAcondicionado.Grupo => Cargas.Any(a => a.EsMaquina && a.TieneCapturaDeMaquina),
             _ => CorrientePlacaA > 0m,
         };
 
@@ -223,33 +223,33 @@ public sealed class CircuitoDelCuadro
     /// Los aparatos que alimenta, si se desglosa — I-35. Con al menos uno, la carga, la unidad y el
     /// F.P. del circuito salen de ellos (la suma, y el F.P. combinado) y no se capturan.
     /// </summary>
-    public List<AparatoDelCircuito> Aparatos { get; } = [];
+    public List<CargaDelCircuito> Cargas { get; } = [];
 
     /// <summary>
     /// Se desglosa. Un motor o un equipo de A/C es un solo equipo: no se desglosa, y los aparatos que
     /// trajera de otro tipo se conservan sin contar, como la continua y la no continua. Un grupo
     /// (<see cref="EsGrupo"/>) sí: sus aparatos son los motores y las otras cargas.
     /// </summary>
-    public bool TieneDesglose => Aparatos.Count > 0 && (!EsDeMotor || EsGrupo);
+    public bool TieneDesglose => Cargas.Count > 0 && (!EsDeMotor || EsGrupo);
 
     /// <summary>
     /// Abre el desglose. Si el circuito ya traía carga, se convierte en los primeros aparatos —
     /// continua y no continua por separado— para no perder lo capturado. En un motor la continua y la
     /// no continua son de otro tipo y no cuentan: no se convierten.
     /// </summary>
-    public AparatoDelCircuito AgregarAparato()
+    public CargaDelCircuito AgregarCarga()
     {
         if (!TieneDesglose && !EsDeMotor)
         {
             var nombre = string.IsNullOrWhiteSpace(Descripcion) ? "Carga capturada" : Descripcion.Trim();
             if (Continua > 0m)
-                Aparatos.Add(new AparatoDelCircuito { Descripcion = nombre, Unidad = Unidad, CargaUnitaria = Continua, Continua = true, FactorPotencia = FactorPotencia });
+                Cargas.Add(new CargaDelCircuito { Descripcion = nombre, Unidad = Unidad, CargaUnitaria = Continua, Continua = true, FactorPotencia = FactorPotencia });
             if (NoContinua > 0m)
-                Aparatos.Add(new AparatoDelCircuito { Descripcion = nombre, Unidad = Unidad, CargaUnitaria = NoContinua, FactorPotencia = FactorPotencia });
+                Cargas.Add(new CargaDelCircuito { Descripcion = nombre, Unidad = Unidad, CargaUnitaria = NoContinua, FactorPotencia = FactorPotencia });
         }
 
-        var nuevo = new AparatoDelCircuito();
-        Aparatos.Add(nuevo);
+        var nuevo = new CargaDelCircuito();
+        Cargas.Add(nuevo);
         return nuevo;
     }
 
@@ -257,13 +257,13 @@ public sealed class CircuitoDelCuadro
     /// El aparato con motor que entra al 125 % — 220-18(a), I-118: el mayor de más de ⅛ hp, cuando va con
     /// otras cargas. <c>null</c> si no hay. Lo pone <see cref="CuadroDeCarga"/>.
     /// </summary>
-    public AparatoDelCircuito? MotorAl125 { get; internal set; }
+    public CargaDelCircuito? MotorAl125 { get; internal set; }
 
     /// <summary>Agrega un motor al grupo, en HP — I-115; o, con <paramref name="clase"/>, un motocompresor — I-116.</summary>
-    public AparatoDelCircuito AgregarMotor(ClaseDeAparato clase = ClaseDeAparato.Motor)
+    public CargaDelCircuito AgregarMotor(ClaseDeAparato clase = ClaseDeAparato.Motor)
     {
-        var nuevo = new AparatoDelCircuito { Clase = clase, FactorPotencia = FactorPotencia };
-        Aparatos.Add(nuevo);
+        var nuevo = new CargaDelCircuito { Clase = clase, FactorPotencia = FactorPotencia };
+        Cargas.Add(nuevo);
         return nuevo;
     }
 
@@ -276,8 +276,8 @@ public sealed class CircuitoDelCuadro
     {
         if (!EsAireAcondicionado || EsGrupo)
             return;
-        if (!Aparatos.Any(a => a.EsMaquina) && PlacaAire == PlacaDeAireAcondicionado.CorrienteNominal && CorrientePlacaA > 0m)
-            Aparatos.Insert(0, new AparatoDelCircuito
+        if (!Cargas.Any(a => a.EsMaquina) && PlacaAire == PlacaDeAireAcondicionado.CorrienteNominal && CorrientePlacaA > 0m)
+            Cargas.Insert(0, new CargaDelCircuito
             {
                 Descripcion = string.IsNullOrWhiteSpace(Descripcion) ? "Motocompresor" : Descripcion.Trim(),
                 Clase = ClaseDeAparato.Motocompresor,
@@ -296,8 +296,8 @@ public sealed class CircuitoDelCuadro
     {
         if (!EsMotor || EsGrupo)
             return;
-        if (!Aparatos.Any(a => a.EsMaquina) && TieneCapturaDeMotor)
-            Aparatos.Insert(0, new AparatoDelCircuito
+        if (!Cargas.Any(a => a.EsMaquina) && TieneCapturaDeMotor)
+            Cargas.Insert(0, new CargaDelCircuito
             {
                 Descripcion = string.IsNullOrWhiteSpace(Descripcion) ? "Motor" : Descripcion.Trim(),
                 Clase = ClaseDeAparato.Motor,
@@ -452,7 +452,7 @@ public sealed class CircuitoDelCuadro
     /// </summary>
     public bool TieneCaptura =>
         !string.IsNullOrWhiteSpace(Descripcion) || Continua > 0m || NoContinua > 0m || Hp > 0m || CorrientePlacaA > 0m
-        || AmpacidadMinimaA > 0m || CorrienteEntradaVariadorA > 0m || Aparatos.Count > 0 || Polos > 1
+        || AmpacidadMinimaA > 0m || CorrienteEntradaVariadorA > 0m || Cargas.Count > 0 || Polos > 1
         || Servicio is not null || NoSimultaneoCon is not null;
 
     /// <summary>

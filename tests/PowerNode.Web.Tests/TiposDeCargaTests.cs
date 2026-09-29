@@ -246,14 +246,14 @@ public class TiposDeCargaTests
         var cuadro = Nuevo();
         var c = Espacio(cuadro, 1);
         c.Descripcion = "Cocina";
-        c.AgregarAparato().CargaUnitaria = 500m;
+        c.AgregarCarga().CargaUnitaria = 500m;
         c.Categoria = CategoriaDeCarga.AireAcondicionado;
         c.AmpacidadMinimaA = 10m;
         c.ProteccionMaximaA = 15m;
         cuadro.Recalcular();
 
         Assert.False(c.TieneDesglose);           // los aparatos se conservan, no cuentan
-        Assert.Single(c.Aparatos);
+        Assert.Single(c.Cargas);
         Assert.Equal(10m, c.Resultado!.CorrienteDisenoA);
     }
 
@@ -266,9 +266,9 @@ public class TiposDeCargaTests
     {
         var cuadro = Nuevo();
         var c = Con(cuadro, 1, CategoriaDeCarga.Equipo, 1, c => { });
-        c.AgregarAparato();
-        c.Aparatos[0].Descripcion = "Horno";
-        c.Aparatos[0].CargaUnitaria = 1500m;
+        c.AgregarCarga();
+        c.Cargas[0].Descripcion = "Horno";
+        c.Cargas[0].CargaUnitaria = 1500m;
         cuadro.Recalcular();
         Assert.Contains(PowerNode.Web.Modelo.Memoria.MemoriaDeCalculo.Secciones(PowerNode.Web.Modelo.Memoria.MemoriaDeCalculo.DeCircuito(cuadro, c))[0].Renglones,
             r => r.Rotulo.StartsWith("Aparato 1"));
@@ -278,7 +278,7 @@ public class TiposDeCargaTests
         c.ProteccionMaximaA = 30m;
         cuadro.Recalcular();
 
-        Assert.Single(c.Aparatos);
+        Assert.Single(c.Cargas);
         var seccion1 = PowerNode.Web.Modelo.Memoria.MemoriaDeCalculo.Secciones(PowerNode.Web.Modelo.Memoria.MemoriaDeCalculo.DeCircuito(cuadro, c))[0];
         Assert.DoesNotContain(seccion1.Renglones, r => r.Rotulo.StartsWith("Aparato"));
     }

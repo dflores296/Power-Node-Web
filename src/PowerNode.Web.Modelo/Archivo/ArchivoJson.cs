@@ -144,7 +144,7 @@ public sealed class CircuitoJson
         Polos = c.Polos,
         ConNeutro = c.ConNeutro,
         Canalizacion = c.Canalizacion,
-        Aparatos = c.Aparatos.Count == 0 ? null : c.Aparatos.Select(AparatoJson.De).ToList(),
+        Aparatos = c.Cargas.Count == 0 ? null : c.Cargas.Select(AparatoJson.De).ToList(),
     };
 
     /// <summary>Igual a un espacio recién hecho: no se guarda.</summary>
@@ -199,9 +199,9 @@ public sealed class CircuitoJson
             c.Polos = c.PolosElegidos = polos;
         c.ConNeutro = ConNeutro ?? c.ConNeutro;
         c.Canalizacion = Canalizacion ?? c.Canalizacion;
-        c.Aparatos.Clear();
+        c.Cargas.Clear();
         foreach (var (a, n) in (Aparatos ?? []).Select((a, i) => (a, i + 1)))
-            c.Aparatos.Add(a.Crear($"El aparato {n} del circuito {Espacio}", avisos));
+            c.Cargas.Add(a.Crear($"El aparato {n} del circuito {Espacio}", avisos));
 
         if (eraMotorOAire)
             DeMotorOAire(c, datos, avisos);
@@ -256,7 +256,7 @@ public sealed class CircuitoJson
     }
 }
 
-/// <summary>Un aparato del desglose — <see cref="AparatoDelCircuito"/>.</summary>
+/// <summary>Un aparato del desglose — <see cref="CargaDelCircuito"/>.</summary>
 public sealed class AparatoJson
 {
     public string? Descripcion { get; set; }
@@ -272,7 +272,7 @@ public sealed class AparatoJson
     public decimal? CorrientePlaca { get; set; }
     public decimal? CorrienteSeleccion { get; set; }
 
-    public static AparatoJson De(AparatoDelCircuito a) => new()
+    public static AparatoJson De(CargaDelCircuito a) => new()
     {
         Descripcion = a.Descripcion,
         Cantidad = a.Cantidad,
@@ -287,9 +287,9 @@ public sealed class AparatoJson
         CorrienteSeleccion = a.CorrienteSeleccionA,
     };
 
-    internal AparatoDelCircuito Crear(string quien, List<string> avisos)
+    internal CargaDelCircuito Crear(string quien, List<string> avisos)
     {
-        var a = new AparatoDelCircuito();
+        var a = new CargaDelCircuito();
         a.Descripcion = Descripcion ?? a.Descripcion;
         a.Cantidad = Cantidad is >= 1 ? Cantidad.Value : a.Cantidad;
         a.Unidad = Unidad ?? a.Unidad;

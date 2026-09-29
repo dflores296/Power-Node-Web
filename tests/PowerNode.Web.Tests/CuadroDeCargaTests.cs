@@ -951,17 +951,17 @@ public class CuadroDeCargaTests
         var cuadro = Nuevo();
         var c = Espacio(cuadro, 1);
         c.Categoria = CategoriaDeCarga.Equipo;
-        var estufa = c.AgregarAparato();
+        var estufa = c.AgregarCarga();
         estufa.Descripcion = "Estufa";
         estufa.Unidad = UnidadConsumo.Watts;
         estufa.CargaUnitaria = 900m;
         estufa.FactorPotencia = 1m;
-        var refri = c.AgregarAparato();
+        var refri = c.AgregarCarga();
         refri.Descripcion = "Refrigerador";
         refri.CargaUnitaria = 750m;
         refri.Continua = true;
         refri.FactorPotencia = 0.8m;
-        var focos = c.AgregarAparato();
+        var focos = c.AgregarCarga();
         focos.Descripcion = "Focos";
         focos.Cantidad = 2;
         focos.CargaUnitaria = 100m;
@@ -985,10 +985,10 @@ public class CuadroDeCargaTests
         c.Descripcion = "Cocina";
         c.Continua = 500m;
         c.NoContinua = 800m;
-        c.AgregarAparato();
+        c.AgregarCarga();
         cuadro.Recalcular();
 
-        Assert.Equal(3, c.Aparatos.Count); // la continua, la no continua y el nuevo
+        Assert.Equal(3, c.Cargas.Count); // la continua, la no continua y el nuevo
         Assert.Equal(500m, c.ContinuaVA);
         Assert.Equal(800m, c.NoContinuaVA);
     }
@@ -999,7 +999,7 @@ public class CuadroDeCargaTests
         var cuadro = Nuevo();
         var c = Espacio(cuadro, 1);
         c.Categoria = CategoriaDeCarga.Contactos;
-        var contactos = c.AgregarAparato();
+        var contactos = c.AgregarCarga();
         contactos.Descripcion = "Contacto doble";
         contactos.Cantidad = 5;
         cuadro.Recalcular();
@@ -1014,10 +1014,10 @@ public class CuadroDeCargaTests
         var cuadro = Nuevo();
         var c = Espacio(cuadro, 1);
         c.Categoria = CategoriaDeCarga.CalefaccionFija;
-        c.AgregarAparato().CargaUnitaria = 1000m;
+        c.AgregarCarga().CargaUnitaria = 1000m;
         cuadro.Recalcular();
 
-        Assert.True(c.Aparatos.Single().Continua);
+        Assert.True(c.Cargas.Single().Continua);
         Assert.Equal(1000m, c.ContinuaVA);
         Assert.Equal(0m, c.NoContinuaVA);
     }
@@ -1028,7 +1028,7 @@ public class CuadroDeCargaTests
         var cuadro = Nuevo();
         Assert.Null(cuadro.CambiarPolos(Espacio(cuadro, 1), 2));
         var c = Espacio(cuadro, 1);
-        var a = c.AgregarAparato();
+        var a = c.AgregarCarga();
         a.Unidad = UnidadConsumo.Amperes;
         a.CargaUnitaria = 10m;
         cuadro.Recalcular();
@@ -1042,10 +1042,10 @@ public class CuadroDeCargaTests
     {
         var cuadro = Nuevo();
         var c = Espacio(cuadro, 1);
-        var a = c.AgregarAparato();
+        var a = c.AgregarCarga();
         a.CargaUnitaria = 600m;
         cuadro.Recalcular();
-        c.Aparatos.Remove(a);
+        c.Cargas.Remove(a);
         cuadro.Recalcular();
 
         Assert.False(c.TieneDesglose);

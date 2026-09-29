@@ -257,7 +257,7 @@
                             }
                             else if (c.TieneDesglose)
                             {
-                                <span class="en-va izq">(@c.Aparatos.Sum(x => x.Cantidad) aparato@(c.Aparatos.Sum(x => x.Cantidad) == 1 ? "" : "s"))</span>
+                                <span class="en-va izq">(@c.Cargas.Sum(x => x.Cantidad) aparato@(c.Cargas.Sum(x => x.Cantidad) == 1 ? "" : "s"))</span>
                             }
                         </td>
                         <td rowspan="@c.Polos">
@@ -575,7 +575,7 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach (var (aparato, n) in c.Aparatos.Select((a, i) => (a, i + 1)))
+                                        @foreach (var (aparato, n) in c.Cargas.Select((a, i) => (a, i + 1)))
                                         {
                                             <tr>
                                                 <td class="izq"><input class="desc" data-col="ap-desc" aria-label="Circuito @c.Espacio, aparato @n · Descripción" @bind="aparato.Descripcion" @bind:after="Recalcular" placeholder="Aparato (Contacto: 180 VA)" /></td>
@@ -672,20 +672,20 @@
                                                 {
                                                     <button class="agregar" data-agregar="@c.Espacio" @onclick="() => AgregarMotor(c, ClaseDeAparato.Motocompresor)"><Icono Nombre="agregar" Tamano="14" />Agregar motocompresor</button>
                                                     <button class="agregar" data-agregar-motor="@c.Espacio" @onclick="() => AgregarMotor(c)"><Icono Nombre="agregar" Tamano="14" />Agregar motor</button>
-                                                    <button class="agregar" data-agregar-carga="@c.Espacio" @onclick="() => AgregarAparato(c)"><Icono Nombre="agregar" Tamano="14" />Agregar otra carga</button>
+                                                    <button class="agregar" data-agregar-carga="@c.Espacio" @onclick="() => AgregarCarga(c)"><Icono Nombre="agregar" Tamano="14" />Agregar otra carga</button>
                                                 }
                                                 else if (grupo)
                                                 {
                                                     <button class="agregar" data-agregar="@c.Espacio" @onclick="() => AgregarMotor(c)"><Icono Nombre="agregar" Tamano="14" />Agregar motor</button>
-                                                    <button class="agregar" data-agregar-carga="@c.Espacio" @onclick="() => AgregarAparato(c)"><Icono Nombre="agregar" Tamano="14" />Agregar otra carga</button>
+                                                    <button class="agregar" data-agregar-carga="@c.Espacio" @onclick="() => AgregarCarga(c)"><Icono Nombre="agregar" Tamano="14" />Agregar otra carga</button>
                                                 }
                                                 else
                                                 {
-                                                    <button class="agregar" data-agregar="@c.Espacio" @onclick="() => AgregarAparato(c)"><Icono Nombre="agregar" Tamano="14" />Agregar aparato</button>
+                                                    <button class="agregar" data-agregar="@c.Espacio" @onclick="() => AgregarCarga(c)"><Icono Nombre="agregar" Tamano="14" />Agregar aparato</button>
                                                 }
                                             </td>
                                             <td colspan="7" class="num">
-                                                @if (grupo && c.EsAireAcondicionado && c.Aparatos.Any(a => a.Clase == ClaseDeAparato.Motocompresor))
+                                                @if (grupo && c.EsAireAcondicionado && c.Cargas.Any(a => a.Clase == ClaseDeAparato.Motocompresor))
                                                 {
                                                     <label class="arranque-225" title="Marcar si la protección con el 175 % del motocompresor mayor no conduce su corriente de arranque: sube a 225 % — 440-22(a), 440-22(b)(1).">
                                                         <input type="checkbox" aria-label="Circuito @c.Espacio · No arranca al 175 %" checked="@c.ArranqueAl225" @onchange="e => { c.ArranqueAl225 = e.Value is true; Recalcular(); }" />El motocompresor mayor no arranca al 175 %: 225 %</label>
@@ -1725,46 +1725,46 @@
             return;
         }
         _desgloseAbierto.Add(c.Espacio);
-        _enfocar = c.Aparatos.Count > 0 ? DescripcionDeAparato(c.Espacio, 1) : AgregarDe(c.Espacio);
+        _enfocar = c.Cargas.Count > 0 ? DescripcionDeAparato(c.Espacio, 1) : AgregarDe(c.Espacio);
     }
 
-    private void AgregarAparato(CircuitoDelCuadro c)
+    private void AgregarCarga(CircuitoDelCuadro c)
     {
-        c.AgregarAparato();
+        c.AgregarCarga();
         Recalcular();
-        _enfocar = DescripcionDeAparato(c.Espacio, c.Aparatos.Count);
+        _enfocar = DescripcionDeAparato(c.Espacio, c.Cargas.Count);
     }
 
     private void AgregarMotor(CircuitoDelCuadro c, ClaseDeAparato clase = ClaseDeAparato.Motor)
     {
         c.AgregarMotor(clase);
         Recalcular();
-        _enfocar = DescripcionDeAparato(c.Espacio, c.Aparatos.Count);
+        _enfocar = DescripcionDeAparato(c.Espacio, c.Cargas.Count);
     }
 
     /// <summary>«3 motores», «2 motores, 1 carga»: lo que lleva un grupo — I-115.</summary>
     private static string TextoDelGrupo(CircuitoDelCuadro c)
     {
-        int Cuantos(ClaseDeAparato clase) => c.Aparatos.Where(a => a.Clase == clase).Sum(a => a.Cantidad);
+        int Cuantos(ClaseDeAparato clase) => c.Cargas.Where(a => a.Clase == clase).Sum(a => a.Cantidad);
         var partes = new List<string>();
         if (Cuantos(ClaseDeAparato.Motocompresor) is > 0 and var compresores)
             partes.Add($"{compresores} motocompresor{(compresores == 1 ? "" : "es")}");
         if (Cuantos(ClaseDeAparato.Motor) is var motores && (motores > 0 || partes.Count == 0))
             partes.Add($"{motores} motor{(motores == 1 ? "" : "es")}");
-        if (c.Aparatos.Where(a => !a.EsMaquina).Sum(a => a.Cantidad) is > 0 and var cargas)
+        if (c.Cargas.Where(a => !a.EsMaquina).Sum(a => a.Cantidad) is > 0 and var cargas)
             partes.Add($"{cargas} carga{(cargas == 1 ? "" : "s")}");
         return string.Join(", ", partes);
     }
 
     /// <summary>«Motor|Hp», «Carga|Watts»: la clase y la unidad de un miembro del grupo en un valor — I-115.</summary>
-    private static string UnidadDeMiembro(AparatoDelCircuito a) => a.Clase switch
+    private static string UnidadDeMiembro(CargaDelCircuito a) => a.Clase switch
     {
         ClaseDeAparato.Motor => $"Motor|{a.CapturaMotor}",
         ClaseDeAparato.Carga => $"Carga|{a.Unidad}",
         _ => $"{a.Clase}|{CapturaDeMotor.Amperes}",
     };
 
-    private void CambiarUnidadDeMiembro(AparatoDelCircuito a, string? valor)
+    private void CambiarUnidadDeMiembro(CargaDelCircuito a, string? valor)
     {
         var partes = valor?.Split('|');
         if (partes is not { Length: 2 })
@@ -1808,7 +1808,7 @@
         Recalcular();
     }
 
-    private void CambiarHpDeMiembro(AparatoDelCircuito a, string? valor)
+    private void CambiarHpDeMiembro(CargaDelCircuito a, string? valor)
     {
         if (!decimal.TryParse(valor, NumberStyles.Float, CultureInfo.InvariantCulture, out var hp) || hp < 0m)
             return;
@@ -1817,11 +1817,11 @@
     }
 
     /// <summary>Quita el aparato <paramref name="n"/> y deja el foco en el que queda en su lugar, o en «+ Agregar aparato».</summary>
-    private void QuitarAparato(CircuitoDelCuadro c, AparatoDelCircuito a, int n)
+    private void QuitarAparato(CircuitoDelCuadro c, CargaDelCircuito a, int n)
     {
-        c.Aparatos.Remove(a);
+        c.Cargas.Remove(a);
         Recalcular();
-        _enfocar = c.Aparatos.Count == 0 ? AgregarDe(c.Espacio) : DescripcionDeAparato(c.Espacio, Math.Min(n, c.Aparatos.Count));
+        _enfocar = c.Cargas.Count == 0 ? AgregarDe(c.Espacio) : DescripcionDeAparato(c.Espacio, Math.Min(n, c.Cargas.Count));
     }
 
     /// <summary>
@@ -1846,7 +1846,7 @@
             {
                 c.PasarAGrupo();
                 if (_desgloseAbierto.Add(c.Espacio))
-                    _enfocar = c.Aparatos.Count > 0 ? DescripcionDeAparato(c.Espacio, 1) : AgregarDe(c.Espacio);
+                    _enfocar = c.Cargas.Count > 0 ? DescripcionDeAparato(c.Espacio, 1) : AgregarDe(c.Espacio);
             }
             else
                 c.CapturaMotor = captura;
@@ -1858,7 +1858,7 @@
             {
                 c.PasarAGrupoDeAire();
                 if (_desgloseAbierto.Add(c.Espacio))
-                    _enfocar = c.Aparatos.Count > 0 ? DescripcionDeAparato(c.Espacio, 1) : AgregarDe(c.Espacio);
+                    _enfocar = c.Cargas.Count > 0 ? DescripcionDeAparato(c.Espacio, 1) : AgregarDe(c.Espacio);
             }
             else
                 c.PlacaAire = placa;

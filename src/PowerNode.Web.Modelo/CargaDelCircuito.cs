@@ -33,7 +33,7 @@ public enum ClaseDeAparato
 /// Es opcional: un circuito sin aparatos se captura como siempre, con su total.
 /// </para>
 /// </summary>
-public sealed class AparatoDelCircuito
+public sealed class CargaDelCircuito
 {
     /// <summary>La carga de un contacto, sencillo o múltiple en un mismo yugo — 220-14(i).</summary>
     public const decimal VAPorContacto = 180m;

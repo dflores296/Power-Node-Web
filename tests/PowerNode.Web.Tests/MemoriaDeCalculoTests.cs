@@ -274,7 +274,7 @@ public class MemoriaDeCalculoTests
         var cuadro = new CuadroDeCarga(new MotorNom(Json));
         cuadro.Datos.NumeroEspacios = 6;
         var c = cuadro.Circuitos[0];
-        var estufa = c.AgregarAparato();
+        var estufa = c.AgregarCarga();
         estufa.Descripcion = "Estufa";
         estufa.Unidad = PowerNode.DesignSuite.Calculo.Casos.UnidadConsumo.Watts;
         estufa.CargaUnitaria = 900m;

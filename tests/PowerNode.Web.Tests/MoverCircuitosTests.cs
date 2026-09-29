@@ -39,7 +39,7 @@ public class MoverCircuitosTests
     {
         var cuadro = Nuevo();
         Capturar(cuadro, 1, "Alumbrado", 900m);
-        E(cuadro, 1).Aparatos.Add(new AparatoDelCircuito { Descripcion = "Lámpara", CargaUnitaria = 100m, Cantidad = 9, Continua = true });
+        E(cuadro, 1).Cargas.Add(new CargaDelCircuito { Descripcion = "Lámpara", CargaUnitaria = 100m, Cantidad = 9, Continua = true });
         cuadro.Recalcular();
         var corriente = E(cuadro, 1).Resultado!.CorrienteDisenoA;
 
@@ -47,7 +47,7 @@ public class MoverCircuitosTests
 
         Assert.True(r.Movio);
         Assert.Equal("Alumbrado", E(cuadro, 4).Descripcion);
-        Assert.Single(E(cuadro, 4).Aparatos);
+        Assert.Single(E(cuadro, 4).Cargas);
         Assert.Equal(corriente, E(cuadro, 4).Resultado!.CorrienteDisenoA);
         Assert.Equal("B", E(cuadro, 4).Fases); // cambió de lado y de barra
         Assert.False(E(cuadro, 1).TieneCaptura);
