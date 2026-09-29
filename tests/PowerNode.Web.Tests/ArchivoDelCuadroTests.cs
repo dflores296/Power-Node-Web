@@ -266,6 +266,31 @@ public class ArchivoDelCuadroTests
         Assert.NotNull(cuadro.Alimentador.Resultado);
     }
 
+    /// <summary>I-94: un archivo editado a mano con dos canalizaciones del mismo nombre.</summary>
+    [Fact]
+    public void I94_DosCanalizacionesDelMismoNombreEnElArchivoSeAvisan()
+    {
+        const string texto = """
+            {
+              "formato": "power-node/cuadro-de-carga",
+              "version": 2,
+              "canalizaciones": [ { "id": "T1", "nombre": "T4" }, { "id": "T2", "nombre": "t4" } ],
+              "circuitos": [
+                { "espacio": 1, "noContinua": 900, "canalizacion": "T1" },
+                { "espacio": 3, "noContinua": 900, "canalizacion": "T2" }
+              ]
+            }
+            """;
+
+        var apertura = ArchivoDelCuadro.Abrir(texto, Motor);
+
+        Assert.Null(apertura.Error);
+        var d = apertura.Cuadro!.Datos;
+        Assert.Equal("T4", d.Canalizacion("T1")!.Nombre);
+        Assert.Equal("T2", d.Canalizacion("T2")!.Nombre);
+        Assert.Contains(apertura.Avisos, a => a.Contains("«t4»") && a.Contains("T2"));
+    }
+
     /// <summary>
     /// I-84: en la pantalla ya no entran negativos ni una frecuencia de 0; un archivo editado a mano
     /// los traía igual. Se avisa y se abre con el valor de omisión.

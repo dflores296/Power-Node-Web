@@ -489,12 +489,36 @@ public sealed class DatosDelTablero
     /// </summary>
     public CanalizacionDelTablero NuevaCanalizacion(bool automatica = false)
     {
+        // Tampoco el número que otra ya lleva de nombre: T3 renombrada «T5» y luego nace T5 — I-94.
         var n = 1;
-        while (Canalizaciones.Any(c => c.Id == $"T{n}")) n++;
+        while (Canalizaciones.Any(c => c.Id == $"T{n}") || NombreOcupado($"T{n}", null)) n++;
         var nueva = new CanalizacionDelTablero($"T{n}", automatica) { Tubo = TuboAlNacer };
-        Canalizaciones.Insert(n - 1, nueva); // T1…T(n-1) existen y van antes
+        var lugar = Canalizaciones.FindIndex(c => NumeroDe(c.Id) > n);
+        Canalizaciones.Insert(lugar < 0 ? Canalizaciones.Count : lugar, nueva);
         return nueva;
     }
+
+    private static int NumeroDe(string id) =>
+        id.StartsWith('T') && int.TryParse(id.AsSpan(1), out var n) ? n : int.MaxValue;
+
+    /// <summary>
+    /// Cambia el nombre de una canalización, salvo que otra ya se llame así: en la columna «Canal.»
+    /// se verían dos «T4» — I-94. Devuelve el motivo si no se pudo; borrado, regresa a su número.
+    /// </summary>
+    public string? RenombrarCanalizacion(CanalizacionDelTablero canalizacion, string? nombre)
+    {
+        var nuevo = string.IsNullOrWhiteSpace(nombre) ? canalizacion.Id : nombre.Trim();
+        if (NombreOcupado(nuevo, canalizacion))
+            return $"Ya hay una canalización que se llama «{nuevo}».";
+
+        canalizacion.Nombre = nuevo;
+        return null;
+    }
+
+    /// <summary>Otra canalización, sin contar <paramref name="salvo"/>, ya se llama así (sin distinguir mayúsculas).</summary>
+    public bool NombreOcupado(string nombre, CanalizacionDelTablero? salvo) =>
+        Canalizaciones.Append(CanalizacionAlimentador)
+            .Any(c => c != salvo && string.Equals(c.Nombre, nombre.Trim(), StringComparison.OrdinalIgnoreCase));
 
     public CanalizacionDelTablero? Canalizacion(string? id) =>
         id is null ? null : Canalizaciones.FirstOrDefault(c => c.Id == id);

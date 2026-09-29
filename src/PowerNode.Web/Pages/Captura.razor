@@ -1119,7 +1119,7 @@
             {
                 <td class="nombre-canal">
                     <div class="nombre-controles">
-                        <input type="text" maxlength="40" data-col="cn-nombre" aria-label="@CuadroDeCarga.NombreDe(t) · Nombre" value="@t.Nombre" title="Editar el nombre. Borrado, regresa a @t.Id." @onchange="e => { t.Nombre = e.Value?.ToString() ?? string.Empty; Recalcular(); }" />
+                        <input type="text" maxlength="40" data-col="cn-nombre" aria-label="@CuadroDeCarga.NombreDe(t) · Nombre" value="@t.Nombre" title="Editar el nombre. Borrado, regresa a @t.Id." @onchange="e => RenombrarCanalizacion(t, e.Value?.ToString())" />
                         @if (!t.Automatica || t.Circuitos.Count > 1)
                         {
                             <button class="quitar" title="Quitar la canalización: cada uno de sus circuitos recibe un tubo nuevo, EMT." aria-label="Quitar @CuadroDeCarga.NombreDe(t)" @onclick="() => QuitarCanalizacion(t)"><Icono Nombre="quitar" Tamano="14" /></button>
@@ -1535,6 +1535,18 @@
             Avisar($"El circuito {circuito.Espacio} no puede pasar a {polos} polos. {motivo}", bien: false);
             await Restablecer($"[aria-label=\"Circuito {circuito.Espacio} · Polos\"]", circuito.Polos.ToString(CultureInfo.InvariantCulture));
         }
+    }
+
+    /// <summary>Dos canalizaciones con el mismo nombre se verían iguales en «Canal.»: se rechaza — I-94.</summary>
+    private async Task RenombrarCanalizacion(CanalizacionDelTablero t, string? nombre)
+    {
+        if (Datos.RenombrarCanalizacion(t, nombre) is { } motivo)
+        {
+            Avisar($"{motivo} El nombre de {t.Id} se queda en «{t.Nombre}».", bien: false);
+            await Restablecer($"tr[data-canal=\"{t.Id}\"] input[data-col=\"cn-nombre\"]", t.Nombre);
+            return;
+        }
+        Recalcular();
     }
 
     /// <summary>

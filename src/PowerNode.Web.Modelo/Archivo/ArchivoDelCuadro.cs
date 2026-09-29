@@ -250,6 +250,12 @@ public static class ArchivoDelCuadro
                 continue;
             var tubo = new CanalizacionDelTablero(t.Id, t.Automatica ?? false);
             t.Aplicar(tubo);
+            if (d.NombreOcupado(tubo.Nombre, null))
+            {
+                // Editado a mano: dos con el mismo nombre se verían iguales en «Canal.» — I-94.
+                avisos.Add($"Dos canalizaciones se llaman «{tubo.Nombre}»; la {tubo.Id} se abrió con su número.");
+                tubo.Nombre = tubo.Id;
+            }
             d.Canalizaciones.Add(tubo);
         }
         archivo.CanalizacionAlimentador?.Aplicar(d.CanalizacionAlimentador);

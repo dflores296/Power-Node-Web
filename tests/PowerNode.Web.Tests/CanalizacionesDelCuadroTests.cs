@@ -35,6 +35,39 @@ public class CanalizacionesDelCuadroTests
         return c;
     }
 
+    /// <summary>
+    /// I-94: dos canalizaciones podían llamarse «T4» y en «Canal.» se veían iguales. El nombre
+    /// repetido se rechaza, y una que nace no toma el número que otra ya lleva de nombre.
+    /// </summary>
+    [Fact]
+    public void I94_DosCanalizacionesNoPuedenLlamarseIgual()
+    {
+        var cuadro = Nuevo();
+        Carga(cuadro, 1, 10m);
+        Carga(cuadro, 2, 10m);
+        Carga(cuadro, 3, 10m);
+        cuadro.Recalcular();
+        var d = cuadro.Datos;
+        var (t1, t2) = (d.Canalizacion("T1")!, d.Canalizacion("T2")!);
+
+        Assert.Null(d.RenombrarCanalizacion(t1, "T4"));
+        Assert.NotNull(d.RenombrarCanalizacion(t2, "t4"));
+        Assert.Equal("T2", t2.Nombre);
+        Assert.NotNull(d.RenombrarCanalizacion(t2, "T3"));
+        Assert.NotNull(d.RenombrarCanalizacion(t2, "Alimentador"));
+
+        // T1 se llama «T4»: la siguiente que nace es la T5, en su lugar de la lista.
+        var nueva = d.NuevaCanalizacion();
+        Assert.Equal("T5", nueva.Id);
+        Assert.Equal(["T1", "T2", "T3", "T5"], d.Canalizaciones.Select(t => t.Id));
+
+        // Borrado regresa a su número, salvo que otra ya se llame así.
+        Assert.Null(d.RenombrarCanalizacion(t2, "Bajada"));
+        Assert.Null(d.RenombrarCanalizacion(t1, "T2"));
+        Assert.NotNull(d.RenombrarCanalizacion(t2, ""));
+        Assert.Equal("Bajada", t2.Nombre);
+    }
+
     [Fact]
     public void I41_SoloLosMonopolaresLlevanNeutro_SalvoLaCasilla()
     {
