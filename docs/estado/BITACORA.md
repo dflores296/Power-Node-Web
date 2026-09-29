@@ -106,6 +106,15 @@ A `main` por avance rápido (pedido de David). Sin listas de revisión hasta que
 - El tipo se elige: «—» por omisión y sin calcular hasta elegirlo — I-111; sin icono en el cuadro — I-112,
   `1472560`. A `main` por avance rápido. Sigue: varios motores en un circuito (430-53), por platicar.
 
+**Motores y A/C contra la norma** (pedido de David: medir todo, flujo del ingeniero, la norma en todo,
+propuesta en tabla). Texto de la NOM leído del corpus de `dflores296/NOM-001-SEDE-2012`.
+
+- Propuesta y hallazgos abiertos — [`../decisiones/motores-y-equipos-en-grupo.md`](../decisiones/motores-y-equipos-en-grupo.md),
+  `b2fec52`. David: las cinco fases; interruptor de grupo = mayor estándar ≤ límite; MCA al 100 %.
+- Fase 0: el F.D. no reduce al motor mayor y la MCA entra al 100 % — M-12, M-13, `9a3c7f0`; la memoria
+  sin aparatos que no cuentan — I-113, `ee6f3ac`; alimentación y tabla bajo el HP, HP de cualquier
+  alimentación, sin «+N» en trifásico, guía de clasificación — I-114, `4e24e18`. A `main`.
+
 ## 2026-09-28
 
 **Auditoría de interfaz** (pedido de David: botones desalineados, texto cortado o chueco, funcionalidad).

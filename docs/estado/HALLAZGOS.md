@@ -66,8 +66,8 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | M-09 · Techo de 430-63 con la otra carga al 100 %, no como la pide 215-3 | P2 | **Cerrado** | `8099fb1` |
 | M-10 · Mensaje del motor que remite a «Configuración», pantalla del escritorio | P3 | **Cerrado** | `663f1b9` |
 | M-11 · La Tabla 5 perdía THHN 4/0 a 300 y XHHW de 250 kcmil en adelante: pedía el diámetro del fabricante | P2 | **Cerrado** | `7ffac7a` |
-| M-12 · El F.D. de motores reduce también al motor mayor: alimentador de menos (430-26) | P1 | Abierto | — |
-| M-13 · Un A/C con MCA recibe otro 25 % en el alimentador (440-4(b), 440-33) | P3 | Abierto | — |
+| M-12 · El F.D. de motores reduce también al motor mayor: alimentador de menos (430-26) | P1 | **Cerrado** | `9a3c7f0` |
+| M-13 · Un A/C con MCA recibe otro 25 % en el alimentador (440-4(b), 440-33) | P3 | **Cerrado** | `9a3c7f0` |
 | I-43 · Canalización de los circuitos sin compartida fijada en Condiciones de cálculo | P2 | **Cerrado** | `58febd2` |
 | I-44 · «Propia» como nombre de tubería; opciones apiladas que ensanchaban el renglón; columna vacía | P2 | **Cerrado** | `c7ab778` |
 | I-45 · El selector «Canal.» mostraba otro tubo que el del circuito | P1 | **Cerrado** | `2ddc0b5` |
@@ -138,8 +138,8 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-110 · La pantalla de carga salía a la izquierda y luego brincaba al centro | P3 | **Cerrado** | `e5e13b5` |
 | I-111 · Tipo «Alumbrado» por omisión: un circuito sin cambiar se calculaba como alumbrado | P2 | **Cerrado** | `1472560` |
 | I-112 · Icono del tipo en el cuadro, repetido con el selector | P3 | **Cerrado** | `1472560` |
-| I-113 · La memoria de un Motor o A/C imprime aparatos que no cuentan | P2 | Abierto | — |
-| I-114 · Sin la alimentación ni la tabla bajo el HP; «+N» en motor trifásico; sin guía para clasificar | P3 | Abierto | — |
+| I-113 · La memoria de un Motor o A/C imprime aparatos que no cuentan | P2 | **Cerrado** | `ee6f3ac` |
+| I-114 · Sin la alimentación ni la tabla bajo el HP; «+N» en motor trifásico; sin guía para clasificar | P3 | **Cerrado** | `4e24e18` |
 | I-115 · Un circuito admite un solo motor: sin 430-53 ni 430-24 en el circuito | P1 | Abierto | — |
 | I-116 · Sin varios motocompresores en un circuito (440-22(b), 440-33) | P2 | Abierto | — |
 | I-117 · Sin acondicionador de habitación (440 Parte G) | P3 | Abierto | — |
@@ -436,13 +436,13 @@ Medición de David («no se puede meter más que un motor por circuito»): el c�
 NOM (corpus de `dflores296/NOM-001-SEDE-2012`). Propuesta y decisiones en
 [`../decisiones/motores-y-equipos-en-grupo.md`](../decisiones/motores-y-equipos-en-grupo.md).
 
-**M-12** — Hecho: `CuadroDeCarga.MotoresPorFase` multiplica la FLC de cada motor por el F.D. de su tipo antes de 430-24, el mayor incluido. Con F.D. 0.5 y un solo motor de 5 hp (15.2 A), la capacidad del alimentador es 1.25 × 7.6 = 9.5 A: menos de lo que el motor consume. 430-26 permite menos que 430-24 solo si alcanza «para la carga máxima determinada de acuerdo con el tamaño y número de los motores». Corrección: el mayor conserva su 125 % completo; el F.D. reduce a los demás.
+**M-12** — Hecho: `CuadroDeCarga.MotoresPorFase` multiplica la FLC de cada motor por el F.D. de su tipo antes de 430-24, el mayor incluido. Con F.D. 0.5 y un solo motor de 5 hp (15.2 A), la capacidad del alimentador es 1.25 × 7.6 = 9.5 A: menos de lo que el motor consume. 430-26 permite menos que 430-24 solo si alcanza «para la carga máxima determinada de acuerdo con el tamaño y número de los motores». Corrección: el mayor conserva su 125 % completo; el F.D. reduce a los demás. Cerrado en `9a3c7f0`: por barra, el mayor (440-7) entra completo; los demás, con su F.D. Se arma con el constructor de `AgregadoMotores`, sin tocar el motor copiado. Cambia resultados: un motor de 5 hp con F.D. 0.5, de 9.5 a 19 A; con otro de 3 hp, 23.8 A. Prueba: `M12_ElFactorDeDemandaDeMotoresNoReduceAlMayor`.
 
-**M-13** — Hecho: la MCA de un A/C ya trae el 125 % de su motor mayor (440-4(b)); en el alimentador entra como si fuera FLC y, si es la mayor, recibe otro 25 %. Del lado seguro. Corrección (David): al 100 %, sin competir por el mayor.
+**M-13** — Hecho: la MCA de un A/C ya trae el 125 % de su motor mayor (440-4(b)); en el alimentador entra como si fuera FLC y, si es la mayor, recibe otro 25 %. Del lado seguro. Corrección (David): al 100 %, sin competir por el mayor. Cerrado en `9a3c7f0`. Cambia resultados: motor de 15.2 A + A/C MCA 20, de 40.2 A → 45 A a 39 A → 40 A. Prueba: `I74_MotoresYAireVanAlMismoGrupoDelAlimentador`, `M13_SoloAiresConMcaEntranAlCienPorCiento`.
 
-**I-113** — Hecho: `MemoriaDeCalculo.DeCircuito` pasa el desglose sin revisar `TieneDesglose`: un circuito que tuvo aparatos y pasó a Motor o A/C los imprime en la sección 1, con su VA viejo.
+**I-113** — Hecho: `MemoriaDeCalculo.DeCircuito` pasa el desglose sin revisar `TieneDesglose`: un circuito que tuvo aparatos y pasó a Motor o A/C los imprime en la sección 1, con su VA viejo. Cerrado en `ee6f3ac`: el desglose de la memoria, solo con `TieneDesglose`. Prueba: `I113_LaMemoriaDeUnAireNoImprimeAparatosQueNoCuentan` (sin la corrección, falla).
 
-**I-114** — Hecho: P nace en 1; el selector de HP enseña corrientes monofásicas a 127 V hasta que se cambia P, y nada dice qué tabla se lee. «+N» sale en un motor trifásico. La ayuda de Tipo no dice que el refrigerador doméstico o la lavadora son aparatos (422, 440-3(c)) ni que una manejadora sin compresor no es del 440 (440-3(b)).
+**I-114** — Hecho: P nace en 1; el selector de HP enseña corrientes monofásicas a 127 V hasta que se cambia P, y nada dice qué tabla se lee. «+N» sale en un motor trifásico. La ayuda de Tipo no dice que el refrigerador doméstico o la lavadora son aparatos (422, 440-3(c)) ni que una manejadora sin compresor no es del 440 (440-3(b)). Cerrado en `4e24e18`: el selector de HP ofrece las tres alimentaciones agrupadas («Trifásico 220 V · Tabla 430-250 · 3 polos») y cambia P al elegir (con el aviso si no se puede); bajo el campo, la alimentación y la tabla; sin «+N» ni neutro en un motor trifásico; guía en la ayuda de Tipo. Prueba: `I114_LaAlimentacionDelMotorSeDiceYElTrifasicoNoLlevaNeutro`; en el navegador, 5 hp trifásico desde P = 1 y el rechazo con el espacio ocupado.
 
 **I-115** — Hecho: Motor no se desglosa y la ayuda manda a «usar Equipo», que calcula como carga de placa (210): sin 430-24, sin 430-53 y fuera del grupo de motores del alimentador. Tres motores de ½ hp a 127 V (8.9 A c/u) salen 30 A y fuera de 430-24; por 430-53(c)(4), hasta 2.5 × 8.9 + 8.9 + 8.9 = 40.05 → 40 A, conductor por 430-24 de 28.9 A.
 
