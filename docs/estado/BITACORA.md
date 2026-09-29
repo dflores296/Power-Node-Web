@@ -117,8 +117,10 @@ propuesta en tabla). Texto de la NOM leído del corpus de `dflores296/NOM-001-SE
 - Fase 1: varios motores, o motores y otras cargas, en un circuito — unidad «Varios», desglose con
   motores, calculadora de grupo (430-24, 430-53(c)(4), 240-4(b)), cada motor por separado en el
   alimentador, archivo formato 3 — I-115, `3b7b4d2`.
+- Fase 3 (antes que la 2: toca el mismo desglose): aparato con motor en el desglose de carga, el mayor
+  al 125 % — 220-18(a), I-118, `502b7b4`.
 
-Pruebas: 304 en `PowerNode.Web.Tests`, 23 en `PowerNode.Normativa.Tests`.
+Pruebas: 308 en `PowerNode.Web.Tests`, 23 en `PowerNode.Normativa.Tests`.
 
 ## 2026-09-28
 

@@ -60,6 +60,7 @@ Cada requisito se relaciona con su referencia normativa y con su verificación e
 | K-15 | Dimensionar el conductor del derivado de un motor al 125 % de la FLC de tabla; la protección del motor no lo sube. Caída a la tensión del circuito (F-F en 2 polos). | 430-22, 240-4(g) | `I15_…` |
 | K-16 | Dimensionar el conductor del derivado de un equipo de A/C al 125 % de su corriente, o a la ampacidad mínima de placa sin otro 125 %; la protección no lo sube. | 440-32, 440-4(b), 240-4(g) | `I74_…` |
 | K-17 | Varios motores, o motores y otras cargas, en un circuito: conductor al 125 % de la máquina mayor + las demás + 125 % de la continua + la no continua; protección = mayor tamaño estándar que no excede el % de la Tabla 430-52 del motor mayor + la FLC de los demás + las otras cargas; hasta 240-4(b) solo si no lleva la corriente de operación y el límite queda bajo la ampacidad del conductor. Un grupo de un solo motor se calcula como motor. | 430-24, 430-53(c)(4), 240-4(b), 240-4(g) | `I115_…` |
+| K-18 | Un aparato con motor fijo en su sitio (HP, o A de placa) junto con otras cargas: el motor mayor de más de ⅛ hp al 125 %, lo demás al 100 %. Un circuito de carga que solo alimenta motores se rechaza: va por el Art. 430. | 220-18(a), 430-6(a)(1) Exc. 3 | `I118_…` |
 
 ## Alimentador
 

@@ -143,7 +143,7 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-115 · Un circuito admite un solo motor: sin 430-53 ni 430-24 en el circuito | P1 | **Cerrado** | `3b7b4d2` |
 | I-116 · Sin varios motocompresores en un circuito (440-22(b), 440-33) | P2 | Abierto | — |
 | I-117 · Sin acondicionador de habitación (440 Parte G) | P3 | Abierto | — |
-| I-118 · Aparato con motor mezclado con otras cargas sin el 125 % del motor (220-18(a)) | P2 | Abierto | — |
+| I-118 · Aparato con motor mezclado con otras cargas sin el 125 % del motor (220-18(a)) | P2 | **Cerrado** | `502b7b4` |
 | I-119 · Motor con variador calculado como motor: 250 % (430-122) | P2 | Abierto | — |
 | I-120 · Sin servicio no continuo (430-22(e)) | P3 | Abierto | — |
 | I-121 · Sin cargas no simultáneas (430-24 Exc. 3, 440-33 Exc. 1, 220-60) | P2 | Abierto | — |
@@ -450,7 +450,7 @@ NOM (corpus de `dflores296/NOM-001-SEDE-2012`). Propuesta y decisiones en
 
 **I-117** — Hecho: un aire de ventana con clavija se calcula como motocompresor (175 %); la Parte G lo trata como una unidad con tope de 80 % del circuito (50 % con otras cargas), 440-62.
 
-**I-118** — Hecho: en el desglose no se puede decir que un aparato tiene motor; mezclado con otras cargas, 220-18(a) pide 125 % del motor mayor.
+**I-118** — Hecho: en el desglose no se puede decir que un aparato tiene motor; mezclado con otras cargas, 220-18(a) pide 125 % del motor mayor. Cerrado en `502b7b4`: en el desglose de Alumbrado, Contactos, Equipo y Calefacción, un aparato «con motor» (HP con su FLC de tabla, o A de placa — 430-6(a)(1) Exc. 3); con otras cargas, el motor mayor de más de ⅛ hp entra como continua (125 %) y los demás al 100 % — 220-18(a); si el circuito solo alimenta motores, pide el Art. 430 (Motor «Varios»). Desglose y memoria con la línea de 220-18(a). Pruebas: `I118_…` (4); en el navegador, cuarto de lavado con alumbrado y lavadora de 5 A.
 
 **I-119** — Hecho: una bomba con variador se captura como motor en A (250 % de Tabla 430-52). 430-122(a): 125 % de la corriente de entrada del variador; protección la que marque el fabricante (110-3(b)).
 
