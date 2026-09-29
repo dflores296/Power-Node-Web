@@ -100,6 +100,7 @@ A `main` por avance rápido (pedido de David). Sin listas de revisión hasta que
 - La casilla de «+N» dentro de la celda en 2 polos — I-107, `2d2d621`. A `main` por avance rápido.
 - El contorno de enfoque separado de la nota; renglones con nota de 66 px y de 2 polos de 2 × 34 —
   I-108, `bda5e9d`. A `main` por avance rápido.
+- El texto de ejemplo se va al enfocar el campo — I-109, `8013249`. A `main` por avance rápido.
 
 ## 2026-09-28
 
