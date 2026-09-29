@@ -125,9 +125,13 @@ else
                     var c = Conexion(n, barras);
                     if (c.DelPrincipal)
                     {
-                        var punta = c.Nones ? c.X - 7 : c.X + 7;
-                        var cola = c.Nones ? c.X - 15 : c.X + 15;
-                        <polygon class="flecha riel-@c.Clase" points="@($"{punta},{N(c.Y)} {cola},{N(c.Y - 4.5m)} {cola},{N(c.Y + 4.5m)}")" />
+                        // La flecha va sobre la barra, en lugar de la unión: afuera de la barra, la que
+                        // queda junto al número (A en nones, C en pares) no tenía lugar y la tapaba el
+                        // número — se leía como que el principal alimentaba dos barras (I-93).
+                        var punta = c.Nones ? c.X + 4 : c.X - 4;
+                        var cola = c.Nones ? c.X - 6 : c.X + 6; // la orilla del número, a 6 px de la barra
+                        <polygon class="flecha-union riel-@c.Clase" points="@($"{punta},{N(c.Y)} {cola},{N(c.Y - 5.5m)} {cola},{N(c.Y + 5.5m)}")" />
+                        continue;
                     }
                     <circle class="union riel-@c.Clase @(c.Usado ? null : "libre")" cx="@c.X" cy="@N(c.Y)" r="4.5" />
                 }

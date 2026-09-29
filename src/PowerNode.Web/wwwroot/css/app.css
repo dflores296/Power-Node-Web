@@ -380,6 +380,8 @@ input.desc:focus, input.va:focus {
 .cuadro td.conductor .mm2 { display: block; font-size: 10px; color: var(--tenue); margin-top: 3px; line-height: 1.1; }
 .doc-cuadro td.conductor { white-space: nowrap; }
 .doc-cuadro td.conductor .mm2 { display: block; font-size: 8px; color: var(--tenue); }
+.doc-cuadro td.canal span { display: block; white-space: nowrap; }
+.doc-cuadro td.canal .canal-tamano { font-size: 8px; color: var(--tenue); }
 
 /* Las columnas de balanceo miden lo mismo, tengan carga o no (David, 2026-09-24): sin ancho fijo, una
    fase vacía se encogía y el cuadro se veía chueco. */
@@ -826,6 +828,8 @@ circle.union { stroke: var(--encabezado); }
 .multifilar .zocalo .interruptor { display: block; }
 .acometida { stroke: var(--tenue); stroke-width: 1.5; fill: var(--tenue); }
 .flecha { stroke: none; }
+/* La unión del principal en espacios: una flecha sobre la barra, con el mismo contorno que los puntos (I-93). */
+.flecha-union { stroke: var(--encabezado); stroke-width: 1.5; stroke-linejoin: round; }
 polygon.riel-a { fill: var(--barra-a); } polygon.riel-b { fill: var(--barra-b); } polygon.riel-c { fill: var(--barra-c); }
 .zapata { fill: var(--papel); stroke-width: 1.5; }
 .tornillo { fill: none; stroke: var(--tinta); stroke-width: 1.5; }

@@ -46,9 +46,13 @@ public static class AireAcondicionadoDePlaca
     };
 
     /// <summary>«MCA 18.00 A · MOCP 30 A», «Nominal 12.50 A · selección 14.00 A»: la placa en corto.</summary>
+    /// <remarks>
+    /// Lo de placa se captura: va como se capturó, con hasta dos decimales (I-49). Antes «MCA 18.00 A ·
+    /// MOCP 30 A» mezclaba dos formatos en la misma celda — I-92.
+    /// </remarks>
     public static string Texto(CircuitoDelCuadro c) => c.PlacaAire switch
     {
-        PlacaDeAireAcondicionado.AmpacidadYProteccion => $"MCA {c.AmpacidadMinimaA:N2} A · MOCP {c.ProteccionMaximaA:N0} A",
-        _ => $"Nominal {c.CorrientePlacaA:N2} A" + (c.CorrienteSeleccionA is > 0m and { } s ? $" · selección {s:N2} A" : ""),
+        PlacaDeAireAcondicionado.AmpacidadYProteccion => $"MCA {c.AmpacidadMinimaA:#,0.##} A · MOCP {c.ProteccionMaximaA:#,0.##} A",
+        _ => $"Nominal {c.CorrientePlacaA:#,0.##} A" + (c.CorrienteSeleccionA is > 0m and { } s ? $" · selección {s:#,0.##} A" : ""),
     };
 }

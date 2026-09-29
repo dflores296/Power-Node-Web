@@ -56,7 +56,7 @@
                     <th colspan="2">Protección</th>
                     <th rowspan="2">Fase</th>
                     <th rowspan="2">Neutro</th>
-                    <th rowspan="2">Puesta a tierra</th>
+                    <th rowspan="2" title="Puesta a tierra">Tierra</th>
                     <th rowspan="2"><span class="simbolo">In (A)</span></th>
                     <th rowspan="2"><span class="simbolo">L (m)</span></th>
                     <th rowspan="2">Canal.</th>
@@ -126,7 +126,8 @@
                             @Conductor(c.Resultado?.CalibreTierra, c.Resultado is null ? 0 : 1, c.Polos)
                             <td rowspan="@c.Polos" class="num">@(c.Resultado?.CorrienteDisenoA.ToString("N2"))</td>
                             <td rowspan="@c.Polos" class="num">@(c.Resultado is null ? "" : c.LongitudM.ToString("N0"))</td>
-                            <td rowspan="@c.Polos" class="num">@(c.Resultado is not null && c.CanalizacionEfectiva is { } canal ? $"{canal.Nombre} · {canal.TamanoRotulo}" : "")</td>
+                            @* El nombre arriba y el tamaño abajo, sin partir: impreso, «T1 · 21 mm / ¾ in» salía en tres renglones (I-92). *@
+                            <td rowspan="@c.Polos" class="num canal">@if (c.Resultado is not null && c.CanalizacionEfectiva is { } canal) {<span class="canal-nombre">@canal.Nombre</span><span class="canal-tamano">@canal.TamanoRotulo</span>}</td>
                             <td rowspan="@c.Polos" class="num">@(c.Resultado?.CaidaTensionPct.ToString("N2"))</td>
                         </tr>
 
@@ -432,11 +433,11 @@ else
 
     /// <summary>
     /// Lo que va en las cuatro celdas de carga de un motor o un equipo de A/C — I-15, I-74: «5 HP · FLC
-    /// 15.20 A», «12.00 A (3.93 HP) · FLC 12.00 A», «MCA 18.00 A · MOCP 30 A».
+    /// 15.20 A», «12 A (3.93 HP) · FLC 12.00 A», «MCA 18 A · MOCP 30 A».
     /// </summary>
     private static string PlacaDelRenglon(CircuitoDelCuadro c) =>
         c.EsAireAcondicionado ? (c.TieneCarga ? AireAcondicionadoDePlaca.Texto(c) : "")
-        : c.MotorEnAmperes is { } m ? $"{m.Amperes:N2} A ({m.Hp:0.##} HP) · FLC {c.FlcA:N2} A"
+        : c.MotorEnAmperes is { } m ? $"{m.Amperes:#,0.##} A ({m.Hp:0.##} HP) · FLC {c.FlcA:N2} A"
         : (c.Hp > 0m ? $"{MotoresEnHp.Texto(c.Hp.Value)} HP" : "") + (c.FlcA > 0m ? $" · FLC {c.FlcA:N2} A" : "");
 
     private static string DePapel(CanalizacionDelTablero t, PapelConductor papel) =>
