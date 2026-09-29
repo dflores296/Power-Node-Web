@@ -428,6 +428,8 @@ public sealed class CuadroDeCarga
             citas: r.Citas,
             referenciaMinimo: c.UsoEfectivo.ReferenciaProteccionMinima());
 
+        if (NotaDelMotorMayor(c) is { } motor)
+            desglose = desglose with { Proteccion = [desglose.Proteccion[0], motor, .. desglose.Proteccion.Skip(1)] };
         // I-76: el circuito individual del refrigerador no tiene mínimo que citar, pero sí su excepción.
         return c.UsoEfectivo.Nota() is { } nota ? desglose with { Proteccion = [.. desglose.Proteccion, nota] } : desglose;
     }
@@ -957,6 +959,7 @@ public sealed class CuadroDeCarga
             c.CorrienteDeMotorA = 0m;
             c.MotorEnAmperes = null;
             c.MotorVA = 0m;
+            c.MotorAl125 = null;
 
             // I-15, I-74: un motor o un equipo de A/C no tiene carga continua ni no continua. Su
             // corriente es la FLC de tabla (430-6(a)) o la de la placa (440-6(a), 440-4(b)), y sus
@@ -1006,6 +1009,8 @@ public sealed class CuadroDeCarga
     /// </summary>
     private void SumarDesglose(CircuitoDelCuadro c)
     {
+        var divisor = TensionDeCalculo.Divisor(c.Polos, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV);
+        var tension = TensionDelMotor(c);
         foreach (var a in c.Aparatos)
         {
             if (a.EsContactoSinCarga)
@@ -1016,13 +1021,28 @@ public sealed class CuadroDeCarga
             if (c.Categoria == CategoriaDeCarga.CalefaccionFija)
                 a.Continua = true;
             a.Cantidad = Math.Max(1, a.Cantidad);
-            a.TotalVA = a.Cantidad * ConsumoDePlaca.AVoltAmperes(
-                a.CargaUnitaria, a.Unidad, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV, c.Polos, a.FactorPotencia);
+            // Un aparato con motor (I-118): su corriente, de la tabla o de su placa, por la tensión del circuito.
+            CorrienteDeMaquina(a, c.Polos, tension);
+            a.TotalVA = a.EsMaquina
+                ? a.Cantidad * a.CorrienteUnitariaA * divisor
+                : a.Cantidad * ConsumoDePlaca.AVoltAmperes(
+                    a.CargaUnitaria, a.Unidad, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV, c.Polos, a.FactorPotencia);
         }
 
+        // 220-18(a) — I-118: un aparato con motor de más de ⅛ hp, junto con otras cargas: el motor mayor
+        // al 125 % y lo demás al 100 %. El 125 % se lo da el cálculo del derivado a la continua: el motor
+        // mayor —una unidad— va ahí; los demás motores, a la no continua. En calefacción todo es continuo.
+        var motores = c.Aparatos.Where(a => a.EsMaquina && a.CorrienteUnitariaA > 0m).ToList();
+        c.MotorAl125 = c.Aparatos.Any(a => !a.EsMaquina && a.TotalVA > 0m)
+            ? motores.Where(MasDeUnOctavoDeHp).OrderByDescending(a => a.CorrienteUnitariaA).FirstOrDefault()
+            : null;
+        var motorAl125VA = c.MotorAl125 is { } mayor ? mayor.CorrienteUnitariaA * divisor : 0m;
+
         c.Unidad = UnidadConsumo.VoltAmperes;
-        c.Continua = c.Aparatos.Where(a => a.Continua).Sum(a => a.TotalVA);
-        c.NoContinua = c.Aparatos.Where(a => !a.Continua).Sum(a => a.TotalVA);
+        c.Continua = c.Aparatos.Where(a => !a.EsMaquina && a.Continua).Sum(a => a.TotalVA)
+                     + (c.Categoria == CategoriaDeCarga.CalefaccionFija ? motores.Sum(a => a.TotalVA) : motorAl125VA);
+        c.NoContinua = c.Aparatos.Where(a => !a.EsMaquina && !a.Continua).Sum(a => a.TotalVA)
+                       + (c.Categoria == CategoriaDeCarga.CalefaccionFija ? 0m : motores.Sum(a => a.TotalVA) - motorAl125VA);
         c.FactorPotencia = c.Continua + c.NoContinua > 0m
             ? FactorPotenciaCombinado.De(c.Aparatos.Select(a => (a.TotalVA, a.FactorPotencia)))
             : CircuitoDelCuadro.FactorPotenciaSupuesto;
@@ -1042,11 +1062,9 @@ public sealed class CuadroDeCarga
         foreach (var a in c.Aparatos)
         {
             a.Cantidad = Math.Max(1, a.Cantidad);
-            a.CorrienteUnitariaA = 0m;
-            a.MotorEnAmperes = null;
-            a.Error = null;
             if (!a.EsMaquina)
             {
+                CorrienteDeMaquina(a, c.Polos, tension);
                 if (a.EsContactoSinCarga)
                 {
                     a.Unidad = UnidadConsumo.VoltAmperes;
@@ -1057,24 +1075,7 @@ public sealed class CuadroDeCarga
                 continue;
             }
 
-            if (a.TieneCapturaDeMaquina)
-            {
-                if (a.Clase == ClaseDeAparato.Motocompresor)
-                    a.CorrienteUnitariaA = CalculadoraCarga440.CorrienteBase(a.CorrientePlacaA, a.CorrienteSeleccionA);
-                else if (a.CapturaMotor == CapturaDeMotor.Amperes)
-                {
-                    a.MotorEnAmperes = MotoresEnHp.DeAmperes(_motor.FlcMotor, a.CorrientePlacaA, c.Polos, tension);
-                    a.CorrienteUnitariaA = a.MotorEnAmperes?.Amperes ?? 0m;
-                    if (a.MotorEnAmperes is null)
-                        a.Error = MotoresEnHp.SinFilaEnAmperes(_motor.FlcMotor, a.CorrientePlacaA, c.Polos, tension);
-                }
-                else
-                {
-                    a.CorrienteUnitariaA = MotoresEnHp.Flc(_motor.FlcMotor, a.Hp!.Value, c.Polos, tension) ?? 0m;
-                    if (a.CorrienteUnitariaA == 0m)
-                        a.Error = MotoresEnHp.SinFila(_motor.FlcMotor, a.Hp.Value, c.Polos, tension);
-                }
-            }
+            CorrienteDeMaquina(a, c.Polos, tension);
             a.TotalVA = a.Cantidad * a.CorrienteUnitariaA * divisor;
         }
 
@@ -1084,6 +1085,70 @@ public sealed class CuadroDeCarga
         c.MotorVA = c.Aparatos.Where(a => a.EsMaquina).Sum(a => a.TotalVA);
         if (c.CargaInstaladaVA > 0m)
             c.FactorPotencia = FactorPotenciaCombinado.De(c.Aparatos.Select(a => (a.TotalVA, a.FactorPotencia)));
+    }
+
+    /// <summary>
+    /// Más de 93.25 W (⅛ hp) — 220-18(a). En HP, los de la tabla empiezan en ⅙; en amperes, sus HP
+    /// interpolados (430-6(a)(1)).
+    /// </summary>
+    private static bool MasDeUnOctavoDeHp(AparatoDelCircuito a) =>
+        (a.CapturaMotor == CapturaDeMotor.Hp ? a.Hp : a.MotorEnAmperes?.Hp) > 0.125m;
+
+    /// <summary>
+    /// Lo que un desglose de aparatos con motor no puede calcular — I-118: un motor que la tabla no
+    /// trae, o un circuito que solo alimenta motores, que es del Art. 430 — 220-18(a).
+    /// </summary>
+    private static string? ErrorDeMotoresEnDesglose(CircuitoDelCuadro c)
+    {
+        if (c.Aparatos.FirstOrDefault(a => a.EsMaquina && a.Error is not null) is { } malo)
+            return $"{NombreDeMaquina(c, malo)}: {malo.Error}";
+        if (c.Aparatos.Any(a => a.EsMaquina && a.CorrienteUnitariaA > 0m) && !c.Aparatos.Any(a => !a.EsMaquina && a.TotalVA > 0m))
+            return "220-18(a): el circuito solo alimenta motores, y eso se calcula con el Art. 430. Cambia el tipo a Motor " +
+                   "con la unidad «Varios» (430-53), o agrega las otras cargas del circuito.";
+        return null;
+    }
+
+    /// <summary>
+    /// «Lavadora: 5.00 A × 127.02 V = 635 VA, el motor mayor, entra al 125 %…» — 220-18(a), I-118. Null
+    /// si el desglose no lleva un motor que lo pida.
+    /// </summary>
+    public string? NotaDelMotorMayor(CircuitoDelCuadro c)
+    {
+        if (!c.TieneDesglose || c.EsDeMotor || c.MotorAl125 is not { } m)
+            return null;
+        var divisor = TensionDeCalculo.Divisor(c.Polos, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV);
+        return $"{NombreDeMaquina(c, m)}, el motor mayor: {m.CorrienteUnitariaA:N2} A = {m.CorrienteUnitariaA * divisor:#,0} VA entra como " +
+               "continua (al 125 %); los demás motores, al 100 % — 220-18(a)";
+    }
+
+    /// <summary>
+    /// La corriente de una máquina del desglose, por unidad: la FLC de tabla por sus HP, la de un motor
+    /// marcado en amperes (sus HP, interpolados — 430-6(a)(1)) o la de 440-6(a) de un motocompresor. En
+    /// cero, con <see cref="AparatoDelCircuito.Error"/> si la tabla no la trae. Una carga queda en cero.
+    /// </summary>
+    private void CorrienteDeMaquina(AparatoDelCircuito a, int polos, decimal tension)
+    {
+        a.CorrienteUnitariaA = 0m;
+        a.MotorEnAmperes = null;
+        a.Error = null;
+        if (!a.EsMaquina || !a.TieneCapturaDeMaquina)
+            return;
+
+        if (a.Clase == ClaseDeAparato.Motocompresor)
+            a.CorrienteUnitariaA = CalculadoraCarga440.CorrienteBase(a.CorrientePlacaA, a.CorrienteSeleccionA);
+        else if (a.CapturaMotor == CapturaDeMotor.Amperes)
+        {
+            a.MotorEnAmperes = MotoresEnHp.DeAmperes(_motor.FlcMotor, a.CorrientePlacaA, polos, tension);
+            a.CorrienteUnitariaA = a.MotorEnAmperes?.Amperes ?? 0m;
+            if (a.MotorEnAmperes is null)
+                a.Error = MotoresEnHp.SinFilaEnAmperes(_motor.FlcMotor, a.CorrientePlacaA, polos, tension);
+        }
+        else
+        {
+            a.CorrienteUnitariaA = MotoresEnHp.Flc(_motor.FlcMotor, a.Hp!.Value, polos, tension) ?? 0m;
+            if (a.CorrienteUnitariaA == 0m)
+                a.Error = MotoresEnHp.SinFila(_motor.FlcMotor, a.Hp.Value, polos, tension);
+        }
     }
 
     /// <summary>
@@ -1355,6 +1420,11 @@ public sealed class CuadroDeCarga
                 if (c.EsAireAcondicionado)
                 {
                     CalcularAireAcondicionado(c, canal);
+                    continue;
+                }
+                if (c.TieneDesglose && ErrorDeMotoresEnDesglose(c) is { } errorDeMotores)
+                {
+                    c.Error = errorDeMotores;
                     continue;
                 }
 

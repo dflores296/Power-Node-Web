@@ -32,6 +32,7 @@ namespace PowerNode.Web.Modelo.Memoria;
 /// gobierna, para 430-24 / 440-33.</param>
 /// <param name="NotaDelUso">Solo en un circuito de contactos con un uso que la norma trata aparte sin
 /// mínimo: el individual del refrigerador — I-76.</param>
+/// <param name="NotaDelMotor">Solo en un desglose con un aparato con motor que va al 125 % — 220-18(a), I-118.</param>
 /// <param name="EtiquetaDeMotores">«Motores», o «Motores y A/C»; y su referencia, «430-24» o «430-24,
 /// 440-33».</param>
 /// <param name="FrecuenciaHz">La del tablero, la misma que dice el cuadro de carga — I-96.</param>
@@ -78,6 +79,7 @@ public sealed record HojaDeMemoria(
     string EtiquetaDeMotores = "Motores",
     string ReferenciaDeMotores = "430-24",
     string? NotaDelUso = null,
+    string? NotaDelMotor = null,
     int FrecuenciaHz = 60);
 
 /// <summary>

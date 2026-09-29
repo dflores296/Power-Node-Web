@@ -197,6 +197,12 @@ public sealed class CircuitoDelCuadro
         return nuevo;
     }
 
+    /// <summary>
+    /// El aparato con motor que entra al 125 % — 220-18(a), I-118: el mayor de más de ⅛ hp, cuando va con
+    /// otras cargas. <c>null</c> si no hay. Lo pone <see cref="CuadroDeCarga"/>.
+    /// </summary>
+    public AparatoDelCircuito? MotorAl125 { get; internal set; }
+
     /// <summary>Agrega un motor al grupo, en HP como el circuito — I-115.</summary>
     public AparatoDelCircuito AgregarMotor()
     {

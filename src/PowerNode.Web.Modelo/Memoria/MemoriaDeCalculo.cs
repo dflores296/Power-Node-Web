@@ -84,6 +84,7 @@ public static class MemoriaDeCalculo
             NeutroPortador: circuito.LlevaNeutro ? NeutroPortador(cuadro, circuito.Polos, alimentador: false) : null,
             Desglose: Desglose(circuito),
             NotaDelUso: circuito.UsoEfectivo.Nota(),
+            NotaDelMotor: cuadro.NotaDelMotorMayor(circuito),
             Canalizacion: DeLaCanalizacion(cuadro, circuito.CanalizacionEfectiva),
             Equipo: equipo,
             CargaMotoresVa: circuito.MotorVA);
@@ -520,6 +521,7 @@ public static class MemoriaDeCalculo
                 ("Fase que gobierna", hoja.FaseQueGobierna),
                 ("Corriente de diseño (In)", Amperes(hoja.CorrienteDisenoA)),
                 ("Uso del circuito", hoja.NotaDelUso),
+                ("Aparato con motor — 220-18(a)", hoja.NotaDelMotor),
                 ($"{hoja.EtiquetaDeMotores} — {hoja.ReferenciaDeMotores}", motores.MayorFlcA is { } mayor
                     ? (mayor > 0m
                         ? $"125 % × {mayor:N2} A (el mayor, completo) + {motores.SumaRestoFlcA:N2} A (los demás, con su F.D.) = {motores.CapacidadMinimaA:N2} A"

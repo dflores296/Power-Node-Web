@@ -889,6 +889,8 @@ polygon.riel-a { fill: var(--barra-a); } polygon.riel-b { fill: var(--barra-b); 
                                   border-top: 1px solid var(--linea); border-bottom: 0; }
 .cuadro button.agregar, .cuadro button.quitar { display: inline-flex; align-items: center; gap: 5px; border: 0; background: none; cursor: pointer; color: var(--acento); font-size: 11px; padding: 2px 4px; }
 .cuadro button.quitar { color: var(--tenue); }
+/* Una máquina del desglose (I-115, I-118): en lugar de la casilla «Continua», qué es. */
+.cuadro table.desglose .clase-motor { font-size: 11px; color: var(--tenue); white-space: nowrap; }
 
 /* ------------------------------------------------------------------------------------------------
    CANALIZACIONES — decisión canalizaciones-y-agrupamiento (2026-09-24).

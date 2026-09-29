@@ -484,9 +484,11 @@
                                         <tr>
                                             <th class="izq" data-col="ap-desc">@(grupo ? $"Motores y cargas del circuito {c.Espacio}" : $"Aparato del circuito {c.Espacio}")</th>
                                             <th data-col="ap-cant">Cant.</th>
-                                            <th data-col="ap-unidad">@if (grupo) { <span class="ayuda" title="Motor: en HP, con su FLC de tabla (430-6(a)), o en A si la placa no trae HP (430-6(a)(1)). Otra carga: VA, W o A de placa. Todos a la tensión y los polos del circuito.">Unidad</span> } else { <text>Unidad</text> }</th>
+                                            <th data-col="ap-unidad"><span class="ayuda" title="@(grupo
+                                                ? "Motor: en HP, con su FLC de tabla (430-6(a)), o en A si la placa no trae HP (430-6(a)(1)). Otra carga: VA, W o A de placa. Todos a la tensión y los polos del circuito."
+                                                : "Carga: VA, W o A de placa. Aparato con motor fijo en su sitio (lavadora, triturador, extractor): en HP, con su FLC de tabla, o en A de placa (430-6(a)(1) Excepción 3). Con otras cargas, el motor mayor de más de ⅛ hp entra al 125 % — 220-18(a).")">Unidad</span></th>
                                             <th data-col="ap-carga">Carga c/u</th>
-                                            <th data-col="ap-continua"><span class="ayuda" title="@(grupo ? "Otras cargas: opera 3 h o más, 125 % — 430-24. Un motor ya entra con su regla: 125 % del mayor — 430-24." : "Opera 3 h o más: 125 % — 210-19(a)(1). Calefacción: siempre — 424-3(b).")">Continua</span></th>
+                                            <th data-col="ap-continua"><span class="ayuda" title="@(grupo ? "Otras cargas: opera 3 h o más, 125 % — 430-24. Un motor ya entra con su regla: 125 % del mayor — 430-24." : "Opera 3 h o más: 125 % — 210-19(a)(1). Calefacción: siempre — 424-3(b). Un aparato con motor ya entra con su regla: el mayor al 125 % — 220-18(a).")">Continua</span></th>
                                             <th data-col="ap-fp">F.P.</th>
                                             <th>Total <span class="simbolo">(VA)</span></th>
                                             <th></th>
@@ -499,29 +501,19 @@
                                                 <td class="izq"><input class="desc" data-col="ap-desc" aria-label="Circuito @c.Espacio, aparato @n · Descripción" @bind="aparato.Descripcion" @bind:after="Recalcular" placeholder="Aparato (Contacto: 180 VA)" /></td>
                                                 <td><input data-requerido data-col="ap-cant" aria-label="Circuito @c.Espacio, aparato @n · Cantidad" class="va corto" type="text" inputmode="decimal" autocomplete="off" data-numero min="1" step="1" @bind="aparato.Cantidad" @bind:culture="CultureInfo.InvariantCulture" @bind:after="Recalcular" /></td>
                                                 <td>
-                                                    @if (grupo)
-                                                    {
-                                                        @* I-115: la clase y la unidad en un solo selector, como el HP con sus polos. *@
-                                                        <select class="unidad" data-col="ap-unidad" aria-label="Circuito @c.Espacio, aparato @n · Unidad" value="@UnidadDeMiembro(aparato)" @onchange="e => CambiarUnidadDeMiembro(aparato, e.Value?.ToString())">
-                                                            <optgroup label="Motor">
-                                                                <option value="Motor|@CapturaDeMotor.Hp">HP</option>
-                                                                <option value="Motor|@CapturaDeMotor.Amperes">A</option>
-                                                            </optgroup>
-                                                            <optgroup label="Otra carga">
-                                                                <option value="Carga|@UnidadConsumo.VoltAmperes">VA</option>
-                                                                <option value="Carga|@UnidadConsumo.Watts">W</option>
-                                                                <option value="Carga|@UnidadConsumo.Amperes">A</option>
-                                                            </optgroup>
-                                                        </select>
-                                                    }
-                                                    else
-                                                    {
-                                                        <select class="unidad" data-col="ap-unidad" aria-label="Circuito @c.Espacio, aparato @n · Unidad" @bind="aparato.Unidad" @bind:after="Recalcular">
-                                                            <option value="@UnidadConsumo.VoltAmperes">VA</option>
-                                                            <option value="@UnidadConsumo.Watts">W</option>
-                                                            <option value="@UnidadConsumo.Amperes">A</option>
-                                                        </select>
-                                                    }
+                                                    @* La clase y la unidad en un solo selector, como el HP con sus polos: en un grupo, motor u
+                                                       otra carga (I-115); en cualquier otro desglose, carga o aparato con motor (I-118). *@
+                                                    <select class="unidad" data-col="ap-unidad" aria-label="Circuito @c.Espacio, aparato @n · Unidad" value="@UnidadDeMiembro(aparato)" @onchange="e => CambiarUnidadDeMiembro(aparato, e.Value?.ToString())">
+                                                        <optgroup label="@(grupo ? "Otra carga" : "Carga")">
+                                                            <option value="Carga|@UnidadConsumo.VoltAmperes">VA</option>
+                                                            <option value="Carga|@UnidadConsumo.Watts">W</option>
+                                                            <option value="Carga|@UnidadConsumo.Amperes">A</option>
+                                                        </optgroup>
+                                                        <optgroup label="@(grupo ? "Motor" : "Aparato con motor")">
+                                                            <option value="Motor|@CapturaDeMotor.Hp">HP</option>
+                                                            <option value="Motor|@CapturaDeMotor.Amperes">A</option>
+                                                        </optgroup>
+                                                    </select>
                                                 </td>
                                                 @if (aparato.Clase == ClaseDeAparato.Motor && aparato.CapturaMotor == CapturaDeMotor.Hp)
                                                 {
@@ -550,6 +542,13 @@
                                                     @if (!aparato.EsMaquina)
                                                     {
                                                         <input type="checkbox" data-col="ap-continua" aria-label="Circuito @c.Espacio, aparato @n · Continua" @bind="aparato.Continua" @bind:after="Recalcular" disabled="@calefaccion" />
+                                                    }
+                                                    else
+                                                    {
+                                                        @* Qué es y cómo cuenta: el selector cerrado solo dice «HP» o «A». *@
+                                                        <span class="clase-motor" title="@(grupo ? "Motor del grupo: 125 % del mayor y los demás al 100 % — 430-24."
+                                                            : ReferenceEquals(c.MotorAl125, aparato) ? "El motor mayor, con otras cargas: al 125 % — 220-18(a)."
+                                                            : "Aparato con motor: al 100 %; solo el mayor va al 125 % — 220-18(a).")">@(ReferenceEquals(c.MotorAl125, aparato) ? "motor · 125 %" : "motor")</span>
                                                     }
                                                 </td>
                                                 <td><input data-requerido class="va fp" type="text" inputmode="decimal" autocomplete="off" data-numero min="@FactorMinimo" max="1" step="0.05" data-col="ap-fp" aria-label="Circuito @c.Espacio, aparato @n · F.P." value="@Factor(aparato.FactorPotencia)" @onchange="e => { aparato.FactorPotencia = LeerFactor(e, aparato.FactorPotencia); Recalcular(); }" /></td>

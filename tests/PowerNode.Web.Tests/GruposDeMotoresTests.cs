@@ -310,6 +310,98 @@ public class GruposDeMotoresTests
         Assert.Equal(40m, Espacio(cuadro, 1).Resultado!.ProteccionA);
     }
 
+    // ---- Aparato con motor en un desglose de carga: 220-18(a) — I-118 ---------------------------
+
+    [Fact]
+    public void I118_UnAparatoConMotorYOtrasCargasLlevaElMotorAl125()
+    {
+        var cuadro = Nuevo();
+        var c = Espacio(cuadro, 1);
+        c.Categoria = CategoriaDeCarga.Equipo;
+        var luz = c.AgregarAparato();
+        luz.Descripcion = "Alumbrado";
+        luz.CargaUnitaria = 1000m;
+        var lavadora = c.AgregarAparato();
+        lavadora.Descripcion = "Lavadora";
+        lavadora.Clase = ClaseDeAparato.Motor;
+        lavadora.CapturaMotor = CapturaDeMotor.Amperes;
+        lavadora.CorrientePlacaA = 5m; // entre ⅙ HP (4.0 A) y ¼ HP (5.3 A) a 127 V: más de ⅛ hp
+        cuadro.Recalcular();
+
+        Assert.Null(c.Error);
+        var v = cuadro.Datos.TensionFaseNeutroV;
+        Assert.Same(lavadora, c.MotorAl125);
+        // El motor mayor, como continua (125 %); el alumbrado, no continua (100 %).
+        Assert.Equal(5m * v, c.ContinuaVA);
+        Assert.Equal(1000m, c.NoContinuaVA);
+        // 210-19(a)(1): 125 % × 5 A + 1000 VA ÷ V = 6.25 + 7.87 A.
+        Assert.Equal(Math.Round(6.25m + 1000m / v, 10), Math.Round(c.Resultado!.Detalle!.CapacidadMinimaA, 10));
+        Assert.Contains(cuadro.Desglose(c)!.Proteccion, x => x.StartsWith("Lavadora, el motor mayor: 5.00 A") && x.EndsWith("— 220-18(a)"));
+        var hoja = MemoriaDeCalculo.DeCircuito(cuadro, c);
+        Assert.Contains("220-18(a)", hoja.NotaDelMotor);
+        Assert.Contains(MemoriaDeCalculo.Secciones(hoja)[2].Renglones, r => r.Rotulo == "Aparato con motor — 220-18(a)");
+    }
+
+    [Fact]
+    public void I118_DosMotoresSoloElMayorVaAl125()
+    {
+        var cuadro = Nuevo();
+        var c = Espacio(cuadro, 1);
+        c.Categoria = CategoriaDeCarga.Equipo;
+        var luz = c.AgregarAparato();
+        luz.CargaUnitaria = 500m;
+        var chico = c.AgregarAparato();
+        chico.Clase = ClaseDeAparato.Motor;
+        chico.Hp = 0.25m;
+        var grande = c.AgregarAparato();
+        grande.Clase = ClaseDeAparato.Motor;
+        grande.Hp = 0.5m;
+        grande.Cantidad = 2;
+        cuadro.Recalcular();
+
+        var v = cuadro.Datos.TensionFaseNeutroV;
+        var flcChico = Flc(0.25m, 1, 127m);
+        Assert.Same(grande, c.MotorAl125);
+        // Una unidad de ½ HP al 125 %; la otra y el de ¼ HP, al 100 %.
+        Assert.Equal(8.9m * v, c.ContinuaVA);
+        Assert.Equal(Math.Round(500m + (8.9m + flcChico) * v, 10), Math.Round(c.NoContinuaVA, 10));
+    }
+
+    [Fact]
+    public void I118_SoloMotoresEnUnDesgloseDeEquipoVanPorElArt430()
+    {
+        var cuadro = Nuevo();
+        var c = Espacio(cuadro, 1);
+        c.Categoria = CategoriaDeCarga.Equipo;
+        var motor = c.AgregarAparato();
+        motor.Clase = ClaseDeAparato.Motor;
+        motor.Hp = 0.5m;
+        cuadro.Recalcular();
+
+        Assert.Null(c.Resultado);
+        Assert.Contains("220-18(a)", c.Error);
+        Assert.Contains("«Varios»", c.Error);
+    }
+
+    [Fact]
+    public void I118_UnMotorDeHastaUnOctavoDeHpNoSubeAl125()
+    {
+        var cuadro = Nuevo();
+        var c = Espacio(cuadro, 1);
+        c.Categoria = CategoriaDeCarga.Equipo;
+        var luz = c.AgregarAparato();
+        luz.CargaUnitaria = 500m;
+        var ventilador = c.AgregarAparato();
+        ventilador.Clase = ClaseDeAparato.Motor;
+        ventilador.CapturaMotor = CapturaDeMotor.Amperes;
+        ventilador.CorrientePlacaA = 2m; // interpolado desde 0: 2 A ÷ 4 A × ⅙ HP = 0.083 HP
+        cuadro.Recalcular();
+
+        Assert.Null(c.MotorAl125);
+        Assert.Equal(0m, c.ContinuaVA);
+        Assert.Equal(500m + 2m * cuadro.Datos.TensionFaseNeutroV, c.NoContinuaVA);
+    }
+
     // ---- El archivo: formato 3 -----------------------------------------------------------------
 
     [Fact]
