@@ -1133,3 +1133,6 @@ body.arrastrando-principal .zona-zocalo .al-arrastrar { display: inline; }
    para que le quepa la nota con aire; uno de 3 ya mide 90. */
 #sec-cuadro > .cuadro > tbody > tr.dos-polos { height: 34px; }
 #sec-cuadro > .cuadro :where(select, input):focus-visible { outline-offset: 0; }
+/* El texto de ejemplo («0», «—», «MCA») se va al entrar al campo: se quedaba y parecía un valor
+   escrito (David, 2026-09-29). */
+.cuadro input:focus::placeholder, .ficha input:focus::placeholder { color: transparent; }
