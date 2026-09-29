@@ -451,20 +451,24 @@ input.desc:focus, input.va:focus {
                    bottom: 0; display: none; left: 0; padding: 10px 16px; position: fixed;
                    width: 100%; z-index: 1000; }
 select.polos { width: 48px; padding: 2px 4px; border-radius: var(--radio-xs); }
-select.unidad { width: 56px; padding: 2px 4px; border-radius: var(--radio-xs); }
+/* 60 px: «MCA» del A/C completo, sin que la flecha le tape la «A» (I-90). */
+select.unidad { width: 60px; padding: 2px 4px; border-radius: var(--radio-xs); }
 /* El VA con el que se calcula, debajo de lo capturado en W o A (I-25). */
 .cuadro .en-va { display: block; font-size: 10px; color: var(--tenue); text-align: right;
                  padding-right: 6px; white-space: nowrap; }
 /* Ancho suficiente para "Alumbrado" completo MÁS la flecha del selector. A 92 px el
    navegador lo cortaba en "Alumbrac", que no es una palabra: un campo que miente sobre
    su propio valor es peor que uno estrecho. */
-select.tipo { width: 108px; padding: 2px 4px 2px 6px; border-radius: var(--radio-xs); }
+select.tipo { width: 108px; padding: 2px 2px 2px 5px; border-radius: var(--radio-xs); }
 /* Tipo y uso, uno bajo otro, centrados y del mismo tamaño; la nota de 220-52 centrada debajo. El
    uso iba en bloque pegado a la izquierda y con otra letra: se veía chueco (David, 2026-09-24). */
 .cuadro .tipo-uso { display: flex; flex-direction: column; align-items: center; gap: 3px; }
 /* El icono del tipo de carga junto al selector (I-63); el hueco del mismo ancho en los renglones vacíos
    mantiene los selectores alineados. */
 .cuadro .tipo-con-icono { display: flex; align-items: center; gap: 6px; }
+/* El uso, bajo el selector de tipo y no bajo el icono: la misma sangría que el icono y su hueco
+   (16 + 6 px), repartida al centrar — I-89, regresión de I-51 al llegar el icono (I-63). */
+.cuadro .tipo-uso select.uso { margin-left: 22px; }
 .cuadro .icono-carga { width: 16px; height: 16px; flex: none; color: var(--tenue); }
 .con-icono-carga { display: inline-flex; align-items: center; gap: 7px; }
 .con-icono-carga .icono { color: var(--tenue); }
@@ -501,7 +505,9 @@ select.tipo { width: 108px; padding: 2px 4px 2px 6px; border-radius: var(--radio
 .ficha .grupo label > .ayuda { justify-self: start; }
 .ficha .grupo input, .ficha .grupo select { width: 100%; }
 .ficha .grupo input.casilla { width: auto; justify-self: start; }
-@media (min-width: 1101px) and (max-width: 1500px), (max-width: 480px) {
+/* De 641 a 960 px (dos tarjetas por renglón) tampoco caben «Centro de carga (NEMA)» ni «60 °C hasta
+   100 A (regla general)» junto a su rótulo — I-90. */
+@media (min-width: 1101px) and (max-width: 1500px), (max-width: 960px) {
     .ficha .grupo label { grid-template-columns: 1fr; gap: 4px; }
 }
 .derivado { margin: 10px 0 0; font-size: 11px; color: var(--tenue); line-height: 1.5; }
