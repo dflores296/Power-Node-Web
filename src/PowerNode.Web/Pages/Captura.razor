@@ -4,6 +4,7 @@
 @inject NavigationManager Navegacion
 @inject IJSRuntime JS
 @implements IDisposable
+@implements IHandleEvent
 @using System.Globalization
 
 @* La pestaña lleva el nombre del tablero: con varias abiertas, dice cuál es cuál (I-05). *@
@@ -17,11 +18,11 @@
     <div class="pila">
     <div class="grupo">
         <h2>Identificación</h2>
-        <label>Tablero <input @bind="Datos.Tablero" @bind:event="oninput" /></label>
-        <label>Clave <input @bind="Datos.Clave" @bind:event="oninput" /></label>
-        <label>Ubicación <input @bind="Datos.Ubicacion" @bind:event="oninput" /></label>
-        <label>Proyecto <input @bind="Datos.Proyecto" @bind:event="oninput" /></label>
-        <label>Cliente <input @bind="Datos.Cliente" @bind:event="oninput" /></label>
+        <label>Tablero <input @bind="Datos.Tablero" @bind:event="oninput" @bind:after="DibujarAlPausar" /></label>
+        <label>Clave <input @bind="Datos.Clave" @bind:event="oninput" @bind:after="DibujarAlPausar" /></label>
+        <label>Ubicación <input @bind="Datos.Ubicacion" @bind:event="oninput" @bind:after="DibujarAlPausar" /></label>
+        <label>Proyecto <input @bind="Datos.Proyecto" @bind:event="oninput" @bind:after="DibujarAlPausar" /></label>
+        <label>Cliente <input @bind="Datos.Cliente" @bind:event="oninput" @bind:after="DibujarAlPausar" /></label>
     </div>
 
     <div class="grupo">
@@ -247,7 +248,7 @@
                                                  : c.EsAireAcondicionado ? "Un equipo de A/C no se desglosa: es una sola máquina con su placa — 440-4(b)."
                                                  : "Desglosar los aparatos que alimenta el circuito. La carga del circuito es la suma. Con el teclado: Ctrl+Enter.")"
                                         @onclick="() => AlternarDesglose(c)"><Icono Nombre="@(Abierto(c) ? "desglose-abierto" : "desglose")" Tamano="14" /></button>
-                                <input class="desc" data-col="desc" aria-label="Circuito @c.Espacio · Descripción" @bind="c.Descripcion" @bind:event="oninput" placeholder="—" />
+                                <input class="desc" data-col="desc" aria-label="Circuito @c.Espacio · Descripción" @bind="c.Descripcion" @bind:event="oninput" @bind:after="DibujarAlPausar" placeholder="—" />
                             </div>
                             @if (c.TieneDesglose)
                             {
@@ -1003,6 +1004,39 @@
         _enfocar = siguiente is null ? "#nueva-canalizacion" : $"tr[data-canal=\"{siguiente.Id}\"] input[data-col=\"cn-nombre\"]";
     }
 
+    // ---- TECLEAR SIN REDIBUJAR TODO (I-97) ----------------------------------------------------------
+    // Cada evento redibuja la página entera: con 42 espacios, 65 ms por tecla en la versión publicada.
+    // En los campos de texto libre (descripción y ficha) lo tecleado ya está en el campo y no cambia
+    // ningún cálculo: el modelo se actualiza en cada tecla, pero la página se dibuja al dejar de teclear
+    // (el directorio del gabinete y la pestaña se ponen al día un instante después).
+
+    private const int PausaDeTecleoMs = 250;
+    private bool _diferirDibujo;
+    private CancellationTokenSource? _pausa;
+
+    private void DibujarAlPausar() => _diferirDibujo = true;
+
+    async Task IHandleEvent.HandleEventAsync(EventCallbackWorkItem callback, object? arg)
+    {
+        var tarea = callback.InvokeAsync(arg);
+        if (!tarea.IsCompleted)
+            StateHasChanged(); // lo síncrono ya cambió, como en ComponentBase
+        await tarea;
+
+        if (_diferirDibujo)
+        {
+            _diferirDibujo = false;
+            _pausa?.Cancel();
+            var pausa = _pausa = new CancellationTokenSource();
+            _ = Task.Delay(PausaDeTecleoMs, pausa.Token).ContinueWith(
+                t => { if (!t.IsCanceled) _ = InvokeAsync(StateHasChanged); }, TaskScheduler.Default);
+            return;
+        }
+        // Cualquier otro evento dibuja ya, y con él lo que estuviera pendiente de lo tecleado.
+        _pausa?.Cancel();
+        StateHasChanged();
+    }
+
     // ---- FOCO DESPUÉS DE UNA ACCIÓN (I-56) ---------------------------------------------------------
     // Lo que se acaba de crear o abrir recibe el foco: antes se quedaba en el botón y había que
     // buscarlo con el ratón. Se aplica al terminar de dibujar, cuando el elemento ya existe.
@@ -1036,6 +1070,7 @@
 
     public void Dispose()
     {
+        _pausa?.Cancel();
         Proyecto.Cambio -= AlAbrirOtroTablero;
         _ = JS.InvokeVoidAsync("powerNode.arrastre.desconectar").AsTask();
         _arrastre?.Dispose();
