@@ -1101,7 +1101,9 @@ body.arrastrando-principal .zona-zocalo .al-arrastrar { display: inline; }
 #sec-cuadro > .cuadro select.polos { width: 52px; }
 #sec-cuadro > .cuadro select.tipo { width: 122px; } /* «Refrigerador» completo con la letra de 13 px */
 
-#sec-cuadro > .cuadro > tbody > tr > td { position: relative; }
+/* Las notas se posicionan contra su celda. No el N.º: es la columna fija (sticky), y relative la
+   soltaba — al desplazar de lado el número se iba y quedaba el hueco (David, 2026-09-29). */
+#sec-cuadro > .cuadro > tbody > tr > td:not(:first-child) { position: relative; }
 #sec-cuadro > .cuadro > tbody > tr > td > .en-va,
 #sec-cuadro > .cuadro > tbody > tr > td > .mas-n,
 #sec-cuadro > .cuadro > tbody > tr > td.conductor > .mm2 {
@@ -1113,5 +1115,11 @@ body.arrastrando-principal .zona-zocalo .al-arrastrar { display: inline; }
 
 /* Proporción: las columnas de resultados miden por lo menos lo mismo, aunque su encabezado sea corto
    («In (A)», «e (%)» iban apretadas junto a «Protec. (A)»). */
-#sec-cuadro > .cuadro th.col-res { min-width: 76px; box-sizing: border-box; }
+/* 70 y no 76, y 3 px de relleno a los lados en vez de 6: la misma proporción, 6 px menos por
+   columna, para que el cuadro quepa completo (David, 2026-09-29). */
+#sec-cuadro > .cuadro th.col-res, #sec-cuadro > .cuadro .col-fase { min-width: 70px; width: 70px; box-sizing: border-box; }
+#sec-cuadro > .cuadro th, #sec-cuadro > .cuadro > tbody > tr > td { padding-left: 3px; padding-right: 3px; }
 #sec-cuadro > .cuadro th.dos-lineas { line-height: 1.5; }
+/* La columna N.º mide exactamente 32 px: la descripción se fija a 32 px de la orilla (left: 32px). */
+#sec-cuadro > .cuadro > thead > tr:first-child > th:first-child,
+#sec-cuadro > .cuadro > tbody > tr:not(.separador) > td:first-child { width: 32px; min-width: 32px; max-width: 32px; box-sizing: border-box; }
