@@ -34,9 +34,11 @@ public static class ArchivoDelCuadro
     /// «Motor / A/C» partido en Motor y A/C y refrigeración (I-74). 3: varios motores en un circuito
     /// — el Motor «Varios» y la clase de cada aparato (I-115). 4: el A/C «Varios» y «Hab.», el
     /// motocompresor y el acondicionador de habitación en el desglose (I-116, I-117); la versión 3,
-    /// que ya se publicó, no los conoce. Los anteriores se siguen leyendo: sus aparatos son cargas.
+    /// que ya se publicó, no los conoce. 5: el tipo es de cada carga —su subtipo— y el tipo Tablero
+    /// (I-123, I-125); la 4 los leería mal. Los anteriores se siguen leyendo: sus cargas sin subtipo toman
+    /// el tipo de su circuito, y se calculan igual que antes.
     /// </summary>
-    public const int Version = 4;
+    public const int Version = 5;
 
     /// <summary>El archivo, listo para escribirse.</summary>
     public static string Guardar(CuadroDeCarga cuadro, DateTimeOffset cuando) =>

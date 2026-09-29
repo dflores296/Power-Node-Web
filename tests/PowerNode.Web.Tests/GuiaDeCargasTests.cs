@@ -17,7 +17,8 @@ public class GuiaDeCargasTests
         {
             var rama = GuiaDeCargas.DeTipo(tipo);
             Assert.Equal(tipo, rama.Tipo);
-            Assert.NotEmpty(rama.Ramas);
+            if (tipo != CategoriaDeCarga.Tablero)
+                Assert.NotEmpty(rama.Ramas);
         }
     }
 
@@ -28,7 +29,7 @@ public class GuiaDeCargasTests
         Assert.Equal(subtipos.Count, subtipos.Distinct().Count());
         Assert.Equal(Enum.GetValues<SubtipoDeCarga>().Order(), subtipos.Order());
 
-        foreach (var tipo in GuiaDeCargas.Tipos.Where(t => t.Tipo is not null))
+        foreach (var tipo in GuiaDeCargas.Tipos)
             foreach (var sub in tipo.Ramas)
             {
                 Assert.Equal(tipo.Tipo, sub.Tipo);
@@ -37,11 +38,12 @@ public class GuiaDeCargasTests
     }
 
     [Fact]
-    public void El_tablero_alimentado_es_una_rama_de_primer_nivel_sin_tipo_todavia()
+    public void El_tablero_alimentado_es_una_rama_de_primer_nivel()
     {
         var tablero = GuiaDeCargas.DeSubtipo(SubtipoDeCarga.TableroAlimentado);
         Assert.Contains(tablero, GuiaDeCargas.Tipos);
-        Assert.Null(SubtipoDeCarga.TableroAlimentado.Tipo());
+        Assert.Equal(CategoriaDeCarga.Tablero, SubtipoDeCarga.TableroAlimentado.Tipo());
+        Assert.Same(tablero, GuiaDeCargas.DeTipo(CategoriaDeCarga.Tablero));
         Assert.Contains(tablero.Referencias, r => r.Cita == "220-40");
     }
 
@@ -84,7 +86,7 @@ public class GuiaDeCargasTests
     [Fact]
     public void Cada_tipo_cita_la_carga_el_circuito_y_el_alimentador()
     {
-        foreach (var tipo in GuiaDeCargas.Tipos.Where(t => t.Tipo is not null))
+        foreach (var tipo in GuiaDeCargas.Tipos.Where(t => t.Tipo != CategoriaDeCarga.Tablero))
         {
             var alcances = tipo.Referencias.Concat(tipo.Ramas.SelectMany(r => r.Referencias)).Select(r => r.Alcance).ToHashSet();
             Assert.Equal(Enum.GetValues<AlcanceDeReferencia>().ToHashSet(), alcances);

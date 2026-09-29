@@ -160,3 +160,13 @@ una tercera forma de `DatosEntradaCircuitoDerivado440` (`CorrienteTotalHabitacio
 | `Calculo/Casos/CalculadoraCircuitoDerivadoVariador.cs` | `DatosEntradaCircuitoDerivadoVariador` y el derivado de un variador: conductor al 125 % de la corriente de entrada (430-122(a)), protección = mayor estándar que no excede la máxima del fabricante (110-3(b)), cita 430-128 para el desconectador. |
 | `Calculo/TablasNom/ITablaServicioMotor.cs` | `ServicioDeMotor`, `EspecificacionDeTiempo` y la interfaz de la Tabla 430-22(e). |
 | `Normativa/TablaServicioMotorJson.cs` | Su lector. La tabla entra a `tablas-nom.json` con `tools/extraer_tablas.py` (19 tablas). |
+
+### Alimentador a otro tablero — I-125
+
+| Archivo | Qué es |
+|---|---|
+| `Calculo/Casos/DatosEntradaCircuitoDerivadoNoMotor.cs` | Parámetro `Tramo` (`ClaseDeTramo?`, `null` por omisión): con `Alimentador`, el mismo cálculo del derivado no-motor —125 % de la continua más la no continua— se cita con 215-2(a)(1) y 215-3 en lugar de 210-19(a)(1) y 210-20(a). |
+| `Calculo/Casos/CalculadoraCircuitoDerivadoNoMotor.cs` | Lee `Tramo` para elegir los artículos. Sin `Tramo`, idéntico al del escritorio. |
+
+El escritorio ya tiene `ClaseDeTramo` para el alimentador del tablero; lo nuevo es usarlo en un
+interruptor de este tablero que alimenta otro.

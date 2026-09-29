@@ -23,6 +23,10 @@ public class CalculadoraCircuitoDerivadoNoMotor(
             throw new ArgumentException("Fuerza usa su propia metodología (Art. 430), no CalculadoraCircuitoDerivadoNoMotor.", nameof(d));
 
         var citas = new List<Cita>();
+        // Un alimentador a otro tablero se cita con el 215 (Power Node Web, I-125): el número es el mismo.
+        var alimentador = d.Tramo == ClaseDeTramo.Alimentador;
+        var artConductor = alimentador ? "215-2(a)(1)" : "210-19(a)(1)";
+        var artProteccion = alimentador ? "215-3" : "210-20(a)";
 
         // 1. Corriente de diseño — 210-19(a)(1).
         // El divisor salió a TensionDeCalculo el 2026-08-21: ConsumoDePlaca hace esta misma cuenta al
@@ -41,7 +45,7 @@ public class CalculadoraCircuitoDerivadoNoMotor(
         var iNoContinua = d.CargaNoContinuaVA / divisor;
         var in_ = iContinua + iNoContinua;
 
-        citas.Add(new Cita("210-19(a)(1)",
+        citas.Add(new Cita(artConductor,
             $"In = {iNoContinua:0.##} A (no continua) + {iContinua:0.##} A (continua) = {in_:0.##} A"));
 
         // 2. Capacidad mínima de protección y conductor. Son DOS artículos distintos que dan el mismo
@@ -53,11 +57,11 @@ public class CalculadoraCircuitoDerivadoNoMotor(
         // valor nominal -- la excepción que traen las dos secciones. Sin declaración, esto devuelve
         // 1.25 y el resultado es idéntico al de siempre. Ver CargaContinua100Pct.
         var continua = CargaContinua100Pct.Para(
-            d.ConjuntoAprobado100Pct, d.ModeloProteccionEsDe100Pct, "210-20(a)", "210-19(a)(1)");
+            d.ConjuntoAprobado100Pct, d.ModeloProteccionEsDe100Pct, artProteccion, artConductor);
         citas.AddRange(continua.Citas);
 
         var capacidadMin = continua.Factor * iContinua + iNoContinua;
-        citas.Add(new Cita("210-20(a)",
+        citas.Add(new Cita(artProteccion,
             $"Capacidad mínima de la protección: {iNoContinua:0.##} A (no continua) + {continua.Factor * 100m:0}% x {iContinua:0.##} A (continua) = {capacidadMin:0.##} A"));
 
         // 3. Protección — 240-6(a) (vive como texto en la Sección 240-6(a), no como Tabla).

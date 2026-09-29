@@ -65,7 +65,8 @@ public class TiposDeCargaTests
     {
         Assert.Equal(
             [CategoriaDeCarga.Alumbrado, CategoriaDeCarga.Contactos, CategoriaDeCarga.Equipo,
-             CategoriaDeCarga.Motor, CategoriaDeCarga.AireAcondicionado, CategoriaDeCarga.CalefaccionFija],
+             CategoriaDeCarga.Motor, CategoriaDeCarga.AireAcondicionado, CategoriaDeCarga.CalefaccionFija,
+             CategoriaDeCarga.Tablero], // el séptimo, otro tablero — I-125
             CategoriasDeCarga.Todas);
         Assert.Equal("Motor", CategoriaDeCarga.Motor.Nombre());
         Assert.Equal("A/C y refrig.", CategoriaDeCarga.AireAcondicionado.Nombre());
@@ -331,7 +332,7 @@ public class TiposDeCargaTests
         Assert.Equal(1000m, r.ContinuaVA);
         Assert.Equal(500m, r.NoContinuaVA);
         Assert.Equal(cuadro.Circuitos[0].MotorVA + cuadro.Circuitos[1].MotorVA, r.MotoresVA);
-        Assert.Equal(6, r.PorCategoria!.Count);
+        Assert.Equal(7, r.PorCategoria!.Count);
     }
 
     [Fact]
@@ -400,7 +401,7 @@ public class TiposDeCargaTests
         AireConPlaca(original, 7, 18m, 30m, 2);
 
         var texto = ArchivoDelCuadro.Guardar(original, new DateTimeOffset(2026, 9, 27, 12, 0, 0, TimeSpan.FromHours(-6)));
-        Assert.Contains("\"version\": 4", texto); // I-115 e I-117 subieron el formato; la placa se guarda igual
+        Assert.Contains("\"version\": 5", texto); // I-115, I-117 e I-123 subieron el formato; la placa se guarda igual
         Assert.Contains("\"categoria\": \"AireAcondicionado\"", texto);
 
         var abierto = ArchivoDelCuadro.Abrir(texto, Motor).Cuadro!;

@@ -369,6 +369,8 @@ public sealed class DatosDelTablero
         CategoriaDeCarga.Equipo => FactorDemandaEquipo,
         CategoriaDeCarga.Motor => FactorDemandaMotores,
         CategoriaDeCarga.AireAcondicionado => FactorDemandaAireAcondicionado,
+        // Otro tablero ya trae sus factores: aquí no lleva otro — 220-40, I-125.
+        CategoriaDeCarga.Tablero => 1m,
         _ => FactorDemandaCalefaccion,
     };
 
@@ -382,6 +384,7 @@ public sealed class DatosDelTablero
             case CategoriaDeCarga.Equipo: FactorDemandaEquipo = factor; break;
             case CategoriaDeCarga.Motor: FactorDemandaMotores = factor; break;
             case CategoriaDeCarga.AireAcondicionado: FactorDemandaAireAcondicionado = factor; break;
+            case CategoriaDeCarga.Tablero: break; // fijo en 1 — 220-40
             default: FactorDemandaCalefaccion = factor; break;
         }
     }

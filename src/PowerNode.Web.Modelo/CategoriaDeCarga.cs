@@ -35,6 +35,13 @@ public enum CategoriaDeCarga
     Motor,
     AireAcondicionado,
     CalefaccionFija,
+
+    /// <summary>
+    /// <b>Otro tablero alimentado desde este</b> — I-125. Es un alimentador (Art. 100, 215), no un
+    /// circuito derivado: se captura la carga ya calculada del otro tablero y entra sin factor de
+    /// demanda (220-40: la suma es después de los factores; ya se aplicaron allá).
+    /// </summary>
+    Tablero,
 }
 
 public static class CategoriasDeCarga
@@ -50,6 +57,7 @@ public static class CategoriasDeCarga
         CategoriaDeCarga.Equipo => "Equipo",
         CategoriaDeCarga.Motor => "Motor",
         CategoriaDeCarga.AireAcondicionado => "A/C y refrig.",
+        CategoriaDeCarga.Tablero => "Tablero",
         _ => "Calefacción",
     };
 
@@ -60,6 +68,7 @@ public static class CategoriasDeCarga
         CategoriaDeCarga.Motor => "Motores",
         CategoriaDeCarga.AireAcondicionado => "Aire acondicionado y refrigeración",
         CategoriaDeCarga.CalefaccionFija => "Calefacción eléctrica fija",
+        CategoriaDeCarga.Tablero => "Alimentador a tablero",
         _ => c.Nombre(),
     };
 
@@ -71,6 +80,7 @@ public static class CategoriasDeCarga
         CategoriaDeCarga.Equipo => "Equipo: aparatos con su valor de placa, también los que traen motor o compresor: hornos, estufas, parrillas, secadoras, lavadoras, lavavajillas, calentadores de agua, refrigeradores y congeladores domésticos, enfriadores de agua (son aparatos — 440-3(c)), equipo electrónico — Art. 422; 220-53 a 220-56.",
         CategoriaDeCarga.Motor => "Motor: bombas, ventiladores, extractores, compresores de aire, bandas; también manejadoras de aire y condensadores sin motocompresor (440-3(b)) — Art. 430. Se captura en HP, o en A si la placa no trae HP: la corriente sale de la tabla — 430-6(a)(1). Dos polos a 220 V es monofásico (Tabla 430-248); arranque estrella-delta no cambia el cálculo del tablero (430-22(c)).",
         CategoriaDeCarga.AireAcondicionado => "A/C y refrigeración: equipos con motocompresor hermético: minisplit (también inverter frío/calor), bomba de calor, paquete, condensadora, cámara de refrigeración comercial — Art. 440. El refrigerador doméstico no: es aparato (Equipo o el contacto de la cocina — 440-3(c)). Se captura la placa: ampacidad mínima y protección máxima (MCA, MOCP — 440-4(b)), o la corriente de carga nominal del compresor (440-6(a)).",
+        CategoriaDeCarga.Tablero => "Tablero: otro tablero alimentado desde este. Es un alimentador (Art. 100, 215): se captura la carga calculada del otro tablero, continua y no continua, ya con sus factores de demanda; aquí no lleva otro — 220-40.",
         _ => "Calefacción: calefacción por resistencia eléctrica: calefactores, cables calefactores, calderas eléctricas. Carga continua — 424-3(b); 220-51.",
     };
 
@@ -118,6 +128,9 @@ public static class CategoriasDeCarga
         // Motores, A/C y calefacción: solo con la condición de su propia sección, o si no coinciden.
         if (c.EsDeMotor())
             return [JustificacionFactorDemanda.MotoresNoSimultaneos, JustificacionFactorDemanda.CargasNoCoincidentes, JustificacionFactorDemanda.Otra];
+        // Tablero: sin factor de demanda que justificar — 220-40 (I-125).
+        if (c == CategoriaDeCarga.Tablero)
+            return [];
         if (c == CategoriaDeCarga.CalefaccionFija)
             return [JustificacionFactorDemanda.CalefaccionPorCiclos, JustificacionFactorDemanda.CargasNoCoincidentes, JustificacionFactorDemanda.Otra];
 

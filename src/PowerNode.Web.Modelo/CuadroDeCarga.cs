@@ -976,6 +976,14 @@ public sealed class CuadroDeCarga
             c.MotorAl125 = null;
             c.CorrienteDeServicioA = 0m;
 
+            // UN GRUPO, DE CUALQUIER TIPO — I-115, I-123: motores o motocompresores entre sus cargas.
+            if (c.EsGrupo)
+            {
+                c.Ajuste220_52VA = 0m;
+                SumarGrupo(c);
+                continue;
+            }
+
             // I-15, I-74: un motor o un equipo de A/C no tiene carga continua ni no continua. Su
             // corriente es la FLC de tabla (430-6(a)) o la de la placa (440-6(a), 440-4(b)), y sus
             // VA, esa corriente por la tensión del circuito.
@@ -984,25 +992,20 @@ public sealed class CuadroDeCarga
                 c.ContinuaVA = 0m;
                 c.NoContinuaVA = 0m;
                 c.Ajuste220_52VA = 0m;
-                if (c.EsGrupo)
-                {
-                    SumarGrupo(c);
-                    continue;
-                }
                 if (CorrienteDeMotor(c) is { } corriente)
                 {
                     c.CorrienteDeMotorA = corriente;
                     c.MotorVA = corriente * TensionDeCalculo.Divisor(c.Polos, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV);
                 }
+                c.Porciones = [new PorcionDeCarga(c.Categoria, 0m, 0m, c.MotorVA)];
                 continue;
             }
 
             if (c.TieneDesglose)
                 SumarDesglose(c);
-
             // 424-3(b): la calefacción fija de ambiente es carga continua. Lo capturado como no continua
-            // pasa a continua — R-18.
-            if (c.Categoria == CategoriaDeCarga.CalefaccionFija && c.NoContinua > 0m)
+            // pasa a continua — R-18. En el desglose, cada carga de calefacción ya es continua.
+            else if (c.Categoria == CategoriaDeCarga.CalefaccionFija && c.NoContinua > 0m)
             {
                 c.Continua += c.NoContinua;
                 c.NoContinua = 0m;
@@ -1010,6 +1013,8 @@ public sealed class CuadroDeCarga
 
             c.ContinuaVA = AVoltAmperes(c, c.Continua);
             c.NoContinuaVA = AVoltAmperes(c, c.NoContinua);
+            if (!c.TieneDesglose)
+                c.Porciones = [new PorcionDeCarga(c.Categoria, c.ContinuaVA, c.NoContinuaVA, 0m)];
             c.Ajuste220_52VA = c.TieneCarga && c.UsoEfectivo.ReferenciaCargaMinima() is not null
                 ? Math.Max(0m, UsosDeContactos.CargaMinimaAlimentadorVA - c.CargaInstaladaVA)
                 : 0m;
@@ -1017,10 +1022,10 @@ public sealed class CuadroDeCarga
     }
 
     /// <summary>
-    /// <b>La carga del circuito sale de sus aparatos</b> — I-35. Cada uno se convierte a VA con su F.P.
-    /// y la tensión y los polos del circuito; el circuito queda en VA, con la suma de los continuos, la
-    /// de los no continuos y el F.P. combinado (P / √(P² + Q²)). Un «Contacto» sin carga toma 180 VA
-    /// (220-14(i)); en calefacción todos son continuos (424-3(b)).
+    /// <b>La carga del circuito sale de sus cargas</b> — I-35, I-123. Cada una se convierte a VA con su F.P.
+    /// y la tensión y los polos del circuito, con el mínimo de su subtipo (220-14); el circuito queda en
+    /// VA, con la suma de las continuas, la de las no continuas, el F.P. combinado (P / √(P² + Q²)) y la
+    /// carga partida por tipo (<see cref="CircuitoDelCuadro.Porciones"/>).
     /// </summary>
     private void SumarDesglose(CircuitoDelCuadro c)
     {
@@ -1028,18 +1033,12 @@ public sealed class CuadroDeCarga
         var tension = TensionDelMotor(c);
         foreach (var a in c.Cargas)
         {
-            if (a.EsContactoSinCarga)
-            {
-                a.Unidad = UnidadConsumo.VoltAmperes;
-                a.CargaUnitaria = CargaDelCircuito.VAPorContacto;
-            }
-            if (c.Categoria == CategoriaDeCarga.CalefaccionFija)
-                a.Continua = true;
-            a.Cantidad = Math.Max(1, a.Cantidad);
+            PrepararCarga(a, c);
             // Un aparato con motor (I-118): su corriente, de la tabla o de su placa, por la tensión del circuito.
             CorrienteDeMaquina(a, c.Polos, tension);
-            a.TotalVA = a.EsMaquina ? a.Cantidad * a.CorrienteUnitariaA * divisor : VADeCarga(a, c.Polos);
+            a.TotalVA = a.EsMaquina ? a.Cantidad * a.CorrienteUnitariaA * divisor : VADeLaCarga(a, c);
         }
+        AplicarMinimoPorCircuito(c);
 
         // 220-18(a) — I-118: un aparato con motor de más de ⅛ hp, junto con otras cargas: el motor mayor
         // al 125 % y lo demás al 100 %. El 125 % se lo da el cálculo del derivado a la continua: el motor
@@ -1048,13 +1047,31 @@ public sealed class CuadroDeCarga
         c.MotorAl125 = c.Cargas.Any(a => !a.EsMaquina && a.TotalVA > 0m)
             ? motores.Where(MasDeUnOctavoDeHp).OrderByDescending(a => a.CorrienteUnitariaA).FirstOrDefault()
             : null;
-        var motorAl125VA = c.MotorAl125 is { } mayor ? mayor.CorrienteUnitariaA * divisor : 0m;
 
+        var porciones = new Dictionary<CategoriaDeCarga, (decimal Continua, decimal NoContinua)>();
+        void Sumar(CategoriaDeCarga tipo, decimal continua, decimal noContinua)
+        {
+            var (x, y) = porciones.GetValueOrDefault(tipo);
+            porciones[tipo] = (x + continua, y + noContinua);
+        }
+        foreach (var a in c.Cargas)
+        {
+            var tipo = c.TipoDe(a);
+            if (!a.EsMaquina)
+                Sumar(tipo, EsContinua(a) ? a.TotalVA : 0m, EsContinua(a) ? 0m : a.TotalVA);
+            else if (tipo == CategoriaDeCarga.CalefaccionFija)
+                Sumar(tipo, a.TotalVA, 0m); // 424-3(b): el motor de la calefacción también es continuo
+            else
+            {
+                var al125 = ReferenceEquals(a, c.MotorAl125) ? a.CorrienteUnitariaA * divisor : 0m;
+                Sumar(tipo, al125, a.TotalVA - al125);
+            }
+        }
+
+        c.Porciones = [.. porciones.Select(p => new PorcionDeCarga(p.Key, p.Value.Continua, p.Value.NoContinua, 0m))];
         c.Unidad = UnidadConsumo.VoltAmperes;
-        c.Continua = c.Cargas.Where(EsContinua).Sum(a => a.TotalVA)
-                     + (c.Categoria == CategoriaDeCarga.CalefaccionFija ? motores.Sum(a => a.TotalVA) : motorAl125VA);
-        c.NoContinua = c.Cargas.Where(a => !a.EsMaquina && !EsContinua(a)).Sum(a => a.TotalVA)
-                       + (c.Categoria == CategoriaDeCarga.CalefaccionFija ? 0m : motores.Sum(a => a.TotalVA) - motorAl125VA);
+        c.Continua = c.Porciones.Sum(p => p.ContinuaVA);
+        c.NoContinua = c.Porciones.Sum(p => p.NoContinuaVA);
         c.FactorPotencia = c.Continua + c.NoContinua > 0m
             ? FactorPotenciaCombinado.De(c.Cargas.Select(a => (a.TotalVA, a.FactorPotencia)))
             : CircuitoDelCuadro.FactorPotenciaSupuesto;
@@ -1065,7 +1082,7 @@ public sealed class CuadroDeCarga
     /// tabla, o la de un motor en amperes, 430-6(a)(1)); las otras cargas, a VA como en cualquier
     /// desglose. Las máquinas suman <see cref="CircuitoDelCuadro.MotorVA"/> y
     /// <see cref="CircuitoDelCuadro.CorrienteDeMotorA"/>; las otras, la continua y la no continua. El
-    /// F.P. del circuito, el combinado de todos.
+    /// F.P. del circuito, el combinado de todos. Cada parte, con su tipo (I-123).
     /// </summary>
     private void SumarGrupo(CircuitoDelCuadro c)
     {
@@ -1073,29 +1090,75 @@ public sealed class CuadroDeCarga
         var tension = TensionDelMotor(c);
         foreach (var a in c.Cargas)
         {
-            a.Cantidad = Math.Max(1, a.Cantidad);
-            if (!a.EsMaquina)
-            {
-                CorrienteDeMaquina(a, c.Polos, tension);
-                if (a.EsContactoSinCarga)
-                {
-                    a.Unidad = UnidadConsumo.VoltAmperes;
-                    a.CargaUnitaria = CargaDelCircuito.VAPorContacto;
-                }
-                a.TotalVA = VADeCarga(a, c.Polos);
-                continue;
-            }
-
+            PrepararCarga(a, c);
             CorrienteDeMaquina(a, c.Polos, tension);
-            a.TotalVA = a.Cantidad * a.CorrienteUnitariaA * divisor;
+            a.TotalVA = a.EsMaquina ? a.Cantidad * a.CorrienteUnitariaA * divisor : VADeLaCarga(a, c);
         }
+        AplicarMinimoPorCircuito(c);
 
         c.ContinuaVA = c.Cargas.Where(EsContinua).Sum(a => a.TotalVA);
         c.NoContinuaVA = c.Cargas.Where(a => !a.EsMaquina && !EsContinua(a)).Sum(a => a.TotalVA);
         c.CorrienteDeMotorA = c.Cargas.Where(a => a.EsMaquina).Sum(a => a.Cantidad * a.CorrienteUnitariaA);
         c.MotorVA = c.Cargas.Where(a => a.EsMaquina).Sum(a => a.TotalVA);
+        c.Porciones =
+        [
+            .. c.Cargas.GroupBy(c.TipoDe).Select(g => new PorcionDeCarga(
+                g.Key,
+                g.Where(EsContinua).Sum(a => a.TotalVA),
+                g.Where(a => !a.EsMaquina && !EsContinua(a)).Sum(a => a.TotalVA),
+                g.Where(a => a.EsMaquina).Sum(a => a.TotalVA))),
+        ];
         if (c.CargaInstaladaVA > 0m)
             c.FactorPotencia = FactorPotenciaCombinado.De(c.Cargas.Select(a => (a.TotalVA, a.FactorPotencia)));
+    }
+
+    /// <summary>
+    /// Antes de sumar una carga: la cantidad, al menos 1; un «Contacto» sin subtipo ni carga toma 180 VA
+    /// (220-14(i), como hasta el formato 4); y la que su tipo o subtipo hace continua lo es: calefacción
+    /// (424-3(b)) y calentador de agua (422-13).
+    /// </summary>
+    private static void PrepararCarga(CargaDelCircuito a, CircuitoDelCuadro c)
+    {
+        a.Cantidad = Math.Max(1, a.Cantidad);
+        a.ReferenciaMinimo = null;
+        a.ReferenciaContinua = null;
+        if (a.Subtipo is null && a.EsContactoSinCarga)
+        {
+            a.Unidad = UnidadConsumo.VoltAmperes;
+            a.CargaUnitaria = CargaDelCircuito.VAPorContacto;
+        }
+        var siempre = a.Subtipo?.SiempreContinua() ?? (c.TipoDe(a) == CategoriaDeCarga.CalefaccionFija ? "424-3(b)" : null);
+        if (siempre is not null && a.Clase == ClaseDeAparato.Carga)
+        {
+            a.Continua = true;
+            a.ReferenciaContinua = siempre;
+        }
+    }
+
+    /// <summary>Los VA de una carga, con el mínimo de su subtipo por unidad — 220-14 (I-123).</summary>
+    private decimal VADeLaCarga(CargaDelCircuito a, CircuitoDelCuadro c)
+    {
+        var va = VADeCarga(a, c.Polos);
+        if (a.Subtipo?.MinimoUnitarioVA(Datos.Inmueble.EsVivienda()) is { } minimo && va < a.Cantidad * minimo.VA)
+        {
+            a.ReferenciaMinimo = minimo.Referencia;
+            return a.Cantidad * minimo.VA;
+        }
+        return va;
+    }
+
+    /// <summary>Anuncios y contorno: 1200 VA por circuito — 220-14(f). Lo que falta, a la primera de ellas.</summary>
+    private static void AplicarMinimoPorCircuito(CircuitoDelCuadro c)
+    {
+        var anuncios = c.Cargas.Where(a => a.Subtipo?.MinimoPorCircuitoVA() is not null).ToList();
+        if (anuncios.Count == 0)
+            return;
+        var (minimo, referencia) = anuncios[0].Subtipo!.Value.MinimoPorCircuitoVA()!.Value;
+        var falta = minimo - anuncios.Sum(a => a.TotalVA);
+        if (falta <= 0m)
+            return;
+        anuncios[0].TotalVA += falta;
+        anuncios[0].ReferenciaMinimo = referencia;
     }
 
     /// <summary>
@@ -1471,6 +1534,11 @@ public sealed class CuadroDeCarga
                     CalcularGrupo(c, canal);
                     continue;
                 }
+                if (c.Categoria == CategoriaDeCarga.Tablero)
+                {
+                    CalcularAlimentadorATablero(c, canal);
+                    continue;
+                }
                 if (c.EsVariador)
                 {
                     CalcularVariador(c, canal);
@@ -1493,7 +1561,7 @@ public sealed class CuadroDeCarga
                 }
 
                 c.Resultado = Recordado(new DatosEntradaCircuitoDerivadoNoMotor(
-                    TipoCarga: c.Tipo,
+                    TipoCarga: TipoCargaDelCalculo(c),
                     CargaContinuaVA: c.ContinuaVA,
                     CargaNoContinuaVA: c.NoContinuaVA,
                     // NumeroFases es el del CIRCUITO —cuántas barras toca, o sea sus polos—, NO el
@@ -1536,6 +1604,47 @@ public sealed class CuadroDeCarga
             }
         }
     }
+
+    /// <summary>
+    /// El tipo con el que calcula el derivado no-motor — I-123: con algún contacto, Contactos (sin 240-4(b));
+    /// solo alumbrado, Alumbrado; si no, Equipo. Sin desglose, el del renglón, como siempre.
+    /// </summary>
+    private static TipoCarga TipoCargaDelCalculo(CircuitoDelCuadro c)
+    {
+        if (!c.TieneDesglose)
+            return c.Tipo;
+        var tipos = c.TiposDeSusCargas;
+        return tipos.Contains(CategoriaDeCarga.Contactos) ? TipoCarga.Contactos
+            : tipos.All(t => t == CategoriaDeCarga.Alumbrado) ? TipoCarga.Alumbrado
+            : TipoCarga.Equipo;
+    }
+
+    /// <summary>
+    /// <b>El alimentador a otro tablero</b> — I-125: la carga calculada del otro tablero, la no continua
+    /// más el 125 % de la continua — 215-2(a)(1), 215-3. Con el cálculo del derivado citado con el 215
+    /// (<see cref="ClaseDeTramo.Alimentador"/>), la caída máxima de un alimentador y sin mínimo por uso.
+    /// </summary>
+    private void CalcularAlimentadorATablero(CircuitoDelCuadro c, CanalizacionDelTablero canal) =>
+        c.Resultado = Recordado(new DatosEntradaCircuitoDerivadoNoMotor(
+            TipoCarga: TipoCarga.Equipo,
+            CargaContinuaVA: c.ContinuaVA,
+            CargaNoContinuaVA: c.NoContinuaVA,
+            NumeroFases: c.Polos,
+            TensionFaseNeutroV: Datos.TensionFaseNeutroV,
+            TensionFaseFaseV: Datos.TensionFaseFaseV,
+            LongitudM: c.LongitudM,
+            NumeroConductoresParalelo: 1,
+            NumeroConductoresAgrupados: canal.Ajuste!.ConductoresParaElMotor,
+            TemperaturaAmbienteC: Datos.TemperaturaAmbienteC + canal.SumadorAzoteaC,
+            MaterialConductor: Datos.MaterialConductor,
+            MaterialCanalizacion: canal.MaterialParaTabla9,
+            FactorPotencia: c.FactorPotencia,
+            CaidaTensionMaxPct: Datos.CaidaMaxAlimentadorPct,
+            PisoPracticoCalibreMm2: null,
+            TipoAislamiento: Datos.TipoAislamiento,
+            LugarInstalacionSeco: Datos.LugarSeco,
+            TerminalesMarcadas75C: Datos.TerminalesMarcadas75C,
+            Tramo: ClaseDeTramo.Alimentador));
 
     /// <summary>
     /// <b>El derivado de un motor</b> — I-15, Art. 430: FLC de tabla, conductor al 125 % (430-22),
@@ -1821,28 +1930,29 @@ public sealed class CuadroDeCarga
         var instaladaW = conCarga.Sum(c => c.PotenciaActivaW + c.Ajuste220_52VA * c.FactorPotencia);
         // CADA CIRCUITO CON EL FACTOR DE SU TIPO — R-17. La parte continua y la no continua llevan el
         // mismo factor; lo que las distingue es el 125 % del alimentador, no la demanda.
-        var demandadaW = conCarga.Sum(c => c.CargaCalculadaVA * FactorDeDemanda(c) * c.FactorPotencia);
+        var demandadaW = conCarga.Sum(c => Demandada(c) * c.FactorPotencia);
         var minimo220_52 = conCarga.Sum(c => c.Ajuste220_52VA);
 
         Resumen = new ResumenDeCarga(
             MotoresVA: conCarga.Sum(c => c.MotorVA),
-            MotoresDemandadaVA: conCarga.Sum(c => c.MotorVA * FactorDeDemanda(c)),
+            MotoresDemandadaVA: conCarga.Sum(MotorDemandada),
             ContinuaVA: continua,
-            ContinuaDemandadaVA: conCarga.Sum(c => c.ContinuaVA * FactorDeDemanda(c)),
+            ContinuaDemandadaVA: conCarga.Sum(ContinuaDemandada),
             NoContinuaVA: noContinua,
-            NoContinuaDemandadaVA: conCarga.Sum(c => c.NoContinuaVA * FactorDeDemanda(c)),
+            NoContinuaDemandadaVA: conCarga.Sum(NoContinuaDemandada),
             CargaPorFaseVA: porFase,
             DesbalanceoPct: desbalanceo,
             InstaladaW: instaladaW,
             DemandadaW: demandadaW,
             FactorPotencia: FactorPotenciaCombinado.De(conCarga.Select(c => (c.CargaInstaladaVA, c.FactorPotencia))),
             Minimo220_52VA: minimo220_52,
-            Minimo220_52DemandadoVA: conCarga.Sum(c => c.Ajuste220_52VA * FactorDeDemanda(c)),
+            Minimo220_52DemandadoVA: conCarga.Sum(AjusteDemandado),
             PorCategoria:
             [
                 .. Enum.GetValues<CategoriaDeCarga>().Select(categoria =>
                 {
-                    var instalada = conCarga.Where(c => c.Categoria == categoria).Sum(c => c.CargaInstaladaVA);
+                    // POR TIPO DE CARGA, no de circuito — I-123: un circuito combinado aporta a varios renglones.
+                    var instalada = conCarga.SelectMany(c => c.Porciones).Where(p => p.Tipo == categoria).Sum(p => p.TotalVA);
                     var factor = Datos.FactorDeDemanda(categoria);
                     return new CargaPorCategoria(categoria, instalada, factor, instalada * factor);
                 }),
@@ -1853,7 +1963,17 @@ public sealed class CuadroDeCarga
     /// El factor de demanda del tipo del circuito — R-17. Cero en el menor de un par no simultáneo: no
     /// entra al alimentador — 220-60 (I-121).
     /// </summary>
-    private decimal FactorDeDemanda(CircuitoDelCuadro c) => c.OmitidoPorNoSimultaneo ? 0m : Datos.FactorDeDemanda(c.Categoria);
+    private decimal Fd(CircuitoDelCuadro c, CategoriaDeCarga tipo) => c.OmitidoPorNoSimultaneo ? 0m : Datos.FactorDeDemanda(tipo);
+
+    /// <summary>
+    /// <b>La demanda de un circuito, carga por carga</b> — I-123: cada parte con el factor de su tipo
+    /// (220 Parte C); el mínimo de 220-52, con el de contactos. Cero si es el menor de un par no simultáneo.
+    /// </summary>
+    private decimal ContinuaDemandada(CircuitoDelCuadro c) => c.Porciones.Sum(p => p.ContinuaVA * Fd(c, p.Tipo));
+    private decimal NoContinuaDemandada(CircuitoDelCuadro c) => c.Porciones.Sum(p => p.NoContinuaVA * Fd(c, p.Tipo));
+    private decimal MotorDemandada(CircuitoDelCuadro c) => c.Porciones.Sum(p => p.MotorVA * Fd(c, p.Tipo));
+    private decimal AjusteDemandado(CircuitoDelCuadro c) => c.Ajuste220_52VA * Fd(c, c.Categoria);
+    private decimal Demandada(CircuitoDelCuadro c) => ContinuaDemandada(c) + NoContinuaDemandada(c) + MotorDemandada(c) + AjusteDemandado(c);
 
     /// <summary>
     /// <b>Cargas no simultáneas</b> — I-121: de cada par, al alimentador va la mayor; la menor se omite —
@@ -1866,7 +1986,8 @@ public sealed class CuadroDeCarga
         foreach (var c in _circuitos)
             c.OmitidoPorNoSimultaneo = false;
 
-        decimal Carga(CircuitoDelCuadro c) => c.CargaCalculadaVA * Datos.FactorDeDemanda(c.Categoria);
+        decimal Carga(CircuitoDelCuadro c) =>
+            c.Porciones.Sum(p => p.TotalVA * Datos.FactorDeDemanda(p.Tipo)) + c.Ajuste220_52VA * Datos.FactorDeDemanda(c.Categoria);
         var mayorDe = new Dictionary<CircuitoDelCuadro, CircuitoDelCuadro>();
         foreach (var c in _circuitos.Where(c => c.NoSimultaneoCon is not null && !c.EsContinuacion && !c.EsDelPrincipal))
         {
@@ -1909,17 +2030,17 @@ public sealed class CuadroDeCarga
     {
         var conCarga = _circuitos.Where(c => c.TieneCarga).ToList();
 
-        // Cada circuito con el factor de demanda de su tipo — R-17.
-        IReadOnlyDictionary<char, decimal> Sumar(Func<CircuitoDelCuadro, decimal> va) =>
+        // Cada carga con el factor de demanda de su tipo — R-17, I-123.
+        IReadOnlyDictionary<char, decimal> Sumar(Func<CircuitoDelCuadro, decimal> demandada) =>
             CalculadoraDesbalanceo.CorrientePorFase(
                 [.. conCarga.Select(c => new CorrientePorCircuito(
                     c.Fases,
-                    FactorDeDemanda(c) * va(c) / TensionDeCalculo.Divisor(c.Polos, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV)))],
+                    demandada(c) / TensionDeCalculo.Divisor(c.Polos, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV)))],
                 Datos.Barras);
 
-        var continua = Sumar(c => c.ContinuaVA);
+        var continua = Sumar(ContinuaDemandada);
         // Los 1500 VA de 220-52 son carga de alimentador: entran aquí, no en el derivado.
-        var noContinua = Sumar(c => c.NoContinuaVA + c.Ajuste220_52VA);
+        var noContinua = Sumar(c => NoContinuaDemandada(c) + AjusteDemandado(c));
 
         // El mismo 125 % (o 100 %, con el ensamble aprobado) que aplica la calculadora del
         // alimentador: la fase que gobierna es la que pide más capacidad, no la de más corriente.
@@ -1959,20 +2080,21 @@ public sealed class CuadroDeCarga
 
     private IEnumerable<MotorDelAlimentador> MotoresDelAlimentador() =>
         _circuitos
-            .Where(c => c.TieneCarga && c.EsDeMotor && c.CorrienteDeMotorA > 0m && !c.OmitidoPorNoSimultaneo)
+            .Where(c => c.TieneCarga && (c.EsDeMotor || c.EsGrupo) && c.CorrienteDeMotorA > 0m && !c.OmitidoPorNoSimultaneo)
             .SelectMany(c => c.EsGrupo
                 // UN GRUPO ENTRA MOTOR POR MOTOR — I-115: el 125 % de 430-24 es del motor mayor del
                 // alimentador, no del circuito que lo lleva. Todos con la protección de su circuito.
                 ? c.Cargas
                     .Where(a => a.EsMaquina && a.CorrienteUnitariaA > 0m)
-                    .SelectMany(a => Enumerable.Repeat(a.CorrienteUnitariaA, a.Cantidad))
-                    .Select(i => new MotorDelAlimentador(c, i, FactorDeDemanda(c), c.Resultado?.ProteccionA, false))
+                    // Cada una con el F.D. de su tipo — I-123.
+                    .SelectMany(a => Enumerable.Repeat((a.CorrienteUnitariaA, Tipo: c.TipoDe(a)), a.Cantidad))
+                    .Select(m => new MotorDelAlimentador(c, m.CorrienteUnitariaA, Fd(c, m.Tipo), c.Resultado?.ProteccionA, false))
                 : c.CorrienteDeServicioA > 0m
                     // SERVICIO NO CONTINUO — 430-24 Excepción 1 (I-120): con el valor de 430-22(e), que ya trae
                     // su porcentaje; no compite por el 125 % del mayor.
-                    ? [new MotorDelAlimentador(c, c.CorrienteDeServicioA, FactorDeDemanda(c), c.Resultado?.ProteccionA, true)]
+                    ? [new MotorDelAlimentador(c, c.CorrienteDeServicioA, Fd(c, c.Categoria), c.Resultado?.ProteccionA, true)]
                     : [new MotorDelAlimentador(
-                        c, c.CorrienteDeMotorA, FactorDeDemanda(c),
+                        c, c.CorrienteDeMotorA, Fd(c, c.Categoria),
                         // Sin derivado calculado no hay protección que aportar al techo de 430-62(a).
                         c.Resultado?.ProteccionA,
                         c.EsAireAcondicionado && c.PlacaAire == PlacaDeAireAcondicionado.AmpacidadYProteccion)]);
@@ -2063,8 +2185,8 @@ public sealed class CuadroDeCarga
         foreach (var c in _circuitos.Where(c => c.TieneCarga && (!c.EsMotor || c.EsGrupo)))
         {
             var divisor = TensionDeCalculo.Divisor(c.Polos, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV);
-            var iContinua = FactorDeDemanda(c) * c.ContinuaVA / divisor;
-            var iNoContinua = FactorDeDemanda(c) * (c.NoContinuaVA + c.Ajuste220_52VA) / divisor;
+            var iContinua = ContinuaDemandada(c) / divisor;
+            var iNoContinua = (NoContinuaDemandada(c) + AjusteDemandado(c)) / divisor;
 
             foreach (var (f, anguloCorriente) in Direcciones(c))
             {
@@ -2108,7 +2230,7 @@ public sealed class CuadroDeCarga
         var fpAlimentador = FactorPotenciaCombinado.De(
             _circuitos
                 .Where(c => c.TieneCarga && c.Fases.Contains(gobierna.Fase))
-                .Select(c => (c.CargaCalculadaVA / c.Fases.Length * FactorDeDemanda(c), c.FactorPotencia)));
+                .Select(c => (Demandada(c) / c.Fases.Length, c.FactorPotencia)));
 
         var canal = Datos.CanalizacionAlimentador;
         canal.Limpiar();

@@ -172,7 +172,8 @@ public sealed class CircuitoDelCuadro
     /// nominal o ampacidad mínima. Con eso el renglón calcula, o dice por qué no (<see cref="Error"/>).
     /// </summary>
     public bool TieneCapturaDeMotor =>
-        EsMotor ? CapturaMotor switch
+        EsGrupo ? Cargas.Any(a => a.EsMaquina && a.TieneCapturaDeMaquina)
+        : EsMotor ? CapturaMotor switch
         {
             CapturaDeMotor.Hp => Hp > 0m,
             CapturaDeMotor.Amperes => CorrientePlacaA > 0m,
@@ -192,8 +193,84 @@ public sealed class CircuitoDelCuadro
     /// capturado como «Varios». Cada máquina y cada otra carga es un aparato del desglose.
     /// </summary>
     public bool EsGrupo =>
-        (EsMotor && CapturaMotor == CapturaDeMotor.Grupo)
-        || (EsAireAcondicionado && PlacaAire == PlacaDeAireAcondicionado.Grupo);
+        Categoria != CategoriaDeCarga.Tablero && Cargas.Count > 0 &&
+        ((EsMotor && CapturaMotor == CapturaDeMotor.Grupo)
+         || (EsAireAcondicionado && PlacaAire == PlacaDeAireAcondicionado.Grupo)
+         // POR LO QUE LLEVA, NO POR UNA UNIDAD — I-123: un motor o un motocompresor entre sus cargas lo hace
+         // grupo (430-53, 440-22(b)); también varios aparatos con motor sin otras cargas, que 220-18(a) manda
+         // al Art. 430.
+         || Cargas.Any(a => a.EsMaquina && TipoDe(a).EsDeMotor())
+         || (Cargas.Any(a => a.EsMaquina) && Cargas.All(a => a.EsMaquina)));
+
+    /// <summary>El tipo de una de sus cargas: el de su subtipo, o el del circuito — I-123.</summary>
+    public CategoriaDeCarga TipoDe(CargaDelCircuito carga) => carga.TipoEn(this);
+
+    /// <summary>
+    /// <b>Los tipos de sus cargas</b> — I-123. Uno solo, el del renglón, si no se desglosa. Más de uno: el
+    /// circuito lleva <b>cargas combinadas</b> (220-18(a), 440-34, 430-110(c)).
+    /// </summary>
+    public IReadOnlyList<CategoriaDeCarga> TiposDeSusCargas =>
+        TieneDesglose ? [.. Cargas.Select(TipoDe).Distinct()] : [Categoria];
+
+    /// <summary>Lleva cargas de más de un tipo: el cuadro dice «Combinadas».</summary>
+    public bool TieneCargasCombinadas => TiposDeSusCargas.Count > 1;
+
+    /// <summary>
+    /// <b>La carga del circuito partida por tipo</b> — I-123: cada parte entra al alimentador con el factor
+    /// de demanda de su tipo (220 Parte C). La pone <see cref="CuadroDeCarga"/>.
+    /// </summary>
+    public IReadOnlyList<PorcionDeCarga> Porciones { get; internal set; } = [];
+
+    /// <summary>
+    /// <b>La clase del circuito</b>, que sale de sus cargas — Art. 100, I-123. <c>null</c> sin carga.
+    /// <list type="bullet">
+    /// <item>Otro tablero: <see cref="ClaseDeCircuito.Alimentador"/>.</item>
+    /// <item>Un solo equipo —el renglón de Aparatos, Motores o A/A, o una sola carga de cantidad 1 que no
+    /// es alumbrado ni contactos—, o el contacto del refrigerador: <see cref="ClaseDeCircuito.Individual"/>.</item>
+    /// <item>Con alumbrado o contactos de uso general: <see cref="ClaseDeCircuito.UsoGeneral"/>.</item>
+    /// <item>Solo aparatos, o los contactos de vivienda para aparatos pequeños y lavadora:
+    /// <see cref="ClaseDeCircuito.ParaAparatos"/>.</item>
+    /// </list>
+    /// </summary>
+    public ClaseDeCircuito? ClaseDelCircuito
+    {
+        get
+        {
+            if (!TieneCarga)
+                return null;
+            if (Categoria == CategoriaDeCarga.Tablero)
+                return ClaseDeCircuito.Alimentador;
+            if (UsoEfectivo == UsoDeContactos.Refrigerador)
+                return ClaseDeCircuito.Individual;
+            if (!TieneDesglose)
+                return Categoria switch
+                {
+                    CategoriaDeCarga.Alumbrado => ClaseDeCircuito.UsoGeneral,
+                    CategoriaDeCarga.Contactos => UsoParaAparatos ? ClaseDeCircuito.ParaAparatos : ClaseDeCircuito.UsoGeneral,
+                    CategoriaDeCarga.CalefaccionFija => ClaseDeCircuito.ParaAparatos,
+                    _ => ClaseDeCircuito.Individual,
+                };
+            var tipos = TiposDeSusCargas;
+            if (Cargas is [{ Cantidad: <= 1 } sola] && TipoDe(sola) is not (CategoriaDeCarga.Alumbrado or CategoriaDeCarga.Contactos))
+                return ClaseDeCircuito.Individual;
+            if (tipos.Contains(CategoriaDeCarga.Alumbrado) || (tipos.Contains(CategoriaDeCarga.Contactos) && !UsoParaAparatos))
+                return ClaseDeCircuito.UsoGeneral;
+            return ClaseDeCircuito.ParaAparatos;
+        }
+    }
+
+    /// <summary>Contactos de vivienda para aparatos pequeños o lavadora — 210-11(c)(1), (2).</summary>
+    private bool UsoParaAparatos => UsoEfectivo is UsoDeContactos.AparatosPequenos or UsoDeContactos.Lavadora;
+
+    /// <summary>Las salidas y cargas del desglose, por su cantidad. <c>null</c> sin desglose: es carga total.</summary>
+    public int? Salidas => TieneDesglose ? Cargas.Sum(a => Math.Max(1, a.Cantidad)) : null;
+
+    /// <summary>
+    /// Capturado como <b>carga total</b>: el renglón de Alumbrado, Contactos o Calefacción, que es un grupo
+    /// de salidas sin desglosar — I-123.
+    /// </summary>
+    public bool EsCargaTotal => !TieneDesglose &&
+        Categoria is CategoriaDeCarga.Alumbrado or CategoriaDeCarga.Contactos or CategoriaDeCarga.CalefaccionFija;
 
     /// <summary>
     /// <b>La corriente del motor o del equipo de A/C</b>: la FLC de tabla de un motor (430-6(a)), la de
@@ -230,7 +307,7 @@ public sealed class CircuitoDelCuadro
     /// trajera de otro tipo se conservan sin contar, como la continua y la no continua. Un grupo
     /// (<see cref="EsGrupo"/>) sí: sus aparatos son los motores y las otras cargas.
     /// </summary>
-    public bool TieneDesglose => Cargas.Count > 0 && (!EsDeMotor || EsGrupo);
+    public bool TieneDesglose => Cargas.Count > 0 && Categoria != CategoriaDeCarga.Tablero && (!EsDeMotor || EsGrupo);
 
     /// <summary>
     /// Abre el desglose. Si el circuito ya traía carga, se convierte en los primeros aparatos —
@@ -239,7 +316,28 @@ public sealed class CircuitoDelCuadro
     /// </summary>
     public CargaDelCircuito AgregarCarga()
     {
-        if (!TieneDesglose && !EsDeMotor)
+        // Un motor o un motocompresor capturado en el renglón pasa a ser la primera línea: con otra carga
+        // el circuito es un grupo (430-53, 440-22(b)) — I-123, en lugar de la unidad «Varios».
+        if (!TieneDesglose && EsMotor && CapturaMotor is CapturaDeMotor.Hp or CapturaDeMotor.Amperes && TieneCapturaDeMotor)
+            Cargas.Insert(0, new CargaDelCircuito
+            {
+                Descripcion = string.IsNullOrWhiteSpace(Descripcion) ? "Motor" : Descripcion.Trim(),
+                Clase = ClaseDeAparato.Motor,
+                CapturaMotor = CapturaMotor,
+                Hp = Hp,
+                CorrientePlacaA = CorrientePlacaA,
+                FactorPotencia = FactorPotencia,
+            });
+        else if (!TieneDesglose && EsAireAcondicionado && PlacaAire == PlacaDeAireAcondicionado.CorrienteNominal && CorrientePlacaA > 0m)
+            Cargas.Insert(0, new CargaDelCircuito
+            {
+                Descripcion = string.IsNullOrWhiteSpace(Descripcion) ? "Motocompresor" : Descripcion.Trim(),
+                Clase = ClaseDeAparato.Motocompresor,
+                CorrientePlacaA = CorrientePlacaA,
+                CorrienteSeleccionA = CorrienteSeleccionA,
+                FactorPotencia = FactorPotencia,
+            });
+        else if (!TieneDesglose && !EsDeMotor)
         {
             var nombre = string.IsNullOrWhiteSpace(Descripcion) ? "Carga capturada" : Descripcion.Trim();
             if (Continua > 0m)

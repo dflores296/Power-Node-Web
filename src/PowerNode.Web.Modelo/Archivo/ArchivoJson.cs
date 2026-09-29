@@ -271,6 +271,8 @@ public sealed class AparatoJson
     public decimal? Hp { get; set; }
     public decimal? CorrientePlaca { get; set; }
     public decimal? CorrienteSeleccion { get; set; }
+    // Formato 5 — I-123: el subtipo de la carga, y con él su tipo. Sin él, la carga toma el del circuito.
+    public SubtipoDeCarga? Subtipo { get; set; }
 
     public static AparatoJson De(CargaDelCircuito a) => new()
     {
@@ -285,6 +287,7 @@ public sealed class AparatoJson
         Hp = a.Hp,
         CorrientePlaca = a.CorrientePlacaA == 0m ? null : a.CorrientePlacaA,
         CorrienteSeleccion = a.CorrienteSeleccionA,
+        Subtipo = a.Subtipo,
     };
 
     internal CargaDelCircuito Crear(string quien, List<string> avisos)
@@ -308,6 +311,9 @@ public sealed class AparatoJson
         a.Hp = Hp is > 0m ? Hp : null;
         a.CorrientePlacaA = CircuitoJson.NoNegativo(CorrientePlaca, a.CorrientePlacaA, $"{quien}, en la corriente,", avisos);
         a.CorrienteSeleccionA = CorrienteSeleccion is > 0m ? CorrienteSeleccion : null;
+        // El subtipo fija la clase; uno que solo va en el renglón (variador, MCA, tablero) no se lee.
+        if (Subtipo is { } s && Enum.IsDefined(s) && !s.SoloEnElRenglon())
+            a.Subtipo = s;
         return a;
     }
 }

@@ -370,6 +370,8 @@ public class GruposDeMotoresTests
     [Fact]
     public void I118_SoloMotoresEnUnDesgloseDeEquipoVanPorElArt430()
     {
+        // Antes (I-118) avisaba y no calculaba. Desde I-123 el grupo sale de lo que lleva el circuito: un
+        // aparato con motor solo se calcula por el Art. 430 — 220-18(a), 422-10(a).
         var cuadro = Nuevo();
         var c = Espacio(cuadro, 1);
         c.Categoria = CategoriaDeCarga.Equipo;
@@ -378,9 +380,10 @@ public class GruposDeMotoresTests
         motor.Hp = 0.5m;
         cuadro.Recalcular();
 
-        Assert.Null(c.Resultado);
-        Assert.Contains("220-18(a)", c.Error);
-        Assert.Contains("«Varios»", c.Error);
+        Assert.True(c.EsGrupo);
+        Assert.Null(c.Error);
+        Assert.Equal(motor.CorrienteUnitariaA, c.Resultado!.CorrienteDisenoA);
+        Assert.Contains(c.Resultado.Citas, x => x.Referencia.StartsWith("430-52", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -635,7 +638,7 @@ public class GruposDeMotoresTests
         cuadro.Recalcular();
 
         var texto = ArchivoDelCuadro.Guardar(cuadro, DateTimeOffset.Now);
-        Assert.Contains("\"version\": 4", texto);
+        Assert.Contains("\"version\": 5", texto);
         var apertura = ArchivoDelCuadro.Abrir(texto, Motor);
 
         Assert.Null(apertura.Error);
@@ -682,7 +685,7 @@ public class GruposDeMotoresTests
         const string texto = """
             {
               "formato": "power-node/cuadro-de-carga",
-              "version": 5,
+              "version": 6,
               "circuitos": [ { "espacio": 1, "capturaMotor": "AlgoNuevo" } ]
             }
             """;

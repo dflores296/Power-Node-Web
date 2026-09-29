@@ -319,7 +319,7 @@ public static class GuiaDeCargas
                 A("220-40", "La carga del alimentador es la suma después de los factores de demanda: aquí no se aplica otro."),
             ],
             [],
-            Subtipo: SubtipoDeCarga.TableroAlimentado),
+            CategoriaDeCarga.Tablero, SubtipoDeCarga.TableroAlimentado),
     ];
 
     // ---- CLASES DE CIRCUITO ------------------------------------------------------------------------

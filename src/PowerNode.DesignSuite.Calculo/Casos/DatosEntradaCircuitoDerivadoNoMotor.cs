@@ -53,4 +53,10 @@ public sealed record DatosEntradaCircuitoDerivadoNoMotor(
     /// (15 A alumbrado, 20 A contactos): era criterio de diseño, no de la NOM (David, 2026-09-24).
     /// </summary>
     decimal? ProteccionMinimaA = null,
-    string? ReferenciaProteccionMinima = null);
+    string? ReferenciaProteccionMinima = null,
+    /// <summary>
+    /// <b>Alimentador a otro tablero</b> — nacido en Power Node Web (I-125). El mismo cálculo —125 %
+    /// de la continua más la no continua—, citado con 215-2(a)(1) y 215-3 en lugar de 210-19(a)(1) y
+    /// 210-20(a): ver <see cref="ClaseDeTramo"/>. <c>null</c> = circuito derivado, como siempre.
+    /// </summary>
+    ClaseDeTramo? Tramo = null);

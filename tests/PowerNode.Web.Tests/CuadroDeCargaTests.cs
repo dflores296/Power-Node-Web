@@ -875,7 +875,7 @@ public class CuadroDeCargaTests
         cuadro.Recalcular();
 
         decimal Demandada(CategoriaDeCarga c) => cuadro.Resumen.PorCategoria!.Single(f => f.Categoria == c).DemandadaVA;
-        Assert.Equal(6, cuadro.Resumen.PorCategoria!.Count);
+        Assert.Equal(7, cuadro.Resumen.PorCategoria!.Count); // con Tablero — I-125
         Assert.Equal(500m, Demandada(CategoriaDeCarga.Alumbrado));
         Assert.Equal(600m, Demandada(CategoriaDeCarga.Contactos));
         Assert.Equal(750m, Demandada(CategoriaDeCarga.Equipo));

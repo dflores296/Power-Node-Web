@@ -64,8 +64,41 @@ public sealed class CargaDelCircuito
     // Los datos de cada clase van en campos propios: al cambiar de clase no se leen los VA de una carga
     // como amperes de un motor, y al regresar se recupera lo capturado.
 
-    /// <summary>Carga, motor o motocompresor. Ver <see cref="ClaseDeAparato"/>.</summary>
+    /// <summary>Carga, motor o motocompresor. Ver <see cref="ClaseDeAparato"/>. Con subtipo, la fija él.</summary>
     public ClaseDeAparato Clase { get; set; } = ClaseDeAparato.Carga;
+
+    // ---- TIPO Y SUBTIPO (I-123) -----------------------------------------------------------------
+
+    private SubtipoDeCarga? _subtipo;
+
+    /// <summary>
+    /// <b>El subtipo de esta carga</b> — I-123, decisión <c>cargas-y-clases-de-circuito.md</c>. De él
+    /// salen su tipo (<see cref="SubtiposDeCarga.Tipo"/>) —y con el tipo, su factor de demanda en el
+    /// alimentador—, cómo se captura (<see cref="SubtiposDeCarga.Clase"/>) y su mínimo de 220-14.
+    /// <c>null</c> = sin elegir: toma el tipo del circuito, como hasta el formato 4.
+    /// </summary>
+    public SubtipoDeCarga? Subtipo
+    {
+        get => _subtipo;
+        set
+        {
+            _subtipo = value;
+            if (value is { } s)
+                Clase = s.Clase();
+        }
+    }
+
+    /// <summary>El tipo de esta carga: el de su subtipo, o el del circuito si no se eligió.</summary>
+    public CategoriaDeCarga TipoEn(CircuitoDelCuadro circuito) => Subtipo?.Tipo() ?? circuito.Categoria;
+
+    /// <summary>
+    /// Subió a la carga mínima de su subtipo — 220-14 (I-123): la referencia, o <c>null</c> si lo
+    /// capturado ya pasaba. La pone <see cref="CuadroDeCarga"/>.
+    /// </summary>
+    public string? ReferenciaMinimo { get; internal set; }
+
+    /// <summary>Se tomó como continua por su subtipo: «422-13», «424-3(b)», o <c>null</c>.</summary>
+    public string? ReferenciaContinua { get; internal set; }
 
     /// <summary>Motor o motocompresor: su corriente cuenta en 430-24 y 430-53, no como carga de placa.</summary>
     public bool EsMaquina => Clase is ClaseDeAparato.Motor or ClaseDeAparato.Motocompresor;
