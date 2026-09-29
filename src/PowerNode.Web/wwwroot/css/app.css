@@ -1107,11 +1107,11 @@ body.arrastrando-principal .zona-zocalo .al-arrastrar { display: inline; }
 #sec-cuadro > .cuadro > tbody > tr > td > .en-va,
 #sec-cuadro > .cuadro > tbody > tr > td > .mas-n,
 #sec-cuadro > .cuadro > tbody > tr > td.conductor > .mm2 {
-    position: absolute; left: 0; right: 0; top: calc(50% + 15px);
+    position: absolute; left: 0; right: 0; top: calc(50% + 18px);
     margin: 0; padding: 0 4px; line-height: 12px; text-align: center; }
 #sec-cuadro > .cuadro > tbody > tr > td > .mas-n { justify-content: center; }
 #sec-cuadro > .cuadro > tbody > tr > td > .en-va.izq { text-align: left; padding-left: 28px; }
-#sec-cuadro > .cuadro > tbody > tr.con-nota { height: 58px; }
+#sec-cuadro > .cuadro > tbody > tr.con-nota { height: 66px; } /* 33 abajo del medio: 14 del campo + 2 de contorno + 2 + 12 de nota + 3 de aire */
 
 /* Proporción: las columnas de resultados miden por lo menos lo mismo, aunque su encabezado sea corto
    («In (A)», «e (%)» iban apretadas junto a «Protec. (A)»). */
@@ -1127,3 +1127,9 @@ body.arrastrando-principal .zona-zocalo .al-arrastrar { display: inline; }
    navegador: en 2 polos se salía 3 px de la celda (David, 2026-09-29). */
 #sec-cuadro > .cuadro > tbody > tr > td > .mas-n { height: 12px; }
 #sec-cuadro > .cuadro > tbody > tr > td > .mas-n > input { width: 12px; height: 12px; margin: 0; }
+/* El contorno de enfoque pegado al campo (sin la separación de 1 px de fuera de la tabla): con ella
+   tocaba la nota de abajo, «+N» o el tamaño del tubo (David, 2026-09-29). La nota empieza 2 px abajo
+   del contorno: 14 del medio campo + 2 del contorno + 2. Un multipolar de 2 polos mide 2 × 34 px
+   para que le quepa la nota con aire; uno de 3 ya mide 90. */
+#sec-cuadro > .cuadro > tbody > tr.dos-polos { height: 34px; }
+#sec-cuadro > .cuadro :where(select, input):focus-visible { outline-offset: 0; }

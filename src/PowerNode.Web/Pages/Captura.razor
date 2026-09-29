@@ -238,7 +238,7 @@
                         }
                         continue;
                     }
-                    <tr class="@(c.Resultado is null ? "vacio" : null) @(LlevaNotas(c) ? "con-nota" : null)" data-espacio="@c.Espacio">
+                    <tr class="@(c.Resultado is null ? "vacio" : null) @(LlevaNotas(c) ? "con-nota" : null) @(c.Polos == 2 ? "dos-polos" : null)" data-espacio="@c.Espacio">
                         <td class="num @(c.TieneCaptura ? "asa" : null)" data-destino="@c.Espacio" data-arrastre="@(c.TieneCaptura ? c.Espacio : null)" data-etiqueta="@EtiquetaDeArrastre(c)" title="@(c.TieneCaptura ? "Arrastrar para mover el circuito a otro espacio" : null)">@NumeroConFase(c.Espacio)</td>
                         <td rowspan="@c.Polos">
                             <div class="desc-linea">
@@ -431,7 +431,7 @@
 
                     @foreach (var seguido in lado.Where(x => x.ContinuacionDe == c.Espacio))
                     {
-                        <tr class="@(c.Resultado is null ? "vacio" : null)">
+                        <tr class="@(c.Resultado is null ? "vacio" : null) @(c.Polos == 2 ? "dos-polos" : null)">
                             <td class="num @(c.TieneCaptura ? "asa" : null)" data-destino="@seguido.Espacio" data-arrastre="@(c.TieneCaptura ? seguido.Espacio : null)" data-etiqueta="@EtiquetaDeArrastre(c)">@NumeroConFase(seguido.Espacio)</td>
                         </tr>
                     }
