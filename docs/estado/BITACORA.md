@@ -29,6 +29,11 @@ estaban.
 
 Pruebas: 278 en `PowerNode.Web.Tests`, 23 en `PowerNode.Normativa.Tests`.
 
+P2 a `main` por avance rápido en `d63f290` (pedido de David); CI y publicación en verde.
+
+**Verificado por David en la versión publicada:** I-77, I-78, I-80, M-11 e I-98. **Por verificar:** el
+aviso flotante de I-79 y los P2 (I-81 a I-87). Sigue: los P3, I-88 a I-97 y M-10.
+
 ## 2026-09-28
 
 **Auditoría de interfaz** (pedido de David: botones desalineados, texto cortado o chueco, funcionalidad).
