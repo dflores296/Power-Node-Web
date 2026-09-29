@@ -45,6 +45,21 @@ public class MemoriaDeCalculoTests
         ], titulos);
     }
 
+    /// <summary>
+    /// I-96: la memoria decía «60 Hz» fijo; el cuadro de carga, la frecuencia capturada. Con 50 Hz uno
+    /// decía 50 y la otra 60.
+    /// </summary>
+    [Fact]
+    public void I96_LaMemoriaDiceLaFrecuenciaCapturada()
+    {
+        var cuadro = ConUnCircuito();
+        cuadro.Datos.FrecuenciaHz = 50;
+        cuadro.Recalcular();
+
+        foreach (var hoja in MemoriaDeCalculo.Hojas(cuadro))
+            Assert.Equal("50 Hz", MemoriaDeCalculo.Secciones(hoja)[0].Renglones.Single(r => r.Rotulo == "Frecuencia").Valor);
+    }
+
     [Fact]
     public void R01_LaSeccion7CitaLaNotaDeSuArticulo_YElDerivadoDaLaCaidaCombinada()
     {

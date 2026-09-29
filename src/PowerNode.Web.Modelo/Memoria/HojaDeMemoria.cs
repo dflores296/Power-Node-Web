@@ -34,6 +34,7 @@ namespace PowerNode.Web.Modelo.Memoria;
 /// mínimo: el individual del refrigerador — I-76.</param>
 /// <param name="EtiquetaDeMotores">«Motores», o «Motores y A/C»; y su referencia, «430-24» o «430-24,
 /// 440-33».</param>
+/// <param name="FrecuenciaHz">La del tablero, la misma que dice el cuadro de carga — I-96.</param>
 /// <param name="Techo430_62A">Solo en el alimentador con motores: el máximo de 430-62(a) más la otra
 /// carga (430-63).</param>
 public sealed record HojaDeMemoria(
@@ -76,7 +77,8 @@ public sealed record HojaDeMemoria(
     decimal? Techo430_62A = null,
     string EtiquetaDeMotores = "Motores",
     string ReferenciaDeMotores = "430-24",
-    string? NotaDelUso = null);
+    string? NotaDelUso = null,
+    int FrecuenciaHz = 60);
 
 /// <summary>
 /// <b>Un motor o un equipo de A/C, como lo pone la memoria</b> — I-15, I-74. Ya redactado, porque las

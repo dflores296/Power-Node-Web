@@ -53,6 +53,7 @@ public static class MemoriaDeCalculo
         return new HojaDeMemoria(
             Sujeto: $"Circuito {circuito.Espacio} — {nombre}  ·  fase {circuito.Fases}",
             Articulo: circuito.EsMotor ? "430" : circuito.EsAireAcondicionado ? "440" : "210",
+            FrecuenciaHz: datos.FrecuenciaHz,
             CargaContinuaVa: circuito.ContinuaVA,
             CargaNoContinuaVa: circuito.NoContinuaVA,
             // La tensión del TRAMO, no la del tablero: un circuito de 1 polo va a fase-neutro.
@@ -296,6 +297,7 @@ public static class MemoriaDeCalculo
         return new HojaDeMemoria(
             Sujeto: $"Alimentador general {nombre}",
             Articulo: "215",
+            FrecuenciaHz: datos.FrecuenciaHz,
             CargaContinuaVa: cuadro.Resumen.ContinuaVA,
             CargaNoContinuaVa: cuadro.Resumen.NoContinuaVA,
             TensionV: cuadro.Alimentador.Polos == 1 ? datos.TensionFaseNeutroV : datos.TensionFaseFaseV,
@@ -405,7 +407,7 @@ public static class MemoriaDeCalculo
                 : null),
             ("Carga calculada", hoja.Minimo220_52VA > 0m ? $"{cargaTotal + hoja.Minimo220_52VA:N0} VA" : null),
             ("Tensión nominal", $"{hoja.TensionV:N1} V"),
-            ("Frecuencia", "60 Hz"),
+            ("Frecuencia", $"{hoja.FrecuenciaHz} Hz"),
             ("Factor de potencia", hoja.Articulo == "215"
                 ? $"{hoja.FactorPotencia:N2} — resulta de combinar las cargas de la fase que gobierna"
                 : $"{hoja.FactorPotencia:N2}"),
