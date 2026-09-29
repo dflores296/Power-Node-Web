@@ -33,7 +33,7 @@
             <select id="campo-fases" value="@Datos.Fases" @onchange="CambiarFases">@foreach (var f in new[] { 1, 2, 3 }) { <option value="@f">@f</option> }</select></label>
         <label><span class="ayuda" title="Hilos = fases + neutro. La tierra no se cuenta: fase, neutro y tierra es 1F-2H. 1F-3H es otro sistema: dos vivos en oposición y neutro, 120/240 V.">Hilos</span>
             <select id="campo-hilos" value="@Datos.Hilos" @onchange="CambiarHilos">@foreach (var h in Datos.HilosValidos) { <option value="@h">@h</option> }</select></label>
-        <label>Frecuencia (Hz) <input data-requerido type="number" min="50" step="10" @bind="Datos.FrecuenciaHz" /></label>
+        <label>Frecuencia (Hz) <input data-requerido type="number" min="@DatosDelTablero.FrecuenciaMinimaHz" step="10" @bind="Datos.FrecuenciaHz" /></label>
         <p class="derivado">
             @Datos.EtiquetaSistema ·
             Tensión F-N <strong>@Datos.TensionFaseNeutroV.ToString("N1") V</strong> ·

@@ -300,6 +300,9 @@ public sealed class DatosDelTablero
     private static int HilosPorOmision(int fases) => fases switch { <= 1 => 2, 2 => 3, _ => 4 };
     public int FrecuenciaHz { get; set; } = 60;
 
+    /// <summary>La frecuencia más baja que se admite: 50 Hz. 0 o negativa no es un sistema — I-84.</summary>
+    public const int FrecuenciaMinimaHz = 50;
+
     /// <summary>
     /// Fases <b>y</b> hilos juntos, que es lo único que dice cuántas barras energizadas hay. Un
     /// 1F-3H tiene dos y un 1F-2H tiene una, y las dos cosas son «1 fase».

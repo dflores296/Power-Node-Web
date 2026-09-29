@@ -159,7 +159,11 @@ public static class ArchivoDelCuadro
             d.Montaje = a.Montaje ?? d.Montaje;
             d.MaterialBarras = a.MaterialBarras ?? d.MaterialBarras;
             d.GabineteNema = a.GabineteNema ?? d.GabineteNema;
-            d.CapacidadBarraA = a.CapacidadBarraA;
+            // I-84: sin dato es válido (null); negativa, no.
+            if (a.CapacidadBarraA is < 0m and var barra)
+                avisos.Add($"El archivo dice {barra:0.##} A de capacidad de barra, que no puede ser negativa; se abrió sin ese dato.");
+            else
+                d.CapacidadBarraA = a.CapacidadBarraA;
             d.EsEquipoDeAcometida = a.EsEquipoDeAcometida ?? d.EsEquipoDeAcometida;
             d.Inmueble = a.Inmueble ?? d.Inmueble;
             d.SerieInterruptores = a.SerieInterruptores ?? d.SerieInterruptores;
@@ -188,7 +192,13 @@ public static class ArchivoDelCuadro
                 else
                     avisos.Add($"El archivo dice {tension:0.##} V; la tensión va de {DatosDelTablero.TensionMinimaV:0} V en adelante. Se abrió con {d.TensionFaseFaseV:0.##} V.");
             }
-            d.FrecuenciaHz = a.FrecuenciaHz ?? d.FrecuenciaHz;
+            if (a.FrecuenciaHz is { } hz)
+            {
+                if (hz >= DatosDelTablero.FrecuenciaMinimaHz)
+                    d.FrecuenciaHz = hz;
+                else
+                    avisos.Add($"El archivo dice {hz} Hz; la frecuencia va de {DatosDelTablero.FrecuenciaMinimaHz} Hz en adelante. Se abrió con {d.FrecuenciaHz} Hz.");
+            }
             if (a.NumeroEspacios is { } espacios)
             {
                 if (d.EspaciosValidos.Contains(espacios))
@@ -227,7 +237,7 @@ public static class ArchivoDelCuadro
             d.TuboAlNacer = a.TuboAlNacer ?? d.TuboAlNacer;
             d.CaidaMaxDerivadoPct = a.CaidaMaxDerivadoPct ?? d.CaidaMaxDerivadoPct;
             d.CaidaMaxAlimentadorPct = a.CaidaMaxAlimentadorPct ?? d.CaidaMaxAlimentadorPct;
-            d.LongitudAlimentadorM = a.LongitudAlimentadorM ?? d.LongitudAlimentadorM;
+            d.LongitudAlimentadorM = CircuitoJson.NoNegativo(a.LongitudAlimentadorM, d.LongitudAlimentadorM, "El alimentador, en la longitud,", avisos);
             d.ConjuntoAprobado100Pct = a.ConjuntoAprobado100Pct ?? d.ConjuntoAprobado100Pct;
         }
 

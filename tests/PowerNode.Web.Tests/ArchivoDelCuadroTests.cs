@@ -266,6 +266,42 @@ public class ArchivoDelCuadroTests
         Assert.NotNull(cuadro.Alimentador.Resultado);
     }
 
+    /// <summary>
+    /// I-84: en la pantalla ya no entran negativos ni una frecuencia de 0; un archivo editado a mano
+    /// los traía igual. Se avisa y se abre con el valor de omisión.
+    /// </summary>
+    [Fact]
+    public void I84_NegativosYFrecuenciaCeroSeAvisanYNoSeAbren()
+    {
+        const string texto = """
+            {
+              "formato": "power-node/cuadro-de-carga",
+              "version": 2,
+              "datos": { "frecuenciaHz": 0, "capacidadBarraA": -100, "longitudAlimentadorM": -50 },
+              "circuitos": [
+                { "espacio": 1, "descripcion": "Alumbrado", "continua": -500, "noContinua": 900, "longitudM": -30 },
+                { "espacio": 3, "descripcion": "Cocina",
+                  "aparatos": [ { "descripcion": "Horno", "cantidad": 2, "cargaUnitaria": -180 } ] }
+              ]
+            }
+            """;
+
+        var apertura = ArchivoDelCuadro.Abrir(texto, Motor);
+
+        Assert.Null(apertura.Error);
+        var cuadro = apertura.Cuadro!;
+        var nuevo = new CuadroDeCarga(Motor).Datos;
+        Assert.Equal(nuevo.FrecuenciaHz, cuadro.Datos.FrecuenciaHz);
+        Assert.Null(cuadro.Datos.CapacidadBarraA);
+        Assert.Equal(nuevo.LongitudAlimentadorM, cuadro.Datos.LongitudAlimentadorM);
+        Assert.Equal(0m, cuadro.Circuitos[0].Continua);
+        Assert.Equal(900m, cuadro.Circuitos[0].NoContinua);
+        Assert.Equal(new CircuitoDelCuadro(1).LongitudM, cuadro.Circuitos[0].LongitudM);
+        Assert.Equal(0m, cuadro.Circuitos[2].Aparatos[0].CargaUnitaria);
+        Assert.Equal(6, apertura.Avisos.Count(a => a.Contains("negativ") || a.Contains("Hz")));
+        Assert.True(cuadro.Circuitos[0].Resultado!.CaidaTensionPct > 0m);
+    }
+
     [Theory]
     [InlineData("Tablero cocina", "", "Tablero cocina.powernode.json")]
     [InlineData("TC: 1/2", "", "TC- 1-2.powernode.json")]

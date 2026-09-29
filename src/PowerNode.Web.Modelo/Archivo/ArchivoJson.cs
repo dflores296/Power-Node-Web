@@ -162,8 +162,8 @@ public sealed class CircuitoJson
         c.PlacaAire = PlacaAire ?? c.PlacaAire;
         c.AmpacidadMinimaA = AmpacidadMinima is >= 0m ? AmpacidadMinima.Value : c.AmpacidadMinimaA;
         c.ProteccionMaximaA = ProteccionMaxima is >= 0m ? ProteccionMaxima.Value : c.ProteccionMaximaA;
-        c.Continua = Continua ?? c.Continua;
-        c.NoContinua = NoContinua ?? c.NoContinua;
+        c.Continua = NoNegativo(Continua, c.Continua, $"El circuito {Espacio}, en la carga continua,", avisos);
+        c.NoContinua = NoNegativo(NoContinua, c.NoContinua, $"El circuito {Espacio}, en la carga no continua,", avisos);
         if (FactorPotencia is { } fp)
         {
             if (CircuitoDelCuadro.FactorPotenciaValido(fp))
@@ -171,7 +171,7 @@ public sealed class CircuitoJson
             else
                 avisos.Add(FueraDeRango($"El circuito {Espacio}", fp, c.FactorPotencia));
         }
-        c.LongitudM = LongitudM ?? c.LongitudM;
+        c.LongitudM = NoNegativo(LongitudM, c.LongitudM, $"El circuito {Espacio}, en la longitud,", avisos);
         // Los polos se ponen directo: el recálculo resuelve qué renglones se come cada uno, y gana
         // el que empieza antes, igual que al capturarlo.
         if (Polos is { } polos && polos >= 1 && polos <= datos.MaximoPolos)
@@ -184,6 +184,20 @@ public sealed class CircuitoJson
 
         if (eraMotorOAire)
             DeMotorOAire(c, datos, avisos);
+    }
+
+    /// <summary>
+    /// I-84: una carga o una longitud negativa no se abre —en la pantalla ya no entra—; se avisa y
+    /// queda la de omisión. Una longitud de −30 m daba una caída de −3.45 %.
+    /// </summary>
+    internal static decimal NoNegativo(decimal? valor, decimal actual, string donde, List<string> avisos)
+    {
+        if (valor is not { } v)
+            return actual;
+        if (v >= 0m)
+            return v;
+        avisos.Add($"{donde} trae {v:0.##}, que no puede ser negativo; se abrió con {actual:0.##}.");
+        return actual;
     }
 
     /// <summary>I-80: un F.P. fuera de 0.1 a 1 no se abre; se avisa y queda el de omisión.</summary>
@@ -247,7 +261,7 @@ public sealed class AparatoJson
         a.Descripcion = Descripcion ?? a.Descripcion;
         a.Cantidad = Cantidad is >= 1 ? Cantidad.Value : a.Cantidad;
         a.Unidad = Unidad ?? a.Unidad;
-        a.CargaUnitaria = CargaUnitaria ?? a.CargaUnitaria;
+        a.CargaUnitaria = CircuitoJson.NoNegativo(CargaUnitaria, a.CargaUnitaria, $"{quien}, en la carga,", avisos);
         a.Continua = Continua ?? a.Continua;
         if (FactorPotencia is { } fp)
         {
