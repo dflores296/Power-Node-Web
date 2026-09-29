@@ -60,8 +60,18 @@ con la tabla de pruebas de 17 puntos: todos bien.
 
 P3 a `main` por avance rápido (pedido de David).
 
-Sigue: David verifica P3; decidir el formato de los VA del motor en el documento (I-92) y si hace
-falta aislar el renglón para el redibujo al cambiar una carga (I-97).
+**Lo que quedaba de I-97** (pedido de David: «atácalo para no tener cabos sueltos»).
+
+- Medir un cambio de carga con 42 espacios: cálculo ~65 ms, dibujo ~150, huella de «sin guardar» ~25
+  (desarrollo).
+- Reusar el resultado de los derivados cuya entrada no cambió, armar el desglose una vez por cálculo y
+  revisar la huella al quedar quieta la pantalla — I-97, `1932e36`. Release: de ~110 a ~95 ms.
+- Descartar congelar renglones (riesgo de enseñar un resultado viejo) y recordar canalizaciones (no
+  ahorra).
+
+Pruebas: 284 en `PowerNode.Web.Tests`, 23 en `PowerNode.Normativa.Tests`.
+
+Sigue: David verifica P3; decidir el formato de los VA del motor en el documento (I-92).
 
 ## 2026-09-28
 
