@@ -15,7 +15,7 @@ Ejecutar en el navegador (Blazor WebAssembly), sin servidor, publicado en GitHub
 | Frente | Avance | Pendiente |
 |---|---|---|
 | Motor | 100 % | Llevar al escritorio los cambios listados en [`../conocimiento/motor-copiado.md`](../conocimiento/motor-copiado.md). |
-| Interfaz | ~90 % | Auditoría del 2026-09-28 en [`HALLAZGOS.md`](HALLAZGOS.md): cerrada (David, 2026-09-29). Puntos de David: I-99 a I-112 hechos; por platicar, varios motores en un circuito (430-53). Confirmar las propuestas de motores (I-15) y de los seis tipos de carga (I-74). Modelar centros de carga de una barra por lado. |
+| Interfaz | ~90 % | Auditoría del 2026-09-28 en [`HALLAZGOS.md`](HALLAZGOS.md): cerrada (David, 2026-09-29). Puntos de David: I-99 a I-112 hechos. Motores y A/C contra la norma: M-12, M-13, I-113 a I-122, en cinco fases — [`../decisiones/motores-y-equipos-en-grupo.md`](../decisiones/motores-y-equipos-en-grupo.md). Confirmar las propuestas de motores (I-15) y de los seis tipos de carga (I-74). Modelar centros de carga de una barra por lado. |
 | Publicación | 100 % | — |
 
 ## Motor
@@ -71,3 +71,4 @@ Requisitos con su referencia NOM y su prueba: [`../conocimiento/requisitos.md`](
 | Dónde va el interruptor principal dentro del gabinete | [`../decisiones/montaje-del-interruptor-principal.md`](../decisiones/montaje-del-interruptor-principal.md) |
 | Motores en HP: qué se fija y cómo entran al alimentador | [`../decisiones/motores-art-430.md`](../decisiones/motores-art-430.md) |
 | Seis tipos de carga: Motor (430) y A/C y refrigeración (440) — contestada, por confirmar | [`../decisiones/tipos-de-carga.md`](../decisiones/tipos-de-carga.md) |
+| Motores, A/C y aparatos con motor en grupo — contestada, por confirmar | [`../decisiones/motores-y-equipos-en-grupo.md`](../decisiones/motores-y-equipos-en-grupo.md) |

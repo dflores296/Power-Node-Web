@@ -66,6 +66,8 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | M-09 · Techo de 430-63 con la otra carga al 100 %, no como la pide 215-3 | P2 | **Cerrado** | `8099fb1` |
 | M-10 · Mensaje del motor que remite a «Configuración», pantalla del escritorio | P3 | **Cerrado** | `663f1b9` |
 | M-11 · La Tabla 5 perdía THHN 4/0 a 300 y XHHW de 250 kcmil en adelante: pedía el diámetro del fabricante | P2 | **Cerrado** | `7ffac7a` |
+| M-12 · El F.D. de motores reduce también al motor mayor: alimentador de menos (430-26) | P1 | Abierto | — |
+| M-13 · Un A/C con MCA recibe otro 25 % en el alimentador (440-4(b), 440-33) | P3 | Abierto | — |
 | I-43 · Canalización de los circuitos sin compartida fijada en Condiciones de cálculo | P2 | **Cerrado** | `58febd2` |
 | I-44 · «Propia» como nombre de tubería; opciones apiladas que ensanchaban el renglón; columna vacía | P2 | **Cerrado** | `c7ab778` |
 | I-45 · El selector «Canal.» mostraba otro tubo que el del circuito | P1 | **Cerrado** | `2ddc0b5` |
@@ -136,6 +138,16 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-110 · La pantalla de carga salía a la izquierda y luego brincaba al centro | P3 | **Cerrado** | `e5e13b5` |
 | I-111 · Tipo «Alumbrado» por omisión: un circuito sin cambiar se calculaba como alumbrado | P2 | **Cerrado** | `1472560` |
 | I-112 · Icono del tipo en el cuadro, repetido con el selector | P3 | **Cerrado** | `1472560` |
+| I-113 · La memoria de un Motor o A/C imprime aparatos que no cuentan | P2 | Abierto | — |
+| I-114 · Sin la alimentación ni la tabla bajo el HP; «+N» en motor trifásico; sin guía para clasificar | P3 | Abierto | — |
+| I-115 · Un circuito admite un solo motor: sin 430-53 ni 430-24 en el circuito | P1 | Abierto | — |
+| I-116 · Sin varios motocompresores en un circuito (440-22(b), 440-33) | P2 | Abierto | — |
+| I-117 · Sin acondicionador de habitación (440 Parte G) | P3 | Abierto | — |
+| I-118 · Aparato con motor mezclado con otras cargas sin el 125 % del motor (220-18(a)) | P2 | Abierto | — |
+| I-119 · Motor con variador calculado como motor: 250 % (430-122) | P2 | Abierto | — |
+| I-120 · Sin servicio no continuo (430-22(e)) | P3 | Abierto | — |
+| I-121 · Sin cargas no simultáneas (430-24 Exc. 3, 440-33 Exc. 1, 220-60) | P2 | Abierto | — |
+| I-122 · La memoria no dice el medio de desconexión mínimo (430-110, 440-12, 430-128) | P3 | Abierto | — |
 | R-01 · Caída del alimentador fija en 5 %, sin verificar la combinada — 215-2(a)(4) NOTA 2 | P1 | **Cerrado** | `2a973ea` |
 | R-02 · Caída del alimentador sin la caída del neutro | P2 | **Cerrado** | `d6cd1c6` |
 | R-03 · La publicación no corre `PowerNode.Web.Tests` | P1 | **Cerrado** | `986c9d7` |
@@ -417,6 +429,36 @@ e I-88 a I-93. Formato: **Hecho** · **Corrección** (propuesta, sin hacer) ·
 **I-111** — Hecho (David): el tipo nacía en Alumbrado; un circuito al que no se le cambiaba quedaba calculado como alumbrado —factor de demanda, continua, mínimos— sin que nadie lo decidiera. Corrección (la recomendada, elegida por David): el espacio nuevo dice «—» y, en la captura (`CuadroDeCarga.ExigirTipo`), un circuito con carga sin tipo no calcula, no entra al balanceo ni al alimentador, y su renglón dice «Elegir el tipo de carga: de él salen el factor de demanda y el cálculo — Art. 220.». Elegir cualquier tipo lo marca (`CircuitoDelCuadro.TipoElegido`). El archivo no guarda un tipo sin elegir y lo abre sin elegir; mover, optimizar y deshacer lo conservan (pasan por el mismo formato). En el documento, «SIN TIPO». Fuera de la captura —las pruebas— sigue Alumbrado por omisión. Cerrado en `1472560`. Prueba: `I111_SinTipoElegidoLaCargaNoCalculaNiEntraAlTablero`, `I111_ElTipoSinElegirNoSeGuardaYAbreSinElegir`; en el navegador, carga sin tipo (error, balanceo en 0) y al elegir Contactos calcula.
 
 **I-112** — Hecho (David): el icono del tipo junto al selector (I-63) repetía lo que el selector ya dice y ocupaba 22 px. Corrección (la recomendada): fuera del cuadro; se queda en el resumen de carga, que lista los tipos sin selector. Cerrado en `1472560`.
+
+### Motores y A/C contra la norma, 2026-09-29
+
+Medición de David («no se puede meter más que un motor por circuito»): el código contra el texto de la
+NOM (corpus de `dflores296/NOM-001-SEDE-2012`). Propuesta y decisiones en
+[`../decisiones/motores-y-equipos-en-grupo.md`](../decisiones/motores-y-equipos-en-grupo.md).
+
+**M-12** — Hecho: `CuadroDeCarga.MotoresPorFase` multiplica la FLC de cada motor por el F.D. de su tipo antes de 430-24, el mayor incluido. Con F.D. 0.5 y un solo motor de 5 hp (15.2 A), la capacidad del alimentador es 1.25 × 7.6 = 9.5 A: menos de lo que el motor consume. 430-26 permite menos que 430-24 solo si alcanza «para la carga máxima determinada de acuerdo con el tamaño y número de los motores». Corrección: el mayor conserva su 125 % completo; el F.D. reduce a los demás.
+
+**M-13** — Hecho: la MCA de un A/C ya trae el 125 % de su motor mayor (440-4(b)); en el alimentador entra como si fuera FLC y, si es la mayor, recibe otro 25 %. Del lado seguro. Corrección (David): al 100 %, sin competir por el mayor.
+
+**I-113** — Hecho: `MemoriaDeCalculo.DeCircuito` pasa el desglose sin revisar `TieneDesglose`: un circuito que tuvo aparatos y pasó a Motor o A/C los imprime en la sección 1, con su VA viejo.
+
+**I-114** — Hecho: P nace en 1; el selector de HP enseña corrientes monofásicas a 127 V hasta que se cambia P, y nada dice qué tabla se lee. «+N» sale en un motor trifásico. La ayuda de Tipo no dice que el refrigerador doméstico o la lavadora son aparatos (422, 440-3(c)) ni que una manejadora sin compresor no es del 440 (440-3(b)).
+
+**I-115** — Hecho: Motor no se desglosa y la ayuda manda a «usar Equipo», que calcula como carga de placa (210): sin 430-24, sin 430-53 y fuera del grupo de motores del alimentador. Tres motores de ½ hp a 127 V (8.9 A c/u) salen 30 A y fuera de 430-24; por 430-53(c)(4), hasta 2.5 × 8.9 + 8.9 + 8.9 = 40.05 → 40 A, conductor por 430-24 de 28.9 A.
+
+**I-116** — Hecho: A/C no se desglosa; un equipo sin MCA de conjunto con compresor y ventiladores no se puede capturar (440-22(b), 440-33).
+
+**I-117** — Hecho: un aire de ventana con clavija se calcula como motocompresor (175 %); la Parte G lo trata como una unidad con tope de 80 % del circuito (50 % con otras cargas), 440-62.
+
+**I-118** — Hecho: en el desglose no se puede decir que un aparato tiene motor; mezclado con otras cargas, 220-18(a) pide 125 % del motor mayor.
+
+**I-119** — Hecho: una bomba con variador se captura como motor en A (250 % de Tabla 430-52). 430-122(a): 125 % de la corriente de entrada del variador; protección la que marque el fabricante (110-3(b)).
+
+**I-120** — Hecho: sin servicio de corta duración, intermitente, periódico o variable (Tabla 430-22(e), 430-24 Exc. 1).
+
+**I-121** — Hecho: bombas alternadas o calefacción contra A/C solo se pueden bajar con el F.D. (que además tiene M-12); 430-24 Exc. 3, 440-33 Exc. 1 y 220-60 permiten contar solo el mayor.
+
+**I-122** — Hecho: la memoria no dice el medio de desconexión mínimo: 115 % FLC (430-110(a)), 115 % RLA o BCSC (440-12(a)(1)), 115 % de la entrada del variador (430-128).
 
 ### Revisión del 2026-09-23
 

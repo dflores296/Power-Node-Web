@@ -41,6 +41,7 @@ Solo David confirma una decisión.
 | [`decisiones/montaje-del-interruptor-principal.md`](decisiones/montaje-del-interruptor-principal.md) | PROPUESTA · Claude · 2026-09-25 |
 | [`decisiones/motores-art-430.md`](decisiones/motores-art-430.md) | PROPUESTA · Claude · 2026-09-26 (en parte reemplazada por `tipos-de-carga.md`) |
 | [`decisiones/tipos-de-carga.md`](decisiones/tipos-de-carga.md) | PROPUESTA · Claude · 2026-09-27 (David aceptó los tipos y contestó las cuatro preguntas; implementada) |
+| [`decisiones/motores-y-equipos-en-grupo.md`](decisiones/motores-y-equipos-en-grupo.md) | PROPUESTA · Claude · 2026-09-29 (David eligió el alcance y contestó tres preguntas) |
 | [`decisiones/documento-imprimible-en-vez-de-archivo.md`](decisiones/documento-imprimible-en-vez-de-archivo.md) | PROPUESTA · Claude · 2026-09-22 |
 
 ## `conocimiento/` — referencia técnica

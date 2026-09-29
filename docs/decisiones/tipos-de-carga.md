@@ -113,6 +113,9 @@ Motor y A/C y refrigeración ofrecen las justificaciones que hoy tiene Motor / A
 
 ## Lo que queda fuera
 
+> **2026-09-29:** varios motocompresores en un circuito (440-22(b)) y el acondicionador de habitación
+> (Parte G) entran con [`motores-y-equipos-en-grupo.md`](motores-y-equipos-en-grupo.md).
+
 - **440-22(b)**: varios motocompresores, o un motocompresor con otras cargas, en un circuito (remite
   a 430-53). Igual que en el escritorio.
 - **Acondicionador de cuarto con clavija (440, Parte G)**: se captura como A/C con su corriente de

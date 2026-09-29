@@ -59,6 +59,10 @@ al escritorio:
 
 ## Lo que queda fuera
 
+> **2026-09-29:** varios motores en un circuito (430-53) entran con
+> [`motores-y-equipos-en-grupo.md`](motores-y-equipos-en-grupo.md), que además corrige el F.D. de 430-26
+> (el motor mayor conserva su 125 %).
+
 - **Art. 440** (motocompresores herméticos, con MCA y MOCP de placa). Un A/C se captura en VA, W o
   A, como carga de placa, o en HP si la placa los trae.
 - **Varios motores en un circuito** (430-53) y la corriente de rotor bloqueado (430-52(c)(1)
