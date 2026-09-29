@@ -434,11 +434,11 @@
                         </tr>
                     }
 
-                    @if (c.Error is not null || _motivo.TryGetValue(c.Espacio, out _))
+                    @if (c.Error is not null)
                     {
                         <tr class="fila-error">
                             <td></td>
-                            <td colspan="@(Columnas - 1)">@(c.Error ?? _motivo[c.Espacio])</td>
+                            <td colspan="@(Columnas - 1)">@c.Error</td>
                         </tr>
                     }
 
@@ -861,9 +861,6 @@
 </footer>
 
 @code {
-    /// <summary>Por circuito, el motivo por el que no se pudo cambiar de polos. Se borra al siguiente intento.</summary>
-    private readonly Dictionary<int, string> _motivo = [];
-
     private CuadroDeCarga Cuadro => Proyecto.Cuadro;
     private DatosDelTablero Datos => Cuadro.Datos;
 
@@ -1522,19 +1519,18 @@
 
     /// <summary>
     /// Cambiar los polos puede no poderse —el espacio de al lado está ocupado, o el interruptor no
-    /// cabe—, así que no se enlaza directo: se pregunta al cuadro y, si dice que no, se enseña el
-    /// motivo en vez de dejar que el selector mienta.
+    /// cabe—, así que no se enlaza directo: se pregunta al cuadro y, si dice que no, no se hace y el
+    /// motivo sale en el aviso flotante, como al soltar un circuito en un espacio ocupado (David,
+    /// 2026-09-29). Antes era un renglón de la tabla que se quedaba aunque se borraran los circuitos.
     /// </summary>
     private async Task CambiarPolos(CircuitoDelCuadro circuito, string? valor)
     {
-        _motivo.Remove(circuito.Espacio);
-
         if (!int.TryParse(valor, out var polos))
             return;
 
         if (Cuadro.CambiarPolos(circuito, polos) is { } motivo)
         {
-            _motivo[circuito.Espacio] = motivo;
+            Avisar($"El circuito {circuito.Espacio} no puede pasar a {polos} polos. {motivo}", bien: false);
             await Restablecer($"[aria-label=\"Circuito {circuito.Espacio} · Polos\"]", circuito.Polos.ToString(CultureInfo.InvariantCulture));
         }
     }
