@@ -91,6 +91,9 @@ era la que pedía. Con sus reglas:
   repartidos centrados — I-101 rehecho, `5125dbd`.
 - Las columnas de resultados parejas, de 76 px — I-104, `5125dbd`.
 
+A `main` por avance rápido (pedido de David). Sin listas de revisión hasta que el resultado sea el que busca
+(David).
+
 ## 2026-09-28
 
 **Auditoría de interfaz** (pedido de David: botones desalineados, texto cortado o chueco, funcionalidad).
