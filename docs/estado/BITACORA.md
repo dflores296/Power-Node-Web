@@ -2,6 +2,16 @@
 
 Registro de acciones por sesión, con hallazgo y commit.
 
+## 2026-09-29
+
+**Revisión de David de los P1 publicados**: los cuatro bien; un ajuste en I-79.
+
+- M-11 e I-98 a `main` por avance rápido en `73d8e13`; CI y publicación en verde.
+- El motivo de un cambio de polos rechazado, en el aviso flotante y no en un renglón de la tabla,
+  que se quedaba aunque se borraran los circuitos — I-79, `7943415`.
+
+Pruebas: 274 en `PowerNode.Web.Tests`, 23 en `PowerNode.Normativa.Tests`.
+
 ## 2026-09-28
 
 **Auditoría de interfaz** (pedido de David: botones desalineados, texto cortado o chueco, funcionalidad).
