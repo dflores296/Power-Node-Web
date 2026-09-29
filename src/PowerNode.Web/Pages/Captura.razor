@@ -28,12 +28,12 @@
         <h2>Sistema</h2>
         @* En 1F-2H no hay dos fases: la tensión es de fase a neutro (I-53). *@
         <label><span class="ayuda" title="@(EsUnaFaseDosHilos ? "Capturar la tensión de fase a neutro: 127 V (o 120 V) — 110-4." : "Capturar la tensión entre fases. 1F-3H: 240 V (120/240). 2F-3H y 3F-4H: 220 V (220Y/127) o 208 V (208Y/120). 3F-3H: 220, 240, 480 V… — 110-4.")">@(EsUnaFaseDosHilos ? "Tensión F-N (V)" : "Tensión F-F (V)")</span>
-            <input data-requerido type="number" min="@Numero(DatosDelTablero.TensionMinimaV)" step="1" value="@Numero(Datos.TensionFaseFaseV)" @onchange="e => { Datos.TensionFaseFaseV = Leer(e, Datos.TensionFaseFaseV, DatosDelTablero.TensionMinimaV); Recalcular(); }" /></label>
+            <input data-requerido type="text" inputmode="decimal" autocomplete="off" data-numero min="@Numero(DatosDelTablero.TensionMinimaV)" step="1" value="@Numero(Datos.TensionFaseFaseV)" @onchange="e => { Datos.TensionFaseFaseV = Leer(e, Datos.TensionFaseFaseV, DatosDelTablero.TensionMinimaV); Recalcular(); }" /></label>
         <label><span class="ayuda" title="Seleccionar los conductores energizados. 1: una fase y neutro (1F-2H) o monofásico con derivación central, 120/240 V (1F-3H). 2: dos fases de un sistema en estrella, 220/127 V (2F-3H, el «bifásico»). 3: trifásico.">Fases</span>
             <select id="campo-fases" value="@Datos.Fases" @onchange="CambiarFases">@foreach (var f in new[] { 1, 2, 3 }) { <option value="@f">@f</option> }</select></label>
         <label><span class="ayuda" title="Hilos = fases + neutro. La tierra no se cuenta: fase, neutro y tierra es 1F-2H. 1F-3H es otro sistema: dos vivos en oposición y neutro, 120/240 V.">Hilos</span>
             <select id="campo-hilos" value="@Datos.Hilos" @onchange="CambiarHilos">@foreach (var h in Datos.HilosValidos) { <option value="@h">@h</option> }</select></label>
-        <label>Frecuencia (Hz) <input data-requerido type="number" min="@DatosDelTablero.FrecuenciaMinimaHz" step="10" @bind="Datos.FrecuenciaHz" /></label>
+        <label>Frecuencia (Hz) <input data-requerido type="text" inputmode="decimal" autocomplete="off" data-numero min="@DatosDelTablero.FrecuenciaMinimaHz" step="10" @bind="Datos.FrecuenciaHz" @bind:culture="CultureInfo.InvariantCulture" /></label>
         <p class="derivado">
             @Datos.EtiquetaSistema ·
             Tensión F-N <strong>@Datos.TensionFaseNeutroV.ToString("N1") V</strong> ·
@@ -90,8 +90,8 @@
         <label>Gabinete NEMA <select @bind="Datos.GabineteNema">
             @foreach (var n in new[] { "1", "3R", "4X", "12" }) { <option value="@n">@n</option> }
         </select></label>
-        <label>Capacidad de barra (A) <input type="number" min="0" step="1" placeholder="—"
-                                             @bind="Datos.CapacidadBarraA" @bind:after="Recalcular" /></label>
+        <label>Capacidad de barra (A) <input type="text" inputmode="decimal" autocomplete="off" data-numero min="0" step="1" placeholder="—"
+                                             @bind="Datos.CapacidadBarraA" @bind:culture="CultureInfo.InvariantCulture" @bind:after="Recalcular" /></label>
         <label><span class="ayuda" title="Seleccionar la familia de interruptores. Centro de carga (NEMA): 240-6(a) sin 16, 32 ni 63 A. Riel DIN (IEC): 16, 20, 25, 32, 40, 50, 63, 80, 100 y 125 A. NOM completa: 240-6(a) sin exclusiones.">Interruptores</span>
             <select @bind="Datos.SerieInterruptores" @bind:after="Recalcular">
                 @foreach (var serie in new[] { SerieDeInterruptores.CentroDeCargaNema, SerieDeInterruptores.RielDinIec, SerieDeInterruptores.NomCompleta })
@@ -130,11 +130,11 @@
                 <option value="seco">Seco</option>
                 <option value="mojado">Húmedo o mojado</option>
             </select></label>
-        <label>T. ambiente (°C) <input data-requerido type="number" min="10" max="80" step="1" value="@Numero(Datos.TemperaturaAmbienteC)" @onchange="e => { Datos.TemperaturaAmbienteC = Leer(e, Datos.TemperaturaAmbienteC); Recalcular(); }" /></label>
+        <label>T. ambiente (°C) <input data-requerido type="text" inputmode="decimal" autocomplete="off" data-numero min="10" max="80" step="1" value="@Numero(Datos.TemperaturaAmbienteC)" @onchange="e => { Datos.TemperaturaAmbienteC = Leer(e, Datos.TemperaturaAmbienteC); Recalcular(); }" /></label>
         <label><span class="ayuda" title="Marcar si la mayor parte de la carga es no lineal (electrónica, iluminación LED, equipo de cómputo): en 3F-4H el neutro lleva armónicas y cuenta como portador — 310-15(b)(5)(3).">Carga no lineal</span>
             <input type="checkbox" class="casilla" @bind="Datos.CargaNoLineal" @bind:after="Recalcular" /></label>
-        <label><span class="ayuda" title="Capturar el límite de caída del circuito derivado. Recomendado: 3 % — 210-19(a)(1), NOTA 4.">e% máx. derivado</span> <input data-requerido type="number" min="0.5" max="10" step="0.5" value="@Numero(Datos.CaidaMaxDerivadoPct)" @onchange="e => { Datos.CaidaMaxDerivadoPct = Leer(e, Datos.CaidaMaxDerivadoPct); Recalcular(); }" /></label>
-        <label><span class="ayuda" title="Capturar el límite de caída del alimentador. Valor inicial: 2 %, para que con el 3 % del derivado sumen el 5 % combinado — 215-2(a)(4), NOTA 2; 210-19(a)(1), NOTA 4.">e% máx. alimentador</span> <input data-requerido type="number" min="0.5" max="10" step="0.5" value="@Numero(Datos.CaidaMaxAlimentadorPct)" @onchange="e => { Datos.CaidaMaxAlimentadorPct = Leer(e, Datos.CaidaMaxAlimentadorPct); Recalcular(); }" /></label>
+        <label><span class="ayuda" title="Capturar el límite de caída del circuito derivado. Recomendado: 3 % — 210-19(a)(1), NOTA 4.">e% máx. derivado</span> <input data-requerido type="text" inputmode="decimal" autocomplete="off" data-numero min="0.5" max="10" step="0.5" value="@Numero(Datos.CaidaMaxDerivadoPct)" @onchange="e => { Datos.CaidaMaxDerivadoPct = Leer(e, Datos.CaidaMaxDerivadoPct); Recalcular(); }" /></label>
+        <label><span class="ayuda" title="Capturar el límite de caída del alimentador. Valor inicial: 2 %, para que con el 3 % del derivado sumen el 5 % combinado — 215-2(a)(4), NOTA 2; 210-19(a)(1), NOTA 4.">e% máx. alimentador</span> <input data-requerido type="text" inputmode="decimal" autocomplete="off" data-numero min="0.5" max="10" step="0.5" value="@Numero(Datos.CaidaMaxAlimentadorPct)" @onchange="e => { Datos.CaidaMaxAlimentadorPct = Leer(e, Datos.CaidaMaxAlimentadorPct); Recalcular(); }" /></label>
         @if (Datos.AvisoLimitesDeCaida is { } avisoLimites)
         {
             <p class="aviso"><Icono Nombre="aviso" Clase="aviso-icono" /><span>@avisoLimites</span></p>
@@ -149,7 +149,7 @@
                 var clave = DatosDelTablero.ClaveDiametro(Datos.TipoAislamiento, designacion);
                 var calibre = Calibre.UnidadDe(designacion);
                 <label><span class="ayuda" title="Capturar el diámetro exterior del conductor @Datos.TipoAislamiento de @calibre, del catálogo del fabricante — Capítulo 10, Nota 5. Vacío: sin dato; si la Tabla 5 lo trae, regresa a ella.">Ø @calibre (mm)</span>
-                    <input type="number" min="0" step="0.01" placeholder="—" aria-label="Diámetro exterior del fabricante · @calibre (mm)"
+                    <input type="text" inputmode="decimal" autocomplete="off" data-numero min="0" step="0.01" placeholder="—" aria-label="Diámetro exterior del fabricante · @calibre (mm)"
                            value="@(Datos.DiametrosFabricante.TryGetValue(clave, out var d) ? Numero(d) : "")"
                            @onchange="e => CambiarDiametro(clave, e.Value?.ToString())" /></label>
             }
@@ -329,7 +329,7 @@
                         else if (c.EsMotor)
                         {
                             <td rowspan="@c.Polos" colspan="2">
-                                <input class="va" type="number" min="0" placeholder="A" data-col="continua" aria-label="Circuito @c.Espacio · Corriente de placa del motor (A)" value="@Carga(c.CorrientePlacaA)" @onchange="e => { c.CorrientePlacaA = LeerCarga(e, c.CorrientePlacaA); Recalcular(); }"
+                                <input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="A" data-col="continua" aria-label="Circuito @c.Espacio · Corriente de placa del motor (A)" value="@Carga(c.CorrientePlacaA)" @onchange="e => { c.CorrientePlacaA = LeerCarga(e, c.CorrientePlacaA); Recalcular(); }"
                                        title="Capturar la corriente de placa de un motor que no trae HP. Se toman los HP que le corresponden en la tabla, interpolando; su FLC es esa corriente — 430-6(a)(1)." />
                                 @if (c.MotorEnAmperes is { } m)
                                 {
@@ -340,12 +340,12 @@
                         else if (c.EsAireAcondicionado && c.PlacaAire == PlacaDeAireAcondicionado.AmpacidadYProteccion)
                         {
                             <td rowspan="@c.Polos">
-                                <input class="va" type="number" min="0" placeholder="MCA" data-col="continua" aria-label="Circuito @c.Espacio · Ampacidad mínima (MCA)" value="@Carga(c.AmpacidadMinimaA)" @onchange="e => { c.AmpacidadMinimaA = LeerCarga(e, c.AmpacidadMinimaA); Recalcular(); }"
+                                <input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="MCA" data-col="continua" aria-label="Circuito @c.Espacio · Ampacidad mínima (MCA)" value="@Carga(c.AmpacidadMinimaA)" @onchange="e => { c.AmpacidadMinimaA = LeerCarga(e, c.AmpacidadMinimaA); Recalcular(); }"
                                        title="Capturar la ampacidad mínima de los conductores que marca la placa (MCA, «Min. circuit ampacity») — 440-4(b). Ya trae el 125 % del motor mayor." />
                                 <span class="en-va">MCA@(c.MotorVA > 0m ? $" · {c.MotorVA:#,0} VA" : "")</span>
                             </td>
                             <td rowspan="@c.Polos">
-                                <input class="va" type="number" min="0" placeholder="MOCP" data-col="nocontinua" aria-label="Circuito @c.Espacio · Protección máxima (MOCP)" value="@Carga(c.ProteccionMaximaA)" @onchange="e => { c.ProteccionMaximaA = LeerCarga(e, c.ProteccionMaximaA); Recalcular(); }"
+                                <input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="MOCP" data-col="nocontinua" aria-label="Circuito @c.Espacio · Protección máxima (MOCP)" value="@Carga(c.ProteccionMaximaA)" @onchange="e => { c.ProteccionMaximaA = LeerCarga(e, c.ProteccionMaximaA); Recalcular(); }"
                                        title="Capturar la protección máxima que marca la placa (MOCP, «Max. fuse / breaker») — 440-4(b). La protección del circuito no la excede." />
                                 <span class="en-va">MOCP</span>
                             </td>
@@ -353,12 +353,12 @@
                         else if (c.EsAireAcondicionado)
                         {
                             <td rowspan="@c.Polos">
-                                <input class="va" type="number" min="0" placeholder="A" data-col="continua" aria-label="Circuito @c.Espacio · Corriente de carga nominal (A)" value="@Carga(c.CorrientePlacaA)" @onchange="e => { c.CorrientePlacaA = LeerCarga(e, c.CorrientePlacaA); Recalcular(); }"
+                                <input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="A" data-col="continua" aria-label="Circuito @c.Espacio · Corriente de carga nominal (A)" value="@Carga(c.CorrientePlacaA)" @onchange="e => { c.CorrientePlacaA = LeerCarga(e, c.CorrientePlacaA); Recalcular(); }"
                                        title="Capturar la corriente de carga nominal del motocompresor que marca la placa (RLA) — 440-6(a). Conductor al 125 % (440-32); protección hasta 175 % (440-22(a))." />
                                 <span class="en-va">Nominal@(c.MotorVA > 0m ? $" · {c.MotorVA:#,0} VA" : "")</span>
                             </td>
                             <td rowspan="@c.Polos">
-                                <input class="va" type="number" min="0" placeholder="—" data-col="nocontinua" aria-label="Circuito @c.Espacio · Corriente de selección del circuito (A)" value="@Carga(c.CorrienteSeleccionA ?? 0m)" @onchange="e => { var v = LeerCarga(e, c.CorrienteSeleccionA ?? 0m); c.CorrienteSeleccionA = v > 0m ? v : null; Recalcular(); }"
+                                <input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="—" data-col="nocontinua" aria-label="Circuito @c.Espacio · Corriente de selección del circuito (A)" value="@Carga(c.CorrienteSeleccionA ?? 0m)" @onchange="e => { var v = LeerCarga(e, c.CorrienteSeleccionA ?? 0m); c.CorrienteSeleccionA = v > 0m ? v : null; Recalcular(); }"
                                        title="Capturar la corriente de selección del circuito derivado, si la placa la trae. Si es mayor que la nominal, se usa ella — 440-6(a) Excepción 1." />
                                 <label class="mas-n" title="Marcar si la protección al 175 % no conduce la corriente de arranque del equipo: el máximo sube a 225 % — 440-22(a).">
                                     <input type="checkbox" aria-label="Circuito @c.Espacio · No arranca al 175 %" checked="@c.ArranqueAl225" @onchange="e => { c.ArranqueAl225 = e.Value is true; Recalcular(); }" />225 %</label>
@@ -367,23 +367,23 @@
                         else
                         {
                         <td rowspan="@c.Polos">
-                            <input class="va" type="number" min="0" placeholder="0" data-col="continua" aria-label="Circuito @c.Espacio · Continua" value="@Carga(c.Continua)" @onchange="e => { c.Continua = LeerCarga(e, c.Continua); Recalcular(); }"
+                            <input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="0" data-col="continua" aria-label="Circuito @c.Espacio · Continua" value="@Carga(c.Continua)" @onchange="e => { c.Continua = LeerCarga(e, c.Continua); Recalcular(); }"
                                    disabled="@c.TieneDesglose" title="@SumaDelDesglose(c)" />
                             @EnVA(c, c.Continua, c.ContinuaVA)
                         </td>
                         <td rowspan="@c.Polos">
-                            <input class="va" type="number" min="0" placeholder="0" data-col="nocontinua" aria-label="Circuito @c.Espacio · No continua" value="@Carga(c.NoContinua)" @onchange="e => { c.NoContinua = LeerCarga(e, c.NoContinua); Recalcular(); }"
+                            <input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="0" data-col="nocontinua" aria-label="Circuito @c.Espacio · No continua" value="@Carga(c.NoContinua)" @onchange="e => { c.NoContinua = LeerCarga(e, c.NoContinua); Recalcular(); }"
                                    disabled="@(c.TieneDesglose || c.Categoria == CategoriaDeCarga.CalefaccionFija)"
                                    title="@(c.Categoria == CategoriaDeCarga.CalefaccionFija ? "Calefacción fija: carga continua — 424-3(b)." : SumaDelDesglose(c))" />
                             @EnVA(c, c.NoContinua, c.NoContinuaVA)
                         </td>
                         }
-                        <td rowspan="@c.Polos"><input data-requerido data-col="fp" aria-label="Circuito @c.Espacio · F.P." class="va fp" type="number" min="@FactorMinimo" max="1" step="0.05" title="@(c.TieneDesglose ? "F.P. combinado de los aparatos: P ÷ √(P² + Q²)." : AyudaFactorPotencia(c))" value="@Factor(c.FactorPotencia)" @onchange="e => { c.FactorPotencia = LeerFactor(e, c.FactorPotencia); Recalcular(); }" disabled="@c.TieneDesglose" /></td>
+                        <td rowspan="@c.Polos"><input data-requerido data-col="fp" aria-label="Circuito @c.Espacio · F.P." class="va fp" type="text" inputmode="decimal" autocomplete="off" data-numero min="@FactorMinimo" max="1" step="0.05" title="@(c.TieneDesglose ? "F.P. combinado de los aparatos: P ÷ √(P² + Q²)." : AyudaFactorPotencia(c))" value="@Factor(c.FactorPotencia)" @onchange="e => { c.FactorPotencia = LeerFactor(e, c.FactorPotencia); Recalcular(); }" disabled="@c.TieneDesglose" /></td>
                         @foreach (var barra in Datos.Barras)
                         {
                             <td rowspan="@c.Polos" class="num tenue col-fase">@(c.TieneCarga && c.Fases.Contains(barra) ? c.CargaPorFaseVA.ToString("#,0.##") : "")</td>
                         }
-                        <td rowspan="@c.Polos"><input data-requerido class="va corto" type="number" min="0" data-col="l" aria-label="Circuito @c.Espacio · Longitud (m)" value="@Numero(c.LongitudM)" @onchange="e => { c.LongitudM = Leer(e, c.LongitudM); Recalcular(); }" /></td>
+                        <td rowspan="@c.Polos"><input data-requerido class="va corto" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" data-col="l" aria-label="Circuito @c.Espacio · Longitud (m)" value="@Numero(c.LongitudM)" @onchange="e => { c.LongitudM = Leer(e, c.LongitudM); Recalcular(); }" /></td>
                         <td rowspan="@c.Polos" class="canal">
                             <select class="canal" data-col="canal" aria-label="Circuito @c.Espacio · Canalización" value="@(c.Canalizacion ?? "")" @onchange="e => CambiarCanalizacion(c, e.Value?.ToString())">
                                 @if (!c.TieneCarga)
@@ -472,7 +472,7 @@
                                         {
                                             <tr>
                                                 <td class="izq"><input class="desc" data-col="ap-desc" aria-label="Circuito @c.Espacio, aparato @n · Descripción" @bind="aparato.Descripcion" @bind:after="Recalcular" placeholder="Aparato (Contacto: 180 VA)" /></td>
-                                                <td><input data-requerido data-col="ap-cant" aria-label="Circuito @c.Espacio, aparato @n · Cantidad" class="va corto" type="number" min="1" step="1" @bind="aparato.Cantidad" @bind:after="Recalcular" /></td>
+                                                <td><input data-requerido data-col="ap-cant" aria-label="Circuito @c.Espacio, aparato @n · Cantidad" class="va corto" type="text" inputmode="decimal" autocomplete="off" data-numero min="1" step="1" @bind="aparato.Cantidad" @bind:culture="CultureInfo.InvariantCulture" @bind:after="Recalcular" /></td>
                                                 <td>
                                                     <select class="unidad" data-col="ap-unidad" aria-label="Circuito @c.Espacio, aparato @n · Unidad" @bind="aparato.Unidad" @bind:after="Recalcular">
                                                         <option value="@UnidadConsumo.VoltAmperes">VA</option>
@@ -480,9 +480,9 @@
                                                         <option value="@UnidadConsumo.Amperes">A</option>
                                                     </select>
                                                 </td>
-                                                <td><input class="va" type="number" min="0" placeholder="0" data-col="ap-carga" aria-label="Circuito @c.Espacio, aparato @n · Carga c/u" value="@Carga(aparato.CargaUnitaria)" @onchange="e => { aparato.CargaUnitaria = LeerCarga(e, aparato.CargaUnitaria); Recalcular(); }" /></td>
+                                                <td><input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="0" data-col="ap-carga" aria-label="Circuito @c.Espacio, aparato @n · Carga c/u" value="@Carga(aparato.CargaUnitaria)" @onchange="e => { aparato.CargaUnitaria = LeerCarga(e, aparato.CargaUnitaria); Recalcular(); }" /></td>
                                                 <td><input type="checkbox" data-col="ap-continua" aria-label="Circuito @c.Espacio, aparato @n · Continua" @bind="aparato.Continua" @bind:after="Recalcular" disabled="@calefaccion" /></td>
-                                                <td><input data-requerido class="va fp" type="number" min="@FactorMinimo" max="1" step="0.05" data-col="ap-fp" aria-label="Circuito @c.Espacio, aparato @n · F.P." value="@Factor(aparato.FactorPotencia)" @onchange="e => { aparato.FactorPotencia = LeerFactor(e, aparato.FactorPotencia); Recalcular(); }" /></td>
+                                                <td><input data-requerido class="va fp" type="text" inputmode="decimal" autocomplete="off" data-numero min="@FactorMinimo" max="1" step="0.05" data-col="ap-fp" aria-label="Circuito @c.Espacio, aparato @n · F.P." value="@Factor(aparato.FactorPotencia)" @onchange="e => { aparato.FactorPotencia = LeerFactor(e, aparato.FactorPotencia); Recalcular(); }" /></td>
                                                 <td class="num">@aparato.TotalVA.ToString("#,0.##")</td>
                                                 <td><button class="quitar" title="Quitar el aparato" aria-label="Quitar el aparato @n del circuito @c.Espacio" @onclick="() => QuitarAparato(c, aparato, n)"><Icono Nombre="quitar" Tamano="14" /></button></td>
                                             </tr>
@@ -629,7 +629,7 @@
                     <td class="izq"><span class="con-icono-carga"><Icono Nombre="@Icono.De(fila.Categoria)" Tamano="16" />@fila.Categoria.NombreCompleto()</span></td>
                     <td class="num">@((fila.InstaladaVA / 1000m).ToString("N2"))</td>
                     <td class="num">
-                        <input data-requerido data-col="fd" aria-label="F.D. · @fila.Categoria.NombreCompleto()" class="va chico" type="number" min="0" max="1" step="0.05"
+                        <input data-requerido data-col="fd" aria-label="F.D. · @fila.Categoria.NombreCompleto()" class="va chico" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" max="1" step="0.05"
                                value="@Factor(fila.FactorDemanda)"
                                @onchange="e => CambiarFactor(fila.Categoria, e)" />
                     </td>
@@ -783,7 +783,7 @@
             <p class="derivado">Canalización: <strong>@Datos.CanalizacionAlimentador.Rotulo · @Datos.CanalizacionAlimentador.TamanoRotulo</strong> · @(Datos.CanalizacionAlimentador.Conteo?.Portadores) portadores — ver «Canalizaciones».</p>
 
             <label class="suelto">Longitud del alimentador (m)
-                <input data-requerido type="number" min="0" step="1" value="@Numero(Datos.LongitudAlimentadorM)" @onchange="e => { Datos.LongitudAlimentadorM = Leer(e, Datos.LongitudAlimentadorM); Recalcular(); }" />
+                <input data-requerido type="text" inputmode="decimal" autocomplete="off" data-numero min="0" step="1" value="@Numero(Datos.LongitudAlimentadorM)" @onchange="e => { Datos.LongitudAlimentadorM = Leer(e, Datos.LongitudAlimentadorM); Recalcular(); }" />
             </label>
             <table class="datos">
                 @if (Cuadro.Alimentador.Gobierna is { } g && Datos.Barras.Count > 1)
@@ -812,7 +812,7 @@
         else
         {
             <label class="suelto">Longitud del alimentador (m)
-                <input data-requerido type="number" min="0" step="1" value="@Numero(Datos.LongitudAlimentadorM)" @onchange="e => { Datos.LongitudAlimentadorM = Leer(e, Datos.LongitudAlimentadorM); Recalcular(); }" />
+                <input data-requerido type="text" inputmode="decimal" autocomplete="off" data-numero min="0" step="1" value="@Numero(Datos.LongitudAlimentadorM)" @onchange="e => { Datos.LongitudAlimentadorM = Leer(e, Datos.LongitudAlimentadorM); Recalcular(); }" />
             </label>
             @if (Cuadro.Alimentador.Error is { } error)
             {
@@ -1044,7 +1044,7 @@
 
     private void CambiarDiametro(string clave, string? valor)
     {
-        if (decimal.TryParse(valor, NumberStyles.Number, CultureInfo.InvariantCulture, out var d) && d > 0m)
+        if (decimal.TryParse(valor, NumberStyles.Float, CultureInfo.InvariantCulture, out var d) && d > 0m)
             Datos.DiametrosFabricante[clave] = d;
         else
             Datos.DiametrosFabricante.Remove(clave);
@@ -1063,7 +1063,7 @@
     /// <summary>
     /// Un número capturable, como se muestra: hasta dos decimales, sin ceros de más — «1500»,
     /// «156.25», «823.53» (David, 2026-09-24: una carga en W con su F.P. se veía «823.529411…»). El
-    /// valor guardado conserva todos sus decimales. Con punto: lo exige <c>type="number"</c>.
+    /// valor guardado conserva todos sus decimales. Con punto y sin miles: así lo deja js/teclado.js (I-81).
     /// </summary>
     private static string Numero(decimal v) => v.ToString("0.##", CultureInfo.InvariantCulture);
 
@@ -1075,7 +1075,7 @@
     /// va con dos (David, 2026-09-24). Ilegible: se queda el que estaba.
     /// </summary>
     private static decimal Leer(ChangeEventArgs e, decimal actual) =>
-        decimal.TryParse(e.Value?.ToString(), NumberStyles.Number, CultureInfo.InvariantCulture, out var v) ? v : actual;
+        decimal.TryParse(e.Value?.ToString(), NumberStyles.Float, CultureInfo.InvariantCulture, out var v) ? v : actual;
 
     /// <summary>
     /// Fuera de <paramref name="min"/> y <paramref name="max"/>, también se queda el que estaba — I-77,
@@ -1091,7 +1091,7 @@
     private static readonly string FactorMinimo = Numero(CircuitoDelCuadro.FactorPotenciaMinimo);
 
     private static decimal? Decimal(object? valor) =>
-        decimal.TryParse(valor?.ToString(), NumberStyles.Number, CultureInfo.InvariantCulture, out var d) && d > 0m ? d : null;
+        decimal.TryParse(valor?.ToString(), NumberStyles.Float, CultureInfo.InvariantCulture, out var d) && d > 0m ? d : null;
 
     // Encabezados que se repiten en las dos tablas.
     private RenderFragment EncabezadoCalculo() =>
@@ -1141,16 +1141,16 @@
                     else if (t.Tipo.EsDuctoOCanal())
                     {
                         <span class="medidas">
-                            <input type="number" min="0" placeholder="ancho" data-col="cn-ancho" aria-label="@CuadroDeCarga.NombreDe(t) · Ancho interior (mm)" title="Ancho interior (mm)" value="@Opcional(t.AnchoMm)" @onchange="e => { t.AnchoMm = Decimal(e.Value); Recalcular(); }" />
+                            <input type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="ancho" data-col="cn-ancho" aria-label="@CuadroDeCarga.NombreDe(t) · Ancho interior (mm)" title="Ancho interior (mm)" value="@Opcional(t.AnchoMm)" @onchange="e => { t.AnchoMm = Decimal(e.Value); Recalcular(); }" />
                             ×
-                            <input type="number" min="0" placeholder="alto" data-col="cn-alto" aria-label="@CuadroDeCarga.NombreDe(t) · Alto interior (mm)" title="Alto interior (mm)" value="@Opcional(t.AltoMm)" @onchange="e => { t.AltoMm = Decimal(e.Value); Recalcular(); }" /> mm
+                            <input type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="alto" data-col="cn-alto" aria-label="@CuadroDeCarga.NombreDe(t) · Alto interior (mm)" title="Alto interior (mm)" value="@Opcional(t.AltoMm)" @onchange="e => { t.AltoMm = Decimal(e.Value); Recalcular(); }" /> mm
                         </span>
                     }
                     else
                     {
                         <span class="medidas">
-                            <input type="number" min="0" placeholder="área mm²" data-col="cn-area" aria-label="@CuadroDeCarga.NombreDe(t) · Área interior (mm²)" title="Área interior (mm²)" value="@Opcional(t.AreaInteriorMm2)" @onchange="e => { t.AreaInteriorMm2 = Decimal(e.Value); Recalcular(); }" />
-                            <input type="number" min="0" placeholder="máx." data-col="cn-max" aria-label="@CuadroDeCarga.NombreDe(t) · Máximo de conductores" title="Número máximo de conductores que marca el fabricante" value="@(t.MaxConductoresFabricante?.ToString() ?? "")" @onchange="e => { t.MaxConductoresFabricante = int.TryParse(e.Value?.ToString(), out var m) && m > 0 ? m : null; Recalcular(); }" />
+                            <input type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="área mm²" data-col="cn-area" aria-label="@CuadroDeCarga.NombreDe(t) · Área interior (mm²)" title="Área interior (mm²)" value="@Opcional(t.AreaInteriorMm2)" @onchange="e => { t.AreaInteriorMm2 = Decimal(e.Value); Recalcular(); }" />
+                            <input type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="máx." data-col="cn-max" aria-label="@CuadroDeCarga.NombreDe(t) · Máximo de conductores" title="Número máximo de conductores que marca el fabricante" value="@(t.MaxConductoresFabricante?.ToString() ?? "")" @onchange="e => { t.MaxConductoresFabricante = int.TryParse(e.Value?.ToString(), out var m) && m > 0 ? m : null; Recalcular(); }" />
                         </span>
                     }
                 </div>
@@ -1205,7 +1205,7 @@
             <td class="@(alimentador ? null : "ultima")">
                 @if (t.Tipo.EsTubo())
                 {
-                    <input type="number" min="0" class="corto" placeholder="—" data-col="cn-azotea" aria-label="@CuadroDeCarga.NombreDe(t) · Azotea al sol (mm)" title="Distancia del techo a la base del tubo, en mm — Tabla 310-15(b)(3)(c). Vacío: no está en azotea." value="@Opcional(t.AlturaSobreTechoMm)" @onchange="e => { t.AlturaSobreTechoMm = decimal.TryParse(e.Value?.ToString(), NumberStyles.Number, CultureInfo.InvariantCulture, out var h) && h >= 0m ? h : null; Recalcular(); }" />
+                    <input type="text" inputmode="decimal" autocomplete="off" data-numero min="0" class="corto" placeholder="—" data-col="cn-azotea" aria-label="@CuadroDeCarga.NombreDe(t) · Azotea al sol (mm)" title="Distancia del techo a la base del tubo, en mm — Tabla 310-15(b)(3)(c). Vacío: no está en azotea." value="@Opcional(t.AlturaSobreTechoMm)" @onchange="e => { t.AlturaSobreTechoMm = decimal.TryParse(e.Value?.ToString(), NumberStyles.Float, CultureInfo.InvariantCulture, out var h) && h >= 0m ? h : null; Recalcular(); }" />
                 }
                 else
                 {
@@ -1489,7 +1489,7 @@
 
     private void CambiarHp(CircuitoDelCuadro c, string? valor)
     {
-        if (decimal.TryParse(valor, NumberStyles.Number, CultureInfo.InvariantCulture, out var hp) && hp >= 0m)
+        if (decimal.TryParse(valor, NumberStyles.Float, CultureInfo.InvariantCulture, out var hp) && hp >= 0m)
             c.Hp = hp;
         Recalcular();
     }
@@ -1509,7 +1509,7 @@
     /// <summary>El F.D. de un tipo. Fuera de 0 a 1 o ilegible, se queda el que estaba.</summary>
     private void CambiarFactor(CategoriaDeCarga categoria, ChangeEventArgs e)
     {
-        if (!decimal.TryParse(e.Value?.ToString(), NumberStyles.Number, CultureInfo.InvariantCulture, out var factor) || factor < 0m || factor > 1m)
+        if (!decimal.TryParse(e.Value?.ToString(), NumberStyles.Float, CultureInfo.InvariantCulture, out var factor) || factor < 0m || factor > 1m)
             return;
 
         Datos.CambiarFactorDeDemanda(categoria, factor);

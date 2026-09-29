@@ -15,7 +15,10 @@
 // «El mismo campo» lo dice data-col: el mismo valor en la misma tabla. Se escucha en captura
 // (tercer argumento true) para correr antes que Blazor.
 (() => {
-    const esNumero = el => el instanceof HTMLInputElement && el.type === 'number';
+    // Los números son campos de texto (data-numero, inputmode="decimal"), no type="number" — I-81: Chrome
+    // borraba la coma al teclear («0,9» quedaba 9) y Firefox la entregaba vacía. Aquí se leen igual en
+    // todos los navegadores (ver leerNumero).
+    const esNumero = el => el instanceof HTMLInputElement && 'numero' in el.dataset;
     const esCampo = el => el instanceof HTMLInputElement || el instanceof HTMLSelectElement;
     const esSelector = el => el instanceof HTMLSelectElement;
     const visible = el => !el.disabled && el.offsetParent !== null;
@@ -47,41 +50,80 @@
     // tumbaba el alimentador—. Regresa al valor que tenía al entrar y un aviso dice por qué: si se
     // quedara escrito, la casilla diría una cosa y el cálculo seguiría con otra (I-82). El min y el
     // max son los del propio campo; la página los toma del modelo.
+    //
+    // I-81: la coma. «1,500» es coma de miles (así se escribe en México) y queda 1500; «0,9» o «2,5»
+    // es coma decimal y queda 0.9 o 2.5, con un aviso de cómo se leyó. Lo que no es número regresa.
     document.addEventListener('change', e => {
         const el = e.target;
         if (!esNumero(el))
             return;
-        if (el.value.trim() === '') {
+        const tecleado = el.value.trim();
+        if (tecleado === '') {
+            el.value = '';
             if (el.hasAttribute('data-requerido') && el.dataset.previo)
                 el.value = el.dataset.previo;
             return;
         }
-        const valor = el.valueAsNumber;
+        const leido = leerNumero(tecleado);
+        if (leido === null) {
+            regresar(el, tecleado, 'no es un número');
+            return;
+        }
+        el.value = leido.texto;
         const min = el.min === '' ? -Infinity : Number(el.min);
         const max = el.max === '' ? Infinity : Number(el.max);
-        if (Number.isNaN(valor) || (valor >= min && valor <= max) || !('previo' in el.dataset))
+        if (leido.valor < min || leido.valor > max) {
+            const rango = Number.isFinite(min) && Number.isFinite(max) ? `va de ${el.min} a ${el.max}`
+                : Number.isFinite(min) ? `el mínimo es ${el.min}` : `el máximo es ${el.max}`;
+            regresar(el, tecleado, `no se admite; ${rango}`);
             return;
-        const tecleado = el.value;
-        el.value = el.dataset.previo;
-        rechazar(el, tecleado, min, max);
+        }
+        if (leido.comaDecimal)
+            avisar(`${ayudaDe(el).nombre}: «${tecleado}» se leyó como ${leido.texto}. El separador decimal es el punto.`, '');
     }, true);
 
-    let avisoDeRechazo;
+    /**
+     * «1500», «1,500», «12,000.5» → 1500, 1500, 12000.5; «0,9», «2,5», «1.500,50» → 0.9, 2.5, 1500.50
+     * (coma decimal). null si no es un número. Tres cifras después de la coma, y no empieza en 0: miles.
+     */
+    function leerNumero(texto) {
+        const t = texto.replace(/\s+/g, '');
+        let limpio = null, comaDecimal = false;
+        if (/^-?(\d+\.?\d*|\.\d+)$/.test(t))
+            limpio = t;
+        else if (/^-?[1-9]\d{0,2}(,\d{3})+(\.\d+)?$/.test(t))
+            limpio = t.replace(/,/g, '');
+        else if (/^-?\d*,\d+$/.test(t))
+            [limpio, comaDecimal] = [t.replace(',', '.'), true];
+        else if (/^-?[1-9]\d{0,2}(\.\d{3})+,\d+$/.test(t))
+            [limpio, comaDecimal] = [t.replace(/\./g, '').replace(',', '.'), true];
+        if (limpio === null)
+            return null;
+        const valor = Number(limpio);
+        return Number.isFinite(valor) ? { valor, texto: limpio, comaDecimal } : null;
+    }
 
-    /** «Circuito 1 · F.P.: 1.5 no se admite; va de 0.1 a 1. Se regresó a 0.90.» */
-    function rechazar(el, tecleado, min, max) {
-        const rango = Number.isFinite(min) && Number.isFinite(max) ? `va de ${el.min} a ${el.max}`
-            : Number.isFinite(min) ? `el mínimo es ${el.min}` : `el máximo es ${el.max}`;
+    /** El campo regresa al valor que tenía al entrar: «Circuito 1 · F.P.: 1.5 no se admite; va de 0.1 a 1. Se regresó a 0.90.» */
+    function regresar(el, tecleado, porque) {
+        if (!('previo' in el.dataset))
+            return; // sin valor de antes no hay a dónde regresar; la página lo rechaza igual
+        el.value = el.dataset.previo;
         const queda = el.value === '' ? 'Se dejó vacío.' : `Se regresó a ${el.value}.`;
-        avisoDeRechazo?.remove();
-        const aviso = avisoDeRechazo = document.createElement('div');
-        aviso.className = 'aviso-flotante mal';
-        aviso.setAttribute('role', 'alert');
-        aviso.textContent = `${ayudaDe(el).nombre}: ${tecleado} no se admite; ${rango}. ${queda}`;
-        document.body.appendChild(aviso);
-        setTimeout(() => aviso.remove(), 5500);
+        avisar(`${ayudaDe(el).nombre}: ${tecleado} ${porque}. ${queda}`, 'mal');
         el.classList.add('rechazado');
         setTimeout(() => el.classList.remove('rechazado'), 1500);
+    }
+
+    let avisoFlotante;
+
+    function avisar(texto, clase) {
+        avisoFlotante?.remove();
+        const aviso = avisoFlotante = document.createElement('div');
+        aviso.className = `aviso-flotante ${clase}`.trim();
+        aviso.setAttribute('role', clase === 'mal' ? 'alert' : 'status');
+        aviso.textContent = texto;
+        document.body.appendChild(aviso);
+        setTimeout(() => aviso.remove(), 5500);
     }
 
     // ---- Teclas ----------------------------------------------------------------------------------
