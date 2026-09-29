@@ -128,6 +128,8 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-102 · Carga por fase sin centrar bajo su letra | P3 | **Cerrado** | `bceaec3` |
 | I-103 · Nota del uso «Refrigerador» partida y amontonada | P3 | **Cerrado** | `bceaec3` |
 | I-104 · Columnas de resultados de distinto ancho: «In (A)» y «e (%)» apretadas | P3 | **Cerrado** | `5125dbd` |
+| I-105 · Al desplazar el cuadro de lado, el N.º se iba y dejaba un hueco | P2 | **Cerrado** | `aa9e585` |
+| I-106 · El cuadro ya no cabía completo; muestras de color en Fase, Neutro y Tierra | P3 | **Cerrado** | `aa9e585` |
 | R-01 · Caída del alimentador fija en 5 %, sin verificar la combinada — 215-2(a)(4) NOTA 2 | P1 | **Cerrado** | `2a973ea` |
 | R-02 · Caída del alimentador sin la caída del neutro | P2 | **Cerrado** | `d6cd1c6` |
 | R-03 · La publicación no corre `PowerNode.Web.Tests` | P1 | **Cerrado** | `986c9d7` |
@@ -393,6 +395,10 @@ e I-88 a I-93. Formato: **Hecho** · **Corrección** (propuesta, sin hacer) ·
 **I-103** — Hecho (David): «Individual — 210-52(b)(1) Exc. 2» se partía en dos renglones con «2» solo. Cocina y Lavadora también llevan nota («Alimentador: 1,500 VA — 220-52(a)», igual de partida); General y Baño no, porque no cambian nada fuera del circuito. Corrección: «Circuito individual» y «1,500 VA al alimentador», en una línea, con la referencia en el título. Cerrado en `bceaec3`.
 
 **I-104** — Hecho (David): «In (A)» y «e (%)» medían 67 px y «Protec. (A)» 87, por el largo de su encabezado: unas columnas se veían aplastadas junto a otras. Corrección: L, P, In, Protec., Fase, Neutro, Tierra y e miden por lo menos 76 px, lo mismo que las del balanceo; «Protec. (A)» en dos líneas. Para que el cuadro siga cabiendo a 1920 px (1674 de 1680), la descripción baja de 240 a 224 px. Cerrado en `5125dbd`.
+
+**I-105** — Hecho (David, en la versión publicada): al recorrer el cuadro de lado con el trackpad, la columna N.º se iba con la tabla y quedaba un hueco blanco junto a la descripción, que sí se quedaba fija. Causa: `position: relative` en las celdas del renglón, puesto en I-101 para anclar las notas, pesaba más que el `position: sticky` del N.º. Corrección: no se aplica a la primera columna, y el N.º mide exactamente 32 px, que es donde se fija la descripción. Cerrado en `aa9e585`. Prueba: en el navegador, a 1500 px, desplazar 300 px: N.º y descripción fijos, el resto pasa por debajo.
+
+**I-106** — Hecho (David): con las columnas de 76 px (I-104) el cuadro ya no cabía completo en su pantalla, y pidió quitar las muestras de color de Fase, Neutro y Tierra. Corrección: la misma proporción con 6 px menos por columna —3 px de relleno a cada lado en vez de 6; resultados y balanceo de 76 a 70 px—; sin datos, de 1672 a 1570 px. Encabezados de conductores solo con su nombre (las muestras siguen en la tarjeta del alimentador). Cerrado en `aa9e585`.
 
 ### Revisión del 2026-09-23
 

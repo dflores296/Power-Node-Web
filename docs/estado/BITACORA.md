@@ -94,6 +94,10 @@ era la que pedía. Con sus reglas:
 A `main` por avance rápido (pedido de David). Sin listas de revisión hasta que el resultado sea el que busca
 (David).
 
+- La columna N.º fija otra vez al desplazar de lado (I-101 le había quitado el sticky) — I-105, `aa9e585`.
+- 6 px menos por columna para que el cuadro quepa; sin muestras de color en Fase, Neutro y Tierra —
+  I-106, `aa9e585`. A `main` por avance rápido.
+
 ## 2026-09-28
 
 **Auditoría de interfaz** (pedido de David: botones desalineados, texto cortado o chueco, funcionalidad).
