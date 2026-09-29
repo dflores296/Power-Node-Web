@@ -1055,8 +1055,30 @@
             _enfocar = null;
             await JS.InvokeVoidAsync("powerNode.enfocar", selector);
         }
-        // Con cambios sin guardar, el navegador pregunta antes de cerrar la pestaña (I-05).
-        await JS.InvokeVoidAsync("powerNode.archivo.marcarSinGuardar", Proyecto.SinGuardar);
+        // Con cambios sin guardar, el navegador pregunta antes de cerrar la pestaña (I-05). La huella
+        // serializa el tablero entero (~25 ms con 42 espacios en el navegador): se revisa al quedar
+        // quieta la pantalla, no en cada dibujo (I-97).
+        RevisarSinGuardarAlRato();
+    }
+
+    private const int PausaSinGuardarMs = 400;
+    private CancellationTokenSource? _sinGuardar;
+
+    private void RevisarSinGuardarAlRato()
+    {
+        // Mientras llega la revisión, del lado seguro: se pregunta al cerrar. Si resulta que no hubo
+        // cambio (se regresó a lo guardado), la revisión lo quita.
+        _ = Marcar(true);
+
+        _sinGuardar?.Cancel();
+        var pausa = _sinGuardar = new CancellationTokenSource();
+        _ = Task.Delay(PausaSinGuardarMs, pausa.Token).ContinueWith(t =>
+        {
+            if (!t.IsCanceled)
+                _ = InvokeAsync(() => Marcar(Proyecto.SinGuardar));
+        }, TaskScheduler.Default);
+
+        Task Marcar(bool valor) => JS.InvokeVoidAsync("powerNode.archivo.marcarSinGuardar", valor).AsTask();
     }
 
     // Al abrir un archivo, el tablero es otro: se dibuja de nuevo, sin desgloses abiertos del anterior.
@@ -1071,6 +1093,7 @@
     public void Dispose()
     {
         _pausa?.Cancel();
+        _sinGuardar?.Cancel();
         Proyecto.Cambio -= AlAbrirOtroTablero;
         _ = JS.InvokeVoidAsync("powerNode.arrastre.desconectar").AsTask();
         _arrastre?.Dispose();

@@ -84,6 +84,44 @@ public class CuadroDeCargaTests
         Assert.Null(Espacio(cuadro, 1).Error);
     }
 
+    /// <summary>
+    /// I-97: los derivados cuya entrada no cambió no vuelven al motor — el mismo resultado, el mismo
+    /// objeto. Lo que sí cambió (la carga del circuito, o una condición del tablero) se recalcula, y
+    /// regresar al valor de antes da lo mismo que calcular desde cero.
+    /// </summary>
+    [Fact]
+    public void I97_SoloSeRecalculaLoQueCambio_YRegresarDaLoMismo()
+    {
+        var cuadro = Nuevo();
+        foreach (var n in new[] { 1, 2, 3 })
+            Espacio(cuadro, n).NoContinua = 1000m;
+        cuadro.Recalcular();
+        var (antes1, antes2) = (Espacio(cuadro, 1).Resultado, Espacio(cuadro, 2).Resultado);
+
+        Espacio(cuadro, 1).NoContinua = 3000m;
+        cuadro.Recalcular();
+        Assert.Same(antes2, Espacio(cuadro, 2).Resultado);
+        Assert.NotEqual(antes1!.CorrienteDisenoA, Espacio(cuadro, 1).Resultado!.CorrienteDisenoA);
+
+        Espacio(cuadro, 1).NoContinua = 1000m;
+        cuadro.Recalcular();
+        Assert.Same(antes1, Espacio(cuadro, 1).Resultado);
+
+        cuadro.Datos.TipoAislamiento = "TW";
+        cuadro.Recalcular();
+        Assert.NotSame(antes2, Espacio(cuadro, 2).Resultado);
+
+        var nuevo = Nuevo();
+        foreach (var n in new[] { 1, 2, 3 })
+            Espacio(nuevo, n).NoContinua = 1000m;
+        nuevo.Datos.TipoAislamiento = "TW";
+        nuevo.Recalcular();
+        static object Valores(ResultadoCircuitoDerivado r) => (r with { Citas = [], AvisosCargaContinua = null },
+            string.Join("\n", r.Citas.Select(x => $"{x.Referencia} {x.Descripcion}")));
+        foreach (var n in new[] { 1, 2, 3 })
+            Assert.Equal(Valores(Espacio(nuevo, n).Resultado!), Valores(Espacio(cuadro, n).Resultado!));
+    }
+
     // ---- La geometría del tablero --------------------------------------------------------------
 
     [Fact]

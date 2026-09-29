@@ -340,7 +340,20 @@ public sealed class CuadroDeCarga
     /// Por qué salieron la protección y el calibre de este circuito, paso por paso. <c>null</c> si el
     /// renglón no calculó.
     /// </summary>
+    /// <summary>
+    /// El desglose de cada renglón se pide en cada dibujo de la pantalla; se arma una vez por cálculo
+    /// (I-97). Se vacía al calcular los circuitos.
+    /// </summary>
+    private readonly Dictionary<CircuitoDelCuadro, DesgloseDeSeleccion?> _desgloses = [];
+
     public DesgloseDeSeleccion? Desglose(CircuitoDelCuadro c)
+    {
+        if (!_desgloses.TryGetValue(c, out var desglose))
+            _desgloses[c] = desglose = ArmarDesglose(c);
+        return desglose;
+    }
+
+    private DesgloseDeSeleccion? ArmarDesglose(CircuitoDelCuadro c)
     {
         if (c.Resultado is not { Detalle: { } detalle } r)
             return null;
@@ -1152,8 +1165,46 @@ public sealed class CuadroDeCarga
         }
     }
 
+    // ---- LO QUE YA SE CALCULÓ (I-97) --------------------------------------------------------------
+    // Cambiar la carga de un circuito recalcula el tablero entero, y los otros 41 derivados llegaban al
+    // motor con la misma entrada que la vez anterior. La entrada es un record de puros valores y el
+    // resultado no se modifica después: con la misma entrada y la misma serie, el mismo resultado —
+    // o el mismo error. En el navegador es la mitad del tiempo de Recalcular.
+
+    private readonly Dictionary<(SerieDeInterruptores, object), (ResultadoCircuitoDerivado? Resultado, Exception? Error)> _recordados = [];
+    private const int MaximoRecordados = 1000;
+
+    private ResultadoCircuitoDerivado Recordado<T>(T entrada) where T : notnull
+    {
+        var llave = (Datos.SerieInterruptores, (object)entrada);
+        if (!_recordados.TryGetValue(llave, out var r))
+        {
+            if (_recordados.Count >= MaximoRecordados)
+                _recordados.Clear();
+            try
+            {
+                r = (entrada switch
+                {
+                    DatosEntradaCircuitoDerivadoNoMotor d => _motor.NoMotor(Datos.SerieInterruptores).Calcular(d),
+                    DatosEntradaCircuitoDerivadoMotor d => _motor.Motor(Datos.SerieInterruptores).Calcular(d),
+                    DatosEntradaCircuitoDerivado440 d => _motor.AireAcondicionado(Datos.SerieInterruptores).Calcular(d),
+                    _ => throw new ArgumentException($"Entrada sin calculadora: {typeof(T).Name}"),
+                }, null);
+            }
+            catch (Exception ex)
+            {
+                r = (null, ex);
+            }
+            _recordados[llave] = r;
+        }
+        if (r.Error is { } error)
+            System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw(error);
+        return r.Resultado!;
+    }
+
     private void CalcularCircuitos()
     {
+        _desgloses.Clear();
         foreach (var c in _circuitos)
         {
             c.Limpiar();
@@ -1174,7 +1225,7 @@ public sealed class CuadroDeCarga
                     continue;
                 }
 
-                c.Resultado = _motor.NoMotor(Datos.SerieInterruptores).Calcular(new DatosEntradaCircuitoDerivadoNoMotor(
+                c.Resultado = Recordado(new DatosEntradaCircuitoDerivadoNoMotor(
                     TipoCarga: c.Tipo,
                     CargaContinuaVA: c.ContinuaVA,
                     CargaNoContinuaVA: c.NoContinuaVA,
@@ -1235,7 +1286,7 @@ public sealed class CuadroDeCarga
             return;
         }
 
-        c.Resultado = _motor.Motor(Datos.SerieInterruptores).Calcular(new DatosEntradaCircuitoDerivadoMotor(
+        c.Resultado = Recordado(new DatosEntradaCircuitoDerivadoMotor(
             // En amperes, los caballos interpolados (430-6(a)(1)) van solo a la cita; la FLC es la corriente.
             Hp: enAmperes ? c.MotorEnAmperes!.Hp : c.Hp!.Value,
             FlcMarcadaEnAmperesA: enAmperes ? c.FlcA : null,
@@ -1270,7 +1321,7 @@ public sealed class CuadroDeCarga
     private void CalcularAireAcondicionado(CircuitoDelCuadro c, CanalizacionDelTablero canal)
     {
         var porPlaca = c.PlacaAire == PlacaDeAireAcondicionado.AmpacidadYProteccion;
-        c.Resultado = _motor.AireAcondicionado(Datos.SerieInterruptores).Calcular(new DatosEntradaCircuitoDerivado440(
+        c.Resultado = Recordado(new DatosEntradaCircuitoDerivado440(
             // Un equipo de 2 polos es monofásico entre fases; el de 3, trifásico.
             NumeroFases: c.Polos == 3 ? 3 : 1,
             TensionFaseNeutroV: c.Polos == 1 ? Datos.TensionFaseNeutroV : Datos.TensionFaseFaseV,
