@@ -15,7 +15,7 @@ Ejecutar en el navegador (Blazor WebAssembly), sin servidor, publicado en GitHub
 | Frente | Avance | Pendiente |
 |---|---|---|
 | Motor | 100 % | Llevar al escritorio los cambios listados en [`../conocimiento/motor-copiado.md`](../conocimiento/motor-copiado.md). |
-| Interfaz | ~90 % | Auditoría del 2026-09-28 en [`HALLAZGOS.md`](HALLAZGOS.md): cerrada (David, 2026-09-29). Puntos de David: I-99 hecho. Confirmar las propuestas de motores (I-15) y de los seis tipos de carga (I-74). Modelar centros de carga de una barra por lado. |
+| Interfaz | ~90 % | Auditoría del 2026-09-28 en [`HALLAZGOS.md`](HALLAZGOS.md): cerrada (David, 2026-09-29). Puntos de David: I-99 a I-103 hechos. Confirmar las propuestas de motores (I-15) y de los seis tipos de carga (I-74). Modelar centros de carga de una barra por lado. |
 | Publicación | 100 % | — |
 
 ## Motor

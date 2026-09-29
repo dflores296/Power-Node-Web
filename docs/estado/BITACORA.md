@@ -77,6 +77,9 @@ rápido (pedido de David). **Auditoría del 2026-09-28 cerrada** (David). Siguen
 **Puntos de David.**
 
 - Quitar la columna «Barras» del cuadro y pintar el N.º con el color de su fase — I-99, `568d88f`.
+- Alinear el renglón del cuadro: borde del N.º de un multipolar (I-100), la primera línea de cada
+  celda a la misma altura (I-101), la carga por fase centrada (I-102) y las notas del uso en una línea
+  (I-103) — `bceaec3`.
 
 ## 2026-09-28
 

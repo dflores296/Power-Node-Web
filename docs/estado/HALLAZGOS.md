@@ -123,6 +123,10 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-97 · 65 ms por tecla con 42 espacios (versión publicada) | P3 | **Cerrado** | `b8ac355`, `1932e36` |
 | I-98 · El diámetro del fabricante se pedía al pie de canalizaciones, sin aviso, lejos del aislamiento | P3 | **Cerrado** | `71ff9d9` |
 | I-99 · Columna «Barras» que repetía el balanceo y el gabinete | P3 | **Cerrado** | `568d88f` |
+| I-100 · N.º de un multipolar con la línea derecha doble en los renglones de continuación | P3 | **Cerrado** | `bceaec3` |
+| I-101 · Selectores y notas del renglón a distintas alturas | P2 | **Cerrado** | `bceaec3` |
+| I-102 · Carga por fase sin centrar bajo su letra | P3 | **Cerrado** | `bceaec3` |
+| I-103 · Nota del uso «Refrigerador» partida y amontonada | P3 | **Cerrado** | `bceaec3` |
 | R-01 · Caída del alimentador fija en 5 %, sin verificar la combinada — 215-2(a)(4) NOTA 2 | P1 | **Cerrado** | `2a973ea` |
 | R-02 · Caída del alimentador sin la caída del neutro | P2 | **Cerrado** | `d6cd1c6` |
 | R-03 · La publicación no corre `PowerNode.Web.Tests` | P1 | **Cerrado** | `986c9d7` |
@@ -378,6 +382,14 @@ e I-88 a I-93. Formato: **Hecho** · **Corrección** (propuesta, sin hacer) ·
 **I-98** — Hecho (David): el diámetro exterior del fabricante —Capítulo 10, Nota 5— se pedía al pie de la tarjeta de canalizaciones, sin aviso; el aislamiento que lo causa está en «Condiciones de cálculo» y es uno para todo el tablero. David creía que THHW tampoco está en la Tabla 5: sí está, del 14 AWG al 2000 kcmil. Corrección (`71ff9d9`): aviso en «Condiciones de cálculo» y un campo por calibre en uso, general para cualquier aislamiento y calibre que la Tabla 5 no traiga; un diámetro ya capturado manda sobre la Tabla 5 y también se enseña, para poder borrarlo. Es el diámetro exterior del conductor aislado, no el espesor del aislamiento: el llenado usa π·d²/4. Prueba: `DiametroDelFabricante_SePideConElAislamiento`; en el navegador, THHW-LS sin carga, con carga, con diámetros (la canalización calcula), THHW y THHN sin aviso, a 1920 y 390 px.
 
 **I-99** — Hecho (David, 2026-09-29, puntos propios): la columna «Barras» del cuadro decía la fase de cada espacio, que con carga ya dicen el balanceo y el gabinete; solo aportaba en los renglones vacíos. Corrección (opción de David entre tres: quitarla y pintar el N.º, quitarla, dejarla): el N.º lleva el contorno del color de su barra, como la etiqueta del gabinete, en cada renglón, también en los de un multipolar y del principal; la columna se quita. Cerrado en `568d88f`. Prueba: en el navegador, claro y oscuro, multipolar de 3 polos (2 A, 4 B, 6 C), arrastrar del número, sin desplazamiento de página de 320 a 1920 px.
+
+**I-100** — Hecho (David): en un multipolar, el 1 tenía una línea derecha y el 3 y el 5 otra más gruesa. La columna N.º fija lleva una sombra de 1 px a la derecha; en el renglón con la descripción la tapaba la descripción (también fija), en los de continuación se sumaba al borde. Corrección: arriba de 760 px, con la descripción fija a su lado, el N.º no lleva sombra. Cerrado en `bceaec3`.
+
+**I-101** — Hecho (David): en un renglón, el selector con una nota debajo (Canal. con el tamaño del tubo, P con «+N», Tipo con el uso) quedaba más arriba que los que no la llevan: todas las celdas se centraban en el alto del renglón. Corrección: cada celda alinea su primera línea con las demás (`vertical-align: baseline`) y lo de abajo cuelga; en Tipo y Descripción la línea base la da el campo, no el icono ni el botón. Un multipolar queda en la línea de su primer espacio (antes, centrado en los tres); el documento sigue centrado. Cerrado en `bceaec3`. Prueba: en el navegador, el centro de cada campo de los renglones 1 (3 polos, Contactos/Refrigerador), 7 (Cocina), 9 y 11 a ±1 px; motor, A/C, carga en W y renglón con error, en claro y oscuro.
+
+**I-102** — Hecho (David): la carga de cada fase iba a la derecha y la letra de la fase centrada. Corrección: centrada. Cerrado en `bceaec3`.
+
+**I-103** — Hecho (David): «Individual — 210-52(b)(1) Exc. 2» se partía en dos renglones con «2» solo. Cocina y Lavadora también llevan nota («Alimentador: 1,500 VA — 220-52(a)», igual de partida); General y Baño no, porque no cambian nada fuera del circuito. Corrección: «Circuito individual» y «1,500 VA al alimentador», en una línea, con la referencia en el título. Cerrado en `bceaec3`.
 
 ### Revisión del 2026-09-23
 
