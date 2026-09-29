@@ -137,6 +137,13 @@ aparatos; «cargas combinadas» en lugar de «mixto».
   queda; otro tablero es un alimentador sin F.D.; se retira «Varios»; guía de cargas; nombres cortos
   basados en la NOM — [`../decisiones/cargas-y-clases-de-circuito.md`](../decisiones/cargas-y-clases-de-circuito.md).
   Hallazgos abiertos: I-123 a I-127 y M-14 (el mínimo de 220-12, que el alimentador no aplica).
+  Cada commit del cambio, en [`../conocimiento/trazabilidad-cargas-y-circuitos.md`](../conocimiento/trazabilidad-cargas-y-circuitos.md)
+  (pedido de David). `0c988d6`.
+- Fase A: página «Guía de cargas» —tipos, subtipos, clases de circuito y glosario, con sus citas—
+  desde un solo árbol en el modelo; «?» desde el encabezado Tipo; la barra se compacta antes para que
+  quepa la cuarta página — I-126, `38e2c24`.
+
+Pruebas: 334 en `PowerNode.Web.Tests`, 23 en `PowerNode.Normativa.Tests`.
 
 ## 2026-09-28
 

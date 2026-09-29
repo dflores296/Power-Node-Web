@@ -12,7 +12,7 @@ Hallazgos: I-123 a I-127 y M-14 en [`../estado/HALLAZGOS.md`](../estado/HALLAZGO
 | Fase | Qué | Hallazgos | Estado |
 |---|---|---|---|
 | — | Propuesta y hallazgos abiertos | — | Hecha |
-| A | Guía de cargas y glosario | I-126 | Pendiente |
+| A | Guía de cargas y glosario | I-126 | Hecha |
 | B | Modelo: carga con tipo, subtipo y forma; clase del circuito; alimentador a tablero; F.D. por carga; archivo formato 5 | I-123, I-125 | Pendiente |
 | C | Pantalla, documento y memoria con los nombres cortos; se retira «Varios» | I-127 | Pendiente |
 | D | Reglas por clase de circuito | I-124 | Pendiente |
@@ -25,4 +25,6 @@ renglón siguiente.
 
 | # | Commit | Fase | Qué | Hallazgos | Verificación |
 |---|---|---|---|---|---|
-| 1 | *(este)* | — | Propuesta con las decisiones de David; hallazgos abiertos; esta tabla | I-123 a I-127, M-14 | — |
+| 1 | `0c988d6` | — | Propuesta con las decisiones de David; hallazgos abiertos; esta tabla | I-123 a I-127, M-14 | — |
+| 2 | `38e2c24` | A | Página «Guía de cargas» (`/guia`): mapa y árbol de los tipos con sus subtipos, clases de circuito, glosario; «?» en el encabezado Tipo; barra compacta desde 1040 y 800 px. Modelo: `GuiaDeCargas`, `SubtipoDeCarga` | I-126 | `GuiaDeCargasTests` (8); 334 + 23 pruebas; navegador 360–1920 px, claro y oscuro, mapa, dirección con `#rama-…`, impresión |
+| 3 | *(este)* | A | I-126 con su hash; requisito E-7; bitácora; esta tabla | I-126 | — |

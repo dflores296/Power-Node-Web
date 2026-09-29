@@ -151,7 +151,7 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-123 · El tipo es del circuito y no de cada carga: cargas combinadas con un solo F.D.; 180 VA por el texto | P1 | Abierto | — |
 | I-124 · Sin clase de circuito (individual, uso general, para aparatos): 210-21(b)(1), 210-23(a), 422-11(e), 240-4(b)(1) | P2 | Abierto | — |
 | I-125 · Otro tablero se captura como carga de un derivado: sin 215 y con otro F.D. encima | P2 | Abierto | — |
-| I-126 · Sin guía de clasificación de cargas con sus artículos | P3 | Abierto | — |
+| I-126 · Sin guía de clasificación de cargas con sus artículos | P3 | **Cerrado** | `38e2c24` |
 | I-127 · Nombres que no son de la NOM en pantalla, documento y memoria | P3 | Abierto | — |
 | M-14 · Sin el mínimo de alumbrado general por superficie (220-12) en el alimentador; en vivienda, contactos de uso general sumados aparte (220-14(j)) | P1 | Abierto | — |
 | R-01 · Caída del alimentador fija en 5 %, sin verificar la combinada — 215-2(a)(4) NOTA 2 | P1 | **Cerrado** | `2a973ea` |
@@ -476,7 +476,7 @@ Propuesta: [`../decisiones/cargas-y-clases-de-circuito.md`](../decisiones/cargas
 
 **I-125** — Hecho: un tablero alimentado solo se puede capturar como carga de un derivado (210), y en el alimentador de este tablero recibe otro F.D. encima de los suyos. Es un alimentador (Art. 100, 215); 220-40: la suma, después de los F.D.
 
-**I-126** — Hecho: no hay una guía que diga en qué tipo va cada carga y a qué artículos, secciones y tablas queda sujeta.
+**I-126** — Hecho: no hay una guía que diga en qué tipo va cada carga y a qué artículos, secciones y tablas queda sujeta. Cerrado en `38e2c24`: página «Guía de cargas» (`/guia`) en la barra — mapa y árbol desplegable de los siete tipos con sus 22 subtipos, las clases de circuito del Art. 100 y el glosario de la pantalla contra la norma; cada rama cita la carga, el circuito derivado y el alimentador. Sale de `GuiaDeCargas` en el modelo, la fuente del selector de la fase B. Imprimible (vertical, desplegada); «?» en el encabezado Tipo de la captura. Pruebas: `GuiaDeCargasTests` (8); en el navegador, de 360 a 1920 px, claro y oscuro, llegar a una rama por el mapa y por la dirección, impresión.
 
 **I-127** — Hecho: la pantalla, el documento y la memoria usan nombres propios («Equipo», «Hab.», «VFD», «Varios», «Neutro comp.», «Carga instalada»…) donde la NOM tiene los suyos.
 
