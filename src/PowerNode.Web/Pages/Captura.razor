@@ -279,11 +279,13 @@
                                 </select>
                                 @if (c.Ajuste220_52VA > 0m)
                                 {
-                                    <span class="en-va">Alimentador: 1,500 VA — @c.UsoEfectivo.ReferenciaCargaMinima()</span>
+                                    @* Notas cortas, en una línea; la referencia, en el título (David, 2026-09-29): partidas en
+                                       dos renglones, «Exc. 2» quedaba solo y la celda se veía amontonada. *@
+                                    <span class="en-va" title="Entra al alimentador con 1,500 VA — @c.UsoEfectivo.ReferenciaCargaMinima().">1,500 VA al alimentador</span>
                                 }
                                 else if (c.UsoEfectivo.Nota() is { } nota)
                                 {
-                                    <span class="en-va" title="@nota">Individual — 210-52(b)(1) Exc. 2</span>
+                                    <span class="en-va" title="210-52(b)(1) Excepción 2. @nota">Circuito individual</span>
                                 }
                             }
                             </div>

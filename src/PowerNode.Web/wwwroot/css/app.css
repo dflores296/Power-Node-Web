@@ -314,7 +314,12 @@ select, input { font: inherit; padding: 5px 8px; border: 1px solid var(--linea);
 /* La descripción se queda con lo que sobra: las demás columnas son de ancho de contenido, así que
    sin esto el navegador le daba lo mínimo y "Alumbrado oficinas" salía cortado. */
 .cuadro th.descripcion { min-width: 240px; }
-.cuadro td { padding: 3px 6px; border-bottom: 1px solid var(--linea); text-align: center; white-space: nowrap; }
+/* La PRIMERA LÍNEA de cada celda a la misma altura en todo el renglón (David, 2026-09-29): los
+   selectores, las cifras y los calibres en fila, y lo que va debajo —el uso y su nota, el tamaño del
+   tubo, «+N», los mm²— cuelga de ahí. Centradas, una celda con nota subía su selector y el renglón se
+   veía chueco. */
+.cuadro td { padding: 5px 6px 3px; border-bottom: 1px solid var(--linea); text-align: center; white-space: nowrap;
+             vertical-align: baseline; }
 .cuadro tr.fila-desglose td { white-space: normal; }
 .cuadro tbody tr:hover { background: var(--hover); }
 .cuadro tr.vacio { color: var(--vacio); }
@@ -394,6 +399,8 @@ input.desc:focus, input.va:focus {
 /* Las columnas de balanceo miden lo mismo, tengan carga o no (David, 2026-09-24): sin ancho fijo, una
    fase vacía se encogía y el cuadro se veía chueco. */
 .cuadro .col-fase { width: 76px; min-width: 76px; }
+/* La carga de cada fase, centrada bajo su letra (David, 2026-09-29). */
+.cuadro td.col-fase { text-align: center; }
 .doc-cuadro .col-fase { width: 52px; min-width: 52px; }
 
 .fila-error td { color: var(--alerta); font-size: 11px; text-align: left; padding: 4px 8px 8px; }
@@ -476,7 +483,8 @@ select.tipo { width: 108px; padding: 2px 2px 2px 5px; border-radius: var(--radio
 .cuadro .tipo-uso { display: flex; flex-direction: column; align-items: center; gap: 3px; }
 /* El icono del tipo de carga junto al selector (I-63); el hueco del mismo ancho en los renglones vacíos
    mantiene los selectores alineados. */
-.cuadro .tipo-con-icono { display: flex; align-items: center; gap: 6px; }
+.cuadro .tipo-con-icono { display: flex; align-items: baseline; gap: 6px; }
+.cuadro .tipo-con-icono > .icono-carga { align-self: center; } /* fuera de la línea base: la da el selector */
 /* El uso, bajo el selector de tipo y no bajo el icono: la misma sangría que el icono y su hueco
    (16 + 6 px), repartida al centrar — I-89, regresión de I-51 al llegar el icono (I-63). */
 .cuadro .tipo-uso select.uso { margin-left: 22px; }
@@ -538,9 +546,11 @@ select.tipo { width: 108px; padding: 2px 2px 2px 5px; border-radius: var(--radio
     border-top: 1px solid var(--linea); border-bottom: 1px solid var(--linea);
 }
 
-/* La celda combinada de un multipolar: su contenido va centrado en el alto que abarca, que es lo
-   que hace que se lea como UN interruptor de tres espacios y no como tres renglones pegados. */
-.cuadro td[rowspan], .doc-cuadro td[rowspan] { vertical-align: middle; }
+/* La celda combinada de un multipolar: en el documento, su contenido va centrado en el alto que
+   abarca, que es lo que hace que se lea como UN interruptor de tres espacios y no como tres renglones
+   pegados. En la captura va en la línea de su primer espacio, como los demás renglones: centrado,
+   cada celda quedaba a otra altura según lo que llevara debajo. */
+.doc-cuadro td[rowspan] { vertical-align: middle; }
 
 /* ------------------------------------------------------------------------------------------------
    EL CIERRE — resumen de carga y alimentador, que en el Excel son el recuadro de arriba a la
@@ -862,7 +872,10 @@ polygon.riel-a { fill: var(--barra-a); } polygon.riel-b { fill: var(--barra-b); 
 .cuadro tr.fila-principal td.num { text-align: center; }
 
 /* Desglose de aparatos del circuito — I-35 */
-.cuadro .desc-linea { display: flex; align-items: center; gap: 4px; }
+/* Alineados por la línea base del texto, no por el centro: así la línea base de la celda es la del
+   campo y no la del botón, y queda a la altura de los demás del renglón. El botón, centrado. */
+.cuadro .desc-linea { display: flex; align-items: baseline; gap: 4px; }
+.cuadro .desc-linea > button.desglosar { align-self: center; }
 .cuadro button.desglosar { display: inline-flex; align-items: center; border: 0; background: none; cursor: pointer; color: var(--tenue); padding: 0; }
 .cuadro .en-va.izq { text-align: left; }
 .cuadro tr.fila-desglose td { background: var(--fondo-suave); padding: 8px 12px 12px; text-align: left; }
@@ -950,6 +963,11 @@ polygon.riel-a { fill: var(--barra-a); } polygon.riel-b { fill: var(--barra-b); 
         box-shadow: 1px 0 0 var(--linea);
     }
     #sec-cuadro > .cuadro > tbody > tr:not(.separador) > td:nth-child(2) { background: var(--papel); }
+    /* Con la descripción fija a su lado, el N.º no necesita su sombra: en los renglones de
+       continuación de un multipolar (solo tienen el N.º) se sumaba al borde y la línea salía doble
+       (David, 2026-09-29). */
+    #sec-cuadro > .cuadro > thead > tr:first-child > th:first-child,
+    #sec-cuadro > .cuadro > tbody > tr:not(.separador) > td:first-child { box-shadow: none; }
     #sec-cuadro > .cuadro > thead > tr:first-child > th:nth-child(2) { background: var(--encabezado); z-index: 2; }
     #sec-cuadro > .cuadro > thead > tr:first-child > th:first-child,
     #sec-cuadro > .cuadro > tbody > tr:not(.separador) > td:first-child { width: 32px; min-width: 32px; max-width: 32px; box-sizing: border-box; }
