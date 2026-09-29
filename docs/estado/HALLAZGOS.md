@@ -131,6 +131,7 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-105 · Al desplazar el cuadro de lado, el N.º se iba y dejaba un hueco | P2 | **Cerrado** | `aa9e585` |
 | I-106 · El cuadro ya no cabía completo; muestras de color en Fase, Neutro y Tierra | P3 | **Cerrado** | `aa9e585` |
 | I-107 · La casilla de «+N» se salía de la celda en 2 polos | P3 | **Cerrado** | `2d2d621` |
+| I-108 · El contorno de enfoque del selector tocaba la nota de abajo | P3 | **Cerrado** | `bda5e9d` |
 | R-01 · Caída del alimentador fija en 5 %, sin verificar la combinada — 215-2(a)(4) NOTA 2 | P1 | **Cerrado** | `2a973ea` |
 | R-02 · Caída del alimentador sin la caída del neutro | P2 | **Cerrado** | `d6cd1c6` |
 | R-03 · La publicación no corre `PowerNode.Web.Tests` | P1 | **Cerrado** | `986c9d7` |
@@ -402,6 +403,8 @@ e I-88 a I-93. Formato: **Hecho** · **Corrección** (propuesta, sin hacer) ·
 **I-106** — Hecho (David): con las columnas de 76 px (I-104) el cuadro ya no cabía completo en su pantalla, y pidió quitar las muestras de color de Fase, Neutro y Tierra. Corrección: la misma proporción con 6 px menos por columna —3 px de relleno a cada lado en vez de 6; resultados y balanceo de 76 a 70 px—; sin datos, de 1672 a 1570 px. Encabezados de conductores solo con su nombre (las muestras siguen en la tarjeta del alimentador). Cerrado en `aa9e585`.
 
 **I-107** — Hecho (David): en un circuito de 2 polos la casilla de «+N» quedaba sobre el borde del renglón. La casilla del navegador mide 13 px con 3 de margen; la nota tenía 12 px reservados y el renglón de 2 polos mide 60: terminaba 3 px abajo de la celda. Corrección: la casilla de 12 px sin margen, como las demás notas (también la de 225 % del A/C); queda 4 px arriba del borde. Cerrado en `2d2d621`.
+
+**I-108** — Hecho (David, con I-107 publicado): al enfocar P en 2 polos, el contorno azul (2 px, a 1 px del campo) chocaba con «+N». Corrección: en el cuadro el contorno va pegado al campo y las notas empiezan 2 px abajo de él; el renglón de un espacio con notas mide 66 px (antes 58) y el de 2 polos 2 × 34 (antes 2 × 30). Cerrado en `bda5e9d`. Prueba: en el navegador, contorno y nota separados 2 px; ninguna nota del cuadro (MCA, MOCP, 225 %, tubo, mm², VA) a menos de 2 px de su borde.
 
 ### Revisión del 2026-09-23
 

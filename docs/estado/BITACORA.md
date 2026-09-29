@@ -98,6 +98,8 @@ A `main` por avance rápido (pedido de David). Sin listas de revisión hasta que
 - 6 px menos por columna para que el cuadro quepa; sin muestras de color en Fase, Neutro y Tierra —
   I-106, `aa9e585`. A `main` por avance rápido.
 - La casilla de «+N» dentro de la celda en 2 polos — I-107, `2d2d621`. A `main` por avance rápido.
+- El contorno de enfoque separado de la nota; renglones con nota de 66 px y de 2 polos de 2 × 34 —
+  I-108, `bda5e9d`. A `main` por avance rápido.
 
 ## 2026-09-28
 
