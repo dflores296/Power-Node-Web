@@ -257,6 +257,32 @@ public class TiposDeCargaTests
         Assert.Equal(10m, c.Resultado!.CorrienteDisenoA);
     }
 
+    /// <summary>
+    /// I-113: un circuito que tuvo aparatos y pasó a A/C los conserva (si regresa a Equipo, ahí siguen),
+    /// pero la memoria no los imprime: no se calcula con ellos.
+    /// </summary>
+    [Fact]
+    public void I113_LaMemoriaDeUnAireNoImprimeAparatosQueNoCuentan()
+    {
+        var cuadro = Nuevo();
+        var c = Con(cuadro, 1, CategoriaDeCarga.Equipo, 1, c => { });
+        c.AgregarAparato();
+        c.Aparatos[0].Descripcion = "Horno";
+        c.Aparatos[0].CargaUnitaria = 1500m;
+        cuadro.Recalcular();
+        Assert.Contains(PowerNode.Web.Modelo.Memoria.MemoriaDeCalculo.Secciones(PowerNode.Web.Modelo.Memoria.MemoriaDeCalculo.DeCircuito(cuadro, c))[0].Renglones,
+            r => r.Rotulo.StartsWith("Aparato 1"));
+
+        c.Categoria = CategoriaDeCarga.AireAcondicionado;
+        c.AmpacidadMinimaA = 18m;
+        c.ProteccionMaximaA = 30m;
+        cuadro.Recalcular();
+
+        Assert.Single(c.Aparatos);
+        var seccion1 = PowerNode.Web.Modelo.Memoria.MemoriaDeCalculo.Secciones(PowerNode.Web.Modelo.Memoria.MemoriaDeCalculo.DeCircuito(cuadro, c))[0];
+        Assert.DoesNotContain(seccion1.Renglones, r => r.Rotulo.StartsWith("Aparato"));
+    }
+
     // ---- El alimentador ------------------------------------------------------------------------
 
     [Fact]

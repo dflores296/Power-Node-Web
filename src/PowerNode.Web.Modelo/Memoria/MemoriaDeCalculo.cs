@@ -336,7 +336,12 @@ public static class MemoriaDeCalculo
     }
 
     /// <summary>«Estufa: 1 × 3,000 W = 3,000 VA · no continua · F.P. 1.00». Un renglón por aparato — I-35.</summary>
-    private static IReadOnlyList<RenglonMemoria> Desglose(CircuitoDelCuadro circuito) =>
+    /// <summary>
+    /// Un renglón por aparato, solo si cuentan (<see cref="CircuitoDelCuadro.TieneDesglose"/>): un
+    /// circuito que tuvo aparatos y pasó a Motor o A/C los conserva por si regresa, pero no se calculan
+    /// con ellos, y la memoria los imprimía con su VA viejo — I-113.
+    /// </summary>
+    private static IReadOnlyList<RenglonMemoria> Desglose(CircuitoDelCuadro circuito) => !circuito.TieneDesglose ? [] :
     [
         .. circuito.Aparatos.Select((a, i) => new RenglonMemoria(
             $"Aparato {i + 1}: {(string.IsNullOrWhiteSpace(a.Descripcion) ? "—" : a.Descripcion.Trim())}",
