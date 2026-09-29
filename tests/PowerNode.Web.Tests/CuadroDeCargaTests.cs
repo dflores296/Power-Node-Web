@@ -33,6 +33,24 @@ public class CuadroDeCargaTests
     private static CircuitoDelCuadro Espacio(CuadroDeCarga cuadro, int numero) =>
         cuadro.Circuitos.Single(c => c.Espacio == numero);
 
+    /// <summary>
+    /// M-10: con una caída que ningún calibre alcanza, el motor remitía a «Configuración», la
+    /// pantalla del escritorio. En la web se llama de otra forma: el mensaje no nombra pantalla.
+    /// </summary>
+    [Fact]
+    public void M10_LaCaidaInalcanzableNoRemiteAUnaPantallaDelEscritorio()
+    {
+        var cuadro = Nuevo();
+        Espacio(cuadro, 1).NoContinua = 20000m;
+        Espacio(cuadro, 1).LongitudM = 8000m;
+        cuadro.Recalcular();
+
+        var error = Espacio(cuadro, 1).Error;
+        Assert.NotNull(error);
+        Assert.Contains("caída de tensión", error);
+        Assert.DoesNotContain("Configuración", error);
+    }
+
     // ---- La geometría del tablero --------------------------------------------------------------
 
     [Fact]

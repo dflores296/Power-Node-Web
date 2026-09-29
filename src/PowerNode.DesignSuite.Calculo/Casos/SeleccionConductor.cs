@@ -170,7 +170,7 @@ public static class SeleccionConductor
 
         throw new CaidaTensionExcedidaException(
             $"Ni con el calibre más grande del catálogo ni subiendo hasta {maxNParaleloAutoResuelto} conductores en paralelo por fase " +
-            $"baja la caída de tensión a {caidaTensionMaxPct}%. Hace falta acortar el circuito/alimentador o relajar el límite en Configuración.");
+            $"baja la caída de tensión a {caidaTensionMaxPct}%. Hace falta acortar el circuito/alimentador o relajar el límite de caída de tensión.");
     }
 
     /// <summary>

@@ -98,6 +98,7 @@ Llevar estos cambios a `PowerNode-DesignSuite`.
 | 2026-09-26 | `Casos/CalculadoraProteccionAlimentador.cs` | Techo de 430-63: la otra carga con lo que le pide 215-3 (125 % de la continua + no continua), no al 100 %. | Sí, con motores y carga continua: el techo sube | M-09 |
 | 2026-09-26 | `Normativa/TablaFlcMotorJson.cs` (en escritorio: `Data/TablasNom`) | Agregar `TensionDeColumna` y `TablaDe`: la columna con la que se lee una tensión de sistema, para que la memoria la diga. | No | I-15 |
 | 2026-09-27 | `Casos/DatosEntradaCircuitoDerivadoMotor.cs`, `CalculadoraCircuitoDerivadoMotor.cs` | Agregar `FlcMarcadaEnAmperesA`: un motor marcado en amperes y no en HP entra con esa corriente como FLC —la de los HP que le corresponden en la tabla, interpolando— y cita 430-6(a)(1). `Hp` lleva los HP interpolados, solo para la cita. | No (por omisión) | I-74 |
+| 2026-09-29 | `Casos/SeleccionConductor.cs`, `CaidaTensionExcedidaException.cs` | El mensaje de caída inalcanzable dice «relajar el límite de caída de tensión», sin nombrar la pantalla «Configuración» del escritorio. | No | M-10 |
 
 **Visto en el escritorio, sin cambio aquí (I-15):** `CalculadoraCircuitoDerivadoMotor` calcula la caída
 de un motor monofásico con `TensionFaseNeutroV`, también cuando el motor está entre fases (2 polos,
