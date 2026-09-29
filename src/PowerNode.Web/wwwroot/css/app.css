@@ -376,7 +376,8 @@ input.desc:focus, input.va:focus {
 
 /* Un conductor en una sola celda: el calibre y, debajo, la sección. */
 .cuadro td.conductor { white-space: nowrap; }
-.cuadro td.conductor .mm2 { display: block; font-size: 10px; color: var(--tenue); }
+/* Separado del calibre: el subrayado punteado de su ayuda caía sobre los mm² y se leían tachados (I-91). */
+.cuadro td.conductor .mm2 { display: block; font-size: 10px; color: var(--tenue); margin-top: 3px; line-height: 1.1; }
 .doc-cuadro td.conductor { white-space: nowrap; }
 .doc-cuadro td.conductor .mm2 { display: block; font-size: 8px; color: var(--tenue); }
 
@@ -624,7 +625,7 @@ label.suelto input { width: 90px; }
                       gap: 10px; padding: 9px 14px; }
 .alimentador .cable + .cable { border-top: 1px solid var(--linea-suave); }
 .alimentador .cable .calibre { text-align: right; font-weight: 600; font-size: 14px; }
-.alimentador .cable .calibre small { display: block; font-size: 10px; font-weight: 400; color: var(--tenue); }
+.alimentador .cable .calibre small { display: block; font-size: 10px; font-weight: 400; color: var(--tenue); margin-top: 3px; line-height: 1.1; }
 .muestras.grande { gap: 3px; margin: 0; }
 .muestras.grande i { width: 8px; height: 18px; border-radius: 3px; }
 .alimentador .datos td { padding: 7px 6px; }
