@@ -252,18 +252,28 @@ public class MotoresTests
         Assert.Equal(38.75m, cuadro.Alimentador.Resultado!.Detalle!.CapacidadMinimaA);
     }
 
+    /// <summary>
+    /// M-12: el F.D. de 430-26 no reduce al motor mayor. Antes, con F.D. 0.5 y un motor de 5 hp, el
+    /// alimentador pedía 1.25 × 7.6 = 9.5 A para un motor que consume 15.2 A: 430-26 exige ampacidad
+    /// «para la carga máxima determinada de acuerdo con el tamaño y número de los motores».
+    /// </summary>
     [Fact]
-    public void I15_ElFactorDeDemandaDeMotoresReduceSuFlcEnElAlimentador()
+    public void M12_ElFactorDeDemandaDeMotoresNoReduceAlMayor()
     {
         var cuadro = Nuevo();
         ConMotor(cuadro, 1, 5m, 3);
         cuadro.Datos.CambiarFactorDeDemanda(CategoriaDeCarga.Motor, 0.5m);
         cuadro.Recalcular();
 
-        // 430-26: 0.5 × 15.2 = 7.6 A; 125 % = 9.5 A. El derivado no cambia.
-        Assert.Equal(9.5m, cuadro.Alimentador.Resultado!.Detalle!.CapacidadMinimaA);
+        // Un solo motor: 125 % × 15.2 = 19 A, con o sin F.D. El derivado no cambia.
+        Assert.Equal(19m, cuadro.Alimentador.Resultado!.Detalle!.CapacidadMinimaA);
         Assert.Equal(40m, Espacio(cuadro, 1).Resultado!.ProteccionA);
         Assert.Equal(Math.Round(Espacio(cuadro, 1).MotorVA / 2m, 2), Math.Round(cuadro.Resumen.MotoresDemandadaVA, 2));
+
+        // Con otro de 3 hp (9.6 A), el F.D. reduce al menor: 1.25 × 15.2 + 0.5 × 9.6 = 23.8 A.
+        ConMotor(cuadro, 2, 3m, 3);
+        cuadro.Recalcular();
+        Assert.Equal(23.8m, cuadro.Alimentador.Resultado!.Detalle!.CapacidadMinimaA);
     }
 
     // ---- Documentos ---------------------------------------------------------------------------

@@ -446,7 +446,9 @@ public static class MemoriaDeCalculo
                 ("Corriente de diseño (In)", Amperes(hoja.CorrienteDisenoA)),
                 ("Uso del circuito", hoja.NotaDelUso),
                 ($"{hoja.EtiquetaDeMotores} — {hoja.ReferenciaDeMotores}", motores.MayorFlcA is { } mayor
-                    ? $"125 % × {mayor:N2} A (el mayor) + {motores.SumaRestoFlcA:N2} A (los demás) = {motores.CapacidadMinimaA:N2} A"
+                    ? (mayor > 0m
+                        ? $"125 % × {mayor:N2} A (el mayor, completo) + {motores.SumaRestoFlcA:N2} A (los demás, con su F.D.) = {motores.CapacidadMinimaA:N2} A"
+                        : $"{DesgloseDeSeleccion.Grupo430_24(motores)} = {motores.CapacidadMinimaA:N2} A")
                     : null),
                 ($"Capacidad mínima — {articuloProteccion}{(motores.MayorFlcA is null ? "" : $", {hoja.ReferenciaDeMotores}")}", d is null ? null : Amperes(d.CapacidadMinimaA)),
                 ("Protección seleccionada — 240-6(a)", Amperes(hoja.ProteccionA, "N0")),

@@ -20,6 +20,16 @@ namespace PowerNode.Web.Modelo;
 public sealed record DesgloseDeSeleccion(IReadOnlyList<string> Proteccion, IReadOnlyList<string> Conductor)
 {
     /// <summary>
+    /// El grupo de motores de 430-24, ya redactado: «125 % × 15.20 A + 20.00 A». Si el grupo solo trae
+    /// equipos de A/C con MCA no hay mayor que lleve el 125 %: su MCA ya trae el de su motor mayor,
+    /// 440-4(b) — M-13.
+    /// </summary>
+    public static string Grupo430_24(AgregadoMotores motores) =>
+        motores.MayorFlcA is > 0m and { } mayor
+            ? $"125 % × {mayor:N2} A + {motores.SumaRestoFlcA:N2} A"
+            : $"{motores.SumaRestoFlcA:N2} A al 100 % (la MCA ya trae el 125 % de su motor mayor — 440-4(b))";
+
+    /// <summary>
     /// Arma el desglose de un tramo ya calculado, sea circuito derivado o alimentador.
     /// </summary>
     /// <param name="iContinuaA">Corriente de la parte continua, como entró al cálculo.</param>
@@ -55,7 +65,7 @@ public sealed record DesgloseDeSeleccion(IReadOnlyList<string> Proteccion, IRead
                 (conMotores ? $" + {motores.CorrienteRealA:N2} A (motores)" : "") + $" = {corriente:N2} A",
             conMotores
                 ? $"Capacidad mínima = {factorContinua * 100m:0} % × {iContinuaA:N2} A + {iNoContinuaA:N2} A + " +
-                  $"(125 % × {motores.MayorFlcA:N2} A + {motores.SumaRestoFlcA:N2} A) = {d.CapacidadMinimaA:N2} A — {articuloProteccion}, 430-24"
+                  $"({Grupo430_24(motores)}) = {d.CapacidadMinimaA:N2} A — {articuloProteccion}, 430-24"
                 : $"Capacidad mínima = {factorContinua * 100m:0} % × {iContinuaA:N2} A + {iNoContinuaA:N2} A = {d.CapacidadMinimaA:N2} A — {articuloProteccion}",
             $"Protección: {proteccionSinMinimo:N0} A, primer tamaño ≥ capacidad mínima en «{datos.SerieInterruptores.Nombre()}» — 240-6(a)",
         };

@@ -264,15 +264,30 @@ public class TiposDeCargaTests
     {
         var cuadro = Nuevo();
         Con(cuadro, 1, CategoriaDeCarga.Motor, 3, c => c.Hp = 5m); // 15.2 A
-        AireConPlaca(cuadro, 2, mca: 20m, mocp: 35m, polos: 3);    // 20 A, el mayor — 440-7
+        AireConPlaca(cuadro, 2, mca: 20m, mocp: 35m, polos: 3);    // MCA 20 A
 
+        // M-13: la MCA ya trae el 125 % de su motor mayor (440-4(b)): entra al 100 % y no compite
+        // por el mayor. 430-24 y 440-33: 125 % × 15.2 + 20 = 39 A → 40 A. Antes 125 % × 20 + 15.2 =
+        // 40.2 A → 45 A.
         var g = cuadro.Alimentador.Gobierna!;
-        Assert.Equal(20m, g.Motores.MayorFlcA);
-        // 440-33 y 430-24: 125 % × 20 + 15.2 = 40.2 A → 45 A.
-        Assert.Equal(40.2m, cuadro.Alimentador.Resultado!.Detalle!.CapacidadMinimaA);
-        Assert.Equal(45m, cuadro.Alimentador.Resultado.ProteccionA);
+        Assert.Equal(15.2m, g.Motores.MayorFlcA);
+        Assert.Equal(39m, cuadro.Alimentador.Resultado!.Detalle!.CapacidadMinimaA);
+        Assert.Equal(40m, cuadro.Alimentador.Resultado.ProteccionA);
         Assert.Equal("Motores y A/C", cuadro.EtiquetaDeMotores);
         Assert.Equal("430-24, 440-33", cuadro.ReferenciaDeMotores);
+    }
+
+    /// <summary>M-13: solo equipos con MCA — ninguno lleva otro 25 %.</summary>
+    [Fact]
+    public void M13_SoloAiresConMcaEntranAlCienPorCiento()
+    {
+        var cuadro = Nuevo();
+        AireConPlaca(cuadro, 1, mca: 18m, mocp: 30m, polos: 3);
+        AireConPlaca(cuadro, 2, mca: 12m, mocp: 20m, polos: 3);
+
+        var g = cuadro.Alimentador.Gobierna!;
+        Assert.Equal(0m, g.Motores.MayorFlcA);
+        Assert.Equal(30m, cuadro.Alimentador.Resultado!.Detalle!.CapacidadMinimaA);
     }
 
     [Fact]

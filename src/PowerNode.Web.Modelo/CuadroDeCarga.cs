@@ -1518,20 +1518,64 @@ public sealed class CuadroDeCarga
     /// </summary>
     private Dictionary<char, (AgregadoMotores Agregado, Fasor Fasor)> MotoresPorFase()
     {
-        var porFase = Datos.Barras.ToDictionary(b => b, _ => (Agregado: AgregadoMotores.Vacio, Fasor: new Fasor(0m, 0m)));
-        // Motores y equipos de A/C en un solo grupo: 440-33 y 440-7 (el mayor, el de mayor corriente).
-        foreach (var c in _circuitos.Where(c => c.TieneCarga && c.EsDeMotor && c.CorrienteDeMotorA > 0m))
-        {
-            var flc = FactorDeDemanda(c) * c.CorrienteDeMotorA;
-            // Sin derivado calculado no hay protección que aportar al techo de 430-62(a).
-            var motor = c.Resultado is { } r ? AgregadoMotores.DeUnMotor(flc, r.ProteccionA) : AgregadoMotores.DeUnMotor(flc);
-            foreach (var (fase, angulo) in Direcciones(c))
-            {
-                var (agregado, fasor) = porFase[fase];
-                porFase[fase] = (AgregadoMotores.Combinar(agregado, motor), fasor + new Fasor(flc, angulo));
-            }
-        }
-        return porFase;
+        var miembros = Datos.Barras.ToDictionary(b => b, _ => new List<(MiembroDelGrupo Miembro, decimal Angulo)>());
+        foreach (var m in MiembrosDelGrupoDeMotores())
+            foreach (var (fase, angulo) in Direcciones(m.Circuito))
+                miembros[fase].Add((m, angulo));
+
+        return Datos.Barras.ToDictionary(b => b, b => AgregarPorFase(miembros[b]));
+    }
+
+    /// <summary>
+    /// Un motor o equipo de A/C del grupo de 430-24 / 440-33: su corriente completa, el F.D. de su tipo,
+    /// la protección de su derivado (para 430-62(a)) y si su corriente ya trae el 25 % de su motor
+    /// mayor (la MCA de placa, 440-4(b)).
+    /// </summary>
+    private sealed record MiembroDelGrupo(CircuitoDelCuadro Circuito, decimal CorrienteA, decimal FactorDemanda, decimal? ProteccionA, bool YaMayorada);
+
+    private IEnumerable<MiembroDelGrupo> MiembrosDelGrupoDeMotores() =>
+        _circuitos
+            .Where(c => c.TieneCarga && c.EsDeMotor && c.CorrienteDeMotorA > 0m)
+            .Select(c => new MiembroDelGrupo(
+                c, c.CorrienteDeMotorA, FactorDeDemanda(c),
+                // Sin derivado calculado no hay protección que aportar al techo de 430-62(a).
+                c.Resultado?.ProteccionA,
+                c.EsAireAcondicionado && c.PlacaAire == PlacaDeAireAcondicionado.AmpacidadYProteccion));
+
+    /// <summary>
+    /// <b>El grupo de una barra</b> para 430-24 y 430-62(a):
+    /// <list type="bullet">
+    /// <item>El mayor —el de mayor corriente, 440-7— entra <b>completo</b> y con su 125 %: el factor de
+    /// demanda de 430-26 no lo reduce, porque el alimentador tiene que alcanzar «para la carga máxima
+    /// determinada de acuerdo con el tamaño y número de los motores», y un motor solo puede trabajar a
+    /// plena carga (M-12). Antes el F.D. lo reducía también: con 0.5 y un motor de 5 hp, 9.5 A para
+    /// un motor de 15.2 A.</item>
+    /// <item>Los demás, con el F.D. de su tipo.</item>
+    /// <item>Una unidad con MCA no compite por el mayor y entra al 100 %: su MCA ya trae el 25 % de su
+    /// motor mayor, 440-4(b); antes recibía otro 25 % (M-13, decisión de David, 2026-09-29).</item>
+    /// </list>
+    /// La suma fasorial, para la caída, con las mismas corrientes.
+    /// </summary>
+    private static (AgregadoMotores Agregado, Fasor Fasor) AgregarPorFase(IReadOnlyList<(MiembroDelGrupo Miembro, decimal Angulo)> miembros)
+    {
+        if (miembros.Count == 0)
+            return (AgregadoMotores.Vacio, new Fasor(0m, 0m));
+
+        var mayor = miembros.Where(x => !x.Miembro.YaMayorada).Select(x => x.Miembro)
+            .Aggregate((MiembroDelGrupo?)null, (a, m) => a is null || m.CorrienteA > a.CorrienteA ? m : a);
+        decimal Cuenta(MiembroDelGrupo m) => ReferenceEquals(m, mayor) ? m.CorrienteA : m.FactorDemanda * m.CorrienteA;
+
+        // 430-62(a): la mayor protección de derivado; en un empate cuenta el primero.
+        var conProteccion = miembros.Select(x => x.Miembro).Where(m => m.ProteccionA is not null)
+            .Aggregate((MiembroDelGrupo?)null, (a, m) => a is null || m.ProteccionA > a.ProteccionA ? m : a);
+
+        var agregado = new AgregadoMotores(
+            MayorFlcA: mayor?.CorrienteA ?? 0m,
+            SumaRestoFlcA: miembros.Where(x => !ReferenceEquals(x.Miembro, mayor)).Sum(x => Cuenta(x.Miembro)),
+            MayorProteccionDerivadoA: conProteccion?.ProteccionA,
+            FlcDelMayorProteccionA: conProteccion is null ? 0m : Cuenta(conProteccion));
+        var fasor = miembros.Aggregate(new Fasor(0m, 0m), (f, x) => f + new Fasor(Cuenta(x.Miembro), x.Angulo));
+        return (agregado, fasor);
     }
 
     /// <summary>
