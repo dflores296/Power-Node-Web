@@ -59,6 +59,7 @@ Cada requisito se relaciona con su referencia normativa y con su verificación e
 | K-14 | Llevar neutro solo en 1 polo, o en 2 y 3 polos con carga F-N. | 310-15(b)(5) | `I41_…` |
 | K-15 | Dimensionar el conductor del derivado de un motor al 125 % de la FLC de tabla; la protección del motor no lo sube. Caída a la tensión del circuito (F-F en 2 polos). | 430-22, 240-4(g) | `I15_…` |
 | K-16 | Dimensionar el conductor del derivado de un equipo de A/C al 125 % de su corriente, o a la ampacidad mínima de placa sin otro 125 %; la protección no lo sube. | 440-32, 440-4(b), 240-4(g) | `I74_…` |
+| K-17 | Varios motores, o motores y otras cargas, en un circuito: conductor al 125 % de la máquina mayor + las demás + 125 % de la continua + la no continua; protección = mayor tamaño estándar que no excede el % de la Tabla 430-52 del motor mayor + la FLC de los demás + las otras cargas; hasta 240-4(b) solo si no lleva la corriente de operación y el límite queda bajo la ampacidad del conductor. Un grupo de un solo motor se calcula como motor. | 430-24, 430-53(c)(4), 240-4(b), 240-4(g) | `I115_…` |
 
 ## Alimentador
 
@@ -75,7 +76,7 @@ Cada requisito se relaciona con su referencia normativa y con su verificación e
 | A-8 | Avisar por circuito si la caída del alimentador en su fase más la del derivado excede 5 %. | 215-2(a)(4) NOTA 2, 210-19(a)(1) NOTA 4 | `R01_…` |
 | A-9 | Cargar al alimentador 1500 VA por circuito de aparatos pequeños y de lavadora, solo en vivienda de más de 60 m²; no al circuito individual del refrigerador. | 220-52(a) y su Excepción, 220-52(b) y su excepción | `Vivienda_AparatosPequenosYLavadora…`, `I46_…`, `I76_…` |
 | A-10 | Avisar si hay un solo circuito de aparatos pequeños. | 210-11(c)(1) | `Vivienda_UnSoloCircuito…` |
-| A-12 | Sumar los motores y los equipos de A/C por fase, en un solo grupo: 125 % de la corriente del mayor + 100 % de los demás, con el F.D. de su tipo; su corriente en la caída fasorial. Máximo de la protección: la mayor de motor o A/C + la corriente de los demás + lo que 215-3 pide para la otra carga; avisar si se excede. En el resumen, «Al alimentador»: continua, no continua, y motores y A/C, que suman el total. | 430-24, 440-33, 440-7, 430-26, 430-62(a), 430-63 | `I15_…`, `M09_…`, `I74_…` |
+| A-12 | Sumar los motores y los equipos de A/C por fase, en un solo grupo —los de un circuito con varios motores, cada uno por separado—: 125 % de la corriente del mayor + 100 % de los demás, con el F.D. de su tipo; su corriente en la caída fasorial. Máximo de la protección: la mayor de motor o A/C + la corriente de los demás + lo que 215-3 pide para la otra carga; avisar si se excede. En el resumen, «Al alimentador»: continua, no continua, y motores y A/C, que suman el total. | 430-24, 440-33, 440-7, 430-26, 430-62(a), 430-63 | `I15_…`, `M09_…`, `I74_…` |
 
 ## Entregable
 
@@ -84,5 +85,5 @@ Cada requisito se relaciona con su referencia normativa y con su verificación e
 | E-1 | Emitir el cuadro de carga con 24 columnas y el resumen de carga. | — | Navegador |
 | E-2 | Emitir la memoria de cálculo con nueve secciones y fórmulas sustituidas. | — | `LasNueveSecciones…` |
 | E-3 | Mostrar el desglose de la protección y del conductor en tooltip y en la memoria, sección 4. | — | `LaSeccion4CuadraConElConductorElegido` |
-| E-4 | Guardar el tablero en un archivo (`.powernode.json`) y abrirlo de vuelta: lo capturado, sin resultados; se recalcula al abrir. Rechazar lo que no es de Power Node o es de una versión más nueva. Formato 2: un «Motor / A/C» del formato 1 abre como Motor si trae HP, o como A/C y refrigeración con aviso. | — | `I05_…`, `I74_…` |
+| E-4 | Guardar el tablero en un archivo (`.powernode.json`) y abrirlo de vuelta: lo capturado, sin resultados; se recalcula al abrir. Rechazar lo que no es de Power Node o es de una versión más nueva. Formato 2: un «Motor / A/C» del formato 1 abre como Motor si trae HP, o como A/C y refrigeración con aviso. Formato 3: la clase de cada aparato (carga o motor) y el Motor «Varios»; la versión se lee antes que lo demás. | — | `I05_…`, `I74_…`, `I115_…` |
 | E-5 | Nombrar la pestaña con el tablero: «Tablero cocina — Power Node». | — | Navegador |

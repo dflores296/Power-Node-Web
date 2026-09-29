@@ -140,7 +140,7 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-112 · Icono del tipo en el cuadro, repetido con el selector | P3 | **Cerrado** | `1472560` |
 | I-113 · La memoria de un Motor o A/C imprime aparatos que no cuentan | P2 | **Cerrado** | `ee6f3ac` |
 | I-114 · Sin la alimentación ni la tabla bajo el HP; «+N» en motor trifásico; sin guía para clasificar | P3 | **Cerrado** | `4e24e18` |
-| I-115 · Un circuito admite un solo motor: sin 430-53 ni 430-24 en el circuito | P1 | Abierto | — |
+| I-115 · Un circuito admite un solo motor: sin 430-53 ni 430-24 en el circuito | P1 | **Cerrado** | `3b7b4d2` |
 | I-116 · Sin varios motocompresores en un circuito (440-22(b), 440-33) | P2 | Abierto | — |
 | I-117 · Sin acondicionador de habitación (440 Parte G) | P3 | Abierto | — |
 | I-118 · Aparato con motor mezclado con otras cargas sin el 125 % del motor (220-18(a)) | P2 | Abierto | — |
@@ -444,7 +444,7 @@ NOM (corpus de `dflores296/NOM-001-SEDE-2012`). Propuesta y decisiones en
 
 **I-114** — Hecho: P nace en 1; el selector de HP enseña corrientes monofásicas a 127 V hasta que se cambia P, y nada dice qué tabla se lee. «+N» sale en un motor trifásico. La ayuda de Tipo no dice que el refrigerador doméstico o la lavadora son aparatos (422, 440-3(c)) ni que una manejadora sin compresor no es del 440 (440-3(b)). Cerrado en `4e24e18`: el selector de HP ofrece las tres alimentaciones agrupadas («Trifásico 220 V · Tabla 430-250 · 3 polos») y cambia P al elegir (con el aviso si no se puede); bajo el campo, la alimentación y la tabla; sin «+N» ni neutro en un motor trifásico; guía en la ayuda de Tipo. Prueba: `I114_LaAlimentacionDelMotorSeDiceYElTrifasicoNoLlevaNeutro`; en el navegador, 5 hp trifásico desde P = 1 y el rechazo con el espacio ocupado.
 
-**I-115** — Hecho: Motor no se desglosa y la ayuda manda a «usar Equipo», que calcula como carga de placa (210): sin 430-24, sin 430-53 y fuera del grupo de motores del alimentador. Tres motores de ½ hp a 127 V (8.9 A c/u) salen 30 A y fuera de 430-24; por 430-53(c)(4), hasta 2.5 × 8.9 + 8.9 + 8.9 = 40.05 → 40 A, conductor por 430-24 de 28.9 A.
+**I-115** — Hecho: Motor no se desglosa y la ayuda manda a «usar Equipo», que calcula como carga de placa (210): sin 430-24, sin 430-53 y fuera del grupo de motores del alimentador. Tres motores de ½ hp a 127 V (8.9 A c/u) salen 30 A y fuera de 430-24; por 430-53(c)(4), hasta 2.5 × 8.9 + 8.9 + 8.9 = 40.05 → 40 A, conductor por 430-24 de 28.9 A. Cerrado en `3b7b4d2`: unidad «Varios» en Motor; el desglose lleva motores (HP o A, con su FLC de tabla) y otras cargas; `CalculadoraCircuitoDerivadoGrupo` (nacida en la web): conductor por 430-24, protección = mayor estándar que no excede 430-53(c)(4), subiendo hasta 240-4(b) solo si no lleva la corriente de operación; notas 430-53(a), (c), (c)(6), 240-4(g). En el alimentador, cada motor del grupo por separado (430-24) y el interruptor del grupo cubre a todos (430-62(a)). Un grupo de un solo motor se calcula como motor (con el redondeo de 430-52(c)(1) Exc. 1). Archivo formato 3, con la versión leída antes que lo demás. Pruebas: `GruposDeMotoresTests` (15); en el navegador, grupo de 3 × ½ hp + motor en A + alumbrado, desglose, documento, memoria, 1366 y 1920 px, claro y oscuro.
 
 **I-116** — Hecho: A/C no se desglosa; un equipo sin MCA de conjunto con compresor y ventiladores no se puede capturar (440-22(b), 440-33).
 

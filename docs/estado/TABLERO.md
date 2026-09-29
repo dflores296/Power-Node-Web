@@ -39,7 +39,8 @@ Ejecutar en el navegador (Blazor WebAssembly), sin servidor, publicado en GitHub
   (Art. 430), en HP o en A interpolando en la tabla: FLC de tabla, conductor al 125 %, protección de la
   Tabla 430-52 — I-15, [`../decisiones/motores-art-430.md`](../decisiones/motores-art-430.md). A/C y
   refrigeración (Art. 440), por su placa: MCA y MOCP, o corriente nominal (175 % / 225 %). En el
-  alimentador, los dos en un grupo por fase: 430-24, 440-33 y 430-62(a).
+  alimentador, los dos en un grupo por fase: 430-24, 440-33 y 430-62(a). Varios motores, o motores y
+  otras cargas, en un circuito: Motor «Varios», con desglose — 430-24, 430-53(c)(4) (I-115).
 - `/documento`: emitir el cuadro de carga (24 columnas) y la memoria de cálculo (nueve secciones).
 - Consultar en tooltip el desglose de la protección y del conductor de cada renglón.
 - Teclado (`wwwroot/js/teclado.js`): Enter/Shift+Enter bajan y suben, ↑↓ cambian de renglón, Esc deshace,
@@ -52,7 +53,7 @@ Ejecutar en el navegador (Blazor WebAssembly), sin servidor, publicado en GitHub
 - Canalizaciones: cada circuito con carga nace en su tubo (T1, T2…, EMT); agrupar en la columna
   «Canal.»; configurar nombre, tipo, opciones y tamaño en la tarjeta «Canalizaciones». El diámetro del
   fabricante de un aislamiento fuera de la Tabla 5 (THHW-LS, THW-LS, USE), en «Condiciones de cálculo» — I-98.
-- Pruebas: 286 en `PowerNode.Web.Tests` (20 del documento de pruebas del 2026-09-23).
+- Pruebas: 304 en `PowerNode.Web.Tests` (20 del documento de pruebas del 2026-09-23).
 
 Requisitos con su referencia NOM y su prueba: [`../conocimiento/requisitos.md`](../conocimiento/requisitos.md).
 

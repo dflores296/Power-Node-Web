@@ -114,6 +114,11 @@ propuesta en tabla). Texto de la NOM leído del corpus de `dflores296/NOM-001-SE
 - Fase 0: el F.D. no reduce al motor mayor y la MCA entra al 100 % — M-12, M-13, `9a3c7f0`; la memoria
   sin aparatos que no cuentan — I-113, `ee6f3ac`; alimentación y tabla bajo el HP, HP de cualquier
   alimentación, sin «+N» en trifásico, guía de clasificación — I-114, `4e24e18`. A `main`.
+- Fase 1: varios motores, o motores y otras cargas, en un circuito — unidad «Varios», desglose con
+  motores, calculadora de grupo (430-24, 430-53(c)(4), 240-4(b)), cada motor por separado en el
+  alimentador, archivo formato 3 — I-115, `3b7b4d2`.
+
+Pruebas: 304 en `PowerNode.Web.Tests`, 23 en `PowerNode.Normativa.Tests`.
 
 ## 2026-09-28
 
