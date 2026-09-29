@@ -1123,3 +1123,7 @@ body.arrastrando-principal .zona-zocalo .al-arrastrar { display: inline; }
 /* La columna N.º mide exactamente 32 px: la descripción se fija a 32 px de la orilla (left: 32px). */
 #sec-cuadro > .cuadro > thead > tr:first-child > th:first-child,
 #sec-cuadro > .cuadro > tbody > tr:not(.separador) > td:first-child { width: 32px; min-width: 32px; max-width: 32px; box-sizing: border-box; }
+/* La casilla de «+N» (y la de 225 % del A/C) del alto de las demás notas, sin el margen del
+   navegador: en 2 polos se salía 3 px de la celda (David, 2026-09-29). */
+#sec-cuadro > .cuadro > tbody > tr > td > .mas-n { height: 12px; }
+#sec-cuadro > .cuadro > tbody > tr > td > .mas-n > input { width: 12px; height: 12px; margin: 0; }
