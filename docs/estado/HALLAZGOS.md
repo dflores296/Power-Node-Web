@@ -122,6 +122,7 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-96 · Memoria con «60 Hz» fijo aunque se capture otra frecuencia | P3 | **Cerrado** | `f731945` |
 | I-97 · 65 ms por tecla con 42 espacios (versión publicada) | P3 | **Cerrado** | `b8ac355`, `1932e36` |
 | I-98 · El diámetro del fabricante se pedía al pie de canalizaciones, sin aviso, lejos del aislamiento | P3 | **Cerrado** | `71ff9d9` |
+| I-99 · Columna «Barras» que repetía el balanceo y el gabinete | P3 | **Cerrado** | `568d88f` |
 | R-01 · Caída del alimentador fija en 5 %, sin verificar la combinada — 215-2(a)(4) NOTA 2 | P1 | **Cerrado** | `2a973ea` |
 | R-02 · Caída del alimentador sin la caída del neutro | P2 | **Cerrado** | `d6cd1c6` |
 | R-03 · La publicación no corre `PowerNode.Web.Tests` | P1 | **Cerrado** | `986c9d7` |
@@ -375,6 +376,8 @@ e I-88 a I-93. Formato: **Hecho** · **Corrección** (propuesta, sin hacer) ·
 **M-11** — Hecho (visto al mover el diámetro del fabricante, I-98): donde el DOF pasa de página, la celda de tipo de la Tabla 5 viene en blanco y continúa el grupo de arriba. `LeerTabla5` la tomaba como «sin tipo» y descartaba esos renglones: THHN, THWN y THWN-2 perdían 4/0, 250 y 300 kcmil, y XHH, XHHW y XHHW-2 todo de 250 kcmil en adelante. Un alimentador de 4/0 en THHN pedía el diámetro del fabricante aunque la norma lo trae (16.31 mm, 208.8 mm²; 0.642 in en la NEC). Corrección: una celda de tipo en blanco conserva los tipos de arriba — `7ffac7a`. Del 14 AWG en adelante, fuera de la Tabla 5 quedan THHW-LS, THW-LS, USE y USE-2 en todos los calibres, y THHN/THWN/THWN-2 de 1250 kcmil arriba. Prueba: `Tabla5_ConductoresAisladosPorDesignacion` (sin la corrección, THHN 4/0 = null). Nacido en la web: no va a `PowerNode-DesignSuite`.
 
 **I-98** — Hecho (David): el diámetro exterior del fabricante —Capítulo 10, Nota 5— se pedía al pie de la tarjeta de canalizaciones, sin aviso; el aislamiento que lo causa está en «Condiciones de cálculo» y es uno para todo el tablero. David creía que THHW tampoco está en la Tabla 5: sí está, del 14 AWG al 2000 kcmil. Corrección (`71ff9d9`): aviso en «Condiciones de cálculo» y un campo por calibre en uso, general para cualquier aislamiento y calibre que la Tabla 5 no traiga; un diámetro ya capturado manda sobre la Tabla 5 y también se enseña, para poder borrarlo. Es el diámetro exterior del conductor aislado, no el espesor del aislamiento: el llenado usa π·d²/4. Prueba: `DiametroDelFabricante_SePideConElAislamiento`; en el navegador, THHW-LS sin carga, con carga, con diámetros (la canalización calcula), THHW y THHN sin aviso, a 1920 y 390 px.
+
+**I-99** — Hecho (David, 2026-09-29, puntos propios): la columna «Barras» del cuadro decía la fase de cada espacio, que con carga ya dicen el balanceo y el gabinete; solo aportaba en los renglones vacíos. Corrección (opción de David entre tres: quitarla y pintar el N.º, quitarla, dejarla): el N.º lleva el contorno del color de su barra, como la etiqueta del gabinete, en cada renglón, también en los de un multipolar y del principal; la columna se quita. Cerrado en `568d88f`. Prueba: en el navegador, claro y oscuro, multipolar de 3 polos (2 A, 4 B, 6 C), arrastrar del número, sin desplazamiento de página de 320 a 1920 px.
 
 ### Revisión del 2026-09-23
 

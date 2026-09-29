@@ -74,6 +74,10 @@ Pruebas: 284 en `PowerNode.Web.Tests`, 23 en `PowerNode.Normativa.Tests`.
 I-92: los VA del motor se quedan con la regla de I-49 (decisión de David). I-97 a `main` por avance
 rápido (pedido de David). **Auditoría del 2026-09-28 cerrada** (David). Siguen los puntos de David.
 
+**Puntos de David.**
+
+- Quitar la columna «Barras» del cuadro y pintar el N.º con el color de su fase — I-99, `568d88f`.
+
 ## 2026-09-28
 
 **Auditoría de interfaz** (pedido de David: botones desalineados, texto cortado o chueco, funcionalidad).
