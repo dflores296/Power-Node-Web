@@ -1059,13 +1059,15 @@ body.arrastrando, body.arrastrando * { cursor: grabbing !important; user-select:
                   display: flex; align-items: center; gap: 12px; max-width: min(640px, calc(100vw - 32px));
                   padding: 10px 14px; border-radius: var(--radio-sm); font-size: 13px;
                   background: var(--papel); color: var(--tinta); border: 1px solid var(--linea);
-                  border-left-width: 1px; box-shadow: 0 6px 20px var(--sombra); animation: aparecer .18s ease-out; }
+                  border-left-width: 1px; box-shadow: 0 6px 20px var(--sombra); animation: aparecer-aviso .18s ease-out; }
 .aviso-flotante.bien { border-color: var(--acento); }
 .aviso-flotante.mal { border-color: var(--alerta); background: var(--alerta-fondo); }
 .aviso-flotante .boton { flex: none; }
 /* El campo que no admitió lo tecleado (I-77, I-80): se marca un momento, junto al aviso. */
 input.rechazado { outline: 2px solid var(--alerta); outline-offset: 1px; }
-@keyframes aparecer { from { opacity: 0; transform: translate(-50%, -6px); } to { opacity: 1; transform: translate(-50%, 0); } }
+/* Nombre propio: con el mismo que la pantalla de carga («aparecer»), esta la sobrescribía y la capa de
+   carga arrancaba corrida medio ancho a la izquierda y luego brincaba al centro (David, 2026-09-29). */
+@keyframes aparecer-aviso { from { opacity: 0; transform: translate(-50%, -6px); } to { opacity: 1; transform: translate(-50%, 0); } }
 @media (prefers-reduced-motion: reduce) { .aviso-flotante { animation: none; } }
 @media print { .aviso-flotante { display: none; } }
 
