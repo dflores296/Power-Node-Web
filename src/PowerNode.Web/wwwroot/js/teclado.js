@@ -248,6 +248,13 @@
         barra.querySelector('.texto').textContent = ayuda;
         barra.hidden = false;
         document.body.classList.add('con-ayuda');
+        reservarAlto();
+    }
+
+    // El pie de la página se recorre hasta arriba de la barra, mida lo que mida — I-88.
+    function reservarAlto() {
+        if (barra && !barra.hidden)
+            document.body.style.setProperty('--alto-ayuda', `${barra.offsetHeight}px`);
     }
 
     function ocultarAyuda() {
@@ -290,6 +297,7 @@
             '<div class="teclas">Enter ↓ · Shift+Enter ↑ · ↑↓ renglón · Esc deshace · Alt+↓ abre lista · ' +
             'Ctrl+Enter desglose · Alt+1…5 secciones</div>';
         document.body.appendChild(b);
+        new ResizeObserver(reservarAlto).observe(b);
         return b;
     }
 

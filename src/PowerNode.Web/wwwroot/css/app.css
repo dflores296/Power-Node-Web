@@ -960,7 +960,15 @@ h1:focus { outline: none; }
 #barra-ayuda .ayuda-campo { white-space: pre-line; min-width: 0; }
 #barra-ayuda .campo { margin-right: 8px; }
 #barra-ayuda .teclas { color: var(--tenue); white-space: nowrap; font-size: 11px; }
-body.con-ayuda { padding-bottom: 72px; }
+/* El alto real de la barra lo pone teclado.js en --alto-ayuda: con 72 px fijos, una ayuda larga tapaba
+   la última línea del pie (I-88). */
+body.con-ayuda { padding-bottom: calc(var(--alto-ayuda, 64px) + 8px); }
+/* Hasta 1100 px la leyenda de teclas en una línea apretaba la ayuda en una columna de ~120 px (I-88):
+   ayuda arriba a todo lo ancho, teclas abajo. */
+@media (max-width: 1100px) {
+    #barra-ayuda { flex-direction: column; gap: 4px; }
+    #barra-ayuda .teclas { white-space: normal; }
+}
 @media (max-width: 700px) { #barra-ayuda .teclas { display: none; } }
 @media print { #barra-ayuda { display: none !important; } body.con-ayuda { padding-bottom: 0; } }
 
