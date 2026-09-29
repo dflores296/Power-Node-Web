@@ -84,6 +84,21 @@ Todos los miembros de un grupo van a la tensión y las fases del circuito (sus p
    literal de «no exceda»—, y hasta 240-4(b) solo si queda bajo la ampacidad del conductor.
 3. **A/C con MCA en el alimentador: al 100 %, sin otro 25 %.** El 25 % lo toma el motor mayor sin MCA.
 
+## Cómo quedó (2026-09-29)
+
+Las cinco fases, en `main`. Lo que la pantalla agrega, para revisarlo junto:
+
+| Dónde | Qué | Hallazgo |
+|---|---|---|
+| Unidad de Motor | HP · A · **Varios** (grupo con desglose) · **VFD** (entrada y protección máxima del variador) | I-115, I-119 |
+| Unidad de A/C | MCA · A · **Varios** (motocompresores, ventiladores y otras cargas) · **Hab.** (acondicionador de habitación) | I-116, I-117 |
+| Desglose de cualquier tipo de carga | La unidad dice la clase: carga (VA, W, A), aparato con motor (HP, A), A/C de cuarto (A); la celda «Continua» de una máquina dice «motor» o «motor · 125 %» | I-118, I-117 |
+| Detalle del circuito (la flecha junto a la descripción, ahora en todos) | «No simultáneo con»; en un motor solo, su servicio (430-22(e)) | I-120, I-121 |
+| Memoria, sección 3 | Medio de desconexión mínimo | I-122 |
+
+El archivo pasó a formato 4 (el 3 duró una publicación: I-115). Una Fase 3 se hizo antes que la 2
+porque tocaba el mismo desglose.
+
 ## Lo que queda fuera
 
 - **430-52(c)(1) Excepción 2** (subir la protección por la corriente de arranque) y las Tablas
