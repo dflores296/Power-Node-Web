@@ -133,6 +133,7 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-107 · La casilla de «+N» se salía de la celda en 2 polos | P3 | **Cerrado** | `2d2d621` |
 | I-108 · El contorno de enfoque del selector tocaba la nota de abajo | P3 | **Cerrado** | `bda5e9d` |
 | I-109 · El «0» de ejemplo no se iba al entrar al campo vacío | P3 | **Cerrado** | `8013249` |
+| I-110 · La pantalla de carga salía a la izquierda y luego brincaba al centro | P3 | **Cerrado** | `e5e13b5` |
 | R-01 · Caída del alimentador fija en 5 %, sin verificar la combinada — 215-2(a)(4) NOTA 2 | P1 | **Cerrado** | `2a973ea` |
 | R-02 · Caída del alimentador sin la caída del neutro | P2 | **Cerrado** | `d6cd1c6` |
 | R-03 · La publicación no corre `PowerNode.Web.Tests` | P1 | **Cerrado** | `986c9d7` |
@@ -408,6 +409,8 @@ e I-88 a I-93. Formato: **Hecho** · **Corrección** (propuesta, sin hacer) ·
 **I-108** — Hecho (David, con I-107 publicado): al enfocar P en 2 polos, el contorno azul (2 px, a 1 px del campo) chocaba con «+N». Corrección: en el cuadro el contorno va pegado al campo y las notas empiezan 2 px abajo de él; el renglón de un espacio con notas mide 66 px (antes 58) y el de 2 polos 2 × 34 (antes 2 × 30). Cerrado en `bda5e9d`. Prueba: en el navegador, contorno y nota separados 2 px; ninguna nota del cuadro (MCA, MOCP, 225 %, tubo, mm², VA) a menos de 2 px de su borde.
 
 **I-109** — Hecho (David): en una carga vacía, el «0» gris se quedaba al poner el cursor y parecía un valor. Es el texto de ejemplo del campo (placeholder), que el navegador deja hasta que se teclea. Corrección: en el cuadro y la ficha, transparente al enfocar. Cerrado en `8013249`.
+
+**I-110** — Hecho (David): al abrir o recargar, el logo y el texto de carga salían pegados a la izquierda, cortados, y luego se centraban. Causa: dos `@keyframes aparecer` en `app.css`; el del aviso flotante (I-69), con `translate(-50%, …)`, sobrescribía al de la pantalla de carga (solo opacidad), y durante los 0.4 s de la animación la capa iba corrida medio ancho. Corrección: el del aviso se llama `aparecer-aviso`. Cerrado en `e5e13b5`. Prueba: en el navegador, el centro del logo en 800 px (ventana de 1600) en cada muestra desde que empieza la carga.
 
 ### Revisión del 2026-09-23
 

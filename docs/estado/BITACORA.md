@@ -101,6 +101,8 @@ A `main` por avance rápido (pedido de David). Sin listas de revisión hasta que
 - El contorno de enfoque separado de la nota; renglones con nota de 66 px y de 2 polos de 2 × 34 —
   I-108, `bda5e9d`. A `main` por avance rápido.
 - El texto de ejemplo se va al enfocar el campo — I-109, `8013249`. A `main` por avance rápido.
+- La pantalla de carga centrada desde el principio: dos animaciones con el mismo nombre — I-110, `e5e13b5`.
+  A `main` por avance rápido.
 
 ## 2026-09-28
 
