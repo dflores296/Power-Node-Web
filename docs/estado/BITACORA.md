@@ -34,6 +34,30 @@ P2 a `main` por avance rápido en `d63f290` (pedido de David); CI y publicación
 **Verificado por David en la versión publicada:** I-77, I-78, I-80, M-11 e I-98. **Por verificar:** el
 aviso flotante de I-79 y los P2 (I-81 a I-87). Sigue: los P3, I-88 a I-97 y M-10.
 
+**Los P3 de la auditoría** (pedido de David: «termina P3»; y una tabla de pruebas breve para que
+verifique P2, entregada aparte).
+
+- Decir en la memoria la frecuencia capturada — I-96, `f731945`.
+- Quitar «Configuración» del mensaje de caída inalcanzable del motor; anotado para el escritorio —
+  M-10, `663f1b9`.
+- Rechazar dos canalizaciones con el mismo nombre, en pantalla y en el archivo — I-94, `2882900`.
+- Un aviso junto a Aislamiento y Lugar cuando el aislamiento no vale en el lugar, y un error corto en
+  cada renglón — I-95, `08eb2b5`.
+- Alinear el uso bajo el tipo y quitar el texto cortado de los selectores — I-89, I-90, `0988e99`.
+- Barra de ayuda en dos renglones hasta 1100 px y con su alto real reservado al pie — I-88, `aaf5139`.
+- Separar los mm² del subrayado del calibre — I-91, `78162ee`.
+- Documento impreso: «Canal.» en dos renglones, «Tierra», placa como se capturó; flecha del principal
+  sobre la barra — I-92, I-93, `f216b33`.
+- Teclear en la descripción y la ficha sin redibujar la página: de ~175 a ~20 ms por tecla — I-97,
+  `b8ac355`.
+- Verificar en el navegador cada uno; barrido de 320 a 1920 px sin selectores cortados ni
+  desplazamiento de página.
+
+Pruebas: 283 en `PowerNode.Web.Tests`, 23 en `PowerNode.Normativa.Tests`.
+
+Sigue: David verifica P2 y P3; decidir el formato de los VA del motor en el documento (I-92) y si hace
+falta aislar el renglón para el redibujo al cambiar una carga (I-97).
+
 ## 2026-09-28
 
 **Auditoría de interfaz** (pedido de David: botones desalineados, texto cortado o chueco, funcionalidad).
