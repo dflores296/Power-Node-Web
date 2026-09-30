@@ -220,15 +220,28 @@ public static class SeleccionConductor
             citas.Add(citaProteccion);
 
         // Calibre por caída de tensión -- Tabla 9, e = k·L·In·(R·cosθ + X·senθ) / N, límite como error duro.
-        // La Tabla 9 real no trae fila para todos los calibres de la Tabla 8 (p.ej. salta 700/800/900
-        // kcmil) -- un hueco legítimo de la norma, no un agotamiento del catálogo. Si el candidato cae
-        // en uno de esos huecos, se salta al siguiente calibre en vez de rendirse ahí mismo.
+        //
+        // HUECOS DE LA TABLA 9. La Tabla 9 no trae fila para todos los calibres de la Tabla 8 (salta
+        // 700, 800 y 900 kcmil): un hueco legítimo de la norma, no un agotamiento del catálogo. Antes se
+        // saltaba al siguiente calibre y la cita decía que la caída «excedía» el límite, y 250-122(b)
+        // subía la tierra por un aumento que no pedía la caída (Power Node Web, auditoría del
+        // 2026-09-29, P2-2). Ahora la caída de un hueco se ACOTA con la R y la X del calibre menor más
+        // cercano que sí las trae: R y X bajan al crecer el calibre, así que esa caída es mayor que la
+        // real. Si la cota cumple, el calibre del hueco cumple; si no, se sube y se dice por qué.
         var calibreCandidato = calibreBase;
         decimal caidaPct;
         var subioPorTope2404d = false;
+        Calibre? acotadoCon = null;
+        ImpedanciaConductor? impUsada = null;
         while (true)
         {
+            acotadoCon = null;
             var imp = impedancia.Impedancia(calibreCandidato, materialConductor, materialCanalizacion);
+            if (imp is null && MenorConDatos(catalogo, impedancia, calibreCandidato, materialConductor, materialCanalizacion) is { } menor)
+            {
+                acotadoCon = menor.Calibre;
+                imp = menor.Imp;
+            }
             if (imp is null)
             {
                 var siguienteTrasHueco = catalogo.Siguiente(calibreCandidato);
@@ -241,6 +254,7 @@ public static class SeleccionConductor
             var caidaVolts = caidaVoltsPorImpedancia?.Invoke(imp.Value.ROhmKm, imp.Value.XOhmKm, nParalelo)
                 ?? k * (longitudM / 1000m) * corrienteParaCaidaA * (imp.Value.ROhmKm * factorPotencia + imp.Value.XOhmKm * senTheta) / nParalelo;
             caidaPct = caidaVolts * 100m / tensionEfectivaV;
+            impUsada = imp;
 
             var topeChico = proteccionA is decimal p ? TopeProteccion2404d(calibreCandidato, materialConductor) : null;
             var excedeTopeChico = topeChico is decimal tope && proteccionA!.Value > tope;
@@ -259,8 +273,17 @@ public static class SeleccionConductor
                 $"El calibre que hubiera bastado por caída de tensión tiene tope de protección menor a los {proteccionA} A elegidos -- " +
                 $"sube a {calibreCandidato} para que la protección quede dentro del tope del conductor."));
 
+        var baseEsHueco = impedancia.Impedancia(calibreBase, materialConductor, materialCanalizacion) is null;
+        var baseAcotadoCon = baseEsHueco ? MenorConDatos(catalogo, impedancia, calibreBase, materialConductor, materialCanalizacion)?.Calibre : null;
         if (calibreCandidato.Designacion != calibreBase.Designacion)
-            citas.Add(new Cita("Tabla 9", $"Caída de tensión con {calibreBase} excedía {caidaTensionMaxPct}% -> sube a {calibreCandidato} ({caidaPct:0.##}%)"));
+            citas.Add(new Cita("Tabla 9", baseEsHueco
+                ? $"La Tabla 9 no trae R ni X para {calibreBase}" +
+                  (baseAcotadoCon is null ? "" : $"; con las de {baseAcotadoCon} (el menor más cercano con datos, que dan más caída) la caída excedía {caidaTensionMaxPct}%") +
+                  $" -> sube a {calibreCandidato} ({caidaPct:0.##}%{(acotadoCon is null ? "" : " o menos")})"
+                : $"Caída de tensión con {calibreBase} excedía {caidaTensionMaxPct}% -> sube a {calibreCandidato} ({caidaPct:0.##}%{(acotadoCon is null ? "" : " o menos")})"));
+        else if (acotadoCon is not null)
+            citas.Add(new Cita("Tabla 9", $"La Tabla 9 no trae R ni X para {calibreCandidato}: la caída se acota con las de {acotadoCon}, " +
+                $"el calibre menor más cercano con datos, que dan más caída que la real: {caidaPct:0.##}% o menos (límite {caidaTensionMaxPct}%)"));
         else
             citas.Add(new Cita("Tabla 9", $"Caída de tensión con {calibreCandidato}: {caidaPct:0.##}% (límite {caidaTensionMaxPct}%)"));
 
@@ -288,7 +311,10 @@ public static class SeleccionConductor
         // del candidato erraba del lado seguro, pero dejaba un documento que no cuadra consigo mismo
         // -- quien lo revisa toma el calibre impreso, aplica la fórmula y le da otro número. Una
         // memoria de cálculo tiene que poder recalcularse.
-        var impFinal = impedancia.Impedancia(calibreFinal, materialConductor, materialCanalizacion);
+        // En un hueco de la Tabla 9 (sin piso práctico que lo cambie), la R y la X de la cota: el
+        // documento imprime las que se usaron, con su cita.
+        var impFinal = impedancia.Impedancia(calibreFinal, materialConductor, materialCanalizacion)
+            ?? (calibreFinal.Designacion == calibreCandidato.Designacion ? impUsada : null);
         var rFinal = impFinal?.ROhmKm ?? 0m;
         var xFinal = impFinal?.XOhmKm ?? 0m;
         var caidaVoltsFinal = impFinal is null
@@ -300,6 +326,20 @@ public static class SeleccionConductor
             caidaPct = caidaVoltsFinal * 100m / tensionEfectivaV;
 
         return (calibreFinal, calibreBase, caidaPct, ampacidadTotal, citas, rFinal, xFinal, caidaVoltsFinal);
+    }
+
+    /// <summary>
+    /// El calibre menor más cercano a <paramref name="calibre"/> que sí trae R y X en la Tabla 9, con
+    /// ellas — la cota de la caída de un hueco (700, 800, 900 kcmil). Null si no hay ninguno.
+    /// </summary>
+    private static (Calibre Calibre, ImpedanciaConductor Imp)? MenorConDatos(
+        ICatalogoCalibres catalogo, ITablaImpedancia impedancia, Calibre calibre,
+        MaterialConductor materialConductor, MaterialCanalizacion materialCanalizacion)
+    {
+        foreach (var menor in catalogo.Listar().Where(c => c.AreaMm2 < calibre.AreaMm2).OrderByDescending(c => c.AreaMm2))
+            if (impedancia.Impedancia(menor, materialConductor, materialCanalizacion) is { } imp)
+                return (menor, imp);
+        return null;
     }
 
     /// <summary>

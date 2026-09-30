@@ -211,4 +211,43 @@ public class Auditoria20260929Tests
         Assert.Equal(LugarDeInstalacion.Mojado, apertura.Cuadro!.Datos.Lugar);
         Assert.Contains(apertura.Avisos, a => a.Contains("«húmedo o mojado»") && a.Contains("mojado, la más estricta"));
     }
+
+    // ---- P2-2 · Calibres sin R ni X en la Tabla 9 ---------------------------------------------------
+
+    /// <summary>
+    /// 150 kVA continua a 220 V trifásica: 393.65 A, 125 % = 492.06 A → 900 kcmil a 75 °C (520 A; 800
+    /// da 490), protección de 500 A. La Tabla 9 no trae R ni X para 900 kcmil: antes se saltaba a 1000
+    /// «porque la caída excedía» y la tierra subía de 2 a 1 AWG por 250-122(b). Con la R y la X de 750
+    /// kcmil —que dan más caída— 900 kcmil cumple de sobra: se queda, y la tierra también.
+    /// </summary>
+    [Fact]
+    public void P2_2_UnHuecoDeLaTabla9NoSeAtribuyeALaCaida()
+    {
+        var cuadro = Nuevo();
+        var c = Espacio(cuadro, 1);
+        c.Categoria = CategoriaDeCarga.Equipo;
+        Assert.Null(cuadro.CambiarPolos(c, 3));
+        var a = c.AgregarCarga();
+        a.Subtipo = SubtipoDeCarga.OtraCargaEspecifica;
+        a.Unidad = UnidadConsumo.VoltAmperes;
+        a.CargaUnitaria = 150000m;
+        a.Continua = true;
+        cuadro.Recalcular();
+
+        var r = c.Resultado!;
+        Assert.Equal(393.65m, Math.Round(r.CorrienteDisenoA, 2));
+        Assert.Equal(500m, r.ProteccionA);
+        Assert.Equal("900", r.CalibreFase.Designacion);
+        Assert.Equal("2", r.CalibreTierra.Designacion);
+        Assert.DoesNotContain(r.Citas, x => x.Descripcion.Contains("excedía"));
+        Assert.DoesNotContain(r.Citas, x => x.Referencia.StartsWith("250-122(b)"));
+        var cita = Assert.Single(r.Citas, x => x.Referencia == "Tabla 9");
+        Assert.StartsWith("La Tabla 9 no trae R ni X para 900", cita.Descripcion);
+        Assert.Contains("las de 750", cita.Descripcion);
+        Assert.True(r.CaidaTensionPct < 1m);
+        // La memoria imprime la R y la X que se usaron, y dice de dónde salen.
+        Assert.True(r.Detalle!.ResistenciaOhmKm > 0m);
+        var hoja = MemoriaDeCalculo.DeCircuito(cuadro, c);
+        Assert.Contains(MemoriaDeCalculo.Secciones(hoja), b => b.Notas.Any(n => n.StartsWith("La Tabla 9 no trae R ni X para 900")));
+    }
 }

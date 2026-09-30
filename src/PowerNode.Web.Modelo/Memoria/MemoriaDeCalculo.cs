@@ -725,6 +725,9 @@ public static class MemoriaDeCalculo
             ("Ampacidad utilizable", d is { AmpacidadConductorA: > 0m } ? $"{d.AmpacidadConductorA:N2} A" : null)]));
 
         // ---- 6
+        // Un calibre sin R ni X en la Tabla 9 (700, 800, 900 kcmil): la caída se acotó con las del menor
+        // más cercano con datos, y se dice — P2-2.
+        var hueco = hoja.Citas.FirstOrDefault(x => x.Referencia == "Tabla 9" && x.Descripcion.StartsWith("La Tabla 9 no trae", StringComparison.Ordinal));
         if (hoja.CaidaPorFase is { Count: > 0 } porFase && d is not null)
         {
             // R-02: fase por fase con el neutro. Cada renglón se puede recalcular a mano: Z por la
@@ -744,6 +747,7 @@ public static class MemoriaDeCalculo
                 "R y X en ohm/km, de la Tabla 9 de la NOM-001-SEDE-2012. Todos los valores se muestran con dos decimales; el cálculo usa los completos. El neutro es del mismo calibre que la fase.",
                 $"Ángulos respecto a V_AN = 0°; cada corriente, atrasada según el F.P. de sus circuitos. Porcentaje sobre " +
                 $"V_FN = {hoja.TensionFaseNeutroV:N2} V. Manda la fase {peor.Fase}.",
+                .. (hueco is null ? Array.Empty<string>() : new[] { $"{hueco.Descripcion}." }),
             ]));
         }
         else
@@ -765,6 +769,8 @@ public static class MemoriaDeCalculo
                 notas6.Add(
                     $"L en m; R y X en ohm/km, de la Tabla 9 de la NOM-001-SEDE-2012. Todos los valores se muestran con dos decimales; el cálculo usa los completos. cos(θ) = {hoja.FactorPotencia:N2}, " +
                     $"sen(θ) = {senTheta:N2}.");
+                if (hueco is not null)
+                    notas6.Add($"{hueco.Descripcion}.");
             }
             bloques.Add(new BloqueMemoria("6. CÁLCULO DE CAÍDA DE TENSIÓN", [], formulas6, notas6));
         }
