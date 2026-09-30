@@ -19,6 +19,12 @@ public enum ClaseDeCircuito
 
     /// <summary>«Alimentador»: llega hasta la protección de los derivados de otro tablero (Art. 215).</summary>
     Alimentador,
+
+    /// <summary>
+    /// Varios motores o motocompresores en un circuito — 430-53, 440-22(b). El Art. 100 no le da nombre de
+    /// clase; la pantalla dice «Grupo de motores» (captura-en-el-desplegable.md).
+    /// </summary>
+    GrupoDeMotores,
 }
 
 public static class ClasesDeCircuito
@@ -29,6 +35,7 @@ public static class ClasesDeCircuito
         ClaseDeCircuito.Individual => "Individual",
         ClaseDeCircuito.UsoGeneral => "Uso general",
         ClaseDeCircuito.ParaAparatos => "Para aparatos",
+        ClaseDeCircuito.GrupoDeMotores => "Grupo de motores",
         _ => "Alimentador",
     };
 
@@ -38,6 +45,7 @@ public static class ClasesDeCircuito
         ClaseDeCircuito.Individual => "Circuito derivado individual",
         ClaseDeCircuito.UsoGeneral => "Circuito derivado de uso general",
         ClaseDeCircuito.ParaAparatos => "Circuito derivado para aparatos",
+        ClaseDeCircuito.GrupoDeMotores => "Varios motores en un circuito derivado — 430-53",
         _ => "Alimentador",
     };
 }

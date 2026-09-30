@@ -19,6 +19,11 @@ public enum SubtipoDeCarga
     ContactoUsoGeneral,
     ContactoMultiple,
     EnsambleDeSalidas,
+    // Los usos de vivienda — 210-11(c), 210-52(b)(1) Exc. 2 (David, 2026-09-30: antes, un selector del renglón).
+    ContactoAparatosPequenos,
+    ContactoLavadora,
+    ContactoBano,
+    ContactoRefrigerador,
 
     // Aparatos y cargas específicas
     AparatoFijo,
@@ -56,6 +61,8 @@ public static class SubtiposDeCarga
         SubtipoDeCarga.Luminarias or SubtipoDeCarga.PortalamparasPesado or SubtipoDeCarga.Anuncios or SubtipoDeCarga.Aparador
             => CategoriaDeCarga.Alumbrado,
         SubtipoDeCarga.ContactoUsoGeneral or SubtipoDeCarga.ContactoMultiple or SubtipoDeCarga.EnsambleDeSalidas
+            or SubtipoDeCarga.ContactoAparatosPequenos or SubtipoDeCarga.ContactoLavadora or SubtipoDeCarga.ContactoBano
+            or SubtipoDeCarga.ContactoRefrigerador
             => CategoriaDeCarga.Contactos,
         SubtipoDeCarga.AparatoFijo or SubtipoDeCarga.Secadora or SubtipoDeCarga.Coccion or SubtipoDeCarga.CocinaComercial
             or SubtipoDeCarga.CalentadorDeAgua or SubtipoDeCarga.AparatoConMotor or SubtipoDeCarga.OtraCargaEspecifica
@@ -86,6 +93,42 @@ public static class SubtiposDeCarga
     public static bool SoloEnElRenglon(this SubtipoDeCarga s) =>
         s is SubtipoDeCarga.MotorVelocidadAjustable or SubtipoDeCarga.CargaCombinada or SubtipoDeCarga.TableroAlimentado;
 
+    /// <summary>El uso de vivienda de un subtipo de contactos — 210-11(c); <c>null</c> si no es uno.</summary>
+    public static UsoDeContactos? Uso(this SubtipoDeCarga s) => s switch
+    {
+        SubtipoDeCarga.ContactoAparatosPequenos => UsoDeContactos.AparatosPequenos,
+        SubtipoDeCarga.ContactoLavadora => UsoDeContactos.Lavadora,
+        SubtipoDeCarga.ContactoBano => UsoDeContactos.Bano,
+        SubtipoDeCarga.ContactoRefrigerador => UsoDeContactos.Refrigerador,
+        _ => null,
+    };
+
+    /// <summary>El subtipo de un uso de vivienda (el de un renglón de contactos de un archivo anterior).</summary>
+    public static SubtipoDeCarga DeUso(UsoDeContactos uso) => uso switch
+    {
+        UsoDeContactos.AparatosPequenos => SubtipoDeCarga.ContactoAparatosPequenos,
+        UsoDeContactos.Lavadora => SubtipoDeCarga.ContactoLavadora,
+        UsoDeContactos.Bano => SubtipoDeCarga.ContactoBano,
+        UsoDeContactos.Refrigerador => SubtipoDeCarga.ContactoRefrigerador,
+        _ => SubtipoDeCarga.ContactoUsoGeneral,
+    };
+
+    /// <summary>
+    /// <b>Va solo en su circuito, cantidad 1</b> — decisión <c>captura-en-el-desplegable.md</c>: el variador
+    /// (430-122, 110-3(b)), el A/A con ampacidad de placa (440-4(b)), el tablero alimentado (Art. 215) y el
+    /// contacto del refrigerador (210-52(b)(1) Exc. 2).
+    /// </summary>
+    public static bool VaSolo(this SubtipoDeCarga s) =>
+        s is SubtipoDeCarga.MotorVelocidadAjustable or SubtipoDeCarga.CargaCombinada or SubtipoDeCarga.TableroAlimentado
+            or SubtipoDeCarga.ContactoRefrigerador;
+
+    /// <summary>
+    /// Solo con líneas de su mismo subtipo: los contactos de aparatos pequeños, de lavadora y de baño
+    /// alimentan solo esas salidas — 210-52(b)(2), 210-11(c)(2), (3).
+    /// </summary>
+    public static bool SoloConSuSubtipo(this SubtipoDeCarga s) =>
+        s is SubtipoDeCarga.ContactoAparatosPequenos or SubtipoDeCarga.ContactoLavadora or SubtipoDeCarga.ContactoBano;
+
     /// <summary>El subtipo de una línea nueva del desplegable, según el tipo.</summary>
     public static SubtipoDeCarga PorOmision(CategoriaDeCarga tipo) => tipo switch
     {
@@ -114,6 +157,8 @@ public static class SubtiposDeCarga
         SubtipoDeCarga.ContactoMultiple => (90m, "220-14(i)"),
         SubtipoDeCarga.PortalamparasPesado => (600m, "220-14(e)"),
         SubtipoDeCarga.EnsambleDeSalidas => (180m, "220-14(h)"),
+        // 220-14(i) no se aplica a los de aparatos pequeños ni de lavadora: llevan los 1500 VA de 220-52.
+        SubtipoDeCarga.ContactoBano or SubtipoDeCarga.ContactoRefrigerador => (180m, "220-14(i)"),
         SubtipoDeCarga.Secadora when vivienda => (5000m, "220-54"),
         _ => null,
     };
@@ -143,6 +188,10 @@ public static class SubtiposDeCarga
         SubtipoDeCarga.ContactoUsoGeneral => "Uso general",
         SubtipoDeCarga.ContactoMultiple => "Múltiple (4 o más)",
         SubtipoDeCarga.EnsambleDeSalidas => "Ensamble de salidas",
+        SubtipoDeCarga.ContactoAparatosPequenos => "Ap. pequeños",
+        SubtipoDeCarga.ContactoLavadora => "Lavadora",
+        SubtipoDeCarga.ContactoBano => "Baño",
+        SubtipoDeCarga.ContactoRefrigerador => "Refrigerador",
         SubtipoDeCarga.AparatoFijo => "Fijo",
         SubtipoDeCarga.Secadora => "Secadora",
         SubtipoDeCarga.Coccion => "Cocción",

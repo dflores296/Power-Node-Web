@@ -243,6 +243,8 @@ public sealed class CircuitoDelCuadro
                 return null;
             if (Categoria == CategoriaDeCarga.Tablero)
                 return ClaseDeCircuito.Alimentador;
+            if (EsGrupoDeMotores && Cargas.Sum(a => Math.Max(1, a.Cantidad)) > 1)
+                return ClaseDeCircuito.GrupoDeMotores;
             if (UsoEfectivo == UsoDeContactos.Refrigerador)
                 return ClaseDeCircuito.Individual;
             if (!TieneDesglose)
@@ -325,39 +327,196 @@ public sealed class CircuitoDelCuadro
     /// </summary>
     public CargaDelCircuito AgregarCarga()
     {
-        // Un motor o un motocompresor capturado en el renglón pasa a ser la primera línea: con otra carga
-        // el circuito es un grupo (430-53, 440-22(b)) — I-123, en lugar de la unidad «Varios».
-        if (!TieneDesglose && EsMotor && CapturaMotor is CapturaDeMotor.Hp or CapturaDeMotor.Amperes && TieneCapturaDeMotor)
+        RenglonALineas();
+        var nuevo = new CargaDelCircuito();
+        Cargas.Add(nuevo);
+        return nuevo;
+    }
+
+    /// <summary>
+    /// <b>Lo capturado en el renglón pasa a sus líneas</b> — I-35, I-123, decisión
+    /// <c>captura-en-el-desplegable.md</c>. Un motor, un motocompresor o un acondicionador de habitación, a
+    /// una línea (con otra carga el circuito es un grupo: 430-53, 440-22(b)); una carga de placa, a una
+    /// línea continua y otra no continua. Un variador, un A/A con ampacidad de placa y otro tablero van
+    /// solos en su circuito: se quedan en el renglón. Con <paramref name="conSubtipo"/>, cada línea lleva
+    /// ya su subtipo (el uso de vivienda, el de contactos); sin él, toma el tipo del circuito, como hasta
+    /// el formato 4. <c>false</c> si no había nada que pasar.
+    /// </summary>
+    public bool RenglonALineas(bool conSubtipo = false)
+    {
+        if (TieneDesglose)
+            return false;
+        var nombre = string.IsNullOrWhiteSpace(Descripcion) ? null : Descripcion.Trim();
+        if (EsMotor && CapturaMotor is CapturaDeMotor.Hp or CapturaDeMotor.Amperes && TieneCapturaDeMotor)
             Cargas.Insert(0, new CargaDelCircuito
             {
-                Descripcion = string.IsNullOrWhiteSpace(Descripcion) ? "Motor" : Descripcion.Trim(),
+                Descripcion = nombre ?? "Motor",
                 Subtipo = SubtipoDeCarga.MotorUsoGeneral,
                 CapturaMotor = CapturaMotor,
                 Hp = Hp,
                 CorrientePlacaA = CorrientePlacaA,
                 FactorPotencia = FactorPotencia,
             });
-        else if (!TieneDesglose && EsAireAcondicionado && PlacaAire == PlacaDeAireAcondicionado.CorrienteNominal && CorrientePlacaA > 0m)
+        else if (EsAireAcondicionado && PlacaAire == PlacaDeAireAcondicionado.CorrienteNominal && CorrientePlacaA > 0m)
             Cargas.Insert(0, new CargaDelCircuito
             {
-                Descripcion = string.IsNullOrWhiteSpace(Descripcion) ? "Motocompresor" : Descripcion.Trim(),
+                Descripcion = nombre ?? "Motocompresor",
                 Subtipo = SubtipoDeCarga.Motocompresor,
                 CorrientePlacaA = CorrientePlacaA,
                 CorrienteSeleccionA = CorrienteSeleccionA,
                 FactorPotencia = FactorPotencia,
             });
-        else if (!TieneDesglose && !EsDeMotor)
+        else if (EsAireAcondicionado && PlacaAire == PlacaDeAireAcondicionado.Habitacion && CorrientePlacaA > 0m)
+            Cargas.Insert(0, new CargaDelCircuito
+            {
+                Descripcion = nombre ?? "Aire de habitación",
+                Subtipo = SubtipoDeCarga.AireDeHabitacion,
+                CorrientePlacaA = CorrientePlacaA,
+                FactorPotencia = FactorPotencia,
+            });
+        else if (!EsDeMotor && Categoria != CategoriaDeCarga.Tablero && (Continua > 0m || NoContinua > 0m))
         {
-            var nombre = string.IsNullOrWhiteSpace(Descripcion) ? "Carga capturada" : Descripcion.Trim();
+            SubtipoDeCarga? subtipo = !conSubtipo ? null
+                : Categoria == CategoriaDeCarga.Contactos ? SubtiposDeCarga.DeUso(Uso)
+                : SubtiposDeCarga.PorOmision(Categoria);
+            var linea = nombre ?? "Carga capturada";
             if (Continua > 0m)
-                Cargas.Add(new CargaDelCircuito { Descripcion = nombre, Unidad = Unidad, CargaUnitaria = Continua, Continua = true, FactorPotencia = FactorPotencia });
+                Cargas.Add(new CargaDelCircuito { Descripcion = linea, Subtipo = subtipo, Unidad = Unidad, CargaUnitaria = Continua, Continua = true, FactorPotencia = FactorPotencia });
             if (NoContinua > 0m)
-                Cargas.Add(new CargaDelCircuito { Descripcion = nombre, Unidad = Unidad, CargaUnitaria = NoContinua, FactorPotencia = FactorPotencia });
+                Cargas.Add(new CargaDelCircuito { Descripcion = linea, Subtipo = subtipo, Unidad = Unidad, CargaUnitaria = NoContinua, FactorPotencia = FactorPotencia });
+            Continua = 0m;
+            NoContinua = 0m;
         }
+        else
+            return false;
+        return true;
+    }
 
-        var nuevo = new CargaDelCircuito();
-        Cargas.Add(nuevo);
-        return nuevo;
+    /// <summary>
+    /// <b>Una sola línea de un solo equipo vuelve al renglón</b> — decisión <c>captura-en-el-desplegable.md</c>.
+    /// Un motor, un motocompresor o un acondicionador de habitación, solos y de cantidad 1, se calculan
+    /// con su propio artículo (430-22 y 430-52, con su servicio; 440-22(a); 440 Parte G), no como grupo.
+    /// <c>false</c> si no aplica.
+    /// </summary>
+    public bool LineaARenglon()
+    {
+        if (Cargas is not [{ Cantidad: <= 1, Subtipo: { } subtipo } linea])
+            return false;
+        switch (subtipo)
+        {
+            case SubtipoDeCarga.MotorUsoGeneral:
+                Categoria = CategoriaDeCarga.Motor;
+                CapturaMotor = linea.CapturaMotor;
+                Hp = linea.Hp;
+                CorrientePlacaA = linea.CorrientePlacaA;
+                break;
+            case SubtipoDeCarga.Motocompresor:
+                Categoria = CategoriaDeCarga.AireAcondicionado;
+                PlacaAire = PlacaDeAireAcondicionado.CorrienteNominal;
+                CorrientePlacaA = linea.CorrientePlacaA;
+                CorrienteSeleccionA = linea.CorrienteSeleccionA;
+                break;
+            case SubtipoDeCarga.AireDeHabitacion:
+                Categoria = CategoriaDeCarga.AireAcondicionado;
+                PlacaAire = PlacaDeAireAcondicionado.Habitacion;
+                CorrientePlacaA = linea.CorrientePlacaA;
+                break;
+            default:
+                return false;
+        }
+        FactorPotencia = linea.FactorPotencia;
+        if (string.IsNullOrWhiteSpace(Descripcion))
+            Descripcion = linea.Descripcion;
+        Cargas.Clear();
+        return true;
+    }
+
+    /// <summary>
+    /// Pasa el circuito a un equipo que va solo — un variador, un A/A con ampacidad de placa u otro tablero —
+    /// con lo capturado en su única línea. <c>false</c> si hay otras líneas: van solos (David, 2026-09-30).
+    /// </summary>
+    public bool PasarARenglon(SubtipoDeCarga subtipo)
+    {
+        if (Cargas.Count > 1)
+            return false;
+        var linea = Cargas.SingleOrDefault();
+        switch (subtipo)
+        {
+            case SubtipoDeCarga.MotorVelocidadAjustable:
+                Categoria = CategoriaDeCarga.Motor;
+                CapturaMotor = CapturaDeMotor.Variador;
+                break;
+            case SubtipoDeCarga.CargaCombinada:
+                Categoria = CategoriaDeCarga.AireAcondicionado;
+                PlacaAire = PlacaDeAireAcondicionado.AmpacidadYProteccion;
+                break;
+            case SubtipoDeCarga.TableroAlimentado:
+                Categoria = CategoriaDeCarga.Tablero;
+                if (linea is { Clase: ClaseDeAparato.Carga, CargaUnitaria: > 0m })
+                {
+                    Unidad = linea.Unidad;
+                    Continua = linea.Continua ? linea.CargaUnitaria * linea.Cantidad : 0m;
+                    NoContinua = linea.Continua ? 0m : linea.CargaUnitaria * linea.Cantidad;
+                }
+                break;
+            default:
+                return false;
+        }
+        if (linea is not null)
+        {
+            FactorPotencia = linea.FactorPotencia;
+            if (string.IsNullOrWhiteSpace(Descripcion))
+                Descripcion = linea.Descripcion;
+        }
+        Cargas.Clear();
+        return true;
+    }
+
+    /// <summary>
+    /// El subtipo de lo que está capturado en el renglón, para mostrarlo como su línea: un motor, un
+    /// variador, un motocompresor, un A/A con ampacidad de placa, uno de habitación u otro tablero.
+    /// <c>null</c> si el renglón no es un equipo.
+    /// </summary>
+    public SubtipoDeCarga? SubtipoDelRenglon =>
+        TieneDesglose ? null
+        : Categoria == CategoriaDeCarga.Tablero ? SubtipoDeCarga.TableroAlimentado
+        : EsMotor ? CapturaMotor == CapturaDeMotor.Variador ? SubtipoDeCarga.MotorVelocidadAjustable : SubtipoDeCarga.MotorUsoGeneral
+        : EsAireAcondicionado ? PlacaAire switch
+        {
+            PlacaDeAireAcondicionado.AmpacidadYProteccion => SubtipoDeCarga.CargaCombinada,
+            PlacaDeAireAcondicionado.Habitacion => SubtipoDeCarga.AireDeHabitacion,
+            _ => SubtipoDeCarga.Motocompresor,
+        }
+        : null;
+
+    /// <summary>
+    /// Lo que la exclusividad de un subtipo no permite, ya redactado — decisión <c>captura-en-el-desplegable.md</c>:
+    /// el contacto del refrigerador va solo y es uno; los de aparatos pequeños, lavadora y baño, solo con
+    /// líneas de su subtipo. <c>null</c> si cumple.
+    /// </summary>
+    public string? ErrorDeExclusividad()
+    {
+        if (!TieneDesglose)
+            return null;
+        if (Cargas.FirstOrDefault(a => a.Subtipo?.VaSolo() == true) is { } sola && (Cargas.Count > 1 || sola.Cantidad > 1))
+            return $"{sola.Subtipo!.Value.Nombre()}: va solo en su circuito y es uno — 210-52(b)(1) Excepción 2. Quita las demás líneas o pásalo a otro circuito.";
+        if (Cargas.FirstOrDefault(a => a.Subtipo?.SoloConSuSubtipo() == true) is { } exclusiva
+            && Cargas.Any(a => a.Subtipo != exclusiva.Subtipo))
+            return $"Contactos · {exclusiva.Subtipo!.Value.Nombre()}: el circuito solo alimenta esas salidas — " +
+                   (exclusiva.Subtipo == SubtipoDeCarga.ContactoAparatosPequenos ? "210-52(b)(2)" : exclusiva.Subtipo == SubtipoDeCarga.ContactoLavadora ? "210-11(c)(2)" : "210-11(c)(3)") +
+                   ". Pasa las demás a otro circuito.";
+        return null;
+    }
+
+    /// <summary>
+    /// Con líneas de subtipo elegido, el tipo del circuito sigue a sus cargas: si ninguna es del tipo que
+    /// tenía, toma el de la primera (un Motor que quedó solo con luminarias deja de ser Motor) — I-123.
+    /// </summary>
+    internal void SincronizarTipo()
+    {
+        var tipos = Cargas.Where(a => a.Subtipo is not null).Select(a => a.Subtipo!.Value.Tipo()).Distinct().ToList();
+        if (tipos.Count > 0 && !tipos.Contains(Categoria))
+            Categoria = tipos[0];
     }
 
     /// <summary>

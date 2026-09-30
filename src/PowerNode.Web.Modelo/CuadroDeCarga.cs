@@ -1011,8 +1011,13 @@ public sealed class CuadroDeCarga
     {
         foreach (var c in _circuitos)
         {
-            // I-46: el uso de los contactos solo cuenta en vivienda (210-11(c), 220-52).
-            c.UsoEfectivo = c.Categoria == CategoriaDeCarga.Contactos && Datos.Inmueble.AplicaUsoDeContactos() ? c.Uso : UsoDeContactos.General;
+            c.SincronizarTipo();
+            // I-46: el uso de los contactos solo cuenta en vivienda (210-11(c), 220-52). Con líneas de subtipo
+            // elegido, el uso sale de ellas: «Contactos · Ap. pequeños» (captura-en-el-desplegable.md).
+            var uso = c.TieneDesglose && c.Cargas.Any(a => a.Subtipo is not null)
+                ? c.Cargas.Select(a => a.Subtipo?.Uso()).FirstOrDefault(u => u is not null) ?? UsoDeContactos.General
+                : c.Categoria == CategoriaDeCarga.Contactos ? c.Uso : UsoDeContactos.General;
+            c.UsoEfectivo = Datos.Inmueble.AplicaUsoDeContactos() ? uso : UsoDeContactos.General;
             c.CorrienteDeMotorA = 0m;
             c.MotorEnAmperes = null;
             c.MotorVA = 0m;
@@ -1597,6 +1602,11 @@ public sealed class CuadroDeCarga
                 if (c.EsAireAcondicionado)
                 {
                     CalcularAireAcondicionado(c, canal);
+                    continue;
+                }
+                if (c.ErrorDeExclusividad() is { } exclusividad)
+                {
+                    c.Error = exclusividad;
                     continue;
                 }
                 if (c.TieneDesglose && ErrorDeMotoresEnDesglose(c) is { } errorDeMotores)

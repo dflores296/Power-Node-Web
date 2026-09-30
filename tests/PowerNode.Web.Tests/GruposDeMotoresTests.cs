@@ -202,7 +202,7 @@ public class GruposDeMotoresTests
     }
 
     [Fact]
-    public void I115_UnGrupoSinMotoresDiceQueFaltan()
+    public void I115_UnMotorQueSoloTieneAlumbradoPasaAAlumbrado()
     {
         var cuadro = Nuevo();
         var c = Grupo(cuadro, 1, 1);
@@ -211,8 +211,12 @@ public class GruposDeMotoresTests
         luz.CargaUnitaria = 500m;
         cuadro.Recalcular();
 
-        Assert.Null(c.Resultado);
-        Assert.Contains("no tiene motores", c.Error);
+        // Desde captura-en-el-desplegable.md el tipo del circuito sigue a sus cargas: sin motores, ya no es
+        // Motor; es un circuito de alumbrado.
+        Assert.Equal(CategoriaDeCarga.Alumbrado, c.Categoria);
+        Assert.False(c.EsGrupo);
+        Assert.Null(c.Error);
+        Assert.Equal(500m, c.CargaInstaladaVA);
     }
 
     [Fact]
@@ -639,7 +643,7 @@ public class GruposDeMotoresTests
         cuadro.Recalcular();
 
         var texto = ArchivoDelCuadro.Guardar(cuadro, DateTimeOffset.Now);
-        Assert.Contains("\"version\": 6", texto);
+        Assert.Contains("\"version\": 7", texto);
         var apertura = ArchivoDelCuadro.Abrir(texto, Motor);
 
         Assert.Null(apertura.Error);
@@ -686,7 +690,7 @@ public class GruposDeMotoresTests
         const string texto = """
             {
               "formato": "power-node/cuadro-de-carga",
-              "version": 7,
+              "version": 8,
               "circuitos": [ { "espacio": 1, "capturaMotor": "AlgoNuevo" } ]
             }
             """;
