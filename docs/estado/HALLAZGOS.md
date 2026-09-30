@@ -162,6 +162,7 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-134 · Campos del desplegable desparejos por la nota de abajo; Total (VA) a la derecha | P3 | **Cerrado** | `fc6aea4` |
 | I-135 · El servicio del motor arriba del desplegable y la columna «Continua» sin uso en un motor | P3 | **Cerrado** | `39b1071` |
 | I-136 · Sin servicio no continuo por motor en un grupo (430-24 Excepción 1) | P3 | Pendiente: hasta un caso real (David) | — |
+| I-137 · El equipo del renglón se llama «Equipo del circuito» y no se puede renombrar; su nombre se mezclaba con el del espacio | P2 | **Cerrado** | `8fc6d3b` |
 | M-14 · Sin el mínimo de alumbrado general por superficie (220-12) en el alimentador; en vivienda, contactos de uso general sumados aparte (220-14(j)) | P1 | **Cerrado** | `71abc56` |
 | R-01 · Caída del alimentador fija en 5 %, sin verificar la combinada — 215-2(a)(4) NOTA 2 | P1 | **Cerrado** | `2a973ea` |
 | R-02 · Caída del alimentador sin la caída del neutro | P2 | **Cerrado** | `d6cd1c6` |
@@ -515,6 +516,8 @@ Propuesta para cuando se haga:
 - **Alimentador del tablero (430-24):** ya toma el servicio de un motor solo; tomaría también el de cada motor del grupo.
 - **Modelo y archivo:** servicio, tiempo y corriente de placa en cada línea de motor; formato 10.
 - **Prueba con números a mano:** grupo trifásico 220 V, M1 5 HP continuo (15.2 A) y M2 5 HP intermitente 15 min con 14 A de placa (85 % = 11.9 A). Hoy: 1.25 × 15.2 + 15.2 = 34.2 A. Con la Excepción 1: el mayor entre 19.0 y 11.9 = 19.0, más 11.9 = 30.9 A. Protección, en los dos casos: 2.5 × 15.2 + 15.2 = 53.2 → 50 A. Otra prueba con el no continuo como el mayor.
+
+**I-137** — Hecho: David: «cuando agrego un renglón y selecciono motores se pone como nombre de la salida Equipo del circuito y no es editable». Con un solo equipo en el renglón, su línea mostraba la descripción del espacio o ese texto fijo; al pasar una línea al renglón, su nombre se copiaba a la del espacio. Cerrado en `8fc6d3b`: el equipo tiene su propio nombre, editable en su línea, aparte del del espacio; va y regresa entre renglón y línea; archivo formato 10. Pruebas: `ElNombreDelEquipoVaYRegresa…`; navegador: «Bomba principal» en la línea y «CCM bombas» en el renglón, con ida y vuelta.
 
 **M-14** — Hecho: 220-12 fija la carga **mínima** de alumbrado general por m² (Tabla 220-12: oficinas 39 VA/m², vivienda 33, bodegas 3…) y 210-11(b) pide que el tablero la sirva; el alimentador solo suma lo capturado. Una oficina de 200 m² con 200 VA de LED pide 7,800 VA. En vivienda, 220-14(j) incluye los contactos de uso general en los 33 VA/m²; hoy se suman aparte. En oficinas y bancos, contactos = el mayor entre 180 VA por contacto y 11 VA/m² (220-14(k)). Cerrado en `71abc56`: Tabla 220-12 extraída del repo de la norma; área servida y uso del local en los datos; el alimentador no baja de área × VA/m² (continuo fuera de vivienda); en vivienda, los contactos de uso general van dentro (220-14(j)); en bancos y oficinas, 11 VA/m² de contactos (220-14(k)). Pruebas: `M14_…` (4), `Tabla220_12_…`; en el navegador, 200 m² de oficinas: 7.6 + 2.2 kVA.
 

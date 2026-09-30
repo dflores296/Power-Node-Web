@@ -21,8 +21,9 @@ propuesta y «una línea con dos cantidades, arranca»).
 - El bote del equipo del renglón ya lo quita — I-133, `041cf90`.
 - Campos del desplegable a la misma altura; Total centrada — I-134, `fc6aea4`.
 - Columna «Servicio»: el servicio del motor en su línea, sin selector arriba — I-135, `39b1071`. I-136 (servicio por motor en un grupo), pendiente hasta un caso real (David), con su propuesta de pantalla y cálculo en `HALLAZGOS.md`.
+- El equipo del renglón con su propio nombre, editable, aparte del del espacio — I-137, `8fc6d3b`.
 
-Pruebas: 390 en `PowerNode.Web.Tests`, 24 en `PowerNode.Normativa.Tests`.
+Pruebas: 391 en `PowerNode.Web.Tests`, 24 en `PowerNode.Normativa.Tests`.
 
 ## 2026-09-29
 
