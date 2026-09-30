@@ -14,8 +14,9 @@ propuesta y «una línea con dos cantidades, arranca»).
 - Documento y memoria con la clase — I-128, `51a2164`.
 
 - Revisión de David: columnas de carga centradas y parejas, desplegable como tabla, línea del tablero — I-129, `8e4de59`.
+- Varios tableros en un mismo alimentador (David: «Sí, hazlo») — I-130, `34e6b74`.
 
-Pruebas: 382 en `PowerNode.Web.Tests`, 24 en `PowerNode.Normativa.Tests`.
+Pruebas: 384 en `PowerNode.Web.Tests`, 24 en `PowerNode.Normativa.Tests`.
 
 ## 2026-09-29
 

@@ -40,12 +40,13 @@ respuesta 2):
 |---|---|---|
 | Motor con velocidad ajustable | Un equipo de conversión de potencia con su protección de fabricante — 430-122, 110-3(b) | Solo, cantidad 1 |
 | A/A con ampacidad de placa (MCA, MOCP) | La placa ya suma sus motores — 440-4(b) | Solo, cantidad 1 |
-| Tablero alimentado | Es un alimentador — Art. 100, 215 | Solo, cantidad 1 |
+| Tablero alimentado | Es un alimentador — Art. 100, 215 | Solo con otros tableros, cada uno en su línea (David, 2026-09-30; 215-2(a)(1), 408-36, 240-21(b)) |
 | Contactos · Refrigerador | Circuito derivado individual — 210-52(b)(1) Exc. 2 | Solo, cantidad 1 |
 | Contactos · Ap. pequeños, Lavadora, Baño | Solo esas salidas — 210-52(b)(2), 210-11(c)(2), (3) | Solo líneas del mismo subtipo |
 
 El tablero alimentado es la única línea con **dos cantidades**: continua y no continua del otro
-tablero, ya con sus factores de demanda; aquí no lleva otro (220-40).
+tablero, ya con sus factores de demanda; aquí no lleva otro (220-40). Un alimentador puede llevar
+varios tableros; su carga es la suma.
 
 ### El uso de vivienda pasa a subtipo de Contactos
 
