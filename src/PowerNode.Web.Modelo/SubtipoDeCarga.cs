@@ -208,4 +208,52 @@ public static class SubtiposDeCarga
         SubtipoDeCarga.CalefaccionConMotor => "Con motor",
         _ => "Tablero",
     };
+
+    /// <summary>
+    /// <b>El nombre con el que nace una línea</b> — «Contactos 1», «Motor 2», «Variador 1» (David,
+    /// 2026-09-30): el genérico de su subtipo; se le agrega el número al nombrarla. El ingeniero lo cambia.
+    /// </summary>
+    public static string NombreGenerico(this SubtipoDeCarga s) => s switch
+    {
+        SubtipoDeCarga.Luminarias => "Luminarias",
+        SubtipoDeCarga.PortalamparasPesado => "Portalámparas",
+        SubtipoDeCarga.Anuncios => "Anuncio",
+        SubtipoDeCarga.Aparador => "Aparador",
+        SubtipoDeCarga.ContactoUsoGeneral => "Contactos",
+        SubtipoDeCarga.ContactoMultiple => "Contacto múltiple",
+        SubtipoDeCarga.EnsambleDeSalidas => "Ensamble de salidas",
+        SubtipoDeCarga.ContactoAparatosPequenos => "Contactos cocina",
+        SubtipoDeCarga.ContactoLavadora => "Contacto lavadora",
+        SubtipoDeCarga.ContactoBano => "Contactos baño",
+        SubtipoDeCarga.ContactoRefrigerador => "Contacto refrigerador",
+        SubtipoDeCarga.AparatoFijo => "Aparato",
+        SubtipoDeCarga.Secadora => "Secadora",
+        SubtipoDeCarga.Coccion => "Estufa",
+        SubtipoDeCarga.CocinaComercial => "Equipo de cocina",
+        SubtipoDeCarga.CalentadorDeAgua => "Calentador",
+        SubtipoDeCarga.AparatoConMotor => "Aparato con motor",
+        SubtipoDeCarga.OtraCargaEspecifica => "Carga",
+        SubtipoDeCarga.MotorUsoGeneral => "Motor",
+        SubtipoDeCarga.MotorVelocidadAjustable => "Variador",
+        SubtipoDeCarga.Motocompresor => "Motocompresor",
+        SubtipoDeCarga.CargaCombinada => "Aire acondicionado",
+        SubtipoDeCarga.AireDeHabitacion => "A/A de habitación",
+        SubtipoDeCarga.CalefaccionResistencia => "Calefactor",
+        SubtipoDeCarga.CalefaccionConMotor => "Calefactor con motor",
+        _ => "Tablero",
+    };
+
+    /// <summary>
+    /// Vacío, o un nombre que puso el programa («Motor 2»): se puede cambiar por el del nuevo subtipo sin
+    /// pisar lo que escribió el ingeniero.
+    /// </summary>
+    public static bool EsNombreGenerico(string? nombre)
+    {
+        if (string.IsNullOrWhiteSpace(nombre))
+            return true;
+        var t = nombre.Trim();
+        var espacio = t.LastIndexOf(' ');
+        return espacio > 0 && int.TryParse(t[(espacio + 1)..], out _)
+            && Enum.GetValues<SubtipoDeCarga>().Any(s => s.NombreGenerico() == t[..espacio]);
+    }
 }

@@ -667,8 +667,13 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
                                                     }
                                                     else if (!aparato.EsMaquina)
                                                     {
-                                                        <input type="checkbox" data-col="ap-continua" aria-label="Circuito @c.Espacio, carga @n · Continua" @bind="aparato.Continua" @bind:after="Recalcular"
-                                                               disabled="@(aparato.ReferenciaContinua is not null)" title="@(aparato.ReferenciaContinua is { } rc ? $"Siempre continua — {rc}." : null)" />
+                                                        @* Continua o no continua, con su nombre: bajo «Servicio», una casilla sola no decía qué era (David, 2026-09-30). *@
+                                                        <select class="servicio-carga" data-col="ap-continua" aria-label="Circuito @c.Espacio, carga @n · Continua" value="@(aparato.Continua ? "si" : "no")"
+                                                                @onchange="e => CambiarContinua(aparato, e.Value?.ToString())" disabled="@(aparato.ReferenciaContinua is not null)"
+                                                                title="@(aparato.ReferenciaContinua is { } rc ? $"Siempre continua — {rc}." : "Continua: opera 3 h o más y entra al 125 % — 210-19(a)(1), 215-2(a)(1).")">
+                                                            <option value="no">No continua</option>
+                                                            <option value="si">Continua</option>
+                                                        </select>
                                                     }
                                                     else if (aparato.Clase == ClaseDeAparato.Variador)
                                                     {
@@ -1782,8 +1787,7 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
         var nueva = c.AgregarCarga();
         // Sin tipo elegido, la línea empieza en «—»: el tipo se escoge en ella, una sola vez.
         nueva.Subtipo = c.TipoElegido ? SubtiposDeCarga.PorOmision(c.Categoria) : null;
-        if (nueva.EsTablero)
-            nueva.Descripcion = $"Tablero {c.Cargas.Count}";
+        Nombrar(c, nueva);
         Recalcular();
         _enfocar = DescripcionDeAparato(c.Espacio, c.Cargas.Count);
     }
@@ -1823,6 +1827,7 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
         }
         var subtipos = SubtiposDeCarga.De(tipo).Where(s => !s.SoloEnElRenglon()).ToList();
         a.Subtipo = subtipos.FirstOrDefault(s => s.Clase() == a.Clase, subtipos[0]);
+        Nombrar(c, a);
         TrasEditarLinea(c);
     }
 
@@ -1834,8 +1839,6 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
     {
         if (!Enum.TryParse<SubtipoDeCarga>(valor, out var subtipo))
             return;
-        if (subtipo is SubtipoDeCarga.TableroAlimentado or SubtipoDeCarga.MotorVelocidadAjustable && string.IsNullOrWhiteSpace(a.Descripcion))
-            a.Descripcion = $"{(subtipo == SubtipoDeCarga.TableroAlimentado ? "Tablero" : "Variador")} {c.Cargas.IndexOf(a) + 1}";
         if (subtipo.SoloEnElRenglon())
         {
             if (!c.PasarARenglon(subtipo))
@@ -1844,7 +1847,31 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
             return;
         }
         a.Subtipo = subtipo;
+        Nombrar(c, a);
         TrasEditarLinea(c);
+    }
+
+    private void CambiarContinua(CargaDelCircuito a, string? valor)
+    {
+        a.Continua = valor == "si";
+        Recalcular();
+    }
+
+    /// <summary>
+    /// «Contactos 1», «Motor 2»: el nombre genérico de su subtipo, numerado entre las líneas del circuito
+    /// con el mismo nombre (David, 2026-09-30). Solo si está vacío o lo puso el programa.
+    /// </summary>
+    private static void Nombrar(CircuitoDelCuadro c, CargaDelCircuito a)
+    {
+        if (a.Subtipo is not { } subtipo || !SubtiposDeCarga.EsNombreGenerico(a.Descripcion))
+            return;
+        var nombre = subtipo.NombreGenerico();
+        var usados = c.Cargas.Where(x => x != a && x.Descripcion.StartsWith(nombre + " ", StringComparison.Ordinal))
+            .Select(x => int.TryParse(x.Descripcion[(nombre.Length + 1)..], out var k) ? k : 0).ToHashSet();
+        var n = 1;
+        while (usados.Contains(n))
+            n++;
+        a.Descripcion = $"{nombre} {n}";
     }
 
     /// <summary>Un solo motor, motocompresor o acondicionador de habitación se calcula con su artículo, no como grupo.</summary>
@@ -1870,6 +1897,8 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
     {
         if (!Enum.TryParse<SubtipoDeCarga>(valor, out var subtipo) || subtipo == c.SubtipoDelRenglon)
             return;
+        if (SubtiposDeCarga.EsNombreGenerico(c.DescripcionDelEquipo))
+            c.DescripcionDelEquipo = $"{subtipo.NombreGenerico()} 1";
         switch (subtipo)
         {
             case SubtipoDeCarga.MotorUsoGeneral:

@@ -372,4 +372,19 @@ public class CapturaEnElDesplegableTests
         var abierto = Espacio(ArchivoDelCuadro.Abrir(ArchivoDelCuadro.Guardar(cuadro, DateTimeOffset.UnixEpoch), Motor).Cuadro!, 1);
         Assert.Equal(("CCM", "Bomba 1"), (abierto.Descripcion, abierto.DescripcionDelEquipo));
     }
+
+    [Theory]
+    [InlineData("", true)]
+    [InlineData("Motor 2", true)]
+    [InlineData("Contactos 1", true)]
+    [InlineData("Variador 10", true)]
+    [InlineData("Bomba 1", false)]
+    [InlineData("Motor", false)]
+    [InlineData("Contactos sala", false)]
+    public void SoloSeRenombraLoQueNombroElPrograma(string nombre, bool generico) =>
+        Assert.Equal(generico, SubtiposDeCarga.EsNombreGenerico(nombre));
+
+    [Fact]
+    public void CadaSubtipoTieneSuNombreGenerico() =>
+        Assert.All(Enum.GetValues<SubtipoDeCarga>(), s => Assert.False(string.IsNullOrWhiteSpace(s.NombreGenerico())));
 }
