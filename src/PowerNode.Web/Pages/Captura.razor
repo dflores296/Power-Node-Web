@@ -2221,9 +2221,12 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
         c.ClaseDelCircuito is not { } clase ? null
         : clase == ClaseDeCircuito.Alimentador ? (c.Cargas.Count(x => x.EsTablero) is > 1 and var tableros ? $"{tableros} tableros · sin F.D. (220-40)" : "sin F.D. (220-40)")
         : c.EsGrupo ? TextoDelGrupo(c)
-        : c.Salidas is { } n && clase != ClaseDeCircuito.Individual ? $"{n} {(n == 1 ? "salida" : "salidas")}"
-        : c.EsCargaTotal ? "carga total"
-        : null;
+        : (c.Salidas is { } n && clase != ClaseDeCircuito.Individual ? $"{n} {(n == 1 ? "salida" : "salidas")}"
+           : c.EsCargaTotal ? "carga total"
+           : null) is var detalle && c.ReglasDeClase.Any(x => x.Referencia.StartsWith("210-8", StringComparison.Ordinal))
+            // ICFT — 210-8 (P3-4): a la vista en el renglón; la regla completa va en el desglose y la memoria.
+            ? (detalle is null ? "ICFT" : $"{detalle} · ICFT")
+            : detalle;
 
     /// <summary>«5 HP · FLC 15.20 A», «Ampacidad 18 A · prot. máx. 30 A»: la placa del equipo, bajo sus VA. Un grupo, nada.</summary>
     private static string PlacaDelEquipo(CircuitoDelCuadro c) =>

@@ -1742,7 +1742,9 @@ public sealed class CuadroDeCarga
     {
         if (c.Resultado is not { } r || c.ClaseDelCircuito is not { } clase || clase == ClaseDeCircuito.Alimentador || c.EsGrupoDeMotores)
             return [];
-        var reglas = new List<ReglaDeClase>();
+        var reglas = new List<ReglaDeClase>(ReglasDe210_8(c, r.ProteccionA));
+        if (ReglaDe210_6(c) is { } tension)
+            reglas.Add(tension);
         var tipos = c.TiposDeSusCargas;
         var proteccion = r.ProteccionA;
         var conContactos = tipos.Contains(CategoriaDeCarga.Contactos);
@@ -1796,6 +1798,48 @@ public sealed class CuadroDeCarga
         else if (tipos.Contains(CategoriaDeCarga.Alumbrado))
             reglas.Add(new("210-23(d)", $"Un circuito de más de 50 A ({proteccion:N0} A) solo alimenta salidas que no son de alumbrado.", true));
         return reglas;
+    }
+
+    /// <summary>
+    /// <b>Protección de las personas con ICFT</b> — 210-8 (auditoría del 2026-09-29, P3-4): contactos
+    /// monofásicos de 15 y 20 A en los lugares que la norma nombra. De los que la captura distingue: el
+    /// baño, en vivienda (a)(1) y fuera de ella (b)(1); los de la cubierta del mueble de cocina, en vivienda
+    /// (a)(6). Es un requisito, no un incumplimiento: nota, sin aviso. En vivienda popular de hasta 60 m²
+    /// se permiten contactos normales con el ICFT al principio del circuito. (210-12, el ICFA, en la NOM es
+    /// «se podrán proteger»: no se exige.)
+    /// </summary>
+    private IEnumerable<ReglaDeClase> ReglasDe210_8(CircuitoDelCuadro c, decimal proteccionA)
+    {
+        if (c.Polos != 1 || proteccionA > 20m)
+            yield break;
+        HashSet<SubtipoDeCarga?> subtipos = c.TieneDesglose ? [.. c.Cargas.Select(a => a.Subtipo)] : [SubtiposDeCarga.DeUso(c.Uso)];
+        var vivienda = Datos.Inmueble.EsVivienda();
+        var popular = Datos.Inmueble == TipoDeInmueble.ViviendaPopular
+            ? " En vivienda popular de hasta 60 m² se permiten contactos normales con el ICFT al principio del circuito."
+            : "";
+        if (subtipos.Contains(SubtipoDeCarga.ContactoBano))
+            yield return new(vivienda ? "210-8(a)(1)" : "210-8(b)(1)",
+                "Los contactos del baño requieren protección de las personas con interruptor de circuito por falla a tierra (ICFT)." + popular, false);
+        if (vivienda && subtipos.Contains(SubtipoDeCarga.ContactoAparatosPequenos))
+            yield return new("210-8(a)(6)",
+                "Los contactos en la cubierta del mueble de cocina requieren protección de las personas con interruptor de circuito por falla a tierra (ICFT)." + popular, false);
+    }
+
+    /// <summary>
+    /// <b>Contactos a 277 V</b> — 210-6 (auditoría del 2026-09-29, P3, riesgo 6). En 480Y/277 V un circuito de
+    /// contactos de 1 polo queda a 277 V a tierra: 210-6(c)(6) lo permite para equipo de utilización con
+    /// cordón y clavija, pero es poco común; se anota. En vivienda, 210-6(a)(2) limita a 120 V entre
+    /// conductores las cargas con cordón y clavija de 1440 VA o menos: aviso.
+    /// </summary>
+    private ReglaDeClase? ReglaDe210_6(CircuitoDelCuadro c)
+    {
+        if (c.Polos != 1 || !c.TiposDeSusCargas.Contains(CategoriaDeCarga.Contactos)
+            // 277 V nominal: 480 / √3 = 277.13 V.
+            || Datos.TensionFaseNeutroV is var tension && (tension <= 150m || Math.Round(tension) > 277m))
+            return null;
+        return Datos.Inmueble.EsVivienda()
+            ? new("210-6(a)(2)", $"En vivienda, los contactos para cargas con cordón y clavija de 1440 VA o menos no pasan de 120 V entre conductores; este circuito queda a {tension:N0} V.", true)
+            : new("210-6(c)(6)", $"Contactos a {tension:N0} V a tierra: se permiten para equipo de utilización con cordón y clavija de esa tensión; no son contactos de uso general de 127 V.", false);
     }
 
     /// <summary>Tabla 210-21(b)(3): el valor de los contactos según el del circuito.</summary>

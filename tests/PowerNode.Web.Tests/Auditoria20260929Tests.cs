@@ -414,4 +414,70 @@ public class Auditoria20260929Tests
         Assert.Null(c.Error);
         Assert.Equal(2.27m, Math.Round(c.Resultado!.CorrienteDisenoA, 2));
     }
+
+    // ---- P3-4 · ICFT — 210-8 -------------------------------------------------------------------
+
+    private static CircuitoDelCuadro Contactos(CuadroDeCarga cuadro, int espacio, SubtipoDeCarga subtipo, int cantidad = 2)
+    {
+        var c = Espacio(cuadro, espacio);
+        c.Categoria = CategoriaDeCarga.Contactos;
+        var a = c.AgregarCarga();
+        a.Subtipo = subtipo;
+        a.Cantidad = cantidad;
+        a.CargaUnitaria = 180m;
+        cuadro.Recalcular();
+        return c;
+    }
+
+    [Theory]
+    [InlineData(TipoDeInmueble.ViviendaUnifamiliar, SubtipoDeCarga.ContactoBano, "210-8(a)(1)")]
+    [InlineData(TipoDeInmueble.Otro, SubtipoDeCarga.ContactoBano, "210-8(b)(1)")]
+    [InlineData(TipoDeInmueble.ViviendaUnifamiliar, SubtipoDeCarga.ContactoAparatosPequenos, "210-8(a)(6)")]
+    public void P3_4_LosContactosDeBanoYCocinaRequierenIcft(TipoDeInmueble inmueble, SubtipoDeCarga subtipo, string referencia)
+    {
+        var cuadro = Nuevo();
+        cuadro.Datos.Inmueble = inmueble;
+        var c = Contactos(cuadro, 1, subtipo);
+
+        var regla = Assert.Single(c.ReglasDeClase, x => x.Referencia.StartsWith("210-8"));
+        Assert.Equal(referencia, regla.Referencia);
+        Assert.False(regla.Aviso); // es requisito, no incumplimiento
+        Assert.Contains("ICFT", regla.Texto);
+        // En la memoria, con las demás reglas del circuito.
+        Assert.Contains(MemoriaDeCalculo.DeCircuito(cuadro, c).ReglasDeClase!, x => x.Referencia == referencia);
+    }
+
+    [Fact]
+    public void P3_4_UsoGeneralYAfciNoSeExigen()
+    {
+        // Contactos de uso general: 210-8 no los nombra. Y 210-12(a) de la NOM es «se podrán proteger»: no hay
+        // regla de ICFA en ningún circuito.
+        var cuadro = Nuevo();
+        cuadro.Datos.Inmueble = TipoDeInmueble.ViviendaUnifamiliar;
+        var c = Contactos(cuadro, 1, SubtipoDeCarga.ContactoUsoGeneral, 6);
+
+        Assert.DoesNotContain(c.ReglasDeClase, x => x.Referencia.StartsWith("210-8") || x.Referencia.StartsWith("210-12"));
+    }
+
+    // ---- Riesgo 6 · Contactos a 277 V -----------------------------------------------------------
+
+    [Theory]
+    [InlineData(TipoDeInmueble.Otro, "210-6(c)(6)", false)]
+    [InlineData(TipoDeInmueble.ViviendaUnifamiliar, "210-6(a)(2)", true)]
+    public void R6_LosContactosA277VLlevanSuNota(TipoDeInmueble inmueble, string referencia, bool aviso)
+    {
+        // 480Y/277 V, contactos de uso general en 1 polo: 277 V a tierra.
+        var cuadro = Nuevo(tension: 480m);
+        cuadro.Datos.Inmueble = inmueble;
+        var c = Contactos(cuadro, 1, SubtipoDeCarga.ContactoUsoGeneral, 4);
+
+        var regla = Assert.Single(c.ReglasDeClase, x => x.Referencia.StartsWith("210-6"));
+        Assert.Equal(referencia, regla.Referencia);
+        Assert.Equal(aviso, regla.Aviso);
+        Assert.Contains("277 V", regla.Texto);
+
+        // A 127 V no hay nada que decir.
+        var comun = Contactos(Nuevo(), 1, SubtipoDeCarga.ContactoUsoGeneral, 4);
+        Assert.DoesNotContain(comun.ReglasDeClase, x => x.Referencia.StartsWith("210-6"));
+    }
 }
