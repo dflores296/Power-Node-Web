@@ -1026,8 +1026,6 @@ polygon.riel-a { fill: var(--barra-a); } polygon.riel-b { fill: var(--barra-b); 
 .cuadro table.desglose tfoot label.no-simultaneo { display: inline-flex; align-items: center; gap: 6px; margin-right: 16px; color: var(--tinta); font-size: 12px; }
 .cuadro table.desglose tfoot label.no-simultaneo select { height: 26px; font-size: 12px; }
 .cuadro table.desglose tfoot .nota-opcion { font-style: italic; margin-right: 16px; }
-/* Cuántos motores mueve un variador (430-124(c)), en la columna «Continua», que un variador no usa. */
-.cuadro table.desglose label.motores-variador { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: var(--tenue); white-space: nowrap; }
 .cuadro table.desglose tfoot label.arranque-225 { display: inline-flex; align-items: center; gap: 5px; margin-right: 16px; }
 
 /* ------------------------------------------------------------------------------------------------

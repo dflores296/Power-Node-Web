@@ -130,12 +130,6 @@ public sealed class CircuitoDelCuadro
     public bool EsVariador => EsMotor && CapturaMotor == CapturaDeMotor.Variador;
 
     /// <summary>
-    /// Motor con variador: cuántos motores mueve (David, 2026-09-30). No cambia el cálculo — 430-122(a) va con
-    /// la entrada del variador —; con más de uno, cada motor con su protección contra sobrecarga — 430-124(c).
-    /// </summary>
-    public int MotoresDelVariador { get; set; } = 1;
-
-    /// <summary>
     /// El servicio de un motor solo, en HP o en amperes: <c>null</c> = continuo, el de casi todos (nota de la
     /// Tabla 430-22(e)); si no, corta duración, intermitente, periódico o variable — 430-22(e), I-120.
     /// </summary>
@@ -388,7 +382,6 @@ public sealed class CircuitoDelCuadro
                 Subtipo = SubtipoDeCarga.MotorVelocidadAjustable,
                 CorrientePlacaA = CorrienteEntradaVariadorA,
                 ProteccionMaximaA = ProteccionMaximaVariadorA,
-                Motores = MotoresDelVariador,
                 FactorPotencia = FactorPotencia,
             });
         else if (EsAireAcondicionado && PlacaAire == PlacaDeAireAcondicionado.CorrienteNominal && CorrientePlacaA > 0m)
@@ -460,7 +453,6 @@ public sealed class CircuitoDelCuadro
                 CapturaMotor = CapturaDeMotor.Variador;
                 CorrienteEntradaVariadorA = linea.CorrientePlacaA;
                 ProteccionMaximaVariadorA = linea.ProteccionMaximaA;
-                MotoresDelVariador = linea.Motores;
                 break;
             default:
                 return false;

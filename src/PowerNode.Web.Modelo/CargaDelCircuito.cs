@@ -122,12 +122,6 @@ public sealed class CargaDelCircuito
     /// <summary>Solo en un variador: la protección máxima que marca su fabricante — 110-3(b). Su corriente de entrada va en <see cref="CorrientePlacaA"/>.</summary>
     public decimal ProteccionMaximaA { get; set; }
 
-    /// <summary>
-    /// Solo en un variador: cuántos motores mueve. No cambia el cálculo del circuito (430-122(a) va con la
-    /// entrada del variador); con más de uno, cada motor lleva su protección contra sobrecarga — 430-124(c).
-    /// </summary>
-    public int Motores { get; set; } = 1;
-
     /// <summary>Un motor se captura en HP o en amperes — 430-6(a)(1). Solo HP o amperes, nunca «Varios».</summary>
     public CapturaDeMotor CapturaMotor { get; set; } = CapturaDeMotor.Hp;
 

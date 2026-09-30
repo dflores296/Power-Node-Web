@@ -162,9 +162,6 @@ public static class MemoriaDeCalculo
                 "Con variador, la corriente del circuito es la de entrada del variador: la FLC del motor y la Tabla 430-52 no se " +
                 "usan. El interruptor del tablero puede quedar arriba de la ampacidad del conductor — 240-4(g).",
                 "La sobrecarga del motor la da el variador si así lo marca; si no, va aparte — 430-124(a).",
-                .. c.MotoresDelVariador > 1
-                    ? [$"El variador mueve {c.MotoresDelVariador} motores: cada motor con su protección contra sobrecarga — 430-124(c)."]
-                    : Array.Empty<string>(),
             ],
             Corriente: "corriente de entrada");
     }
@@ -216,9 +213,6 @@ public static class MemoriaDeCalculo
         notas.AddRange(r.Citas.Where(x => x.Referencia is "430-53(c)(6)" or "430-53(a)" or "430-53(c)(2)").Select(x => $"{x.Descripcion} — {x.Referencia}."));
         if (maquinas.Any(a => a.Clase == ClaseDeAparato.Variador))
             notas.Add("Cada variador, aprobado para instalación en grupo con este interruptor: no pasa de la protección máxima que marca su fabricante — 430-53(c)(2), 110-3(b).");
-        if (maquinas.Where(a => a.Clase == ClaseDeAparato.Variador && a.Motores > 1).ToList() is { Count: > 0 } conVarios)
-            notas.Add($"{string.Join(", ", conVarios.Select(a => $"{CuadroDeCarga.NombreDeMaquina(c, a)} mueve {a.Motores} motores"))}: " +
-                      "cada motor con su protección contra sobrecarga — 430-124(c).");
 
         return new EquipoDeLaHoja(
             Rotulo: c.EsAireAcondicionado ? "Equipo de A/C" : "Grupo de motores",

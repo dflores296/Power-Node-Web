@@ -410,11 +410,7 @@
                                             <th data-col="ap-cant">Cant.</th>
                                             <th data-col="ap-unidad"><span class="ayuda" title="Carga: VA, W o A de placa. Motor o aparato con motor: en HP, con su FLC de tabla (430-6(a)), o en A de placa (430-6(a)(1)). Motocompresor: su corriente nominal (440-6(a)). De habitación: su corriente total (440-62). Todos a la tensión y los polos del circuito.">Unidad</span></th>
                                             <th data-col="ap-carga">@(SoloTableros(c) ? "Continua" : SoloVariadores(c) ? "Entrada · Máx. (A)" : "Carga c/u")</th>
-                                            @if (SoloVariadores(c))
-                                            {
-                                                <th data-col="ap-continua"><span class="ayuda" title="Cuántos motores mueve cada variador. No cambia el cálculo; con más de uno, cada motor con su protección contra sobrecarga — 430-124(c).">Motores</span></th>
-                                            }
-                                            else if (SoloTableros(c))
+                                            @if (SoloTableros(c))
                                             {
                                                 <th data-col="ap-continua"><span class="ayuda" title="La carga no continua calculada de cada tablero, ya con sus factores de demanda: aquí no lleva otro — 220-40.">No continua</span></th>
                                             }
@@ -540,12 +536,6 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
                                                     {
                                                         <label class="arranque-225" title="Marcar si la protección al 175 % no conduce la corriente de arranque del equipo: el máximo sube a 225 % — 440-22(a).">
                                                             <input type="checkbox" aria-label="Circuito @c.Espacio · No arranca al 175 %" checked="@c.ArranqueAl225" @onchange="e => { c.ArranqueAl225 = e.Value is true; Recalcular(); }" />225 %</label>
-                                                    }
-                                                    else if (c.EsVariador)
-                                                    {
-                                                        <label class="motores-variador" title="Cuántos motores mueve este variador. No cambia el cálculo; con más de uno, cada motor lleva su protección contra sobrecarga — 430-124(c).">
-                                                            <input class="va corto" type="text" inputmode="decimal" autocomplete="off" data-numero min="1" step="1" aria-label="Circuito @c.Espacio · Motores del variador" value="@c.MotoresDelVariador" @onchange="e => { c.MotoresDelVariador = LeerMotores(e, c.MotoresDelVariador); Recalcular(); }" />
-                                                            @(c.MotoresDelVariador == 1 ? "motor" : "motores")</label>
                                                     }
                                                     else
                                                     {
@@ -691,9 +681,7 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
                                                     }
                                                     else if (aparato.Clase == ClaseDeAparato.Variador)
                                                     {
-                                                        <label class="motores-variador" title="Cuántos motores mueve este variador. No cambia el cálculo; con más de uno, cada motor lleva su protección contra sobrecarga — 430-124(c).">
-                                                            <input class="va corto" type="text" inputmode="decimal" autocomplete="off" data-numero min="1" step="1" aria-label="Circuito @c.Espacio, carga @n · Motores del variador" value="@aparato.Motores" @onchange="e => { aparato.Motores = LeerMotores(e, aparato.Motores); Recalcular(); }" />
-                                                            @(aparato.Motores == 1 ? "motor" : "motores")</label>
+                                                        <span class="clase-motor" title="Motor con variador: cuenta con la corriente de entrada del variador — 430-122(a); en grupo, 430-53.">variador</span>
                                                     }
                                                     else
                                                     {
@@ -1952,10 +1940,6 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
     private bool MuestraNoSimultaneo(CircuitoDelCuadro c) =>
         c.NoSimultaneoCon is not null
         || (AdmiteNoSimultaneo(c) && Cuadro.Circuitos.Any(x => x != c && AdmiteNoSimultaneo(x)));
-
-    /// <summary>Cuántos motores mueve un variador: entero, 1 o más; si no, se queda el que estaba.</summary>
-    private static int LeerMotores(ChangeEventArgs e, int antes) =>
-        int.TryParse(e.Value?.ToString()?.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var n) && n >= 1 ? n : antes;
 
     /// <summary>Solo motores con variador: en su línea o en el renglón (David, 2026-09-30).</summary>
     private static bool SoloVariadores(CircuitoDelCuadro c) =>

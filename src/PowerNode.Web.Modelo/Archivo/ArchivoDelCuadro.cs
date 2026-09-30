@@ -40,7 +40,7 @@ public static class ArchivoDelCuadro
     /// 220-12 (M-14); la 5 los ignoraría y el alimentador saldría sin el mínimo. 7: los subtipos de uso de
     /// vivienda de los contactos (captura-en-el-desplegable.md); la 6 no los conoce. 8: varios tableros en un
     /// alimentador, cada uno con su no continua en su línea; la 7 los leería sin ella. 9: el variador en el
-    /// desplegable, con su protección máxima y cuántos motores mueve; la 8 lo perdería.
+    /// desplegable, con su protección máxima; la 8 lo perdería.
     /// </summary>
     public const int Version = 9;
 
