@@ -61,6 +61,10 @@ public sealed record ResumenDeCarga(
 /// <param name="AjusteAlumbradoVA">Lo que se agrega para llegar al mínimo — 220-12.</param>
 /// <param name="AlumbradoContinuo">Fuera de vivienda, el alumbrado general opera 3 h o más: continuo.</param>
 /// <param name="MinimoContactosVA">220-14(k): 11 VA/m²; <c>null</c> fuera de bancos y oficinas.</param>
+/// <param name="AlumbradoNoGeneralVA">
+/// El alumbrado capturado que no es general y no cuenta para el mínimo — I-157: anuncios (220-14(f)),
+/// aparadores (220-14(g)) y portalámparas de trabajo pesado (220-14(e)).
+/// </param>
 public sealed record MinimoPorSuperficie(
     string Renglon,
     decimal VaPorM2,
@@ -73,7 +77,8 @@ public sealed record MinimoPorSuperficie(
     decimal ContactosCapturadosVA,
     decimal AjusteContactosVA,
     decimal ContinuaDemandadaVA,
-    decimal NoContinuaDemandadaVA)
+    decimal NoContinuaDemandadaVA,
+    decimal AlumbradoNoGeneralVA = 0m)
 {
     public decimal MinimoAlumbradoVA => VaPorM2 * AreaM2;
     public decimal AjusteTotalVA => AjusteAlumbradoVA + AjusteContactosVA;
@@ -1228,7 +1233,7 @@ public sealed class CuadroDeCarga
     /// <summary>
     /// Antes de sumar una carga: la cantidad, al menos 1; un «Contacto» sin subtipo ni carga toma 180 VA
     /// (220-14(i), como hasta el formato 4); y la que su tipo o subtipo hace continua lo es: calefacción
-    /// (424-3(b)) y calentador de agua (422-13).
+    /// (424-3(b)), calentador de agua (422-13) y anuncios (600-5(b)).
     /// </summary>
     private static void PrepararCarga(CargaDelCircuito a, CircuitoDelCuadro c)
     {
@@ -1772,6 +1777,7 @@ public sealed class CuadroDeCarga
         var proteccion = r.ProteccionA;
         var conContactos = tipos.Contains(CategoriaDeCarga.Contactos);
         var divisor = TensionDeCalculo.Divisor(c.Polos, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV);
+        reglas.AddRange(ReglasDe600_5(c, proteccion));
 
         if (clase == ClaseDeCircuito.Individual)
         {
@@ -1849,6 +1855,23 @@ public sealed class CuadroDeCarga
     }
 
     /// <summary>
+    /// <b>El circuito de anuncios</b> — 600-5 (I-156): la salida exigida no comparte circuito con otras
+    /// cargas (a); y el circuito no pasa de 20 A, o de 30 A si es de tubos de neón (b). El mínimo de 20 A y
+    /// la carga continua ya los aplica el cálculo; esto solo avisa lo que el proyectista tiene que resolver.
+    /// </summary>
+    private static IEnumerable<ReglaDeClase> ReglasDe600_5(CircuitoDelCuadro c, decimal proteccionA)
+    {
+        if (!c.TieneDesglose || !c.Cargas.Any(a => a.Subtipo == SubtipoDeCarga.Anuncios))
+            yield break;
+        if (c.Cargas.Any(a => a.Subtipo != SubtipoDeCarga.Anuncios))
+            yield return new("600-5(a)",
+                "La salida para anuncios va en un circuito de 20 A como mínimo que no alimenta otras cargas. Llevar las demás a otro circuito.", true);
+        if (proteccionA > 20m)
+            yield return new("600-5(b)(2)",
+                $"Un circuito de anuncios no pasa de 20 A; este es de {proteccionA:N0} A. Solo los de tubos de neón llegan a 30 A — 600-5(b)(1). Partir los anuncios en circuitos de 20 A.", true);
+    }
+
+    /// <summary>
     /// <b>Contactos a 277 V</b> — 210-6 (auditoría del 2026-09-29, P3, riesgo 6). En 480Y/277 V un circuito de
     /// contactos de 1 polo queda a 277 V a tierra: 210-6(c)(6) lo permite para equipo de utilización con
     /// cordón y clavija, pero es poco común; se anota. En vivienda, 210-6(a)(2) limita a 120 V entre
@@ -1882,7 +1905,8 @@ public sealed class CuadroDeCarga
 
     /// <summary>
     /// La protección mínima que la norma pide para el circuito: 20 A en los de vivienda de 210-11(c); 40 A
-    /// si alimenta estufas domésticas de 8.75 kW o más — 210-19(a)(3) (I-124). <c>null</c> sin mínimo.
+    /// si alimenta estufas domésticas de 8.75 kW o más — 210-19(a)(3) (I-124); 20 A en el de anuncios —
+    /// 600-5(a) (I-156). <c>null</c> sin mínimo.
     /// </summary>
     private (decimal Amperes, string Referencia)? ProteccionMinima(CircuitoDelCuadro c)
     {
@@ -1891,6 +1915,10 @@ public sealed class CuadroDeCarga
             : 0m;
         if (coccion >= 8750m)
             return (40m, "210-19(a)(3)");
+        // 600-5(a): la salida para anuncios, en un circuito «de cuando menos 20 amperes». Como el mínimo de
+        // 1200 VA de 220-14(f), cada circuito de anuncios se toma como el exigido.
+        if (c.TieneDesglose && c.Cargas.Any(a => a.Subtipo == SubtipoDeCarga.Anuncios))
+            return (20m, "600-5(a)");
         return c.UsoEfectivo.ReferenciaProteccionMinima() is { } referencia
             ? (UsosDeContactos.ProteccionMinimaViviendaA, referencia)
             : null;
@@ -2302,11 +2330,17 @@ public sealed class CuadroDeCarga
             return null;
 
         decimal DelTipo(CircuitoDelCuadro c, CategoriaDeCarga tipo) => c.Porciones.Where(p => p.Tipo == tipo).Sum(p => p.TotalVA);
+        // I-157: anuncios, aparadores y portalámparas de trabajo pesado son alumbrado, pero no general —
+        // 220-14(e), (f), (g): no llenan el mínimo.
+        decimal NoGeneral(CircuitoDelCuadro c) => c.TieneDesglose
+            ? c.Cargas.Where(a => c.TipoDe(a) == CategoriaDeCarga.Alumbrado && a.Subtipo?.NoEsAlumbradoGeneral() == true).Sum(a => a.TotalVA)
+            : 0m;
         var vivienda = Datos.Inmueble.EsVivienda();
         var area = Datos.AreaServidaM2;
+        var noGeneral = conCarga.Sum(NoGeneral);
         // 220-14(j): en vivienda, los contactos de uso general de 20 A o menos —el baño incluido— van dentro
         // de los 33 VA/m²; los de aparatos pequeños y lavadora, no (220-52).
-        var alumbrado = conCarga.Sum(c => DelTipo(c, CategoriaDeCarga.Alumbrado))
+        var alumbrado = conCarga.Sum(c => DelTipo(c, CategoriaDeCarga.Alumbrado)) - noGeneral
             + (vivienda ? conCarga.Where(c => c.UsoEfectivo is UsoDeContactos.General or UsoDeContactos.Bano).Sum(c => DelTipo(c, CategoriaDeCarga.Contactos)) : 0m);
         var ajusteAlumbrado = Math.Max(0m, fila.VaPorM2 * area - alumbrado);
 
@@ -2323,7 +2357,8 @@ public sealed class CuadroDeCarga
             fila.Inmueble, fila.VaPorM2, area, alumbrado, vivienda, ajusteAlumbrado, !vivienda,
             minimoContactos, contactos, ajusteContactos,
             ContinuaDemandadaVA: vivienda ? 0m : alumbradoDemandado,
-            NoContinuaDemandadaVA: (vivienda ? alumbradoDemandado : 0m) + contactosDemandado);
+            NoContinuaDemandadaVA: (vivienda ? alumbradoDemandado : 0m) + contactosDemandado,
+            AlumbradoNoGeneralVA: noGeneral);
     }
 
     /// <summary>
@@ -2748,7 +2783,9 @@ public sealed class CuadroDeCarga
             avisos.Add(
                 $"El interruptor principal ({resultado.ProteccionA:N0} A) es menor que la protección del " +
                 $"{(mayor.EsMotor ? "motor" : "equipo de A/C")} del circuito {mayor.Espacio} ({mayorDerivado:N0} A), " +
-                (mayor.EsGrupo ? (mayor.EsMotor ? "que 430-53(c)(4) dimensiona para el arranque" : "que 440-22(b) dimensiona para el arranque")
+                // La regla con que se calculó, no si el circuito se captura como grupo: un grupo de un solo
+                // motor —como se captura en el desplegable— va por 430-52, no por 430-53(c)(4).
+                (mayor.Resultado!.Grupo is { } grupoMayor ? $"que {grupoMayor.Regla} dimensiona para el arranque"
                     : mayor.EsVariador ? "la que marca el fabricante del variador — 110-3(b)"
                     : mayor.EsMotor ? "que 430-52 dimensiona para el arranque"
                     : mayor.PlacaAire == PlacaDeAireAcondicionado.AmpacidadYProteccion ? "la que permite su placa — 440-4(b)"
@@ -2815,6 +2852,9 @@ public sealed class CuadroDeCarga
                 $"El factor de demanda de {categoria.NombreCompleto().ToLowerInvariant()} es menor que 1 y no tiene justificación. " +
                 "Escoge en «Resumen de carga» la tabla o sección del Art. 220 que lo sustenta — 220-40.");
 
+        if (AvisoDe220_56() is { } cocina)
+            avisos.Add(cocina);
+
         // 210-11(c)(1): los circuitos de aparatos pequeños son DOS O MÁS. Con uno solo capturado, se
         // dice; con ninguno, no hay nada que decir. Solo en vivienda: fuera de ella el uso no cuenta (I-46).
         var aparatos = _circuitos.Where(c => c.TieneCarga && c.UsoEfectivo == UsoDeContactos.AparatosPequenos).ToList();
@@ -2824,6 +2864,36 @@ public sealed class CuadroDeCarga
                 "de 20 A para los contactos de cocina, despensa y comedor — 210-11(c)(1).");
 
         return avisos;
+    }
+
+    /// <summary>
+    /// <b>El piso de 220-56</b> — I-155: fuera de vivienda, el factor de demanda del equipo de cocina «en
+    /// ningún caso» deja la carga del alimentador abajo de la suma de los dos equipos más grandes. Solo avisa:
+    /// el factor es del proyectista (R-12). No aplica con la Tabla 220-88, que sustituye a la Parte C.
+    /// </summary>
+    private string? AvisoDe220_56()
+    {
+        var factor = Datos.FactorDeDemanda(CategoriaDeCarga.Equipo);
+        if (factor >= 1m || Datos.Inmueble.EsVivienda()
+            || Datos.Justificaciones[CategoriaDeCarga.Equipo].Contains(JustificacionFactorDemanda.RestauranteNuevo))
+            return null;
+        // Cada unidad por separado: una línea de 2 freidoras son dos equipos.
+        var equipos = _circuitos
+            .Where(c => c.TieneCarga && c.TieneDesglose && !c.OmitidoPorNoSimultaneo)
+            .SelectMany(c => c.Cargas.Where(a => a.Subtipo == SubtipoDeCarga.CocinaComercial && c.TipoDe(a) == CategoriaDeCarga.Equipo))
+            .SelectMany(a => Enumerable.Repeat(a.TotalVA / a.Cantidad, a.Cantidad))
+            .OrderByDescending(va => va)
+            .ToList();
+        if (equipos.Count == 0)
+            return null;
+        var total = equipos.Sum();
+        var demandada = total * factor;
+        var piso = equipos.Take(2).Sum();
+        if (demandada >= piso)
+            return null;
+        return $"El equipo de cocina queda en {demandada:N0} VA con el factor de demanda de {factor:0.00}; 220-56 no deja que la carga " +
+               $"del alimentador baje de la suma de los dos equipos más grandes, {piso:N0} VA. Sube el factor de aparatos a " +
+               $"{Math.Ceiling(piso / total * 100m) / 100m:0.00} o más.";
     }
 
     /// <summary>

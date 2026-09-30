@@ -168,15 +168,24 @@ public static class SubtiposDeCarga
         s == SubtipoDeCarga.Anuncios ? (1200m, "220-14(f)") : null;
 
     /// <summary>
-    /// Siempre continua: el calentador de agua con almacenamiento (422-13) y la calefacción fija de
-    /// ambiente (424-3(b)). <c>null</c> si se decide por la placa.
+    /// Siempre continua: el calentador de agua con almacenamiento (422-13), la calefacción fija de
+    /// ambiente (424-3(b)) y los anuncios luminosos (600-5(b), I-156). <c>null</c> si se decide por la placa.
     /// </summary>
     public static string? SiempreContinua(this SubtipoDeCarga s) => s switch
     {
         SubtipoDeCarga.CalentadorDeAgua => "422-13",
         SubtipoDeCarga.CalefaccionResistencia or SubtipoDeCarga.CalefaccionConMotor => "424-3(b)",
+        SubtipoDeCarga.Anuncios => "600-5(b)",
         _ => null,
     };
+
+    /// <summary>
+    /// <b>Alumbrado que no es general</b> — I-157: 220-14 lo calcula aparte, entre las «salidas no utilizadas
+    /// para alumbrado general»: portalámparas de trabajo pesado (e), anuncios y contorno (f), aparadores (g).
+    /// No llena el mínimo por superficie de 220-12.
+    /// </summary>
+    public static bool NoEsAlumbradoGeneral(this SubtipoDeCarga s) =>
+        s is SubtipoDeCarga.PortalamparasPesado or SubtipoDeCarga.Anuncios or SubtipoDeCarga.Aparador;
 
     /// <summary>El nombre corto, basado en la NOM (David, 2026-09-29): el del selector.</summary>
     public static string Nombre(this SubtipoDeCarga s) => s switch

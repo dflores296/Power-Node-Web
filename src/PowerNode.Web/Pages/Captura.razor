@@ -940,7 +940,7 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
             {
                 @* M-14: el alimentador no baja del mínimo de la Tabla 220-12; lo que falta, como alumbrado. *@
                 <tr>
-                    <td class="izq"><span class="ayuda" title="@($"{sp.Renglon}: {sp.AreaM2:N0} m² × {sp.VaPorM2:N0} VA/m² = {sp.MinimoAlumbradoVA:N0} VA — 220-12, Tabla 220-12. Capturado: {sp.AlumbradoCapturadoVA:N0} VA{(sp.IncluyeContactos ? ", con los contactos de uso general (220-14(j))" : "")}. Se agrega lo que falta, {(sp.AlumbradoContinuo ? "continuo" : "no continuo")}, con el F.D. de alumbrado.")">Mínimo 220-12</span></td>
+                    <td class="izq"><span class="ayuda" title="@($"{sp.Renglon}: {sp.AreaM2:N0} m² × {sp.VaPorM2:N0} VA/m² = {sp.MinimoAlumbradoVA:N0} VA — 220-12, Tabla 220-12. Capturado: {sp.AlumbradoCapturadoVA:N0} VA{(sp.IncluyeContactos ? ", con los contactos de uso general (220-14(j))" : "")}{(sp.AlumbradoNoGeneralVA > 0m ? $"; no cuentan {sp.AlumbradoNoGeneralVA:N0} VA de anuncios, aparadores o portalámparas de trabajo pesado (220-14(e), (f), (g))" : "")}. Se agrega lo que falta, {(sp.AlumbradoContinuo ? "continuo" : "no continuo")}, con el F.D. de alumbrado.")">Mínimo 220-12</span></td>
                     <td class="num">@((sp.AjusteAlumbradoVA / 1000m).ToString("N2"))</td>
                     <td class="num">@Factor(Datos.FactorDemandaAlumbrado)</td>
                     <td class="num">@((sp.AjusteAlumbradoVA * Datos.FactorDemandaAlumbrado / 1000m).ToString("N2"))</td>

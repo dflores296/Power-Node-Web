@@ -579,7 +579,10 @@ public static class MemoriaDeCalculo
             yield break;
         yield return ($"Mínimo de alumbrado general — 220-12, Tabla 220-12",
             $"{sp.Renglon}: {sp.AreaM2:N0} m² × {sp.VaPorM2:N0} VA/m² = {sp.MinimoAlumbradoVA:N0} VA; capturado " +
-            $"{sp.AlumbradoCapturadoVA:N0} VA{(sp.IncluyeContactos ? " con los contactos de uso general (220-14(j))" : "")} → " +
+            $"{sp.AlumbradoCapturadoVA:N0} VA{(sp.IncluyeContactos ? " con los contactos de uso general (220-14(j))" : "")}" +
+            (sp.AlumbradoNoGeneralVA > 0m
+                ? $", sin {sp.AlumbradoNoGeneralVA:N0} VA de anuncios, aparadores o portalámparas de trabajo pesado, que no son alumbrado general (220-14(e), (f), (g))"
+                : "") + " → " +
             (sp.AjusteAlumbradoVA > 0m ? $"se agregan {sp.AjusteAlumbradoVA:N0} VA, {(sp.AlumbradoContinuo ? "continuos" : "no continuos")}" : "ya lo cubre"));
         if (sp.MinimoContactosVA is { } mc)
             yield return ("Mínimo de contactos — 220-14(k)",

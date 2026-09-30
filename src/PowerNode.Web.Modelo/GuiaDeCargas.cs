@@ -86,6 +86,7 @@ public static class GuiaDeCargas
                     [
                         C("220-14(e)", "600 VA como mínimo por salida."),
                         D("210-23(b), (c)", "Solo ellos pueden ir en circuitos de 30 a 50 A con alumbrado, y fuera de vivienda."),
+                        A("220-12", "No es alumbrado general: no cuenta para el mínimo por superficie."),
                     ],
                     [], CategoriaDeCarga.Alumbrado, SubtipoDeCarga.PortalamparasPesado),
                 new("alumbrado-anuncios", "Anuncios y contorno", "Alumbrado de anuncios y de contorno",
@@ -93,13 +94,19 @@ public static class GuiaDeCargas
                     "No menos de 1200 VA por cada circuito exigido.",
                     [
                         C("220-14(f)", "1200 VA como mínimo por cada circuito derivado exigido en 600-5(a)."),
+                        C("600-5(b)", "Carga continua: al 125 %."),
                         D("600-5(a)", "Un circuito de al menos 20 A, sin otras cargas, en cada entrada de un local comercial con acceso al público."),
+                        D("600-5(b)", "No más de 20 A; los de tubos de neón, hasta 30 A."),
+                        A("220-12", "No es alumbrado general: no cuenta para el mínimo por superficie."),
                     ],
                     [], CategoriaDeCarga.Alumbrado, SubtipoDeCarga.Anuncios),
                 new("alumbrado-aparador", "Aparador", "Aparadores",
                     "Escaparates de tiendas.",
                     "La carga de cada salida, o 200 VA por cada 30 cm de aparador.",
-                    [C("220-14(g)", "La carga unitaria por salida, o 200 VA por cada 30 cm de aparador.")],
+                    [
+                        C("220-14(g)", "La carga unitaria por salida, o 200 VA por cada 30 cm de aparador."),
+                        A("220-12", "No es alumbrado general: no cuenta para el mínimo por superficie."),
+                    ],
                     [], CategoriaDeCarga.Alumbrado, SubtipoDeCarga.Aparador),
             ],
             CategoriaDeCarga.Alumbrado),
