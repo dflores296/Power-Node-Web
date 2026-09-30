@@ -109,14 +109,18 @@
         <label><span class="ayuda" title="Capturar el área que sirve el tablero, en m². El alimentador no baja de la carga de alumbrado general de la Tabla 220-12 por esa área — 220-12, 210-11(b); en vivienda, los contactos de uso general van dentro (220-14(j)); en bancos y oficinas, los contactos no bajan de 11 VA/m² (220-14(k)). Vacío: no se revisa.">Área servida (m²)</span>
             <input type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="—" aria-label="Área servida (m²)"
                    value="@(Datos.AreaServidaM2 > 0m ? Datos.AreaServidaM2.ToString("0.##", CultureInfo.InvariantCulture) : "")" @onchange="CambiarArea" /></label>
-        <label><span class="ayuda" title="El renglón de la Tabla 220-12 del local: su carga unitaria en VA/m². Por omisión, el del inmueble.">Uso — Tabla 220-12</span>
-            <select aria-label="Uso del local — Tabla 220-12" value="@Datos.UsoTabla220_12Efectivo" @onchange="e => { Datos.UsoTabla220_12 = e.Value?.ToString(); Recalcular(); }">
-                @foreach (var fila in Cuadro.FilasTabla220_12)
-                {
-                    var clave = ClaveTabla220_12(fila.Inmueble);
-                    <option @key="clave" value="@clave">@fila.Inmueble (@fila.VaPorM2.ToString("0") VA/m²)</option>
-                }
-            </select></label>
+        @* Solo con área: sin ella no se revisa el mínimo y el uso no cuenta (David, 2026-09-30). *@
+        @if (Datos.AreaServidaM2 > 0m)
+        {
+            <label><span class="ayuda" title="El renglón de la Tabla 220-12 del local: su carga unitaria en VA/m². Por omisión, el del inmueble.">Uso — Tabla 220-12</span>
+                <select aria-label="Uso del local — Tabla 220-12" value="@Datos.UsoTabla220_12Efectivo" @onchange="e => { Datos.UsoTabla220_12 = e.Value?.ToString(); Recalcular(); }">
+                    @foreach (var fila in Cuadro.FilasTabla220_12)
+                    {
+                        var clave = ClaveTabla220_12(fila.Inmueble);
+                        <option @key="clave" value="@clave">@fila.Inmueble (@fila.VaPorM2.ToString("0") VA/m²)</option>
+                    }
+                </select></label>
+        }
         <label><span class="ayuda" title="Marcar si el tablero es el medio de desconexión de la acometida (el primero después del medidor). El principal sube al mínimo de 230-79 según el inmueble.">Equipo de acometida</span>
             <input type="checkbox" class="casilla" @bind="Datos.EsEquipoDeAcometida" @bind:after="Recalcular" /></label>
     </div>
@@ -145,8 +149,12 @@
                 <option value="mojado">Húmedo o mojado</option>
             </select></label>
         <label>T. ambiente (°C) <input data-requerido type="text" inputmode="decimal" autocomplete="off" data-numero min="10" max="80" step="1" value="@Numero(Datos.TemperaturaAmbienteC)" @onchange="e => { Datos.TemperaturaAmbienteC = Leer(e, Datos.TemperaturaAmbienteC); Recalcular(); }" /></label>
-        <label><span class="ayuda" title="Marcar si la mayor parte de la carga es no lineal (electrónica, iluminación LED, equipo de cómputo): en 3F-4H el neutro lleva armónicas y cuenta como portador — 310-15(b)(5)(3).">Carga no lineal</span>
-            <input type="checkbox" class="casilla" @bind="Datos.CargaNoLineal" @bind:after="Recalcular" /></label>
+        @* Solo en 3F-4H: el neutro de un circuito de 3 fases cuenta por armónicas — 310-15(b)(5)(3); en los demás sistemas no cambia nada. *@
+        @if (Datos.Fases == 3 && Datos.Hilos == 4)
+        {
+            <label><span class="ayuda" title="Marcar si la mayor parte de la carga es no lineal (electrónica, iluminación LED, equipo de cómputo): en 3F-4H el neutro lleva armónicas y cuenta como portador — 310-15(b)(5)(3).">Carga no lineal</span>
+                <input type="checkbox" class="casilla" @bind="Datos.CargaNoLineal" @bind:after="Recalcular" /></label>
+        }
         <label><span class="ayuda" title="Capturar el límite de caída del circuito derivado. Recomendado: 3 % — 210-19(a)(1), NOTA 4.">e% máx. derivado</span> <input data-requerido type="text" inputmode="decimal" autocomplete="off" data-numero min="0.5" max="10" step="0.5" value="@Numero(Datos.CaidaMaxDerivadoPct)" @onchange="e => { Datos.CaidaMaxDerivadoPct = Leer(e, Datos.CaidaMaxDerivadoPct); Recalcular(); }" /></label>
         <label><span class="ayuda" title="Capturar el límite de caída del alimentador. Valor inicial: 2 %, para que con el 3 % del derivado sumen el 5 % combinado — 215-2(a)(4), NOTA 2; 210-19(a)(1), NOTA 4.">e% máx. alimentador</span> <input data-requerido type="text" inputmode="decimal" autocomplete="off" data-numero min="0.5" max="10" step="0.5" value="@Numero(Datos.CaidaMaxAlimentadorPct)" @onchange="e => { Datos.CaidaMaxAlimentadorPct = Leer(e, Datos.CaidaMaxAlimentadorPct); Recalcular(); }" /></label>
         @if (Datos.AvisoLimitesDeCaida is { } avisoLimites)
