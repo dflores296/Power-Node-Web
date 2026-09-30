@@ -13,6 +13,8 @@ propuesta y «una línea con dos cantidades, arranca»).
   F.P. de solo lectura; el motor, variador, A/A y tablero se capturan en su línea — I-128, `8b13b80`.
 - Documento y memoria con la clase — I-128, `51a2164`.
 
+- Revisión de David: columnas de carga centradas y parejas, desplegable como tabla, línea del tablero — I-129, `8e4de59`.
+
 Pruebas: 382 en `PowerNode.Web.Tests`, 24 en `PowerNode.Normativa.Tests`.
 
 ## 2026-09-29
