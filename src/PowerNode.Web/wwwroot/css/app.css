@@ -975,6 +975,13 @@ polygon.riel-a { fill: var(--barra-a); } polygon.riel-b { fill: var(--barra-b); 
 .cuadro table.desglose th:nth-last-child(2) { text-align: right; }
 .cuadro table.desglose td { padding: 5px 10px; border: 0; border-bottom: 1px solid var(--linea-suave);
                             background: none; text-align: center; }
+/* Es una tabla y se ve como tabla (David, 2026-09-30): cada columna con su línea, como el renglón del
+   circuito; la última no, ya está el borde de la tarjeta. Sus campos, con su caja: ahí se captura. */
+.cuadro table.desglose th, .cuadro table.desglose td { border-right: 1px solid var(--linea-suave); }
+.cuadro table.desglose th:last-child, .cuadro table.desglose td:last-child { border-right: 0; }
+.cuadro table.desglose input.va, .cuadro table.desglose input.desc { border-color: var(--linea); background: var(--papel); }
+.cuadro table.desglose input.va:disabled { border-color: transparent; background: transparent; }
+.cuadro table.desglose td.tablero input.va { width: 96px; }
 .cuadro table.desglose tbody tr:last-child td { border-bottom: 0; }
 .cuadro table.desglose td.izq, .cuadro table.desglose th.izq { text-align: left; }
 .cuadro table.desglose td.num { text-align: right; min-width: 90px; }
@@ -998,8 +1005,8 @@ polygon.riel-a { fill: var(--barra-a); } polygon.riel-b { fill: var(--barra-b); 
 .cuadro td.clase-td { text-align: center; min-width: 122px; }
 .cuadro .clase-circuito { font-size: 13px; white-space: nowrap; }
 #sec-cuadro > .cuadro > tbody > tr > td.clase-td > .en-va { white-space: nowrap; }
-.cuadro td.num.suma { text-align: right; padding-right: 8px; font-variant-numeric: tabular-nums; }
-#sec-cuadro > .cuadro > tbody > tr > td.suma > .en-va { text-align: right; padding-right: 8px; }
+/* Continua, No continua y F.P., centradas y del mismo ancho, como las de Balanceo de fases. */
+#sec-cuadro > .cuadro .col-carga { width: 90px; min-width: 90px; box-sizing: border-box; text-align: center; }
 /* El equipo del renglón (motor, variador, A/A, otro tablero), como la primera línea del desplegable. */
 .cuadro table.desglose tr.linea-renglon td { background: var(--acento-suave); }
 .cuadro select.tipo.combinadas { font-style: italic; color: var(--acento); background: var(--acento-suave); border-color: var(--acento-borde); opacity: 1; }
