@@ -1703,8 +1703,12 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
     /// Un renglón de un espacio con notas debajo de sus campos (tamaño del tubo, mm², VA, MCA…) crece
     /// para que quepan; un multipolar ya mide dos o tres espacios.
     /// </summary>
-    private static bool LlevaNotas(CircuitoDelCuadro c) =>
-        c.Polos == 1 && (c.TieneCarga || c.TieneDesglose || c.EsMotor || c.EsAireAcondicionado || c.Unidad != UnidadConsumo.VoltAmperes);
+    /// <summary>
+    /// El renglón crece solo si muestra una nota: el detalle de la clase, la placa, el tamaño del tubo o
+    /// los mm² — todas salen con carga. Antes crecía con solo tener una línea en el desplegable, aunque no
+    /// hubiera nada que mostrar (David, 2026-09-30: una calefacción en 0 VA).
+    /// </summary>
+    private static bool LlevaNotas(CircuitoDelCuadro c) => c.Polos == 1 && c.TieneCarga;
 
     private int Columnas => 15 + Datos.Barras.Count;
 

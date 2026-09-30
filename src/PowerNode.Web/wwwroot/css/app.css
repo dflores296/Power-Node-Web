@@ -972,6 +972,22 @@ polygon.riel-a { fill: var(--barra-a); } polygon.riel-b { fill: var(--barra-b); 
                             background: var(--fondo-suave); width: 120px; }
 .cuadro table.desglose th.izq { width: auto; }
 .cuadro table.desglose th:last-child { width: 40px; }
+/* ANCHOS FIJOS (David, 2026-09-30): cada columna mide lo mismo con cualquier tipo de carga, y la
+   descripción se queda con el resto, siempre igual. Con el ancho según el contenido, al cambiar de tipo
+   cambiaban los campos y la descripción se estiraba o se encogía. Cada ancho cabe su campo más ancho:
+   subtipo «Velocidad ajustable» con su «?», carga los HP con la corriente de placa, servicio
+   «Intermitente · 30-60 min». */
+.cuadro table.desglose { table-layout: fixed; }
+/* La celda que lo contiene no crece por él: con anchos fijos y 100 %, sin esto la tabla se iba a lo ancho. */
+.cuadro tr.fila-desglose > td:last-child { max-width: 0; }
+.cuadro table.desglose th[data-col="ap-tipo"] { width: 146px; }
+.cuadro table.desglose th[data-col="ap-subtipo"] { width: 204px; }
+.cuadro table.desglose th[data-col="ap-cant"] { width: 84px; }
+.cuadro table.desglose th[data-col="ap-unidad"] { width: 112px; }
+.cuadro table.desglose th[data-col="ap-carga"] { width: 272px; }
+.cuadro table.desglose th[data-col="ap-continua"] { width: 212px; }
+.cuadro table.desglose th[data-col="ap-fp"] { width: 96px; }
+.cuadro table.desglose th:nth-last-child(2) { width: 112px; }
 .cuadro table.desglose th:nth-last-child(2) { text-align: center; }
 .cuadro table.desglose td { padding: 5px 10px; border: 0; border-bottom: 1px solid var(--linea-suave);
                             background: none; text-align: center; }
@@ -997,7 +1013,7 @@ polygon.riel-a { fill: var(--barra-a); } polygon.riel-b { fill: var(--barra-b); 
 /* Una máquina del desglose (I-115, I-118): en lugar de la casilla «Continua», qué es. */
 .cuadro table.desglose .clase-motor { font-size: 11px; color: var(--tenue); white-space: nowrap; }
 /* Servicio del motor (430-22(e)) en su columna, y la corriente de placa junto a los HP (David, 2026-09-30). */
-.cuadro table.desglose select.servicio { width: 176px; }
+.cuadro table.desglose select.servicio { width: 188px; }
 .cuadro table.desglose select.servicio-carga { width: 128px; }
 .cuadro table.desglose select.servicio-carga:disabled { opacity: 1; color: var(--tenue); }
 .cuadro table.desglose input.placa-servicio { width: 72px; margin-left: 4px; }
