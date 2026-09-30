@@ -546,7 +546,8 @@ public sealed class CuadroDeCarga
     public ProteccionDeMotor ProteccionDelMotor(CircuitoDelCuadro c) =>
         CalculadoraCircuitoDerivadoMotor.ProteccionDeLaTabla430_52(
             new ProteccionEstandarDeLaSerie(_motor.ProteccionEstandar, Datos.SerieInterruptores),
-            c.FlcA * PorcentajeProteccionMotor(c) / 100m);
+            c.FlcA * PorcentajeProteccionMotor(c) / 100m,
+            c.NoArrancaConLaTabla ? c.FlcA : null);
 
     /// <summary>Hay equipos de A/C en el tablero: el grupo de motores del alimentador cita también 440-33.</summary>
     public bool TieneAireAcondicionado => _circuitos.Any(c => c.TieneCarga && c.EsAireAcondicionado);
@@ -1945,7 +1946,8 @@ public sealed class CuadroDeCarga
             PisoPracticoCalibreMm2: null,
             TipoAislamiento: Datos.TipoAislamiento,
             Lugar: Datos.Lugar,
-            TerminalesMarcadas75C: Datos.TerminalesMarcadas75C);
+            TerminalesMarcadas75C: Datos.TerminalesMarcadas75C,
+            NoArrancaConLaTabla: c.NoArrancaConLaTabla);
     }
 
     /// <summary>

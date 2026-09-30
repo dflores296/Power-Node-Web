@@ -118,6 +118,13 @@ public sealed class CircuitoDelCuadro
     /// <summary>A/C por corriente nominal: la protección al 175 % no aguanta el arranque; sube a 225 % — 440-22(a).</summary>
     public bool ArranqueAl225 { get; set; }
 
+    /// <summary>
+    /// Motor solo (HP o A): el proyectista declara que no arranca con la protección de la Tabla 430-52;
+    /// el interruptor puede subir hasta 400 % de la FLC (300 % arriba de 100 A) — 430-52(c)(1)
+    /// Excepción 2(3). Nunca se aplica sola (auditoría del 2026-09-29, P1-1).
+    /// </summary>
+    public bool NoArrancaConLaTabla { get; set; }
+
     /// <summary>A/C: qué trae la placa. Ver <see cref="PlacaDeAireAcondicionado"/>.</summary>
     public PlacaDeAireAcondicionado PlacaAire { get; set; } = PlacaDeAireAcondicionado.AmpacidadYProteccion;
 
@@ -211,6 +218,16 @@ public sealed class CircuitoDelCuadro
          // Un Motor o un A/C con cargas capturadas en el desplegable (con subtipo): sin máquinas, el grupo lo
          // dice («no tiene motores») en vez de ignorarlas. Las de otro tipo que traía de antes no cuentan.
          || (EsDeMotor && Cargas.Any(a => a.Subtipo is not null)));
+
+    /// <summary>
+    /// <b>Un motor solo, sin variador</b>: el del renglón (HP o A), o un grupo con un solo motor de
+    /// cantidad 1 y nada más, que se calcula como motor. A él le aplica la Excepción 2 de 430-52(c)(1).
+    /// </summary>
+    public bool EsMotorSolo =>
+        EsMotor && !EsVariador && (!EsGrupo
+            ? CapturaMotor is CapturaDeMotor.Hp or CapturaDeMotor.Amperes
+            : Cargas.Where(a => a.EsMaquina).ToList() is [{ Clase: ClaseDeAparato.Motor, Cantidad: 1 }]
+              && !Cargas.Any(a => !a.EsMaquina && a.TotalVA > 0m));
 
     /// <summary>El tipo de una de sus cargas: el de su subtipo, o el del circuito — I-123.</summary>
     public CategoriaDeCarga TipoDe(CargaDelCircuito carga) => carga.TipoEn(this);
@@ -779,6 +796,7 @@ public sealed class CircuitoDelCuadro
         Continua = 0m;
         NoContinua = 0m;
         Servicio = null;
+        NoArrancaConLaTabla = false;
         CapturaMotor = CapturaDeMotor.Hp;
         PlacaAire = PlacaDeAireAcondicionado.AmpacidadYProteccion;
         Cargas.Clear();

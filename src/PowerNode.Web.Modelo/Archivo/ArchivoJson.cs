@@ -102,6 +102,8 @@ public sealed class CircuitoJson
     public decimal? CorrientePlaca { get; set; }
     public decimal? CorrienteSeleccion { get; set; }
     public bool? ArranqueAl225 { get; set; }
+    // Formato 11 — P1-1: el motor no arranca con la Tabla 430-52 (430-52(c)(1) Excepción 2).
+    public bool? NoArrancaConLaTabla { get; set; }
     public PlacaDeAireAcondicionado? PlacaAire { get; set; }
     public decimal? AmpacidadMinima { get; set; }
     public decimal? ProteccionMaxima { get; set; }
@@ -136,6 +138,7 @@ public sealed class CircuitoJson
         CorrientePlaca = c.CorrientePlacaA == 0m ? null : c.CorrientePlacaA,
         CorrienteSeleccion = c.CorrienteSeleccionA,
         ArranqueAl225 = c.ArranqueAl225 ? true : null,
+        NoArrancaConLaTabla = c.NoArrancaConLaTabla ? true : null,
         PlacaAire = c.PlacaAire == PlacaDeAireAcondicionado.AmpacidadYProteccion ? null : c.PlacaAire,
         AmpacidadMinima = c.AmpacidadMinimaA == 0m ? null : c.AmpacidadMinimaA,
         ProteccionMaxima = c.ProteccionMaximaA == 0m ? null : c.ProteccionMaximaA,
@@ -183,6 +186,7 @@ public sealed class CircuitoJson
         c.CorrientePlacaA = CorrientePlaca is >= 0m ? CorrientePlaca.Value : c.CorrientePlacaA;
         c.CorrienteSeleccionA = CorrienteSeleccion is > 0m ? CorrienteSeleccion : null;
         c.ArranqueAl225 = ArranqueAl225 ?? c.ArranqueAl225;
+        c.NoArrancaConLaTabla = NoArrancaConLaTabla ?? c.NoArrancaConLaTabla;
         c.PlacaAire = PlacaAire ?? c.PlacaAire;
         c.AmpacidadMinimaA = AmpacidadMinima is >= 0m ? AmpacidadMinima.Value : c.AmpacidadMinimaA;
         c.ProteccionMaximaA = ProteccionMaxima is >= 0m ? ProteccionMaxima.Value : c.ProteccionMaximaA;

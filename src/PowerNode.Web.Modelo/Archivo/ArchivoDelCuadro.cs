@@ -42,7 +42,8 @@ public static class ArchivoDelCuadro
     /// alimentador, cada uno con su no continua en su línea; la 7 los leería sin ella. 9: el variador en el
     /// desplegable, con su protección máxima; la 8 lo perdería. 10: el nombre del equipo del renglón,
     /// aparte del del espacio; la 9 lo perdería. 11: el lugar seco, húmedo o mojado (auditoría del
-    /// 2026-09-29, P1-2); la 10 leería todo como seco.
+    /// 2026-09-29, P1-2), y el motor que no arranca con la Tabla 430-52 (P1-1); la 10 leería todo como
+    /// seco y perdería la Excepción 2.
     /// </summary>
     public const int Version = 11;
 

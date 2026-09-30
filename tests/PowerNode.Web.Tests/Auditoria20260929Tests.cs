@@ -141,6 +141,89 @@ public class Auditoria20260929Tests
         Assert.Contains(cuadro.Alimentador.Avisos, a => a.StartsWith("En riel DIN el interruptor más chico es de 16 A") && a.Contains("circuito 1 (15 A)"));
     }
 
+    /// <summary>
+    /// La Excepción 2 no se aplica sola: la declara el proyectista. 1 HP a 127 V en riel DIN: 32 A por
+    /// la tabla; declarado que no arranca, hasta 400 % × 14 A = 56 A → 50 A, el mayor de riel DIN que
+    /// no lo excede — 430-52(c)(1) Excepción 2(3).
+    /// </summary>
+    [Fact]
+    public void P1_1_LaExcepcion2SoloDeclarada()
+    {
+        var cuadro = Nuevo();
+        cuadro.Datos.SerieInterruptores = SerieDeInterruptores.RielDinIec;
+        var c = ConMotor(cuadro, 1, 1m, 1);
+        Assert.Equal(32m, c.Resultado!.ProteccionA);
+        Assert.DoesNotContain(c.Resultado.Citas, x => x.Referencia.Contains("Excepción 2"));
+
+        c.NoArrancaConLaTabla = true;
+        cuadro.Recalcular();
+
+        var p = cuadro.ProteccionDelMotor(c);
+        Assert.Equal(400m, p.PorcentajeExcepcion2);
+        Assert.Equal(56m, p.TechoExcepcion2A);
+        Assert.Equal(50m, c.Resultado!.ProteccionA);
+        Assert.Equal(p.SeleccionadaA, c.Resultado.ProteccionA);
+        Assert.Contains(c.Resultado.Citas, x => x.Referencia == "430-52(c)(1) Excepción 2");
+        Assert.Contains(cuadro.Desglose(c)!.Proteccion, l => l.Contains("Excepción 2(3)"));
+        var hoja = MemoriaDeCalculo.DeCircuito(cuadro, c);
+        Assert.Contains(hoja.Equipo!.Proteccion, f => f.Rotulo == "Protección seleccionada — 430-52(c)(1) Excepción 2(3)");
+
+        // Se guarda en el archivo y se abre igual.
+        var texto = PowerNode.Web.Modelo.Archivo.ArchivoDelCuadro.Guardar(cuadro, DateTimeOffset.Now);
+        var abierto = PowerNode.Web.Modelo.Archivo.ArchivoDelCuadro.Abrir(texto, Motor).Cuadro!;
+        Assert.Equal(50m, Espacio(abierto, 1).Resultado!.ProteccionA);
+    }
+
+    [Fact]
+    public void P1_1_LaExcepcion2TambienConElMotorCapturadoEnElDesplegable()
+    {
+        // Como se captura en la pantalla (I-128): el motor es la línea del desplegable, un grupo de un
+        // solo motor que se calcula como motor.
+        var cuadro = Nuevo();
+        cuadro.Datos.SerieInterruptores = SerieDeInterruptores.RielDinIec;
+        var c = Espacio(cuadro, 1);
+        c.Categoria = CategoriaDeCarga.Motor;
+        var motor = c.AgregarCarga();
+        motor.Subtipo = SubtipoDeCarga.MotorUsoGeneral;
+        motor.Hp = 1m;
+        cuadro.Recalcular();
+
+        Assert.True(c.EsGrupo);
+        Assert.True(c.EsMotorSolo);
+        Assert.Equal(32m, c.Resultado!.ProteccionA);
+
+        c.NoArrancaConLaTabla = true;
+        cuadro.Recalcular();
+        Assert.Equal(50m, c.Resultado!.ProteccionA);
+        Assert.Contains(cuadro.Desglose(c)!.Proteccion, l => l.Contains("Excepción 2(3)"));
+
+        // Con otra carga ya no es un motor solo: 430-53, sin Excepción 2.
+        var otra = c.AgregarCarga();
+        otra.Subtipo = SubtipoDeCarga.Luminarias;
+        otra.CargaUnitaria = 100m;
+        cuadro.Recalcular();
+        Assert.False(c.EsMotorSolo);
+    }
+
+    [Fact]
+    public void P1_1_LaExcepcion2ArribaDe100AEsAl300()
+    {
+        // 50 HP a 220 V: FLC 130 A (Tabla 430-250, col. 230 V), más de 100 A → 300 % = 390 A → 350 A.
+        // Por la tabla: 250 % = 325 A → 350 A (Excepción 1). La Excepción 2 no da nada mayor.
+        var cuadro = Nuevo();
+        var c = ConMotor(cuadro, 1, 50m, 3);
+        c.NoArrancaConLaTabla = true;
+        cuadro.Recalcular();
+
+        var p = cuadro.ProteccionDelMotor(c);
+        Assert.Equal(130m, c.FlcA);
+        Assert.Equal(300m, p.PorcentajeExcepcion2);
+        Assert.Equal(350m, p.ProteccionA);
+        Assert.False(p.UsaExcepcion2);
+        Assert.Equal(350m, c.Resultado!.ProteccionA);
+        Assert.Contains(c.Resultado.Citas, x => x.Referencia == "430-52(c)(1) Excepción 2" && x.Descripcion.Contains("Se queda 350 A"));
+    }
+
     // ---- P1-2 · Lugar seco, húmedo y mojado ------------------------------------------------------
 
     /// <summary>

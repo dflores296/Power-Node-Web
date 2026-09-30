@@ -59,7 +59,14 @@ public sealed record DatosEntradaCircuitoDerivadoMotor(
     /// 430-22(e) sobre la corriente de <b>placa</b>, no al 125 % de la FLC. La protección sigue en
     /// 430-52 con la FLC de tabla. <c>null</c> = servicio continuo (Power Node Web, I-120).
     /// </summary>
-    ServicioNoContinuo? Servicio = null)
+    ServicioNoContinuo? Servicio = null,
+
+    /// <summary>
+    /// <b>El motor no arranca con la protección de la Tabla 430-52</b> —ni con la de su Excepción 1—:
+    /// lo declara el proyectista, y entonces se aplica la Excepción 2 de 430-52(c)(1). Nunca sola
+    /// (Power Node Web, auditoría del 2026-09-29, P1-1).
+    /// </summary>
+    bool NoArrancaConLaTabla = false)
 {
     /// <summary>1 (monofásico o CD), 2 o 3 -- deriva de TipoAlimentacion, no se captura aparte.</summary>
     public int NumeroFases => TipoAlimentacion switch

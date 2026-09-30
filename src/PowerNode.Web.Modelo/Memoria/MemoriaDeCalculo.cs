@@ -126,7 +126,11 @@ public static class MemoriaDeCalculo
                     : new("Capacidad mínima del conductor — 430-22", $"125 % × {flc:N2} A = {1.25m * flc:N2} A"),
                 new("Protección máxima — Tabla 430-52", $"{porcentaje:0} % × {flc:N2} A = {flc * porcentaje / 100m:N2} A (interruptor automático de tiempo inverso)"),
                 // La Excepción 1 solo cuando hubo redondeo hacia arriba — auditoría del 2026-09-29, P1-1.
-                cuadro.ProteccionDelMotor(c) is var p && p.UsaExcepcion1
+                cuadro.ProteccionDelMotor(c) is var p && p.UsaExcepcion2
+                    ? new("Protección seleccionada — 430-52(c)(1) Excepción 2(3)",
+                        $"{r.ProteccionA:N0} A — el motor no arranca con {p.ProteccionA:N0} A (declarado): hasta {p.PorcentajeExcepcion2:0} % × {flc:N2} A = " +
+                        $"{p.TechoExcepcion2A:N2} A, el mayor tamaño que no lo excede")
+                    : p.UsaExcepcion1
                     ? new("Protección seleccionada — 430-52(c)(1) Excepción 1", $"{r.ProteccionA:N0} A, el valor inmediato superior: {p.TechoA:N2} A no es valor normalizado de 240-6(a)")
                     : new("Protección seleccionada — 430-52(c)(1)", $"{r.ProteccionA:N0} A — " + DesgloseDeSeleccion.LineaDeLaProteccion(p, cuadro.Datos.SerieInterruptores)),
             ],

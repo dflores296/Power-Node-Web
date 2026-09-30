@@ -121,14 +121,20 @@ public sealed record DesgloseDeSeleccion(IReadOnlyList<string> Proteccion, IRead
         IReadOnlyList<Cita> citas,
         string? servicio = null)
     {
-        var proteccionA = seleccion.ProteccionA;
+        var proteccionA = seleccion.SeleccionadaA;
         var proteccion = new List<string>
         {
             origenFlc,
             $"Máximo = {porcentaje:0} % × {flcA:N2} A = {seleccion.TechoA:N2} A, interruptor de tiempo inverso — Tabla 430-52",
-            $"Protección: {proteccionA:N0} A, " + LineaDeLaProteccion(seleccion, datos.SerieInterruptores),
-            "Sobrecarga del motor: relevador en el arrancador o protector del motor — 430-32",
+            $"{(seleccion.UsaExcepcion2 ? "Por la tabla" : "Protección")}: {seleccion.ProteccionA:N0} A, " + LineaDeLaProteccion(seleccion, datos.SerieInterruptores),
         };
+        // La Excepción 2, solo si la declaró el proyectista — P1-1.
+        if (seleccion.TechoExcepcion2A is { } techo2)
+            proteccion.Add(seleccion.UsaExcepcion2
+                ? $"Protección: {proteccionA:N0} A — no arranca con {seleccion.ProteccionA:N0} A: hasta {seleccion.PorcentajeExcepcion2:0} % × {flcA:N2} A = {techo2:N2} A, " +
+                  "el mayor tamaño que no lo excede — 430-52(c)(1) Excepción 2(3)"
+                : $"No arranca con {seleccion.ProteccionA:N0} A, pero ningún tamaño mayor queda sin exceder {seleccion.PorcentajeExcepcion2:0} % × {flcA:N2} A = {techo2:N2} A — 430-52(c)(1) Excepción 2(3)");
+        proteccion.Add("Sobrecarga del motor: relevador en el arrancador o protector del motor — 430-32");
 
         var conductor = LineasDelConductor(ampacidad, datos, proteccionA, calibre, conductoresPorFase, d);
         // Servicio no continuo (I-120): el % de la Tabla 430-22(e) sobre la placa, en lugar del 125 % de la FLC.

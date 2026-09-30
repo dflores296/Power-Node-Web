@@ -81,9 +81,15 @@ public class CalculadoraCircuitoDerivadoMotor(
         // la serie que se instala (Power Node Web, auditoría del 2026-09-29, P1-1).
         var porcentaje = proteccionMotor.PorcentajeMaximo(d.TipoMotor, d.TipoDispositivoProteccion);
         var techoProteccion = flc * porcentaje / 100m;
-        var proteccion = ProteccionDeLaTabla430_52(proteccionEstandar, techoProteccion);
-        var breaker = proteccion.ProteccionA;
+        //
+        // La Excepción 2 —el motor no arranca con ese valor— no se aplica sola: la declara el
+        // proyectista (P1-1 de la misma auditoría). Aquí, la del interruptor de tiempo inverso, 2(3).
+        var excepcion2 = d.NoArrancaConLaTabla && d.TipoDispositivoProteccion == TipoDispositivoProteccionMotor.InterruptorTiempoInverso;
+        var proteccion = ProteccionDeLaTabla430_52(proteccionEstandar, techoProteccion, excepcion2 ? flc : null);
+        var breaker = proteccion.SeleccionadaA;
         citas.Add(new Cita("430-52", $"Techo de protección: {porcentaje}% x {flc:0.##} A = {proteccion.Explicacion()}"));
+        if (proteccion.ExplicacionExcepcion2() is { } porExcepcion2)
+            citas.Add(new Cita("430-52(c)(1) Excepción 2", porExcepcion2));
 
         // 4. Temperatura de terminales -- 110-14(c)(1). Con equipo marcado 75 °C la columna depende
         // también del aislamiento, igual que en el circuito no-motor (M-06).
@@ -230,12 +236,30 @@ public class CalculadoraCircuitoDerivadoMotor(
     /// serie (35 → 40 en riel DIN) y se citaba la Excepción 1 aunque no hubiera redondeo.
     /// </para>
     /// </summary>
-    public static ProteccionDeMotor ProteccionDeLaTabla430_52(ITablaProteccionEstandar tabla, decimal techoA)
+    /// <param name="flcExcepcion2">
+    /// La FLC, si el proyectista declara que el motor no arranca con ese valor — Excepción 2(3), con
+    /// interruptor de tiempo inverso: se puede aumentar sin exceder 400 % de la FLC (300 % si la FLC
+    /// pasa de 100 A). Se toma el mayor tamaño de la serie que no lo excede, si es mayor que el de la
+    /// tabla. <c>null</c>: sin Excepción 2, que nunca se aplica sola.
+    /// </param>
+    public static ProteccionDeMotor ProteccionDeLaTabla430_52(ITablaProteccionEstandar tabla, decimal techoA, decimal? flcExcepcion2 = null)
     {
         var normalizado = tabla.ValoresDeLaNorma.Contains(techoA);
         var maximo = normalizado ? techoA : tabla.SiguienteDeLaNorma(techoA);
         var deLaSerie = tabla.AnteriorEstandar(maximo);
-        return new ProteccionDeMotor(techoA, maximo, deLaSerie ?? maximo, normalizado, FueraDeLaSerie: deLaSerie is null);
+        var p = new ProteccionDeMotor(techoA, maximo, deLaSerie ?? maximo, normalizado, FueraDeLaSerie: deLaSerie is null);
+        if (flcExcepcion2 is not { } flc)
+            return p;
+
+        var porcentaje = flc <= 100m ? 400m : 300m;
+        var techo2 = flc * porcentaje / 100m;
+        var mayor = tabla.AnteriorEstandar(techo2);
+        return p with
+        {
+            PorcentajeExcepcion2 = porcentaje,
+            TechoExcepcion2A = techo2,
+            ProteccionExcepcion2A = mayor is { } b && b > p.ProteccionA ? b : null,
+        };
     }
 
     /// <summary>
@@ -258,8 +282,27 @@ public class CalculadoraCircuitoDerivadoMotor(
 /// <param name="ProteccionA">El mayor tamaño de la serie que no excede el máximo.</param>
 /// <param name="TechoNormalizado">El techo es un valor de 240-6(a): la Excepción 1 no aplica.</param>
 /// <param name="FueraDeLaSerie">La serie no tiene un tamaño que no exceda el máximo; se usó el de 240-6(a).</param>
-public sealed record ProteccionDeMotor(decimal TechoA, decimal MaximoA, decimal ProteccionA, bool TechoNormalizado, bool FueraDeLaSerie)
+/// <param name="PorcentajeExcepcion2">Con la Excepción 2 declarada: 400 % (FLC ≤ 100 A) o 300 %.</param>
+/// <param name="TechoExcepcion2A">Con la Excepción 2 declarada: ese porcentaje × FLC.</param>
+/// <param name="ProteccionExcepcion2A">El mayor de la serie que no excede ese techo, si es mayor que <paramref name="ProteccionA"/>.</param>
+public sealed record ProteccionDeMotor(
+    decimal TechoA, decimal MaximoA, decimal ProteccionA, bool TechoNormalizado, bool FueraDeLaSerie,
+    decimal? PorcentajeExcepcion2 = null, decimal? TechoExcepcion2A = null, decimal? ProteccionExcepcion2A = null)
 {
+    /// <summary>La que se instala: la de la Excepción 2 si se declaró y alcanza un tamaño mayor; si no, la de la tabla.</summary>
+    public decimal SeleccionadaA => ProteccionExcepcion2A ?? ProteccionA;
+
+    /// <summary>Se declaró que el motor no arranca y hubo un tamaño mayor: la protección es de la Excepción 2.</summary>
+    public bool UsaExcepcion2 => ProteccionExcepcion2A is not null;
+
+    /// <summary>Lo que dice la cita de la Excepción 2; <c>null</c> si no se declaró.</summary>
+    public string? ExplicacionExcepcion2() => TechoExcepcion2A is not { } techo ? null
+        : UsaExcepcion2
+            ? $"El motor no arranca con {ProteccionA:0.##} A (declarado por el proyectista): el interruptor de tiempo inverso puede subir sin exceder " +
+              $"{PorcentajeExcepcion2:0}% de la FLC = {techo:0.##} A -> {ProteccionExcepcion2A:0.##} A, el mayor tamaño que no lo excede — 2(3)"
+            : $"Se declaró que el motor no arranca con {ProteccionA:0.##} A, pero ningún tamaño mayor de la serie queda sin exceder " +
+              $"{PorcentajeExcepcion2:0}% de la FLC = {techo:0.##} A — 2(3). Se queda {ProteccionA:0.##} A.";
+
     /// <summary>Hubo redondeo hacia arriba del techo: solo entonces se cita la Excepción 1.</summary>
     public bool UsaExcepcion1 => ProteccionA > TechoA;
 

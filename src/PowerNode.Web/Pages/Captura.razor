@@ -755,6 +755,13 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
                                                     <label class="arranque-225" title="Marcar si la protección con el 175 % del motocompresor mayor no conduce su corriente de arranque: sube a 225 % — 440-22(a), 440-22(b)(1).">
                                                         <input type="checkbox" aria-label="Circuito @c.Espacio · No arranca al 175 %" checked="@c.ArranqueAl225" @onchange="e => { c.ArranqueAl225 = e.Value is true; Recalcular(); }" />El motocompresor mayor no arranca al 175 %: 225 %</label>
                                                 }
+                                                @* EXCEPCIÓN 2 de 430-52(c)(1), solo declarada (auditoría del 2026-09-29, P1-1): la protección de la
+                                                   tabla ya no sube dentro de la serie, y si el motor no arranca con ella, lo dice el proyectista. *@
+                                                @if (c.EsMotorSolo)
+                                                {
+                                                    <label class="arranque-225" title="Marcar solo si el motor no arranca con la protección de la Tabla 430-52 (ni con la de su Excepción 1): el interruptor de tiempo inverso puede subir sin exceder 400 % de la FLC, o 300 % si la FLC pasa de 100 A — 430-52(c)(1) Excepción 2(3).">
+                                                        <input type="checkbox" aria-label="Circuito @c.Espacio · El motor no arranca con la Tabla 430-52" checked="@c.NoArrancaConLaTabla" @onchange="e => { c.NoArrancaConLaTabla = e.Value is true; Recalcular(); }" />No arranca con la Tabla 430-52: hasta @(c.FlcA > 100m ? "300" : "400") %</label>
+                                                }
                                                 @if (c.TieneCargasCombinadas)
                                                 {
                                                     <text>Combinadas: @string.Join(" · ", c.Porciones.Where(p => p.TotalVA > 0m).Select(p => $"{p.Tipo.Nombre()} {p.TotalVA:#,0}")) VA — cada una con su F.D. · </text>
