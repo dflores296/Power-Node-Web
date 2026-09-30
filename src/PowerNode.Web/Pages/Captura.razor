@@ -489,7 +489,7 @@ if (disponibles.Count == 0) { continue; }
 title="Capturar la corriente nominal de entrada del variador, de su placa. El conductor es 125 % de ella — 430-122(a); la FLC del motor no se usa." />
                                                         <input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="Máx." aria-label="Circuito @c.Espacio · Protección máxima del variador (A)" value="@Carga(c.ProteccionMaximaVariadorA)" @onchange="e => { c.ProteccionMaximaVariadorA = LeerCarga(e, c.ProteccionMaximaVariadorA); Recalcular(); }"
 title="Capturar la protección máxima que marca el fabricante del variador (fusible o interruptor). La del circuito no la excede — 110-3(b)." />
-                                                        <span class="nota-min">Entrada · Prot. máx. — 430-122(a), 110-3(b)</span>
+                                                        <span class="nota-min" title="Corriente de entrada del variador — 430-122(a); protección máxima de su fabricante — 110-3(b).">Entrada · Prot. máx.</span>
                                                     </td>
                                                 }
                                                 else if (c.EsMotor)

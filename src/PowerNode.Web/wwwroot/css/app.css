@@ -972,7 +972,7 @@ polygon.riel-a { fill: var(--barra-a); } polygon.riel-b { fill: var(--barra-b); 
                             background: var(--fondo-suave); width: 120px; }
 .cuadro table.desglose th.izq { width: auto; }
 .cuadro table.desglose th:last-child { width: 40px; }
-.cuadro table.desglose th:nth-last-child(2) { text-align: right; }
+.cuadro table.desglose th:nth-last-child(2) { text-align: center; }
 .cuadro table.desglose td { padding: 5px 10px; border: 0; border-bottom: 1px solid var(--linea-suave);
                             background: none; text-align: center; }
 /* Es una tabla y se ve como tabla (David, 2026-09-30): cada columna con su línea, como el renglón del
@@ -985,6 +985,10 @@ polygon.riel-a { fill: var(--barra-a); } polygon.riel-b { fill: var(--barra-b); 
 .cuadro table.desglose tbody tr:last-child td { border-bottom: 0; }
 .cuadro table.desglose td.izq, .cuadro table.desglose th.izq { text-align: left; }
 .cuadro table.desglose td.num { text-align: right; min-width: 90px; }
+.cuadro table.desglose tbody td.num { text-align: center; } /* Total (VA), centrada como las demás (David, 2026-09-30) */
+/* Los campos de cada línea, todos a la misma altura: la nota de abajo («mín. 180 VA», «Entrada · Prot.
+   máx.») cuelga debajo del campo sin empujarlo hacia arriba, como en el renglón del circuito. */
+.cuadro table.desglose tbody td { position: relative; padding-top: 14px; padding-bottom: 14px; }
 .cuadro table.desglose input.desc { width: 100%; }
 .cuadro table.desglose tfoot td { padding: 8px 10px; font-size: 11px; color: var(--tenue);
                                   border-top: 1px solid var(--linea); border-bottom: 0; }
@@ -997,7 +1001,7 @@ polygon.riel-a { fill: var(--barra-a); } polygon.riel-b { fill: var(--barra-b); 
 .cuadro table.desglose select.tipo { width: 122px; }
 .cuadro table.desglose select.subtipo { width: 160px; /* «Velocidad ajustable» completo */ padding: 2px 2px 2px 5px; border-radius: var(--radio-xs); }
 .cuadro table.desglose td.subtipo { white-space: nowrap; }
-.cuadro table.desglose .nota-min { display: block; font-size: 10px; color: var(--tenue); line-height: 1.2; margin-top: 2px; white-space: nowrap; }
+.cuadro table.desglose .nota-min { position: absolute; left: 0; right: 0; top: calc(50% + 16px); display: block; font-size: 10px; color: var(--tenue); line-height: 1.2; margin: 0; white-space: nowrap; text-align: center; }
 /* La clase del circuito bajo su descripción, y el tipo «Combinadas» (I-123). */
 .cuadro .en-va.clase { color: var(--acento); }
 /* LA CLASE DEL CIRCUITO Y LA CARGA, SOLO LECTURA (captura-en-el-desplegable.md): el renglón resume lo que
