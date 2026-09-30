@@ -43,6 +43,7 @@ Solo David confirma una decisión.
 | [`decisiones/tipos-de-carga.md`](decisiones/tipos-de-carga.md) | PROPUESTA · Claude · 2026-09-27 (David aceptó los tipos y contestó las cuatro preguntas; implementada) |
 | [`decisiones/motores-y-equipos-en-grupo.md`](decisiones/motores-y-equipos-en-grupo.md) | PROPUESTA · Claude · 2026-09-29 (David eligió el alcance y contestó tres preguntas) |
 | [`decisiones/cargas-y-clases-de-circuito.md`](decisiones/cargas-y-clases-de-circuito.md) | PROPUESTA · Claude · 2026-09-29 (el tipo es de la carga, la clase es del circuito; David contestó seis preguntas) |
+| [`decisiones/captura-en-el-desplegable.md`](decisiones/captura-en-el-desplegable.md) | PROPUESTA · Claude · 2026-09-30 (la carga se captura en el desplegable; el renglón solo resume; David contestó cuatro dudas) |
 | [`decisiones/documento-imprimible-en-vez-de-archivo.md`](decisiones/documento-imprimible-en-vez-de-archivo.md) | PROPUESTA · Claude · 2026-09-22 |
 
 ## `conocimiento/` — referencia técnica
