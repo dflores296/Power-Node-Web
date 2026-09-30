@@ -100,6 +100,11 @@ Llevar estos cambios a `PowerNode-DesignSuite`.
 | 2026-09-27 | `Casos/DatosEntradaCircuitoDerivadoMotor.cs`, `CalculadoraCircuitoDerivadoMotor.cs` | Agregar `FlcMarcadaEnAmperesA`: un motor marcado en amperes y no en HP entra con esa corriente como FLC —la de los HP que le corresponden en la tabla, interpolando— y cita 430-6(a)(1). `Hp` lleva los HP interpolados, solo para la cita. | No (por omisión) | I-74 |
 | 2026-09-29 | `Casos/SeleccionConductor.cs`, `CaidaTensionExcedidaException.cs` | El mensaje de caída inalcanzable dice «relajar el límite de caída de tensión», sin nombrar la pantalla «Configuración» del escritorio. | No | M-10 |
 | 2026-09-29 | `Casos/DatosEntradaCircuitoDerivadoMotor.cs`, `CalculadoraCircuitoDerivadoMotor.cs` | Agregar `Servicio` (`ServicioNoContinuo`): con él, el conductor va al porcentaje de la Tabla 430-22(e) sobre la corriente de placa y cita 430-22(e); la protección sigue en 430-52. | No (por omisión) | I-120 |
+| 2026-09-30 | `Casos/CalculadoraCircuitoDerivadoMotor.cs` (`ProteccionDeLaTabla430_52`, `ProteccionDeMotor`) | La Excepción 1 de 430-52(c)(1) se evalúa contra la lista de 240-6(a) (`ValoresDeLaNorma`), no contra la serie: máximo = techo si es normalizado, o el siguiente; de la serie, el mayor que no lo excede. La cita dice Excepción 1 solo si hubo redondeo. 250-122(d)(2) usa el mismo máximo. **Reportar al escritorio:** allá no hay serie, pero el texto de la cita dice «Excepción 1» aunque no redondee. | Sí: 35 → 32 A y 70 → 63 A en riel DIN; 16, 32 y 63 A de techo en NEMA | M-15 |
+| 2026-09-30 | `Casos/DatosEntradaCircuitoDerivadoMotor.cs`, `CalculadoraCircuitoDerivadoMotor.cs` | Agregar `NoArrancaConLaTabla`: la Excepción 2(3) de 430-52(c)(1), declarada —hasta 400 % de la FLC, 300 % arriba de 100 A, el mayor estándar que no lo excede—, con su cita. | No (por omisión) | M-15 |
+| 2026-09-30 | `Unidades/Enums.cs` (`LugarDeInstalacion`), `TablasNom/ITablaAislamiento.cs`, los `DatosEntrada*` y las calculadoras | `bool LugarInstalacionSeco` → `LugarDeInstalacion Lugar` (Seco, Húmedo, Mojado). **Reportar al escritorio:** «húmedo/mojado» tomaba la fila más caliente (XHHW mojado a 90 °C). | Sí, en mojado y húmedo | M-16 |
+| 2026-09-30 | `Normativa/TablaAislamientoJson.cs` (en escritorio: `Data/TablasNom`) | La columna de aplicaciones con su combinación de celdas; húmedo: fila de húmedos, si no la de mojados, si no la que tenga si 310-10(b) lo nombra; mojado: fila de mojados, si no la de húmedos si 310-10(c)(2) lo nombra. Las dos listas se leen del texto de 310-10(b) y (c)(2), que ahora viajan en el JSON. | Sí (ver M-16) | M-16 |
+| 2026-09-30 | `Casos/SeleccionConductor.cs` (`MenorConDatos`) | Un calibre sin R ni X en la Tabla 9 acota su caída con las del menor más cercano con datos, en vez de saltarlo como si fallara la caída. **Reportar al escritorio:** el salto subía la tierra por 250-122(b). | Sí: 900 kcmil ya no pasa a 1000 | M-17 |
 
 **Visto en el escritorio, sin cambio aquí (I-15):** `CalculadoraCircuitoDerivadoMotor` calcula la caída
 de un motor monofásico con `TensionFaseNeutroV`, también cuando el motor está entre fases (2 polos,
@@ -186,3 +191,12 @@ interruptor de este tablero que alimenta otro.
 | `Calculo/Casos/CalculadoraCircuitoDerivadoGrupo.cs` | Un variador cuenta como motor del grupo con su corriente de entrada (430-120, 430-122(a)). Si el mayor es un variador, el límite de 430-53(c)(4) toma su protección máxima en lugar del porcentaje de la Tabla 430-52; ningún variador admite más que la suya (430-53(c)(2)), y ese tope no se sube por 240-4(b): si no lleva la corriente del grupo, error. Sin variadores, idéntico. |
 
 El escritorio calcula un motor por circuito: no tiene grupo ni variador en grupo.
+
+### Puesta a tierra del equipo de acometida — M-18
+
+| Archivo | Qué es |
+|---|---|
+| `Calculo/TablasNom/ITablaElectrodoTierra.cs` | La interfaz de la Tabla 250-66. |
+| `Normativa/TablaElectrodoTierraJson.cs` | Su lector: los intervalos de la acometida en texto («Más de 85.0 a 177»), con 0.5 % de holgura por el redondeo. La tabla entra a `tablas-nom.json` con `tools/extraer_tablas.py` (21 tablas). |
+| `Calculo/Casos/PuestaTierraDeAcometida.cs` | El conductor del electrodo (250-66, 250-66(a)) y el puente de unión principal (250-28(d)(1)), por el mayor conductor de acometida o el área equivalente en paralelo. |
+

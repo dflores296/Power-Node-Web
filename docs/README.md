@@ -1,6 +1,6 @@
 # Índice de la documentación
 
-**Actualizado:** 2026-09-26.
+**Actualizado:** 2026-09-30.
 
 La portada del proyecto —qué es, para qué sirve, cómo se usa— es [`../README.md`](../README.md).
 Este índice dice qué hay en `docs/` y, sobre todo, **qué es estado vigente y qué es referencia**.
@@ -44,6 +44,9 @@ Solo David confirma una decisión.
 | [`decisiones/motores-y-equipos-en-grupo.md`](decisiones/motores-y-equipos-en-grupo.md) | PROPUESTA · Claude · 2026-09-29 (David eligió el alcance y contestó tres preguntas) |
 | [`decisiones/cargas-y-clases-de-circuito.md`](decisiones/cargas-y-clases-de-circuito.md) | PROPUESTA · Claude · 2026-09-29 (el tipo es de la carga, la clase es del circuito; David contestó seis preguntas) |
 | [`decisiones/captura-en-el-desplegable.md`](decisiones/captura-en-el-desplegable.md) | PROPUESTA · Claude · 2026-09-30 (la carga se captura en el desplegable; el renglón solo resume; David contestó cuatro dudas) |
+| [`decisiones/valores-por-omision-de-la-carga.md`](decisiones/valores-por-omision-de-la-carga.md) | PROPUESTA · Claude · 2026-09-30 (auditoría NOM P2-4 y riesgo 3; cambia la de F.P., por decidir) |
+| [`decisiones/factores-de-demanda-del-articulo-220.md`](decisiones/factores-de-demanda-del-articulo-220.md) | PROPUESTA · Claude · 2026-09-30 (auditoría NOM P3-1 y riesgo 2; cambia R-12, por decidir) |
+| [`decisiones/capacidad-interruptiva.md`](decisiones/capacidad-interruptiva.md) | PROPUESTA · Claude · 2026-09-30 (auditoría NOM P3-2; por decidir) |
 | [`decisiones/documento-imprimible-en-vez-de-archivo.md`](decisiones/documento-imprimible-en-vez-de-archivo.md) | PROPUESTA · Claude · 2026-09-22 |
 
 ## `conocimiento/` — referencia técnica

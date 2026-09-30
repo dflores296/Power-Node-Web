@@ -43,8 +43,12 @@ de cabecera»*. Falta que David la confirme.
 
 - **Guardado automático en el navegador** (`localStorage`): no se hizo. Varias pestañas
   compartirían el mismo almacén y se pisarían, y lo que vive solo en un navegador se pierde al borrar
-  sus datos. Si se quiere, la propuesta sería guardar una copia **por pestaña**
-  (`sessionStorage`), que sobrevive a una recarga pero no reemplaza al archivo.
+  sus datos. **La copia por pestaña (`sessionStorage`) sí se hizo** (2026-09-30, I-142, a pedido de la
+  auditoría NOM del 2026-09-29): lo que no está en un archivo se copia en la pestaña y se recupera al
+  recargarla, con aviso; sigue sin guardar, así que al cerrar el navegador pregunta. No reemplaza al
+  archivo: se pierde al cerrar la pestaña.
+- **Preguntar con `window.confirm`**: se cambió por un diálogo dentro de la página (I-142). El nativo
+  detiene la página hasta que se contesta, y una herramienta que no lo ve la toma por congelada.
 - **Varios tableros dentro de la aplicación**: ver arriba, alcance de v1.
 
 ## Para cambiar el formato después

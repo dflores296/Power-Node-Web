@@ -51,7 +51,7 @@ abiertos, uno por pestaña. Todo se queda en el navegador: no hay cuenta ni serv
 
 ## Datos
 
-Las 18 tablas que usa el cálculo se extraen de
+Las 21 tablas (y tres secciones de texto: 240-6(a) y 310-10(b) y (c)(2)) que usa el cálculo se extraen de
 [NOM-001-SEDE-2012](https://github.com/dflores296/NOM-001-SEDE-2012), donde están contrastadas
 celda por celda contra el PDF del DOF. **La integración continua clona ese repositorio en cada
 compilación** y falla si la copia de aquí se despegó (`tools/extraer_tablas.py --check`).

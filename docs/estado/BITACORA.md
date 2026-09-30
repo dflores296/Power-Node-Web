@@ -2,6 +2,37 @@
 
 Registro de acciones por sesión, con hallazgo y commit.
 
+## 2026-09-30 (segunda parte)
+
+**Auditoría NOM-001-SEDE-2012 del 2026-09-29** (caja negra contra `55c120b`). Cada hallazgo, primero con
+su prueba o en el navegador; donde la causa o la norma resultaron otras, se dice en `HALLAZGOS.md`.
+
+- P1-1: la Excepción 1 de 430-52(c)(1) contra 240-6(a), no contra la serie (riel DIN: 35 → 32 A, 70 →
+  63 A); se cita solo con redondeo — M-15, `8b4d893`. La Excepción 2(3), solo declarada — M-15, `60a4f91`.
+- P1-2: lugar seco, húmedo y mojado; temperatura de la Tabla 310-104(a), permiso de 310-10(b) y (c)(2)
+  (THWN, THW-2 y THWN-2 sí van en mojado; RHH, XHH y THHN no); formato 11 — M-16, `a3fded5`.
+- P2-2: un calibre sin R ni X en la Tabla 9 se acota con el menor con datos (900 kcmil se queda, tierra
+  de 2 AWG) — M-17, `751b3a1`.
+- P1-3: no había ciclo; era `window.confirm` sin contestar. Pregunta dentro de la página y copia del
+  tablero en la pestaña — I-142, `87b5856`.
+- P2-1: 3F-3H sin circuitos de 1 polo ni tensión F-N — I-143, `443b8cb`.
+- P2-3: fuera de rango, la casilla regresa al valor vigente aunque el valor llegue sin foco; mínimos de
+  longitud y carga — I-144, `3a5c708`.
+- «Lo que ya cumple»: 21 casos como regresión, con los números de la auditoría — `2084aae`.
+- P3-4 y riesgo 6: ICFT de 210-8 en baño y cocina; contactos a 277 V (210-6) — I-145, I-146, `c2ba046`.
+  210-12 (ICFA) es «se podrán» en la NOM: no se agrega.
+- Riesgos 1, 4 y 5: aviso en el renglón; tierra en paralelo «3 × …»; «Corriente de carga» y
+  «Capacidad mínima» del alimentador — I-147, `0e73a84`.
+- Riesgo 7: la pantalla de carga dice cuánto falta — I-148, `31831fb`.
+- P3-3: conductor del electrodo (Tabla 250-66) y puente de unión principal (250-28(d)(1)) del equipo
+  de acometida; la Tabla 250-66 entra al JSON (21 tablas) — M-18, `a600dc9`.
+- Propuestas, por decidir (David): F.P. y continuidad por omisión según el subtipo (P2-4, riesgo 3) —
+  I-149, I-153, `valores-por-omision-de-la-carga.md`; factores de demanda del Art. 220 como sugerencia
+  (P3-1, riesgo 2) — I-150, `factores-de-demanda-del-articulo-220.md`; capacidad interruptiva (P3-2) —
+  I-151, `capacidad-interruptiva.md`; descarga más ligera (riesgo 7) — I-152.
+
+Pruebas: 450 en `PowerNode.Web.Tests`, 52 en `PowerNode.Normativa.Tests`.
+
 ## 2026-09-30
 
 **La carga se captura en el desplegable** (David: «el desplegable es la fuente de verdad»; aprobó la

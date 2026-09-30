@@ -15,17 +15,18 @@ Ejecutar en el navegador (Blazor WebAssembly), sin servidor, publicado en GitHub
 | Frente | Avance | Pendiente |
 |---|---|---|
 | Motor | 100 % | Llevar al escritorio los cambios listados en [`../conocimiento/motor-copiado.md`](../conocimiento/motor-copiado.md). |
-| Interfaz | ~90 % | Auditoría del 2026-09-28 en [`HALLAZGOS.md`](HALLAZGOS.md): cerrada (David, 2026-09-29). Puntos de David: I-99 a I-112 hechos. Motores y A/C contra la norma: las cinco fases hechas (M-12, M-13, I-113 a I-122); falta que David las revise y confirme [`../decisiones/motores-y-equipos-en-grupo.md`](../decisiones/motores-y-equipos-en-grupo.md). **Cargas y clases de circuito: las cinco fases hechas** — el tipo es de cada carga, la clase del circuito sale de sus cargas, otro tablero es alimentador, reglas por clase y mínimo por superficie (I-123 a I-127, M-14); falta que David la revise y confirme — [`../decisiones/cargas-y-clases-de-circuito.md`](../decisiones/cargas-y-clases-de-circuito.md), commits en [`../conocimiento/trazabilidad-cargas-y-circuitos.md`](../conocimiento/trazabilidad-cargas-y-circuitos.md). **La carga se captura solo en el desplegable; el renglón resume y dice la clase** (I-128) — falta que David la marque CONFIRMADA: [`../decisiones/captura-en-el-desplegable.md`](../decisiones/captura-en-el-desplegable.md). Después: ejercicios de cálculo (derivados, alimentadores, motores) y la rapidez de captura. Pendiente hasta un caso real: servicio no continuo por motor en un grupo, 430-24 Excepción 1 (I-136, con su propuesta en [`HALLAZGOS.md`](HALLAZGOS.md)). Confirmar las propuestas de motores (I-15) y de los seis tipos de carga (I-74). Modelar centros de carga de una barra por lado. |
+| Interfaz | ~90 % | **Auditoría NOM del 2026-09-29** ([`HALLAZGOS.md`](HALLAZGOS.md), M-15 a M-18, I-142 a I-153): P1 y P2 cerrados salvo P2-4; P3-3, P3-4 y los riesgos 1, 4, 5, 6 y 7 cerrados. Por decidir (David): F.P. y continuidad por omisión (I-149, I-153), factores de demanda del Art. 220 (I-150), capacidad interruptiva (I-151), descarga más ligera (I-152). Falta probar lo que la auditoría dejó para después: 1F-2H y 1F-3H, carga tipo Tablero, PVC y otras canalizaciones, vivienda y comercio completos (220-56), varios A/A en un alimentador (440-33), «NOM completa», multiconductor / tierra común / desnuda / azotea, regímenes de servicio de motores. Auditoría del 2026-09-28: cerrada (David, 2026-09-29). Puntos de David: I-99 a I-112 hechos. Motores y A/C contra la norma: las cinco fases hechas (M-12, M-13, I-113 a I-122); falta que David las revise y confirme [`../decisiones/motores-y-equipos-en-grupo.md`](../decisiones/motores-y-equipos-en-grupo.md). **Cargas y clases de circuito: las cinco fases hechas** — el tipo es de cada carga, la clase del circuito sale de sus cargas, otro tablero es alimentador, reglas por clase y mínimo por superficie (I-123 a I-127, M-14); falta que David la revise y confirme — [`../decisiones/cargas-y-clases-de-circuito.md`](../decisiones/cargas-y-clases-de-circuito.md), commits en [`../conocimiento/trazabilidad-cargas-y-circuitos.md`](../conocimiento/trazabilidad-cargas-y-circuitos.md). **La carga se captura solo en el desplegable; el renglón resume y dice la clase** (I-128) — falta que David la marque CONFIRMADA: [`../decisiones/captura-en-el-desplegable.md`](../decisiones/captura-en-el-desplegable.md). Después: ejercicios de cálculo (derivados, alimentadores, motores) y la rapidez de captura. Pendiente hasta un caso real: servicio no continuo por motor en un grupo, 430-24 Excepción 1 (I-136, con su propuesta en [`HALLAZGOS.md`](HALLAZGOS.md)). Confirmar las propuestas de motores (I-15) y de los seis tipos de carga (I-74). Modelar centros de carga de una barra por lado. |
 | Publicación | 100 % | — |
 
 ## Motor
 
 - Copiar `Calculo` y `Domain` de `PowerNode-DesignSuite` (commit `29f660f`), sin `Data`, EF Core ni
   SQL Server.
-- Leer 19 tablas de la NOM desde JSON (78 KB) — `PowerNode.DesignSuite.Normativa`.
+- Leer 21 tablas y 3 secciones de la NOM desde JSON (81 KB) — `PowerNode.DesignSuite.Normativa`. Lugar seco,
+  húmedo o mojado con 310-10(b) y (c)(2) (M-16); Tabla 250-66 (M-18).
 - Canalizaciones (nacido en la web): portadores, ajuste por tipo de canalización y tamaño —
   `Calculo/Canalizaciones/`. Charola, en una segunda entrega.
-- Pruebas: 23 en `PowerNode.Normativa.Tests`.
+- Pruebas: 52 en `PowerNode.Normativa.Tests`.
 
 ## Interfaz
 
@@ -56,7 +57,8 @@ Ejecutar en el navegador (Blazor WebAssembly), sin servidor, publicado en GitHub
 - Canalizaciones: cada circuito con carga nace en su tubo (T1, T2…, EMT); agrupar en la columna
   «Canal.»; configurar nombre, tipo, opciones y tamaño en la tarjeta «Canalizaciones». El diámetro del
   fabricante de un aislamiento fuera de la Tabla 5 (THHW-LS, THW-LS, USE), en «Condiciones de cálculo» — I-98.
-- Pruebas: 399 en `PowerNode.Web.Tests` (20 del documento de pruebas del 2026-09-23).
+- Pruebas: 450 en `PowerNode.Web.Tests` (20 del documento de pruebas del 2026-09-23; 30 de la auditoría NOM
+  del 2026-09-29 y 21 de su «Lo que ya cumple»).
 
 Requisitos con su referencia NOM y su prueba: [`../conocimiento/requisitos.md`](../conocimiento/requisitos.md).
 
@@ -76,3 +78,6 @@ Requisitos con su referencia NOM y su prueba: [`../conocimiento/requisitos.md`](
 | Motores en HP: qué se fija y cómo entran al alimentador | [`../decisiones/motores-art-430.md`](../decisiones/motores-art-430.md) |
 | Seis tipos de carga: Motor (430) y A/C y refrigeración (440) — contestada, por confirmar | [`../decisiones/tipos-de-carga.md`](../decisiones/tipos-de-carga.md) |
 | Motores, A/C y aparatos con motor en grupo — contestada, por confirmar | [`../decisiones/motores-y-equipos-en-grupo.md`](../decisiones/motores-y-equipos-en-grupo.md) |
+| F.P. y continuidad por omisión según el subtipo — auditoría P2-4 y riesgo 3 | [`../decisiones/valores-por-omision-de-la-carga.md`](../decisiones/valores-por-omision-de-la-carga.md) |
+| Factores de demanda del Art. 220: sugerir, sin quitar el criterio — auditoría P3-1 y riesgo 2 | [`../decisiones/factores-de-demanda-del-articulo-220.md`](../decisiones/factores-de-demanda-del-articulo-220.md) |
+| Capacidad interruptiva contra la falla disponible — auditoría P3-2 | [`../decisiones/capacidad-interruptiva.md`](../decisiones/capacidad-interruptiva.md) |

@@ -167,7 +167,23 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-139 · Campos que dependen de otro visibles aunque no apliquen | P3 | **Cerrado** | `4aa48e3` |
 | I-140 · El renglón crece sin notas; la descripción del desplegable cambia de ancho con el tipo | P3 | **Cerrado** | `8203883` |
 | I-141 · La cantidad sin flechas de subir y bajar | P3 | **Cerrado** | `a44533b` |
+| I-142 · «Congelamiento» al reducir espacios o fases: la pregunta era un `window.confirm` que detiene la página; sin copia del tablero | P1 | **Cerrado** | `87b5856` |
+| I-143 · 3F-3H calcula un circuito de 1 polo, sin neutro con qué regresar; «Tensión F-N» en un sistema sin neutro | P2 | **Cerrado** | `443b8cb` |
+| I-144 · Un número fuera de rango escrito sin foco se queda en la casilla y el cálculo usa otro; longitud y carga negativas | P2 | **Cerrado** | `3a5c708` |
+| I-145 · Sin la protección ICFT de 210-8 en los contactos de baño y cocina | P3 | **Cerrado** | `c2ba046` |
+| I-146 · Contactos a 277 V sin nota — 210-6(c)(6) | P3 | **Cerrado** | `c2ba046` |
+| I-147 · Avisos del circuito solo al pie y en la memoria; tierra en paralelo sin «× n»; «Corriente de diseño» sin el 125 % | P3 | **Cerrado** | `0e73a84` |
+| I-148 · Primera carga de minutos sin saber cuánto falta | P3 | **Cerrado** (la estimación; la descarga, en I-152) | `31831fb` |
+| I-149 · F.P. de 0.90 por omisión en cargas resistivas: +11 % de corriente | P2 | Propuesta, por decidir (David) | — |
+| I-150 · Factores de demanda del Art. 220 sin sugerencia; F.D. manual sin referencia a la tabla | P3 | Propuesta, por decidir (David) | — |
+| I-151 · Sin capacidad interruptiva ni corriente de falla — 110-9, 110-10 | P3 | Propuesta, por decidir (David) | — |
+| I-152 · Descarga de 9.9 MB sin comprimir en GitHub Pages | P3 | Propuesta, abajo | — |
+| I-153 · Alumbrado «no continuo» por omisión fuera de vivienda | P3 | Propuesta, por decidir (David) | — |
 | M-14 · Sin el mínimo de alumbrado general por superficie (220-12) en el alimentador; en vivienda, contactos de uso general sumados aparte (220-14(j)) | P1 | **Cerrado** | `71abc56` |
+| M-15 · Motor: la Excepción 1 de 430-52(c)(1) redondeaba dentro de la serie (35 → 40 A en riel DIN) y se citaba sin redondeo; sin Excepción 2 | P1 | **Cerrado** | `8b4d893`, `60a4f91` |
+| M-16 · «Húmedo o mojado» en una opción: XHHW mojado a 90 °C (conductor de menos); RHH y XHH aceptados en mojado | P1 | **Cerrado** | `a3fded5` |
+| M-17 · Un calibre sin R ni X en la Tabla 9 se contaba como si fallara la caída, y subía la tierra | P2 | **Cerrado** | `751b3a1` |
+| M-18 · Equipo de acometida sin conductor del electrodo (Tabla 250-66) ni puente de unión principal (250-28(d)(1)) | P3 | **Cerrado** | `a600dc9` |
 | R-01 · Caída del alimentador fija en 5 %, sin verificar la combinada — 215-2(a)(4) NOTA 2 | P1 | **Cerrado** | `2a973ea` |
 | R-02 · Caída del alimentador sin la caída del neutro | P2 | **Cerrado** | `d6cd1c6` |
 | R-03 · La publicación no corre `PowerNode.Web.Tests` | P1 | **Cerrado** | `986c9d7` |
@@ -533,7 +549,121 @@ Propuesta para cuando se haga:
 
 **M-14** — Hecho: 220-12 fija la carga **mínima** de alumbrado general por m² (Tabla 220-12: oficinas 39 VA/m², vivienda 33, bodegas 3…) y 210-11(b) pide que el tablero la sirva; el alimentador solo suma lo capturado. Una oficina de 200 m² con 200 VA de LED pide 7,800 VA. En vivienda, 220-14(j) incluye los contactos de uso general en los 33 VA/m²; hoy se suman aparte. En oficinas y bancos, contactos = el mayor entre 180 VA por contacto y 11 VA/m² (220-14(k)). Cerrado en `71abc56`: Tabla 220-12 extraída del repo de la norma; área servida y uso del local en los datos; el alimentador no baja de área × VA/m² (continuo fuera de vivienda); en vivienda, los contactos de uso general van dentro (220-14(j)); en bancos y oficinas, 11 VA/m² de contactos (220-14(k)). Pruebas: `M14_…` (4), `Tabla220_12_…`; en el navegador, 200 m² de oficinas: 7.6 + 2.2 kVA.
 
-### Revisión del 2026-09-23
+### Auditoría NOM del 2026-09-29
+
+Caja negra contra `55c120b` (la publicada), recalculada a mano con la NOM; entregada como
+`auditoria-power-node-2026-09-29.md`. Cada hallazgo se reprodujo primero con una prueba
+(`Auditoria20260929Tests`) o en el navegador (Playwright contra `http://127.0.0.1:5199`); los 26 casos
+de «Lo que ya cumple» con datos completos, en `RegresionAuditoria20260929Tests` (`2084aae`). Donde la
+causa o la norma resultaron otras que las de la auditoría, se dice.
+
+**M-15** (P1-1) — Hecho: en riel DIN, un motor de 1 HP a 127 V (FLC 14 A, techo 35 A) y uno de 10 HP a
+220 V (28 A, techo 70 A) salían con 40 y 80 A: `SiguienteEstandar` redondeaba dentro de la serie. 35 y
+70 A ya son valores de 240-6(a): la Excepción 1 no aplica. La memoria citaba la Excepción 1 aun en «70 A
+→ 70 A». Corrección (`8b4d893`): máximo = techo si es normalizado, o el siguiente de 240-6(a) si no; de
+la serie, el mayor que no lo excede (32 y 63 A); la Excepción 1 solo se cita con redondeo. Arriba de la
+serie (DIN > 125 A) se usa la NOM; abajo (máximo de 15 A), 15 A de la NOM con aviso. Afecta también a
+NEMA cuando el techo es 16, 32 o 63 A. La Excepción 2(3) —hasta 400 % (300 % arriba de 100 A)— es una
+casilla del motor, nunca automática (`60a4f91`). A/A (440-22(a)), grupos (430-53(c)(4)) y variador ya
+tomaban «el mayor que no excede»; 430-62(a) hereda la protección corregida. Referencia: 430-52(c)(1) y
+sus Excepciones 1 y 2, Tabla 430-52, 240-6(a). Prueba: `P1_1_…` (10).
+
+**M-16** (P1-2) — Hecho: «Húmedo o mojado» era una opción y tomaba la fila más caliente de la Tabla
+310-104(a): XHHW en mojado a 90 °C; 29 A a 45 °C quedaba en 10 AWG en vez de 8. Corrección (`a3fded5`):
+Seco / Húmedo / Mojado en el motor (`LugarDeInstalacion`) y en la pantalla; la temperatura, de la fila
+de ese lugar (con la combinación de celdas: RHW-2 hereda «secos y mojados»); el permiso, de 310-10(b) y
+310-10(c)(2), que ahora se extraen del repo de la norma. **Diferencia con la auditoría:** la tabla
+publica THWN, THW-2 y THWN-2 solo para «secos y húmedos», pero **310-10(c)(2) los nombra para lugares
+mojados**: se siguen permitiendo (75, 90 y 90 °C). RHH, XHH y THHN no están ahí y se bloquean. 310-10(b)
+nombra a THHN para húmedos (90 °C). Archivo formato 11: «húmedo o mojado» abre como mojado, con aviso. La
+ayuda del campo cita la definición de lugar mojado del Art. 100 y 300-5(b), 300-9. Pruebas:
+`Tabla310_104a_SecoHumedoYMojado` (20), `P1_2_…` (6).
+
+**I-142** (P1-3) — Hecho: los cuatro «congelamientos» (Espacios 24 → 6 con un tripolar en 7-9-11, 24 → 12
+con uno en 13-15-17 o un monopolar en el 15, Fases 3 → 1 con un bipolar) **no eran un ciclo**: cada uno
+abría `window.confirm`, que detiene la página hasta que se contesta; quien no ve el diálogo nativo (la
+herramienta de la auditoría) ve la pestaña congelada. Contestado, el cambio tardaba 84 ms. El tablero
+vacío no pregunta: por eso el control funcionaba. Corrección (`87b5856`): la pregunta es un `<dialog>`
+dentro de la página (el botón dice la acción, el foco en Cancelar, Esc cancela), también al abrir un
+archivo con cambios; lo que no está en un archivo se copia en `sessionStorage` de la pestaña y se
+recupera al recargar (la alternativa que dejó escrita `archivo-del-tablero.md`). Prueba:
+`P1_3_…` (4); en el navegador, los casos (c) y (d): diálogo en 76–92 ms, Cancelar, Esc, Aceptar, y la
+copia recuperada tras recargar.
+
+**I-143** (P2-1) — Hecho: en 3F-3H, 500 VA en 1 polo se calculaban a 220 V con fase y tierra; el
+encabezado decía «Tensión F-N 220.0 V». Corrección (`443b8cb`): error en el renglón —la carga va entre
+fases—; sin tensión F-N en la captura ni en el documento. Prueba: `P2_1_…`.
+
+**M-17** (P2-2) — Hecho: 150 kVA a 220 V (393.65 A, 500 A) pedía 900 kcmil por ampacidad; la Tabla 9 no
+trae 700, 800 ni 900 kcmil y se saltaba a 1000 citando «la caída excedía 3 %»; 250-122(b) subía la
+tierra de 2 a 1 AWG. **Diferencia con la auditoría:** pedía no aplicar 250-122(b) cuando el aumento no
+fue por caída, pero **la NOM no lo limita a la caída** («cuando se incrementa el tamaño de los
+conductores de fase»). Corrección (`751b3a1`): la caída de un calibre sin datos se acota con la R y la X
+del menor más cercano que sí las trae (dan más caída): 900 kcmil cumple con las de 750 y se queda, con
+tierra de 2 AWG. Si la cota no cumple, sube y lo dice. La memoria imprime la R y la X usadas y de dónde
+salen. La alternativa de capturar R y X del fabricante no se hizo. Prueba: `P2_2_…`.
+
+**I-144** (P2-3) — Hecho: longitud −10 m (caída −0.58 %), F.P. 1.5 o 0 (la casilla lo decía y el cálculo
+seguía en 0.90), carga −500 VA («Total −500») y F.D. 1.5 aceptados sin aviso. **La causa:** el filtro de
+`teclado.js` (I-77, I-80, I-82) regresaba la casilla al valor que tenía al recibir el foco; escrito sin
+foco no tenía a dónde, y la página no ponía mínimo a la longitud ni a las cargas. Corrección
+(`3a5c708`): la página rechaza fuera de rango (longitud > 0, cargas ≥ 0, F.P. 0.1–1, F.D. 0.01–1) y
+regresa la casilla al valor vigente con su aviso (`powerNode.regresarUltimo`). Prueba: en el navegador,
+los siete valores de la auditoría escritos sin foco, y con foco.
+
+**I-145** (P3-4) — Hecho: la app no dice que los contactos de baño y cocina requieren ICFT. Corrección
+(`c2ba046`): regla del circuito —desglose, memoria y «ICFT» junto a la clase— para el baño (210-8(a)(1)
+en vivienda, (b)(1) fuera) y la cubierta del mueble de cocina en vivienda (210-8(a)(6)), con la
+excepción de vivienda popular. **Diferencia con la auditoría:** pedía también 210-12 (ICFA); en la
+NOM-001-SEDE-2012 es «se **podrán** proteger», no una obligación, y no se agrega. La lavadora no está en
+210-8(a). Prueba: `P3_4_…` (4).
+
+**I-146** (riesgo 6) — Contactos de 1 polo a 277 V: nota de 210-6(c)(6) fuera de vivienda; en vivienda,
+aviso de 210-6(a)(2). `c2ba046`. Prueba: `R6_…` (2).
+
+**I-147** (riesgos 1, 4 y 5) — Los avisos del circuito (210-23, Tabla 210-21(b)(3), 422-11(e), caída
+combinada, 440-62) estaban en la tarjeta «Avisos», al pie, y en la memoria: ahora también un indicador en
+el renglón con el texto al pasar el cursor. La tierra de un alimentador en paralelo dice «3 × 300 kcmil,
+uno por canalización» (250-122(f)). «Corriente de diseño» del alimentador pasa a «Corriente de carga»,
+con la capacidad mínima en su renglón. `0e73a84`. Prueba: `R1_…`; en el navegador.
+
+**I-148** (riesgo 7) — La primera carga tardó de 3 a 4.5 min en la conexión de la auditoría. La pantalla
+de carga dice cuánto falta pasados 6 s y que la primera vez se descargan unos 3 MB. `31831fb`. Probado
+con la red limitada a ~3 Mbps. Reducir la descarga, en I-152.
+
+**M-18** (P3-3) — Hecho: con «Equipo de acometida» sale 230-79 pero no el conductor del electrodo ni el
+puente de unión principal. Corrección (`a600dc9`): con los conductores del alimentador —los de entrada a
+la acometida—, el conductor del electrodo por la Tabla 250-66 (área equivalente en paralelo; nota de
+250-66(a)) y el puente de unión principal por 250-28(d)(1) (la tabla, o 12.5 % arriba de 1100 kcmil de
+cobre). La Tabla 250-66 entra a `tablas-nom.json` (21 tablas). En la tarjeta del alimentador, el
+documento y la sección 9 de la memoria. Pruebas: `Tabla250_66_…` (8), `P3_3_…`.
+
+**I-149** (P2-4) — F.P. inicial 1.00 en calentador, cocción, secadora, calefacción por resistencia y
+«otra carga» en W. Contradice «0.9 para todo» (CONFIRMADA · David · 2026-09-23): propuesta en
+[`../decisiones/valores-por-omision-de-la-carga.md`](../decisiones/valores-por-omision-de-la-carga.md).
+Estufa de 12 kW: hoy 13 333 VA, 60.61 A, 70 A, 4 AWG; con 1.00, 54.55 A, 60 A, 6 AWG (verificado en el
+modelo).
+
+**I-150** (P3-1, riesgo 2) — F.D. del Art. 220 automáticos. Contradice R-12 (a criterio, sin
+automatizar); además, 220-44, 220-53, 220-55 y 220-56 dicen «se permite» y 430-26 no pide autorización
+(eso es del NEC). Propuesta: sugerir el de la tabla con un botón y avisar cuando el manual queda abajo —
+[`../decisiones/factores-de-demanda-del-articulo-220.md`](../decisiones/factores-de-demanda-del-articulo-220.md).
+
+**I-151** (P3-2) — Capacidad interruptiva y corriente de falla (110-9, 110-10). Capturas nuevas y roza el
+alcance: propuesta en [`../decisiones/capacidad-interruptiva.md`](../decisiones/capacidad-interruptiva.md).
+
+**I-152** (riesgo 7) — Publicado en Release: 9.9 MB sin comprimir en `_framework` (3.1 MB en Brotli, 4.0
+en gzip); lo más grande, `dotnet.native.wasm` (2.7 MB), `System.Private.CoreLib` (1.5 MB) y los datos de
+ICU (0.55–1.1 MB según el idioma del navegador). No se pudo medir si GitHub Pages comprime los `.wasm`
+(el entorno no llega a github.io). Propuesta: (1) servir los `.br` que ya genera la publicación con
+`loadBootResource` y el decodificador de Brotli, el camino documentado para hospedajes sin compresión;
+(2) `InvariantGlobalization` para no bajar ICU — cambia la cultura de toda la app (formatos, orden de
+cadenas) y pide revisarla. Por decidir.
+
+**I-153** (riesgo 3) — Luminarias «continua» por omisión fuera de vivienda: en la misma propuesta que
+I-149.
+
+
 
 Validada contra el texto de la NOM (`NOM-001-SEDE-2012/data/corpus.json`), el código y el caso base
 de tres aparatos.
