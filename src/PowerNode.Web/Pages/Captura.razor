@@ -38,7 +38,11 @@
         <label>Frecuencia (Hz) <input data-requerido type="text" inputmode="decimal" autocomplete="off" data-numero min="@DatosDelTablero.FrecuenciaMinimaHz" step="10" @bind="Datos.FrecuenciaHz" @bind:culture="CultureInfo.InvariantCulture" /></label>
         <p class="derivado">
             @Datos.EtiquetaSistema ·
-            Tensión F-N <strong>@Datos.TensionFaseNeutroV.ToString("N1") V</strong> ·
+            @* Sin neutro (3F-3H) no hay tensión de fase a neutro que enseñar — P2-1. *@
+            @if (Cuadro.SistemaConNeutro)
+            {
+                <text>Tensión F-N <strong>@Datos.TensionFaseNeutroV.ToString("N1") V</strong> · </text>
+            }
             barras <strong>@string.Join(" ", Datos.Barras)</strong>
         </p>
         @if (Datos.AvisoTension is { } avisoTension)

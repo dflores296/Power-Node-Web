@@ -178,6 +178,11 @@ public sealed class CuadroDeCarga
 
     public const string MensajeSinTipo = "Elegir el tipo de carga: de él salen el factor de demanda y el cálculo — Art. 220.";
 
+    /// <summary>P2-1: en 3F-3H no hay neutro; la carga va entre fases.</summary>
+    public const string MensajeUnPoloSinNeutro =
+        "3F-3H (delta) no tiene neutro: un circuito de 1 polo no tiene conductor de regreso. La carga va entre fases: " +
+        "cambia el circuito a 2 o 3 polos.";
+
     /// <summary>Un renglón por espacio del tablero, del 1 al <see cref="DatosDelTablero.NumeroEspacios"/>.</summary>
     public IReadOnlyList<CircuitoDelCuadro> Circuitos => _circuitos;
 
@@ -1626,6 +1631,14 @@ public sealed class CuadroDeCarga
             }
             if (!c.TieneCarga || c.CanalizacionEfectiva is not { } canal)
                 continue;
+
+            // 3F-3H (delta) no tiene neutro: un circuito de 1 polo no tiene por dónde regresar. Antes se
+            // calculaba a la tensión entre fases con fase y tierra (auditoría del 2026-09-29, P2-1).
+            if (!SistemaConNeutro && c.Polos == 1)
+            {
+                c.Error = MensajeUnPoloSinNeutro;
+                continue;
+            }
 
             try
             {

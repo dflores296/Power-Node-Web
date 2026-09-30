@@ -308,4 +308,27 @@ public class Auditoria20260929Tests
         Assert.Equal(1, c.Polos);
         Assert.NotNull(c.Resultado);
     }
+
+    // ---- P2-1 · 3F-3H (delta) sin neutro ---------------------------------------------------------
+
+    [Fact]
+    public void P2_1_EnDeltaUnCircuitoDeUnPoloNoSeCalcula()
+    {
+        // 500 VA de alumbrado en 1 polo de un 3F-3H: sin neutro no hay regreso. Antes salía a 220 V
+        // (2.27 A) con fase y tierra. En 2 polos sí: entre fases, 500 / 220 = 2.27 A.
+        var cuadro = Nuevo(hilos: 3);
+        Assert.False(cuadro.SistemaConNeutro);
+        var c = Espacio(cuadro, 1);
+        c.Categoria = CategoriaDeCarga.Alumbrado;
+        c.NoContinua = 500m;
+        cuadro.Recalcular();
+
+        Assert.Null(c.Resultado);
+        Assert.Equal(CuadroDeCarga.MensajeUnPoloSinNeutro, c.Error);
+
+        Assert.Null(cuadro.CambiarPolos(c, 2));
+        cuadro.Recalcular();
+        Assert.Null(c.Error);
+        Assert.Equal(2.27m, Math.Round(c.Resultado!.CorrienteDisenoA, 2));
+    }
 }
