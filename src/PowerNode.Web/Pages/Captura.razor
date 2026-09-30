@@ -105,6 +105,18 @@
             <select @bind="Datos.Inmueble" @bind:after="Recalcular">
                 @foreach (var inmueble in Enum.GetValues<TipoDeInmueble>()) { <option value="@inmueble">@inmueble.Nombre()</option> }
             </select></label>
+        @* M-14: el mínimo de alumbrado general por superficie — 220-12, Tabla 220-12. *@
+        <label><span class="ayuda" title="Capturar el área que sirve el tablero, en m². El alimentador no baja de la carga de alumbrado general de la Tabla 220-12 por esa área — 220-12, 210-11(b); en vivienda, los contactos de uso general van dentro (220-14(j)); en bancos y oficinas, los contactos no bajan de 11 VA/m² (220-14(k)). Vacío: no se revisa.">Área servida (m²)</span>
+            <input type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="—" aria-label="Área servida (m²)"
+                   value="@(Datos.AreaServidaM2 > 0m ? Datos.AreaServidaM2.ToString("0.##", CultureInfo.InvariantCulture) : "")" @onchange="CambiarArea" /></label>
+        <label><span class="ayuda" title="El renglón de la Tabla 220-12 del local: su carga unitaria en VA/m². Por omisión, el del inmueble.">Uso — Tabla 220-12</span>
+            <select aria-label="Uso del local — Tabla 220-12" value="@Datos.UsoTabla220_12Efectivo" @onchange="e => { Datos.UsoTabla220_12 = e.Value?.ToString(); Recalcular(); }">
+                @foreach (var fila in Cuadro.FilasTabla220_12)
+                {
+                    var clave = ClaveTabla220_12(fila.Inmueble);
+                    <option @key="clave" value="@clave">@fila.Inmueble (@fila.VaPorM2.ToString("0") VA/m²)</option>
+                }
+            </select></label>
         <label><span class="ayuda" title="Marcar si el tablero es el medio de desconexión de la acometida (el primero después del medidor). El principal sube al mínimo de 230-79 según el inmueble.">Equipo de acometida</span>
             <input type="checkbox" class="casilla" @bind="Datos.EsEquipoDeAcometida" @bind:after="Recalcular" /></label>
     </div>
@@ -881,6 +893,25 @@
                     <td class="num">@((Cuadro.Resumen.Minimo220_52DemandadoVA / 1000m).ToString("N2"))</td>
                 </tr>
             }
+            @if (Cuadro.Resumen.Superficie is { } sp)
+            {
+                @* M-14: el alimentador no baja del mínimo de la Tabla 220-12; lo que falta, como alumbrado. *@
+                <tr>
+                    <td class="izq"><span class="ayuda" title="@($"{sp.Renglon}: {sp.AreaM2:N0} m² × {sp.VaPorM2:N0} VA/m² = {sp.MinimoAlumbradoVA:N0} VA — 220-12, Tabla 220-12. Capturado: {sp.AlumbradoCapturadoVA:N0} VA{(sp.IncluyeContactos ? ", con los contactos de uso general (220-14(j))" : "")}. Se agrega lo que falta, {(sp.AlumbradoContinuo ? "continuo" : "no continuo")}, con el F.D. de alumbrado.")">Mínimo 220-12</span></td>
+                    <td class="num">@((sp.AjusteAlumbradoVA / 1000m).ToString("N2"))</td>
+                    <td class="num">@Factor(Datos.FactorDemandaAlumbrado)</td>
+                    <td class="num">@((sp.AjusteAlumbradoVA * Datos.FactorDemandaAlumbrado / 1000m).ToString("N2"))</td>
+                </tr>
+                @if (sp.MinimoContactosVA is { } mc)
+                {
+                    <tr>
+                        <td class="izq"><span class="ayuda" title="@($"Bancos y oficinas: los contactos no bajan de {sp.AreaM2:N0} m² × 11 VA/m² = {mc:N0} VA — 220-14(k). Capturados: {sp.ContactosCapturadosVA:N0} VA. Se agrega lo que falta, con el F.D. de contactos.")">Mínimo 220-14(k)</span></td>
+                        <td class="num">@((sp.AjusteContactosVA / 1000m).ToString("N2"))</td>
+                        <td class="num">@Factor(Datos.FactorDemandaContactos)</td>
+                        <td class="num">@((sp.AjusteContactosVA * Datos.FactorDemandaContactos / 1000m).ToString("N2"))</td>
+                    </tr>
+                }
+            }
             <tr class="total">
                 <td class="izq">Total <span class="simbolo">(kVA)</span></td>
                 <td class="num">@((Cuadro.Resumen.CalculadaVA / 1000m).ToString("N2"))</td>
@@ -905,15 +936,15 @@
             </tr>
             <tr>
                 <td class="izq"><span class="ayuda" title="Consultar la carga continua (3 h o más): entra al 125 % en el alimentador — 215-2(a)(1), 215-3.">Continua — 125 %</span></td>
-                <td class="num">@((Cuadro.Resumen.ContinuaVA / 1000m).ToString("N2"))</td>
+                <td class="num">@(((Cuadro.Resumen.ContinuaVA + (Cuadro.Resumen.Superficie?.AjusteContinuaVA ?? 0m)) / 1000m).ToString("N2"))</td>
                 <td></td>
-                <td class="num">@((Cuadro.Resumen.ContinuaDemandadaVA / 1000m).ToString("N2"))</td>
+                <td class="num">@(((Cuadro.Resumen.ContinuaDemandadaVA + (Cuadro.Resumen.Superficie?.ContinuaDemandadaVA ?? 0m)) / 1000m).ToString("N2"))</td>
             </tr>
             <tr>
                 <td class="izq"><span class="ayuda" title="Consultar la carga no continua: entra al 100 %. Lleva el mínimo de 220-52, si hay.">No continua — 100 %</span></td>
-                <td class="num">@(((Cuadro.Resumen.NoContinuaVA + Cuadro.Resumen.Minimo220_52VA) / 1000m).ToString("N2"))</td>
+                <td class="num">@(((Cuadro.Resumen.NoContinuaVA + Cuadro.Resumen.Minimo220_52VA + (Cuadro.Resumen.Superficie?.AjusteNoContinuaVA ?? 0m)) / 1000m).ToString("N2"))</td>
                 <td></td>
-                <td class="num">@(((Cuadro.Resumen.NoContinuaDemandadaVA + Cuadro.Resumen.Minimo220_52DemandadoVA) / 1000m).ToString("N2"))</td>
+                <td class="num">@(((Cuadro.Resumen.NoContinuaDemandadaVA + Cuadro.Resumen.Minimo220_52DemandadoVA + (Cuadro.Resumen.Superficie?.NoContinuaDemandadaVA ?? 0m)) / 1000m).ToString("N2"))</td>
             </tr>
             @if (Cuadro.Resumen.MotoresVA > 0m)
             {
@@ -2040,4 +2071,25 @@
     /// </summary>
     private Task Restablecer(string selector, string valor) =>
         JS.InvokeVoidAsync("powerNode.restablecer", selector, valor).AsTask();
+
+    /// <summary>El área servida — M-14. Vacío o ilegible: sin dato; negativa, se queda la que estaba.</summary>
+    private void CambiarArea(ChangeEventArgs e)
+    {
+        var texto = e.Value?.ToString()?.Trim().Replace(",", "");
+        if (string.IsNullOrEmpty(texto))
+            Datos.AreaServidaM2 = 0m;
+        else if (decimal.TryParse(texto, NumberStyles.Float, CultureInfo.InvariantCulture, out var area) && area >= 0m)
+            Datos.AreaServidaM2 = area;
+        Recalcular();
+    }
+
+    /// <summary>
+    /// La clave con la que se guarda un renglón de la Tabla 220-12: su texto hasta la llamada de nota —
+    /// «Unidades de vivienda (a)» → «Unidades de vivienda». El modelo lo busca por el principio.
+    /// </summary>
+    private static string ClaveTabla220_12(string inmueble)
+    {
+        var i = inmueble.IndexOf(" (", StringComparison.Ordinal);
+        return i > 0 ? inmueble[..i] : inmueble;
+    }
 }

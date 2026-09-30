@@ -230,4 +230,25 @@ public class TablasDeLaNormaTests
         // THHN sigue sin valer en mojado.
         Assert.Null(tabla.TemperaturaMaxima("THHN", lugarSeco: false));
     }
+
+    /// <summary>
+    /// Tabla 220-12 — M-14. Nace en Power Node Web: no hay versión de escritorio que comparar; los valores
+    /// son los del PDF del DOF (verificada 2026-08-12 en el repo de la norma). La llamada de nota («39 (b)»)
+    /// no se lee como parte del número, y el renglón de título del bloque de áreas comunes se salta.
+    /// </summary>
+    [Fact]
+    public void Tabla220_12_CargaUnitariaPorInmueble()
+    {
+        var tabla = new TablaCargaUnitariaJson(Fuente);
+        decimal Va(string inmueble) => tabla.Filas.First(f => f.Inmueble.StartsWith(inmueble, StringComparison.Ordinal)).VaPorM2;
+
+        Assert.Equal(39m, Va("Edificios de oficinas"));
+        Assert.Equal(39m, Va("Bancos"));
+        Assert.Equal(33m, Va("Unidades de vivienda"));
+        Assert.Equal(22m, Va("Hospitales"));
+        Assert.Equal(6m, Va("Estacionamientos comerciales"));
+        Assert.Equal(3m, Va("Bodegas"));
+        Assert.DoesNotContain(tabla.Filas, f => f.Inmueble.StartsWith("En cualquiera", StringComparison.Ordinal));
+        Assert.Equal(21, tabla.Filas.Count); // 18 inmuebles y 3 áreas comunes
+    }
 }

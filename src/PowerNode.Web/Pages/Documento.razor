@@ -169,6 +169,24 @@
                             <td class="num">@((Cuadro.Resumen.Minimo220_52DemandadoVA / 1000m).ToString("N2"))</td>
                         </tr>
                     }
+                    @if (Cuadro.Resumen.Superficie is { } sp)
+                    {
+                        <tr>
+                            <td class="izq">Mínimo 220-12 · @sp.AreaM2.ToString("N0") m² × @sp.VaPorM2.ToString("N0") VA/m²</td>
+                            <td class="num">@((sp.AjusteAlumbradoVA / 1000m).ToString("N2"))</td>
+                            <td class="num">@Datos.FactorDemandaAlumbrado.ToString("N2")</td>
+                            <td class="num">@((sp.AjusteAlumbradoVA * Datos.FactorDemandaAlumbrado / 1000m).ToString("N2"))</td>
+                        </tr>
+                        @if (sp.MinimoContactosVA is not null)
+                        {
+                            <tr>
+                                <td class="izq">Mínimo 220-14(k) · 11 VA/m²</td>
+                                <td class="num">@((sp.AjusteContactosVA / 1000m).ToString("N2"))</td>
+                                <td class="num">@Datos.FactorDemandaContactos.ToString("N2")</td>
+                                <td class="num">@((sp.AjusteContactosVA * Datos.FactorDemandaContactos / 1000m).ToString("N2"))</td>
+                            </tr>
+                        }
+                    }
                     <tr class="total">
                         <td class="izq">Total <span class="simbolo">(kVA)</span></td>
                         <td class="num">@((Cuadro.Resumen.CalculadaVA / 1000m).ToString("N2"))</td>
@@ -191,15 +209,15 @@
                     </tr>
                     <tr>
                         <td class="izq">Continua — 125 %, 215-3</td>
-                        <td class="num">@((Cuadro.Resumen.ContinuaVA / 1000m).ToString("N2"))</td>
+                        <td class="num">@(((Cuadro.Resumen.ContinuaVA + (Cuadro.Resumen.Superficie?.AjusteContinuaVA ?? 0m)) / 1000m).ToString("N2"))</td>
                         <td></td>
-                        <td class="num">@((Cuadro.Resumen.ContinuaDemandadaVA / 1000m).ToString("N2"))</td>
+                        <td class="num">@(((Cuadro.Resumen.ContinuaDemandadaVA + (Cuadro.Resumen.Superficie?.ContinuaDemandadaVA ?? 0m)) / 1000m).ToString("N2"))</td>
                     </tr>
                     <tr>
                         <td class="izq">No continua — 100 %</td>
-                        <td class="num">@(((Cuadro.Resumen.NoContinuaVA + Cuadro.Resumen.Minimo220_52VA) / 1000m).ToString("N2"))</td>
+                        <td class="num">@(((Cuadro.Resumen.NoContinuaVA + Cuadro.Resumen.Minimo220_52VA + (Cuadro.Resumen.Superficie?.AjusteNoContinuaVA ?? 0m)) / 1000m).ToString("N2"))</td>
                         <td></td>
-                        <td class="num">@(((Cuadro.Resumen.NoContinuaDemandadaVA + Cuadro.Resumen.Minimo220_52DemandadoVA) / 1000m).ToString("N2"))</td>
+                        <td class="num">@(((Cuadro.Resumen.NoContinuaDemandadaVA + Cuadro.Resumen.Minimo220_52DemandadoVA + (Cuadro.Resumen.Superficie?.NoContinuaDemandadaVA ?? 0m)) / 1000m).ToString("N2"))</td>
                     </tr>
                     @if (Cuadro.Resumen.MotoresVA > 0m)
                     {

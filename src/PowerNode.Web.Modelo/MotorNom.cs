@@ -48,6 +48,7 @@ public sealed class MotorNom
         var flcMotor = new TablaFlcMotorJson(fuente);
         var proteccionMotor = new TablaProteccionMotorJson(fuente);
         ServicioMotor = new TablaServicioMotorJson(fuente);
+        CargaUnitaria = new TablaCargaUnitariaJson(fuente);
 
         // Un juego de calculadoras por serie de interruptores: la misma norma, elegida dentro de la
         // familia que se instala. Ver SerieDeInterruptores.
@@ -123,6 +124,9 @@ public sealed class MotorNom
 
     /// <summary>Tabla 430-22(e): el conductor de un motor de servicio no continuo — I-120.</summary>
     public ITablaServicioMotor ServicioMotor { get; }
+
+    /// <summary>Tabla 220-12: VA/m² de alumbrado general por tipo de inmueble — M-14.</summary>
+    public ITablaCargaUnitaria CargaUnitaria { get; }
 
     /// <summary>Tabla 430-52: el porcentaje de la FLC que puede tener la protección del derivado.</summary>
     public ITablaProteccionMotor ProteccionMotor { get; }

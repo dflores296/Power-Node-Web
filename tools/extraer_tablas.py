@@ -6,7 +6,7 @@ Por qué existe
 El repo público `dflores296/NOM-001-SEDE-2012` publica las 245 tablas de la norma
 (`data/tablas_revisadas.json`, 1.1 MB) y el corpus completo (`data/corpus.json`, 8 MB).
 Mandarle eso a un navegador para calcular un circuito sería absurdo: el cálculo de un
-cuadro de carga toca **19 tablas y una sección**, y nada más.
+cuadro de carga toca **20 tablas y una sección**, y nada más.
 
 Este script produce `wwwroot/datos/tablas-nom.json` con exactamente esas, en la MISMA forma
 cruda que publica el repo de origen (celdas con `t`/`rs`/`cs`). **No interpreta nada**: la
@@ -27,7 +27,7 @@ import json
 import sys
 from pathlib import Path
 
-# Las 19 tablas que toca el cálculo de un cuadro de carga, con quién las usa.
+# Las 20 tablas que toca el cálculo de un cuadro de carga, con quién las usa.
 # Si agregas una aquí, hay una implementación de interfaz en Normativa/ que la pide.
 TABLAS = {
     "8": "Propiedades de los conductores (área, resistencia) — ICatalogoCalibres",
@@ -50,6 +50,8 @@ TABLAS = {
     "4": "Dimensiones y área de tubo conduit (Capítulo 10) — ITablaTuboConduit",
     "5": "Dimensiones de conductores aislados (Capítulo 10) — ITablaDimensionesConductor",
     "310-15(b)(3)(c)": "Sumador de temperatura en azoteas al sol — ITablaTemperaturaAzotea",
+    # Mínimo de alumbrado general por superficie (M-14, fase E de cargas y clases).
+    "220-12": "Cargas de alumbrado general por tipo de inmueble — ITablaCargaUnitaria",
 }
 
 # 240-6(a) no es una tabla: es un renglón de prosa con los valores estandarizados

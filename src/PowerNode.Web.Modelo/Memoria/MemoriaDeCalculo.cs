@@ -475,6 +475,7 @@ public static class MemoriaDeCalculo
             Aislamiento: Aislamiento(cuadro.Datos),
             DesgloseConductor: cuadro.DesgloseDelAlimentador()?.Conductor,
             Minimo220_52VA: cuadro.Resumen.Minimo220_52VA,
+            Superficie: cuadro.Resumen.Superficie,
             NeutroPortador: NeutroPortador(cuadro, cuadro.Alimentador.Polos, alimentador: true),
             CaidaPorFase: r.CaidaPorFase,
             CorrienteNeutro: r.CorrienteNeutro,
@@ -533,6 +534,24 @@ public static class MemoriaDeCalculo
             yield return new RenglonMemoria("Cargas combinadas",
                 string.Join(" · ", circuito.Porciones.Where(p => p.TotalVA > 0m).Select(p => $"{p.Tipo.NombreCompleto()} {p.TotalVA:N0} VA")) +
                 " — cada una con el factor de demanda de su tipo en el alimentador (220 Parte C)");
+    }
+
+    /// <summary>
+    /// «Mínimo 220-12: 200 m² × 39 VA/m² = 7,800 VA; capturado 200 VA → se agregan 7,600 VA, continuos» —
+    /// M-14. Nada sin área servida.
+    /// </summary>
+    private static IEnumerable<(string, string?)> MinimosPorSuperficie(MinimoPorSuperficie? sp)
+    {
+        if (sp is null)
+            yield break;
+        yield return ($"Mínimo de alumbrado general — 220-12, Tabla 220-12",
+            $"{sp.Renglon}: {sp.AreaM2:N0} m² × {sp.VaPorM2:N0} VA/m² = {sp.MinimoAlumbradoVA:N0} VA; capturado " +
+            $"{sp.AlumbradoCapturadoVA:N0} VA{(sp.IncluyeContactos ? " con los contactos de uso general (220-14(j))" : "")} → " +
+            (sp.AjusteAlumbradoVA > 0m ? $"se agregan {sp.AjusteAlumbradoVA:N0} VA, {(sp.AlumbradoContinuo ? "continuos" : "no continuos")}" : "ya lo cubre"));
+        if (sp.MinimoContactosVA is { } mc)
+            yield return ("Mínimo de contactos — 220-14(k)",
+                $"{sp.AreaM2:N0} m² × 11 VA/m² = {mc:N0} VA contra {sp.ContactosCapturadosVA:N0} VA capturados → " +
+                (sp.AjusteContactosVA > 0m ? $"se agregan {sp.AjusteContactosVA:N0} VA" : "ya lo cubren"));
     }
 
     private static string Simbolo(UnidadConsumo unidad) => unidad switch
@@ -596,10 +615,12 @@ public static class MemoriaDeCalculo
             ("Mínimo 220-52", hoja.Minimo220_52VA > 0m
                 ? $"{hoja.Minimo220_52VA:N0} VA — aparatos pequeños y lavadora a 1,500 VA por circuito, 220-52(a) y (b)"
                 : null),
-            ("Carga calculada", hoja.Minimo220_52VA > 0m ? $"{cargaTotal + hoja.Minimo220_52VA:N0} VA" : null),
+            .. MinimosPorSuperficie(hoja.Superficie),
+            ("Carga calculada", hoja.Minimo220_52VA > 0m || hoja.Superficie is { AjusteTotalVA: > 0m }
+                ? $"{cargaTotal + hoja.Minimo220_52VA + (hoja.Superficie?.AjusteTotalVA ?? 0m):N0} VA" : null),
             ("Tensión nominal", $"{hoja.TensionV:N1} V"),
             ("Frecuencia", $"{hoja.FrecuenciaHz} Hz"),
-            ("Factor de potencia", hoja.Articulo == "215"
+            ("Factor de potencia", hoja.Sujeto.StartsWith("Alimentador general", StringComparison.Ordinal)
                 ? $"{hoja.FactorPotencia:N2} — resulta de combinar las cargas de la fase que gobierna"
                 : $"{hoja.FactorPotencia:N2}"),
             ("Fases / hilos", $"{hoja.NumeroFases} / {hoja.NumeroHilos}")]);

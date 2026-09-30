@@ -167,6 +167,30 @@ public sealed class DatosDelTablero
     public TipoDeInmueble Inmueble { get; set; } = TipoDeInmueble.Otro;
 
     /// <summary>
+    /// <b>El área que sirve el tablero</b>, en m² — M-14. Con ella, el alimentador no baja del mínimo de
+    /// alumbrado general de la Tabla 220-12 (220-12, 210-11(b)). 0 = sin dato: no se revisa.
+    /// </summary>
+    public decimal AreaServidaM2 { get; set; }
+
+    /// <summary>
+    /// El renglón de la Tabla 220-12 del local, por el principio de su texto («Edificios de oficinas»).
+    /// <c>null</c>: el que corresponde al inmueble (<see cref="UsoTabla220_12Efectivo"/>).
+    /// </summary>
+    public string? UsoTabla220_12 { get; set; }
+
+    /// <summary>El renglón de la Tabla 220-12 que cuenta: el elegido, o el del inmueble — M-14.</summary>
+    public string UsoTabla220_12Efectivo => UsoTabla220_12 ?? Inmueble switch
+    {
+        TipoDeInmueble.ViviendaUnifamiliar or TipoDeInmueble.ViviendaPopular or TipoDeInmueble.ViviendaMultifamiliar => "Unidades de vivienda",
+        TipoDeInmueble.Hospital => "Hospitales",
+        TipoDeInmueble.HotelOMotel => "Hoteles y moteles",
+        TipoDeInmueble.Almacen => "Depósitos",
+        TipoDeInmueble.Escuela => "Escuelas",
+        TipoDeInmueble.Restaurante => "Restaurantes",
+        _ => "Edificios de oficinas",
+    };
+
+    /// <summary>
     /// El mínimo del principal por 230-79, con su referencia. <c>null</c> si el tablero no es equipo de
     /// acometida o si es vivienda unifamiliar, donde la norma dice «según la carga conectada»: sin
     /// número, manda el cálculo.

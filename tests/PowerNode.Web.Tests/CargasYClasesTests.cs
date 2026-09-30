@@ -418,4 +418,80 @@ public class CargasYClasesTests
         Assert.Equal(ClaseDeCircuito.Individual, c.ClaseDelCircuito);
         Assert.DoesNotContain(c.ReglasDeClase, x => x.Aviso);
     }
+
+    // ---- El mínimo por superficie — M-14 -----------------------------------------------------------
+
+    [Fact]
+    public void M14_UnaOficinaNoBajaDelMinimoDeLaTabla220_12()
+    {
+        // 200 m² de oficinas con 200 VA de LED: la Tabla 220-12 pide 39 VA/m² = 7800 VA → se agregan 7600 VA,
+        // continuos. Sin contactos: 220-14(k) pide 11 VA/m² = 2200 VA.
+        var cuadro = Nuevo();
+        cuadro.Datos.AreaServidaM2 = 200m;
+        Renglon(cuadro, 1, CategoriaDeCarga.Alumbrado, 200m);
+        cuadro.Recalcular();
+
+        var sp = cuadro.Resumen.Superficie!;
+        Assert.StartsWith("Edificios de oficinas", sp.Renglon);
+        Assert.Equal(39m, sp.VaPorM2);
+        Assert.Equal(7800m, sp.MinimoAlumbradoVA);
+        Assert.Equal(7600m, sp.AjusteAlumbradoVA);
+        Assert.True(sp.AlumbradoContinuo);
+        Assert.Equal(2200m, sp.AjusteContactosVA);
+        Assert.Equal(10000m, cuadro.Resumen.CalculadaVA);
+        Assert.Equal(10000m, cuadro.Resumen.DemandadaVA);
+    }
+
+    [Fact]
+    public void M14_EnViviendaLosContactosDeUsoGeneralVanDentro()
+    {
+        // 100 m² de vivienda: 33 VA/m² = 3300 VA. Capturados 1000 VA de alumbrado y 1500 de contactos de uso
+        // general: van dentro (220-14(j)) → faltan 800 VA; no se suman aparte.
+        var cuadro = Nuevo();
+        cuadro.Datos.Inmueble = TipoDeInmueble.ViviendaUnifamiliar;
+        cuadro.Datos.AreaServidaM2 = 100m;
+        Renglon(cuadro, 1, CategoriaDeCarga.Alumbrado, 1000m);
+        Renglon(cuadro, 3, CategoriaDeCarga.Contactos, 1500m);
+        cuadro.Recalcular();
+
+        var sp = cuadro.Resumen.Superficie!;
+        Assert.Equal(33m, sp.VaPorM2);
+        Assert.Equal(2500m, sp.AlumbradoCapturadoVA);
+        Assert.Equal(800m, sp.AjusteAlumbradoVA);
+        Assert.False(sp.AlumbradoContinuo);
+        Assert.Null(sp.MinimoContactosVA);
+        Assert.Equal(3300m, cuadro.Resumen.CalculadaVA);
+    }
+
+    [Fact]
+    public void M14_ElMinimoSubeLaCorrienteDelAlimentador()
+    {
+        var cuadro = Nuevo();
+        Renglon(cuadro, 1, CategoriaDeCarga.Alumbrado, 200m);
+        cuadro.Recalcular();
+        var sin = cuadro.Alimentador.Resultado!.CorrienteDisenoA;
+        Assert.Null(cuadro.Resumen.Superficie);
+
+        cuadro.Datos.AreaServidaM2 = 200m;
+        cuadro.Datos.UsoTabla220_12 = "Tiendas"; // 33 VA/m², sin 220-14(k)
+        cuadro.Recalcular();
+
+        // 6400 VA más, parejos en 3 barras de 127 V: 16.8 A más por barra.
+        Assert.Equal(sin + 6400m / (3m * cuadro.Datos.TensionFaseNeutroV), cuadro.Alimentador.Resultado!.CorrienteDisenoA, 2);
+    }
+
+    [Fact]
+    public void M14_ElAreaSeGuardaEnElArchivo()
+    {
+        var cuadro = Nuevo();
+        cuadro.Datos.AreaServidaM2 = 150m;
+        cuadro.Datos.UsoTabla220_12 = "Escuelas";
+        Renglon(cuadro, 1, CategoriaDeCarga.Alumbrado, 500m);
+        cuadro.Recalcular();
+
+        var abierto = ArchivoDelCuadro.Abrir(ArchivoDelCuadro.Guardar(cuadro, DateTimeOffset.Now), Motor).Cuadro!;
+        Assert.Equal(150m, abierto.Datos.AreaServidaM2);
+        Assert.Equal("Escuelas", abierto.Datos.UsoTabla220_12);
+        Assert.Equal(cuadro.Resumen.CalculadaVA, abierto.Resumen.CalculadaVA);
+    }
 }

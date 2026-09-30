@@ -39,13 +39,46 @@ public sealed record ResumenDeCarga(
     decimal Minimo220_52DemandadoVA = 0m,
     IReadOnlyList<CargaPorCategoria>? PorCategoria = null,
     decimal MotoresVA = 0m,
-    decimal MotoresDemandadaVA = 0m)
+    decimal MotoresDemandadaVA = 0m,
+    MinimoPorSuperficie? Superficie = null)
 {
     public decimal InstaladaVA => ContinuaVA + NoContinuaVA + MotoresVA;
 
-    /// <summary>La carga que va al alimentador: la instalada más el mínimo de 220-52.</summary>
-    public decimal CalculadaVA => InstaladaVA + Minimo220_52VA;
-    public decimal DemandadaVA => ContinuaDemandadaVA + NoContinuaDemandadaVA + Minimo220_52DemandadoVA + MotoresDemandadaVA;
+    /// <summary>La carga que va al alimentador: la instalada más los mínimos de 220-52 y 220-12 / 220-14(k).</summary>
+    public decimal CalculadaVA => InstaladaVA + Minimo220_52VA + (Superficie?.AjusteTotalVA ?? 0m);
+    public decimal DemandadaVA => ContinuaDemandadaVA + NoContinuaDemandadaVA + Minimo220_52DemandadoVA + MotoresDemandadaVA
+                                  + (Superficie?.ContinuaDemandadaVA ?? 0m) + (Superficie?.NoContinuaDemandadaVA ?? 0m);
+}
+
+/// <summary>
+/// <b>El mínimo de alumbrado general por superficie</b> — M-14. El alimentador no baja de la carga de la
+/// Tabla 220-12 (220-12, 210-11(b)); lo que falta para llegar se agrega como alumbrado. En vivienda, los
+/// contactos de uso general ya van dentro (220-14(j)); en bancos y oficinas, los contactos no bajan de
+/// 11 VA/m² (220-14(k)).
+/// </summary>
+/// <param name="Renglon">El renglón de la Tabla 220-12: «Edificios de oficinas».</param>
+/// <param name="AlumbradoCapturadoVA">El alumbrado capturado; en vivienda, con los contactos de uso general.</param>
+/// <param name="AjusteAlumbradoVA">Lo que se agrega para llegar al mínimo — 220-12.</param>
+/// <param name="AlumbradoContinuo">Fuera de vivienda, el alumbrado general opera 3 h o más: continuo.</param>
+/// <param name="MinimoContactosVA">220-14(k): 11 VA/m²; <c>null</c> fuera de bancos y oficinas.</param>
+public sealed record MinimoPorSuperficie(
+    string Renglon,
+    decimal VaPorM2,
+    decimal AreaM2,
+    decimal AlumbradoCapturadoVA,
+    bool IncluyeContactos,
+    decimal AjusteAlumbradoVA,
+    bool AlumbradoContinuo,
+    decimal? MinimoContactosVA,
+    decimal ContactosCapturadosVA,
+    decimal AjusteContactosVA,
+    decimal ContinuaDemandadaVA,
+    decimal NoContinuaDemandadaVA)
+{
+    public decimal MinimoAlumbradoVA => VaPorM2 * AreaM2;
+    public decimal AjusteTotalVA => AjusteAlumbradoVA + AjusteContactosVA;
+    public decimal AjusteContinuaVA => AlumbradoContinuo ? AjusteAlumbradoVA : 0m;
+    public decimal AjusteNoContinuaVA => (AlumbradoContinuo ? 0m : AjusteAlumbradoVA) + AjusteContactosVA;
 }
 
 /// <summary>
@@ -163,6 +196,9 @@ public sealed class CuadroDeCarga
         UnaSolaBarra ? [[.. _circuitos]] : [[.. Nones], [.. Pares]];
 
     public ResumenDeCarga Resumen { get; private set; } = Vacio();
+
+    /// <summary>Los renglones de la Tabla 220-12, para elegir el uso del local — M-14.</summary>
+    public IReadOnlyList<(string Inmueble, decimal VaPorM2)> FilasTabla220_12 => _motor.CargaUnitaria.Filas;
 
     public RenglonDelAlimentador Alimentador { get; private set; } = new(null, null, [], 3);
 
@@ -2052,7 +2088,10 @@ public sealed class CuadroDeCarga
         var instaladaW = conCarga.Sum(c => c.PotenciaActivaW + c.Ajuste220_52VA * c.FactorPotencia);
         // CADA CIRCUITO CON EL FACTOR DE SU TIPO — R-17. La parte continua y la no continua llevan el
         // mismo factor; lo que las distingue es el 125 % del alimentador, no la demanda.
-        var demandadaW = conCarga.Sum(c => Demandada(c) * c.FactorPotencia);
+        var superficie = MinimoDeSuperficie(conCarga);
+        var demandadaW = conCarga.Sum(c => Demandada(c) * c.FactorPotencia)
+                         + (superficie is { } sp ? sp.ContinuaDemandadaVA + sp.NoContinuaDemandadaVA : 0m);
+        instaladaW += superficie?.AjusteTotalVA ?? 0m;
         var minimo220_52 = conCarga.Sum(c => c.Ajuste220_52VA);
 
         Resumen = new ResumenDeCarga(
@@ -2069,6 +2108,7 @@ public sealed class CuadroDeCarga
             FactorPotencia: FactorPotenciaCombinado.De(conCarga.Select(c => (c.CargaInstaladaVA, c.FactorPotencia))),
             Minimo220_52VA: minimo220_52,
             Minimo220_52DemandadoVA: conCarga.Sum(AjusteDemandado),
+            Superficie: superficie,
             PorCategoria:
             [
                 .. Enum.GetValues<CategoriaDeCarga>().Select(categoria =>
@@ -2096,6 +2136,53 @@ public sealed class CuadroDeCarga
     private decimal MotorDemandada(CircuitoDelCuadro c) => c.Porciones.Sum(p => p.MotorVA * Fd(c, p.Tipo));
     private decimal AjusteDemandado(CircuitoDelCuadro c) => c.Ajuste220_52VA * Fd(c, c.Categoria);
     private decimal Demandada(CircuitoDelCuadro c) => ContinuaDemandada(c) + NoContinuaDemandada(c) + MotorDemandada(c) + AjusteDemandado(c);
+
+    /// <summary>
+    /// <b>El mínimo por superficie</b> — M-14, 220-12 y 220-14(j)(k). <c>null</c> sin área servida o si el
+    /// renglón de la Tabla 220-12 no se encuentra. El ajuste se aplica con el F.D. de su tipo.
+    /// </summary>
+    private MinimoPorSuperficie? MinimoDeSuperficie(IReadOnlyList<CircuitoDelCuadro> conCarga)
+    {
+        if (Datos.AreaServidaM2 <= 0m)
+            return null;
+        var uso = Datos.UsoTabla220_12Efectivo;
+        var fila = _motor.CargaUnitaria.Filas.FirstOrDefault(f => f.Inmueble.StartsWith(uso, StringComparison.OrdinalIgnoreCase));
+        if (fila.Inmueble is null)
+            return null;
+
+        decimal DelTipo(CircuitoDelCuadro c, CategoriaDeCarga tipo) => c.Porciones.Where(p => p.Tipo == tipo).Sum(p => p.TotalVA);
+        var vivienda = Datos.Inmueble.EsVivienda();
+        var area = Datos.AreaServidaM2;
+        // 220-14(j): en vivienda, los contactos de uso general de 20 A o menos —el baño incluido— van dentro
+        // de los 33 VA/m²; los de aparatos pequeños y lavadora, no (220-52).
+        var alumbrado = conCarga.Sum(c => DelTipo(c, CategoriaDeCarga.Alumbrado))
+            + (vivienda ? conCarga.Where(c => c.UsoEfectivo is UsoDeContactos.General or UsoDeContactos.Bano).Sum(c => DelTipo(c, CategoriaDeCarga.Contactos)) : 0m);
+        var ajusteAlumbrado = Math.Max(0m, fila.VaPorM2 * area - alumbrado);
+
+        // 220-14(k): bancos y oficinas, contactos = el mayor entre 180 VA por contacto y 11 VA/m².
+        var oficinas = fila.Inmueble.StartsWith("Bancos", StringComparison.OrdinalIgnoreCase)
+                       || fila.Inmueble.StartsWith("Edificios de oficinas", StringComparison.OrdinalIgnoreCase);
+        var contactos = conCarga.Sum(c => DelTipo(c, CategoriaDeCarga.Contactos));
+        decimal? minimoContactos = oficinas ? 11m * area : null;
+        var ajusteContactos = minimoContactos is { } mc ? Math.Max(0m, mc - contactos) : 0m;
+
+        var alumbradoDemandado = ajusteAlumbrado * Datos.FactorDeDemanda(CategoriaDeCarga.Alumbrado);
+        var contactosDemandado = ajusteContactos * Datos.FactorDeDemanda(CategoriaDeCarga.Contactos);
+        return new MinimoPorSuperficie(
+            fila.Inmueble, fila.VaPorM2, area, alumbrado, vivienda, ajusteAlumbrado, !vivienda,
+            minimoContactos, contactos, ajusteContactos,
+            ContinuaDemandadaVA: vivienda ? 0m : alumbradoDemandado,
+            NoContinuaDemandadaVA: (vivienda ? alumbradoDemandado : 0m) + contactosDemandado);
+    }
+
+    /// <summary>
+    /// El mínimo por superficie, repartido parejo entre las barras — M-14: no es de un circuito; se toma
+    /// balanceado, como el alumbrado general que representa. En A por barra.
+    /// </summary>
+    private (decimal ContinuaA, decimal NoContinuaA) SuperficiePorBarra() =>
+        Resumen.Superficie is { } sp
+            ? (sp.ContinuaDemandadaVA / (Datos.Barras.Count * Datos.TensionFaseNeutroV), sp.NoContinuaDemandadaVA / (Datos.Barras.Count * Datos.TensionFaseNeutroV))
+            : (0m, 0m);
 
     /// <summary>
     /// <b>Cargas no simultáneas</b> — I-121: de cada par, al alimentador va la mayor; la menor se omite —
@@ -2171,9 +2258,10 @@ public sealed class CuadroDeCarga
             ClaseDeTramo.Alimentador.CapacidadMinima(), ClaseDeTramo.Alimentador.Excepcion100Pct()).Factor;
 
         var motores = MotoresPorFase();
+        var (supC, supN) = SuperficiePorBarra();
         return
         [
-            .. Datos.Barras.Select(f => new CorrienteDeFase(f, continua[f], noContinua[f], factor, motores[f].Agregado))
+            .. Datos.Barras.Select(f => new CorrienteDeFase(f, continua[f] + supC, noContinua[f] + supN, factor, motores[f].Agregado))
         ];
     }
 
@@ -2319,6 +2407,16 @@ public sealed class CuadroDeCarga
             }
         }
 
+        // El mínimo por superficie (M-14), parejo y en fase con su tensión.
+        var (supC, supN) = SuperficiePorBarra();
+        foreach (var b in barras)
+        {
+            continuaA[b] += supC;
+            noContinuaA[b] += supN;
+            fasorContinua[b] += new Fasor(supC, angulo[b]);
+            fasorNoContinua[b] += new Fasor(supN, angulo[b]);
+        }
+
         var motores = MotoresPorFase();
         return [.. barras.Select(b => new CorrienteDeFaseAlimentador(
             b, continuaA[b], noContinuaA[b], angulo[b], fasorContinua[b], fasorNoContinua[b], motores[b].Agregado, motores[b].Fasor))];
@@ -2364,8 +2462,8 @@ public sealed class CuadroDeCarga
         // de la fase más cargada y reescribía la cita 220-40: ya no.
         ResultadoAlimentador Calcular() => _motor.Alimentador(Datos.SerieInterruptores).Calcular(new DatosEntradaAlimentador(
                 // Ya con el factor de demanda de cada tipo (R-17): por eso el motor va con F.D. 1 abajo.
-                CargaContinuaVA: Resumen.ContinuaDemandadaVA,
-                CargaNoContinuaVA: Resumen.NoContinuaDemandadaVA + Resumen.Minimo220_52DemandadoVA,
+                CargaContinuaVA: Resumen.ContinuaDemandadaVA + (Resumen.Superficie?.ContinuaDemandadaVA ?? 0m),
+                CargaNoContinuaVA: Resumen.NoContinuaDemandadaVA + Resumen.Minimo220_52DemandadoVA + (Resumen.Superficie?.NoContinuaDemandadaVA ?? 0m),
                 NumeroFases: polos,
                 TensionFaseNeutroV: Datos.TensionFaseNeutroV,
                 TensionFaseFaseV: Datos.TensionFaseFaseV,

@@ -36,9 +36,10 @@ public static class ArchivoDelCuadro
     /// motocompresor y el acondicionador de habitación en el desglose (I-116, I-117); la versión 3,
     /// que ya se publicó, no los conoce. 5: el tipo es de cada carga —su subtipo— y el tipo Tablero
     /// (I-123, I-125); la 4 los leería mal. Los anteriores se siguen leyendo: sus cargas sin subtipo toman
-    /// el tipo de su circuito, y se calculan igual que antes.
+    /// el tipo de su circuito, y se calculan igual que antes. 6: el área servida y el renglón de la Tabla
+    /// 220-12 (M-14); la 5 los ignoraría y el alimentador saldría sin el mínimo.
     /// </summary>
-    public const int Version = 5;
+    public const int Version = 6;
 
     /// <summary>El archivo, listo para escribirse.</summary>
     public static string Guardar(CuadroDeCarga cuadro, DateTimeOffset cuando) =>
@@ -137,6 +138,7 @@ public static class ArchivoDelCuadro
                 NumeroEspacios = d.NumeroEspacios, TipoAcometida = d.TipoAcometida,
                 MontajePrincipal = d.MontajePrincipal, EspacioDelPrincipal = d.EspacioDelPrincipal, CapacidadBarraA = d.CapacidadBarraA,
                 EsEquipoDeAcometida = d.EsEquipoDeAcometida, Inmueble = d.Inmueble, SerieInterruptores = d.SerieInterruptores,
+                AreaServidaM2 = d.AreaServidaM2 > 0m ? d.AreaServidaM2 : null, UsoTabla220_12 = d.UsoTabla220_12,
                 TensionFaseFaseV = d.TensionFaseFaseV, Fases = d.Fases, Hilos = d.Hilos, FrecuenciaHz = d.FrecuenciaHz,
                 FactoresDeDemanda = CategoriasDeCarga.Todas.ToDictionary(c => c.AlArchivo(), d.FactorDeDemanda),
                 Justificaciones = d.Justificaciones
@@ -191,6 +193,11 @@ public static class ArchivoDelCuadro
                 d.CapacidadBarraA = a.CapacidadBarraA;
             d.EsEquipoDeAcometida = a.EsEquipoDeAcometida ?? d.EsEquipoDeAcometida;
             d.Inmueble = a.Inmueble ?? d.Inmueble;
+            if (a.AreaServidaM2 is < 0m and var area)
+                avisos.Add($"El archivo dice {area:0.##} m² de área servida, que no puede ser negativa; se abrió sin ese dato.");
+            else
+                d.AreaServidaM2 = a.AreaServidaM2 ?? 0m;
+            d.UsoTabla220_12 = string.IsNullOrWhiteSpace(a.UsoTabla220_12) ? null : a.UsoTabla220_12;
             d.SerieInterruptores = a.SerieInterruptores ?? d.SerieInterruptores;
 
             // En este orden: cambiar las fases reajusta los hilos, la tensión y los espacios; lo del

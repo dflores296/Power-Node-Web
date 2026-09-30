@@ -50,6 +50,9 @@ public sealed class DatosJson
     public decimal? CapacidadBarraA { get; set; }
     public bool? EsEquipoDeAcometida { get; set; }
     public TipoDeInmueble? Inmueble { get; set; }
+    // Formato 6 — M-14: el área servida y el renglón de la Tabla 220-12.
+    public decimal? AreaServidaM2 { get; set; }
+    public string? UsoTabla220_12 { get; set; }
     public SerieDeInterruptores? SerieInterruptores { get; set; }
 
     public decimal? TensionFaseFaseV { get; set; }
