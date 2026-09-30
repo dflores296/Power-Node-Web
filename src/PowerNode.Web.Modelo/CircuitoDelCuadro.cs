@@ -587,4 +587,13 @@ public sealed class CircuitoDelCuadro
     /// (con otras cargas) — 440-62(b), (c), I-117. Ya redactado; <c>null</c> si cumple o no hay.
     /// </summary>
     public string? AvisoAireDeHabitacion { get; internal set; }
+
+    /// <summary>
+    /// Las reglas de su clase — 210-21(b), 210-23, 422-11(e) (I-124): notas y, si no se cumplen, avisos.
+    /// Las pone <see cref="CuadroDeCarga"/>.
+    /// </summary>
+    public IReadOnlyList<ReglaDeClase> ReglasDeClase { get; internal set; } = [];
 }
+
+/// <summary>Una regla de la clase del circuito, ya redactada: su referencia, el texto y si es aviso — I-124.</summary>
+public sealed record ReglaDeClase(string Referencia, string Texto, bool Aviso);

@@ -82,7 +82,8 @@ public sealed record HojaDeMemoria(
     string? NotaDelUso = null,
     string? NotaDelMotor = null,
     string? AvisoDeHabitacion = null,
-    int FrecuenciaHz = 60);
+    int FrecuenciaHz = 60,
+    IReadOnlyList<ReglaDeClase>? ReglasDeClase = null);
 
 /// <summary>
 /// <b>Un motor o un equipo de A/C, como lo pone la memoria</b> — I-15, I-74. Ya redactado, porque las

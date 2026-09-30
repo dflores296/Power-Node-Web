@@ -418,27 +418,34 @@ public sealed class CuadroDeCarga
                 citas: r.Citas);
 
         var divisor = TensionDeCalculo.Divisor(c.Polos, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV);
-        var factor = CargaContinua100Pct.Para(Datos.ConjuntoAprobado100Pct, null, "210-20(a)", "210-19(a)(1)").Factor;
+        // Otro tablero se cita con el 215 — I-125.
+        var tablero = c.Categoria == CategoriaDeCarga.Tablero;
+        var articuloProteccion = tablero ? "215-3" : "210-20(a)";
+        var articuloConductor = tablero ? "215-2(a)(1)" : "210-19(a)(1)";
+        var factor = CargaContinua100Pct.Para(Datos.ConjuntoAprobado100Pct, null, articuloProteccion, articuloConductor).Factor;
 
         var desglose = DesgloseDeSeleccion.De(
             _motor.Ampacidad, Datos,
             iContinuaA: c.ContinuaVA / divisor,
             iNoContinuaA: c.NoContinuaVA / divisor,
             factorContinua: factor,
-            articuloProteccion: "210-20(a)",
-            articuloConductor: "210-19(a)(1)",
+            articuloProteccion: articuloProteccion,
+            articuloConductor: articuloConductor,
             proteccionA: r.ProteccionA,
             proteccionSinMinimo: TamanoEstandar(detalle.CapacidadMinimaA),
             calibre: r.CalibreFase,
             conductoresPorFase: r.NumeroConductoresParalelo,
             d: detalle,
             citas: r.Citas,
-            referenciaMinimo: c.UsoEfectivo.ReferenciaProteccionMinima());
+            referenciaMinimo: ProteccionMinima(c)?.Referencia);
 
         if (NotaDelMotorMayor(c) is { } motor)
             desglose = desglose with { Proteccion = [desglose.Proteccion[0], motor, .. desglose.Proteccion.Skip(1)] };
         if (c.AvisoAireDeHabitacion is { } habitacion)
             desglose = desglose with { Proteccion = [.. desglose.Proteccion, $"⚠ {habitacion[(habitacion.IndexOf(':') + 2)..]}"] };
+        // La clase del circuito y sus reglas — I-124.
+        if (c.ReglasDeClase.Count > 0)
+            desglose = desglose with { Proteccion = [.. desglose.Proteccion, .. c.ReglasDeClase.Select(x => $"{(x.Aviso ? "⚠ " : "")}{x.Texto} — {x.Referencia}")] };
         // I-76: el circuito individual del refrigerador no tiene mínimo que citar, pero sí su excepción.
         return c.UsoEfectivo.Nota() is { } nota ? desglose with { Proteccion = [.. desglose.Proteccion, nota] } : desglose;
     }
@@ -1203,7 +1210,9 @@ public sealed class CuadroDeCarga
 
     /// <summary>Los avisos de los circuitos que no son de caída: por ahora, 440-62 (I-117).</summary>
     public IEnumerable<string> AvisosDeCircuitos =>
-        _circuitos.Where(c => c.AvisoAireDeHabitacion is not null).Select(c => c.AvisoAireDeHabitacion!).Concat(_avisosNoSimultaneos);
+        _circuitos.Where(c => c.AvisoAireDeHabitacion is not null).Select(c => c.AvisoAireDeHabitacion!)
+            .Concat(_circuitos.SelectMany(c => c.ReglasDeClase.Where(x => x.Aviso).Select(x => $"Circuito {c.Espacio}: {x.Texto.TrimEnd('.')} — {x.Referencia}.")))
+            .Concat(_avisosNoSimultaneos);
 
     /// <summary>
     /// Más de 93.25 W (⅛ hp) — 220-18(a). En HP, los de la tabla empiezan en ⅙; en amperes, sus HP
@@ -1593,9 +1602,10 @@ public sealed class CuadroDeCarga
                     TipoAislamiento: Datos.TipoAislamiento,
                     LugarInstalacionSeco: Datos.LugarSeco,
                     TerminalesMarcadas75C: Datos.TerminalesMarcadas75C,
-                    // SIN MÍNIMO POR TIPO DE CARGA: solo el que exige 210-11(c) según el uso.
-                    ProteccionMinimaA: c.UsoEfectivo.ReferenciaProteccionMinima() is null ? null : UsosDeContactos.ProteccionMinimaViviendaA,
-                    ReferenciaProteccionMinima: c.UsoEfectivo.ReferenciaProteccionMinima()));
+                    // SIN MÍNIMO POR TIPO DE CARGA: solo el que exige la norma para el circuito — 210-11(c) según
+                    // el uso; 210-19(a)(3) para una estufa doméstica de 8.75 kW o más (I-124).
+                    ProteccionMinimaA: ProteccionMinima(c)?.Amperes,
+                    ReferenciaProteccionMinima: ProteccionMinima(c)?.Referencia));
                 c.AvisoAireDeHabitacion = AvisoDeHabitacion(c);
             }
             catch (Exception ex)
@@ -1603,14 +1613,126 @@ public sealed class CuadroDeCarga
                 c.Error = ex.Message;
             }
         }
+        foreach (var c in _circuitos)
+            c.ReglasDeClase = ReglasDeClase(c);
+    }
+
+    /// <summary>
+    /// <b>Las reglas de la clase del circuito</b> — I-124. Lo que la norma pide según alimente un solo
+    /// equipo o dos o más salidas, ya redactado; las que no se cumplen van como aviso. No cambian el
+    /// cálculo: el proyectista decide.
+    /// <list type="bullet">
+    /// <item>210-21(b)(1): el contacto de un circuito individual, de valor no menor que el circuito.</item>
+    /// <item>Tabla 210-21(b)(3): el valor de los contactos de un circuito de dos o más.</item>
+    /// <item>210-23: las cargas que admite cada tamaño de circuito de dos o más salidas.</item>
+    /// <item>422-11(e): la protección de un solo aparato no operado por motor, sin valor marcado.</item>
+    /// </list>
+    /// </summary>
+    private IReadOnlyList<ReglaDeClase> ReglasDeClase(CircuitoDelCuadro c)
+    {
+        if (c.Resultado is not { } r || c.ClaseDelCircuito is not { } clase || clase == ClaseDeCircuito.Alimentador || c.EsGrupoDeMotores)
+            return [];
+        var reglas = new List<ReglaDeClase>();
+        var tipos = c.TiposDeSusCargas;
+        var proteccion = r.ProteccionA;
+        var conContactos = tipos.Contains(CategoriaDeCarga.Contactos);
+        var divisor = TensionDeCalculo.Divisor(c.Polos, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV);
+
+        if (clase == ClaseDeCircuito.Individual)
+        {
+            if (conContactos)
+                reglas.Add(new("210-21(b)(1)", $"Un contacto sencillo en su circuito individual es de valor no menor que el circuito: {proteccion:N0} A.", false));
+            // 422-11(e): un solo aparato no operado por motor, sin valor de protección marcado.
+            var aparato = c.TieneDesglose ? c.Cargas.SingleOrDefault() : null;
+            var noMotor = c.Categoria == CategoriaDeCarga.Equipo && !c.EsDeMotor && (aparato is null ? !c.TieneDesglose : !aparato.EsMaquina && c.TipoDe(aparato) == CategoriaDeCarga.Equipo);
+            if (noMotor)
+            {
+                var corriente = c.CargaInstaladaVA / divisor;
+                var maximo = corriente <= 13.3m ? 20m : TamanoEstandar(1.5m * corriente);
+                if (proteccion > maximo)
+                    reglas.Add(new("422-11(e)", $"Un solo aparato no operado por motor, de {corriente:N2} A: sin valor marcado, su protección no pasa de {maximo:N0} A " +
+                        $"({(corriente <= 13.3m ? "20 A hasta 13.30 A" : "150 % de su corriente, o el tamaño siguiente")}); la del circuito es de {proteccion:N0} A. Revisar la placa.", true));
+            }
+            return reglas;
+        }
+
+        // Dos o más salidas: uso general o para aparatos.
+        if (conContactos)
+        {
+            var fuera = proteccion > 20m && c.UsoEfectivo == UsoDeContactos.General && ContactosDeUsoGeneral(c);
+            reglas.Add(fuera
+                ? new("Tabla 210-21(b)(3)", $"Los contactos de uso general (15 o 20 A) no van en un circuito de {proteccion:N0} A: ahí son {ValorDeContactos(proteccion)}. Partir los contactos en circuitos de 15 o 20 A.", true)
+                : new("Tabla 210-21(b)(3)", $"Los contactos de un circuito de {proteccion:N0} A: {ValorDeContactos(proteccion)}.", false));
+        }
+        var alumbradoComun = tipos.Contains(CategoriaDeCarga.Alumbrado) && (!c.TieneDesglose
+            || c.Cargas.Any(a => c.TipoDe(a) == CategoriaDeCarga.Alumbrado && a.Subtipo != SubtipoDeCarga.PortalamparasPesado));
+        if (proteccion <= 20m)
+        {
+            // 210-23(a)(2): el equipo fijo que no es luminaria, con alumbrado o equipo con clavija, no pasa del 50 %.
+            var equipoFijoA = c.Porciones.Where(p => p.Tipo is CategoriaDeCarga.Equipo or CategoriaDeCarga.CalefaccionFija).Sum(p => p.TotalVA) / divisor;
+            if (equipoFijoA > 0m && (tipos.Contains(CategoriaDeCarga.Alumbrado) || conContactos) && equipoFijoA > 0.5m * proteccion)
+                reglas.Add(new("210-23(a)(2)", $"El equipo fijo ({equipoFijoA:N2} A), junto con alumbrado o contactos, no pasa del 50 % del circuito de {proteccion:N0} A ({0.5m * proteccion:N2} A). Llevarlo a un circuito propio.", true));
+        }
+        else if (proteccion <= 30m)
+        {
+            if (alumbradoComun || (tipos.Contains(CategoriaDeCarga.Alumbrado) && Datos.Inmueble.EsVivienda()))
+                reglas.Add(new("210-23(b)", $"Un circuito de {proteccion:N0} A con alumbrado solo alimenta portalámparas de servicio pesado, y fuera de vivienda. Partir el alumbrado en circuitos de 15 o 20 A.", true));
+        }
+        else if (proteccion <= 50m)
+        {
+            if (tipos.Contains(CategoriaDeCarga.Alumbrado) && (alumbradoComun || Datos.Inmueble.EsVivienda()))
+                reglas.Add(new("210-23(c)", $"Un circuito de {proteccion:N0} A alimenta equipo de cocción fijo, portalámparas de servicio pesado fuera de vivienda o calefacción por infrarrojo; no alumbrado común.", true));
+        }
+        else if (tipos.Contains(CategoriaDeCarga.Alumbrado))
+            reglas.Add(new("210-23(d)", $"Un circuito de más de 50 A ({proteccion:N0} A) solo alimenta salidas que no son de alumbrado.", true));
+        return reglas;
+    }
+
+    /// <summary>Tabla 210-21(b)(3): el valor de los contactos según el del circuito.</summary>
+    private static string ValorDeContactos(decimal circuitoA) => circuitoA switch
+    {
+        <= 15m => "de 15 A como máximo",
+        <= 20m => "de 15 o 20 A",
+        <= 30m => "de 30 A",
+        <= 40m => "de 40 o 50 A",
+        <= 50m => "de 50 A",
+        _ => "la tabla llega a 50 A: un circuito mayor alimenta un contacto individual",
+    };
+
+    /// <summary>Contactos de uso general (15 o 20 A): el renglón de contactos, o salidas de uso general en el desplegable.</summary>
+    private static bool ContactosDeUsoGeneral(CircuitoDelCuadro c) =>
+        !c.TieneDesglose || c.Cargas.Any(a => c.TipoDe(a) == CategoriaDeCarga.Contactos && a.Subtipo is null or SubtipoDeCarga.ContactoUsoGeneral or SubtipoDeCarga.ContactoMultiple);
+
+    /// <summary>
+    /// La protección mínima que la norma pide para el circuito: 20 A en los de vivienda de 210-11(c); 40 A
+    /// si alimenta estufas domésticas de 8.75 kW o más — 210-19(a)(3) (I-124). <c>null</c> sin mínimo.
+    /// </summary>
+    private (decimal Amperes, string Referencia)? ProteccionMinima(CircuitoDelCuadro c)
+    {
+        var coccion = Datos.Inmueble.EsVivienda()
+            ? c.Cargas.Where(a => c.TieneDesglose && a.Subtipo == SubtipoDeCarga.Coccion).Sum(a => a.TotalVA)
+            : 0m;
+        if (coccion >= 8750m)
+            return (40m, "210-19(a)(3)");
+        return c.UsoEfectivo.ReferenciaProteccionMinima() is { } referencia
+            ? (UsosDeContactos.ProteccionMinimaViviendaA, referencia)
+            : null;
     }
 
     /// <summary>
     /// El tipo con el que calcula el derivado no-motor — I-123: con algún contacto, Contactos (sin 240-4(b));
     /// solo alumbrado, Alumbrado; si no, Equipo. Sin desglose, el del renglón, como siempre.
+    ///
+    /// <para>
+    /// <b>240-4(b)(1) por lo que alimenta</b> — I-124: el tamaño siguiente sobre la ampacidad se niega al
+    /// circuito «de salidas múltiples que alimenta a contactos para cargas portátiles». Un circuito
+    /// individual de contactos —el del refrigerador— no lo es: calcula como Equipo.
+    /// </para>
     /// </summary>
     private static TipoCarga TipoCargaDelCalculo(CircuitoDelCuadro c)
     {
+        if (c.ClaseDelCircuito == ClaseDeCircuito.Individual && c.TiposDeSusCargas.Contains(CategoriaDeCarga.Contactos))
+            return TipoCarga.Equipo;
         if (!c.TieneDesglose)
             return c.Tipo;
         var tipos = c.TiposDeSusCargas;

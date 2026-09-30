@@ -321,4 +321,101 @@ public class CargasYClasesTests
 
         Assert.Null(Espacio(abierto, 1).Cargas.Single().Subtipo);
     }
+
+    // ---- Las reglas de la clase — I-124 ------------------------------------------------------------
+
+    private static CircuitoDelCuadro Renglon(CuadroDeCarga cuadro, int espacio, CategoriaDeCarga tipo, decimal noContinuaVA)
+    {
+        var c = Espacio(cuadro, espacio);
+        c.Categoria = tipo;
+        c.NoContinua = noContinuaVA;
+        c.LongitudM = 5m;
+        return c;
+    }
+
+    [Fact]
+    public void I124_AlumbradoEnUnCircuitoDe25AAvisa210_23b()
+    {
+        // 3000 VA / 127 V = 23.6 A → 25 A: con alumbrado común no se permite — 210-23(b).
+        var cuadro = Nuevo();
+        var c = Renglon(cuadro, 1, CategoriaDeCarga.Alumbrado, 3000m);
+        cuadro.Recalcular();
+
+        Assert.Equal(25m, c.Resultado!.ProteccionA);
+        Assert.Contains(c.ReglasDeClase, x => x.Referencia == "210-23(b)" && x.Aviso);
+        Assert.Contains(cuadro.AvisosDeCircuitos, x => x.StartsWith("Circuito 1:") && x.EndsWith("210-23(b)."));
+    }
+
+    [Fact]
+    public void I124_LosContactosDicenSuValorPorLaTabla210_21b3()
+    {
+        var cuadro = Nuevo();
+        var veinte = Renglon(cuadro, 1, CategoriaDeCarga.Contactos, 2400m);   // 18.9 A → 20 A
+        var treinta = Renglon(cuadro, 3, CategoriaDeCarga.Contactos, 3200m);  // 25.2 A → 30 A
+        cuadro.Recalcular();
+
+        var nota = Assert.Single(veinte.ReglasDeClase);
+        Assert.Equal("Tabla 210-21(b)(3)", nota.Referencia);
+        Assert.Contains("de 15 o 20 A", nota.Texto);
+        Assert.False(nota.Aviso);
+        Assert.Contains(treinta.ReglasDeClase, x => x.Referencia == "Tabla 210-21(b)(3)" && x.Aviso);
+    }
+
+    [Fact]
+    public void I124_ElEquipoFijoConAlumbradoNoPasaDelCincuentaPorCiento()
+    {
+        // 600 VA de luminarias y un aparato fijo de 1500 VA: 11.81 A de equipo en un circuito de 20 A
+        // (17.3 A) — más de 10 A: 210-23(a)(2).
+        var cuadro = Nuevo();
+        var c = Espacio(cuadro, 1);
+        c.Categoria = CategoriaDeCarga.Alumbrado;
+        c.LongitudM = 5m;
+        Linea(c, SubtipoDeCarga.Luminarias, 6, 100m);
+        Linea(c, SubtipoDeCarga.AparatoFijo, 1, 1500m);
+        cuadro.Recalcular();
+
+        Assert.Equal(20m, c.Resultado!.ProteccionA);
+        Assert.Contains(c.ReglasDeClase, x => x.Referencia == "210-23(a)(2)" && x.Aviso);
+    }
+
+    [Fact]
+    public void I124_ElRefrigeradorEnSuCircuitoIndividualDice210_21b1()
+    {
+        var cuadro = Nuevo();
+        cuadro.Datos.Inmueble = TipoDeInmueble.ViviendaUnifamiliar;
+        var c = Renglon(cuadro, 1, CategoriaDeCarga.Contactos, 700m);
+        c.Uso = UsoDeContactos.Refrigerador;
+        cuadro.Recalcular();
+
+        Assert.Equal(ClaseDeCircuito.Individual, c.ClaseDelCircuito);
+        Assert.Contains(c.ReglasDeClase, x => x.Referencia == "210-21(b)(1)" && !x.Aviso);
+    }
+
+    [Fact]
+    public void I124_UnaEstufaDeOchoSetecientosCincuentaPideCuarentaAmperes()
+    {
+        // 8750 VA a 3 polos y 220 V: 22.96 A → 25 A por carga; en vivienda, 40 A — 210-19(a)(3).
+        var cuadro = Nuevo();
+        cuadro.Datos.Inmueble = TipoDeInmueble.ViviendaUnifamiliar;
+        var c = Espacio(cuadro, 1);
+        c.Categoria = CategoriaDeCarga.Equipo;
+        c.LongitudM = 5m;
+        Assert.Null(cuadro.CambiarPolos(c, 3));
+        Linea(c, SubtipoDeCarga.Coccion, 1, 8750m);
+        cuadro.Recalcular();
+
+        Assert.Equal(40m, c.Resultado!.ProteccionA);
+        Assert.Contains(c.Resultado.Citas, x => x.Referencia == "210-19(a)(3)");
+    }
+
+    [Fact]
+    public void I124_UnAparatoSoloDentroDeSusVeinteAmperesNoAvisa422_11e()
+    {
+        var cuadro = Nuevo();
+        var c = Renglon(cuadro, 1, CategoriaDeCarga.Equipo, 1200m); // 9.45 A → 15 A
+        cuadro.Recalcular();
+
+        Assert.Equal(ClaseDeCircuito.Individual, c.ClaseDelCircuito);
+        Assert.DoesNotContain(c.ReglasDeClase, x => x.Aviso);
+    }
 }

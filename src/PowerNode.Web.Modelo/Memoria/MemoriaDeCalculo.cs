@@ -91,7 +91,8 @@ public static class MemoriaDeCalculo
             AvisoDeHabitacion: circuito.AvisoAireDeHabitacion is { } aviso ? aviso[(aviso.IndexOf(':') + 2)..] : null,
             Canalizacion: DeLaCanalizacion(cuadro, circuito.CanalizacionEfectiva),
             Equipo: equipo,
-            CargaMotoresVa: circuito.MotorVA);
+            CargaMotoresVa: circuito.MotorVA,
+            ReglasDeClase: circuito.ReglasDeClase);
     }
 
     /// <summary>
@@ -637,6 +638,8 @@ public static class MemoriaDeCalculo
                 ("Uso del circuito", hoja.NotaDelUso),
                 ("Aparato con motor — 220-18(a)", hoja.NotaDelMotor),
                 ("Acondicionador de habitación — 440-62", hoja.AvisoDeHabitacion),
+                // Las reglas de la clase del circuito — I-124. La que no se cumple, marcada.
+                .. (hoja.ReglasDeClase ?? []).Select(x => ($"{(x.Aviso ? "REVISAR — " : "")}{x.Referencia}", (string?)x.Texto)),
                 ($"{hoja.EtiquetaDeMotores} — {hoja.ReferenciaDeMotores}", motores.MayorFlcA is { } mayor
                     ? (mayor > 0m
                         ? $"125 % × {mayor:N2} A (el mayor, completo) + {motores.SumaRestoFlcA:N2} A (los demás, con su F.D.) = {motores.CapacidadMinimaA:N2} A"
