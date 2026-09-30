@@ -252,6 +252,17 @@
                             <td class="num">@a.CaidaTensionPct.ToString("N2")</td>
                         </tr>
                     </table>
+                    @* Equipo de acometida (P3-3): el conductor del electrodo y el puente de unión principal. *@
+                    @if (Cuadro.TierraDeAcometida is { } tierraAcometida)
+                    {
+                        <table class="doc-resumen separado">
+                            <tr><th>Conductor del electrodo de puesta a tierra</th><th>Puente de unión principal</th></tr>
+                            <tr>
+                                <td class="num">@tierraAcometida.ConductorElectrodo.DesignacionConUnidad — Tabla 250-66</td>
+                                <td class="num">@tierraAcometida.PuenteDeUnion.DesignacionConUnidad — 250-28(d)(1)</td>
+                            </tr>
+                        </table>
+                    }
                 }
                 <table class="doc-resumen separado">
                     <tr>

@@ -84,7 +84,8 @@ public sealed record HojaDeMemoria(
     string? AvisoDeHabitacion = null,
     int FrecuenciaHz = 60,
     IReadOnlyList<ReglaDeClase>? ReglasDeClase = null,
-    MinimoPorSuperficie? Superficie = null);
+    MinimoPorSuperficie? Superficie = null,
+    PowerNode.DesignSuite.Calculo.Casos.ResultadoTierraDeAcometida? TierraDeAcometida = null);
 
 /// <summary>
 /// <b>Un motor o un equipo de A/C, como lo pone la memoria</b> — I-15, I-74. Ya redactado, porque las

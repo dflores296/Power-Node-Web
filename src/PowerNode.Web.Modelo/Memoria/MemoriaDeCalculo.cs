@@ -497,7 +497,8 @@ public static class MemoriaDeCalculo
             EtiquetaDeMotores: cuadro.EtiquetaDeMotores,
             ReferenciaDeMotores: cuadro.ReferenciaDeMotores,
             MotoresQueGobiernan: cuadro.Alimentador.Gobierna?.Motores ?? default,
-            Techo430_62A: r.TechoProteccion430_62A);
+            Techo430_62A: r.TechoProteccion430_62A,
+            TierraDeAcometida: cuadro.TierraDeAcometida);
     }
 
     /// <summary>«Estufa: 1 × 3,000 W = 3,000 VA · no continua · F.P. 1.00». Un renglón por aparato — I-35.</summary>
@@ -807,7 +808,16 @@ public static class MemoriaDeCalculo
 
         // ---- 9
         bloques.Add(Seccion("9. CONDUCTOR DE PUESTA A TIERRA SELECCIONADO", [
-            ("Calibre", CalibreDe(hoja.ConductorTierra, 1))]));
+            ("Calibre", CalibreDe(hoja.ConductorTierra, 1)),
+            // Equipo de acometida (P3-3): del mayor conductor de acometida, que es el del alimentador.
+            .. hoja.TierraDeAcometida is { } ta
+                ? new (string, string?)[]
+                {
+                    ("Conductor del electrodo de puesta a tierra — Tabla 250-66", ta.Citas.First(x => x.Referencia == "250-66").Descripcion),
+                    ("Porción a varilla, tubo o placa — 250-66(a)", ta.Citas.First(x => x.Referencia == "250-66(a)").Descripcion),
+                    ("Puente de unión principal — 250-28(d)(1)", ta.Citas.First(x => x.Referencia == "250-28(d)(1)").Descripcion),
+                }
+                : []]));
 
         return bloques;
     }

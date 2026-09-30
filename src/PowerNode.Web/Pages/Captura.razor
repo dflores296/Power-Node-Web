@@ -1092,6 +1092,11 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
             </div>
 
             <p class="derivado">Canalización: <strong>@Datos.CanalizacionAlimentador.Rotulo · @Datos.CanalizacionAlimentador.TamanoRotulo</strong> · @(Datos.CanalizacionAlimentador.Conteo?.Portadores) portadores — ver «Canalizaciones».</p>
+            @* Equipo de acometida: el conductor del electrodo y el puente de unión principal (auditoría del 2026-09-29, P3-3). *@
+            @if (Cuadro.TierraDeAcometida is { } tierraAcometida)
+            {
+                <p class="derivado" title="@string.Join(" ", tierraAcometida.Citas.Select(x => x.Descripcion))">Equipo de acometida: conductor del electrodo de puesta a tierra <strong>@tierraAcometida.ConductorElectrodo.DesignacionConUnidad</strong> — Tabla 250-66 · puente de unión principal <strong>@tierraAcometida.PuenteDeUnion.DesignacionConUnidad</strong> — 250-28(d)(1).</p>
+            }
 
             <label class="suelto">Longitud del alimentador (m)
                 <input data-requerido type="text" inputmode="decimal" autocomplete="off" data-numero min="0" step="1" value="@Numero(Datos.LongitudAlimentadorM)" @onchange="e => { Datos.LongitudAlimentadorM = Leer(e, Datos.LongitudAlimentadorM, 0m); Recalcular(); }" />

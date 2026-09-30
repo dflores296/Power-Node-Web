@@ -459,6 +459,36 @@ public class Auditoria20260929Tests
         Assert.DoesNotContain(c.ReglasDeClase, x => x.Referencia.StartsWith("210-8") || x.Referencia.StartsWith("210-12"));
     }
 
+    // ---- P3-3 · Puesta a tierra del equipo de acometida ------------------------------------------
+
+    [Fact]
+    public void P3_3_ElEquipoDeAcometidaLlevaConductorDelElectrodoYPuenteDeUnion()
+    {
+        // 60 kVA trifásicos no continuos: 157.46 A → principal de 175 A y fase de 2/0 AWG a 75 °C (175 A).
+        // Tabla 250-66: 2/0 → conductor del electrodo de 4 AWG; puente de unión principal, lo mismo.
+        var cuadro = Nuevo();
+        var c = Espacio(cuadro, 1);
+        c.Categoria = CategoriaDeCarga.Equipo;
+        Assert.Null(cuadro.CambiarPolos(c, 3));
+        var a = c.AgregarCarga();
+        a.Subtipo = SubtipoDeCarga.OtraCargaEspecifica;
+        a.CargaUnitaria = 60000m;
+        cuadro.Recalcular();
+        Assert.Null(cuadro.TierraDeAcometida); // sin la casilla, nada
+
+        cuadro.Datos.EsEquipoDeAcometida = true;
+        cuadro.Recalcular();
+
+        Assert.Equal("2/0", cuadro.Alimentador.Resultado!.CalibreFase.Designacion);
+        var t = cuadro.TierraDeAcometida!;
+        Assert.Equal("4", t.ConductorElectrodo.Designacion);
+        Assert.Equal(t.ConductorElectrodo, t.PuenteDeUnion);
+        Assert.False(t.PuentePorPorcentaje);
+        var nueve = MemoriaDeCalculo.Secciones(MemoriaDeCalculo.DelAlimentador(cuadro)!).Single(b => b.Titulo.StartsWith("9."));
+        Assert.Contains(nueve.Renglones, r => r.Rotulo.Contains("Tabla 250-66"));
+        Assert.Contains(nueve.Renglones, r => r.Rotulo.Contains("250-28(d)(1)"));
+    }
+
     // ---- Riesgo 6 · Contactos a 277 V -----------------------------------------------------------
 
     [Theory]

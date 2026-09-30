@@ -208,6 +208,17 @@ public sealed class CuadroDeCarga
     public RenglonDelAlimentador Alimentador { get; private set; } = new(null, null, [], 3);
 
     /// <summary>
+    /// Con el tablero como equipo de acometida: el conductor del electrodo de puesta a tierra (Tabla 250-66)
+    /// y el puente de unión principal (250-28(d)(1)), por los conductores del alimentador, que son los de
+    /// entrada a la acometida. <c>null</c> si no es equipo de acometida o el alimentador no calculó
+    /// (auditoría del 2026-09-29, P3-3).
+    /// </summary>
+    public ResultadoTierraDeAcometida? TierraDeAcometida =>
+        Datos.EsEquipoDeAcometida && Alimentador.Resultado is { } a
+            ? PuestaTierraDeAcometida.Calcular(_motor.ElectrodoTierra, _motor.Calibres, a.CalibreFase, a.NumeroConductoresParalelo, Datos.MaterialConductor)
+            : null;
+
+    /// <summary>
     /// El sistema trae neutro: todos menos 3F-3H (delta). Sin él, ni el alimentador ni un derivado
     /// llevan neutro, y los documentos ponen «—» en su lugar — I-73.
     /// </summary>

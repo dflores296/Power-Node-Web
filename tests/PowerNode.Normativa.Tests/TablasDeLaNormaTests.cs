@@ -270,6 +270,29 @@ public class TablasDeLaNormaTests
     }
 
     /// <summary>
+    /// <b>Tabla 250-66</b> — auditoría del 2026-09-29, P3-3. Los intervalos de la acometida vienen en texto
+    /// y redondeados («33.6 o menor» para 2 AWG, que son 33.62 mm²; «Más de 85.0 a 177» hasta 350 kcmil,
+    /// 177.3 mm²): el calibre del borde cae en su renglón.
+    /// </summary>
+    [Theory]
+    [InlineData("2", 1, MaterialConductor.Cobre, "8")]
+    [InlineData("1/0", 1, MaterialConductor.Cobre, "6")]
+    [InlineData("3/0", 1, MaterialConductor.Cobre, "4")]
+    [InlineData("350", 1, MaterialConductor.Cobre, "2")]
+    [InlineData("600", 1, MaterialConductor.Cobre, "1/0")]
+    [InlineData("1000", 1, MaterialConductor.Cobre, "2/0")]
+    [InlineData("600", 3, MaterialConductor.Cobre, "3/0")]      // 3 × 304 = 912 mm²: más de 557.38
+    [InlineData("500", 1, MaterialConductor.Aluminio, "1/0")]   // aluminio, más de 250 a 500 kcmil
+    public void Tabla250_66_ElConductorDelElectrodo(string acometida, int enParalelo, MaterialConductor material, string esperado)
+    {
+        var calibres = Calibres();
+        var tabla = new TablaElectrodoTierraJson(Fuente, calibres);
+        var fase = calibres.BuscarPorDesignacion(acometida)!;
+
+        Assert.Equal(esperado, tabla.CalibreMinimo(fase.AreaMm2 * enParalelo, material, material).Designacion);
+    }
+
+    /// <summary>
     /// Tabla 220-12 — M-14. Nace en Power Node Web: no hay versión de escritorio que comparar; los valores
     /// son los del PDF del DOF (verificada 2026-08-12 en el repo de la norma). La llamada de nota («39 (b)»)
     /// no se lee como parte del número, y el renglón de título del bloque de áreas comunes se salta.

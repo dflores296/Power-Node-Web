@@ -6,7 +6,7 @@ Por qué existe
 El repo público `dflores296/NOM-001-SEDE-2012` publica las 245 tablas de la norma
 (`data/tablas_revisadas.json`, 1.1 MB) y el corpus completo (`data/corpus.json`, 8 MB).
 Mandarle eso a un navegador para calcular un circuito sería absurdo: el cálculo de un
-cuadro de carga toca **20 tablas y tres secciones**, y nada más.
+cuadro de carga toca **21 tablas y tres secciones**, y nada más.
 
 Este script produce `wwwroot/datos/tablas-nom.json` con exactamente esas, en la MISMA forma
 cruda que publica el repo de origen (celdas con `t`/`rs`/`cs`). **No interpreta nada**: la
@@ -27,7 +27,7 @@ import json
 import sys
 from pathlib import Path
 
-# Las 20 tablas que toca el cálculo de un cuadro de carga, con quién las usa.
+# Las 21 tablas que toca el cálculo de un cuadro de carga, con quién las usa.
 # Si agregas una aquí, hay una implementación de interfaz en Normativa/ que la pide.
 TABLAS = {
     "8": "Propiedades de los conductores (área, resistencia) — ICatalogoCalibres",
@@ -38,6 +38,9 @@ TABLAS = {
     "310-15(b)(3)(a)": "Ajuste por agrupamiento — ITablaAgrupamiento",
     "310-104(a)": "Conductores y aislamientos — ITablaAislamiento",
     "250-122": "Conductor de puesta a tierra de equipo — ITablaPuestaTierra",
+    # Equipo de acometida (auditoría del 2026-09-29, P3-3): el conductor del electrodo de puesta a
+    # tierra y el puente de unión principal (250-28(d)(1)).
+    "250-66": "Conductor del electrodo de puesta a tierra — ITablaElectrodoTierra",
     "430-247": "FLC motores de corriente continua — ITablaFlcMotor",
     "430-248": "FLC motores monofásicos — ITablaFlcMotor",
     "430-249": "FLC motores de dos fases — ITablaFlcMotor",

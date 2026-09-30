@@ -49,6 +49,7 @@ public sealed class MotorNom
         var proteccionMotor = new TablaProteccionMotorJson(fuente);
         ServicioMotor = new TablaServicioMotorJson(fuente);
         CargaUnitaria = new TablaCargaUnitariaJson(fuente);
+        ElectrodoTierra = new TablaElectrodoTierraJson(fuente, Calibres);
 
         // Un juego de calculadoras por serie de interruptores: la misma norma, elegida dentro de la
         // familia que se instala. Ver SerieDeInterruptores.
@@ -127,6 +128,9 @@ public sealed class MotorNom
 
     /// <summary>Tabla 220-12: VA/m² de alumbrado general por tipo de inmueble — M-14.</summary>
     public ITablaCargaUnitaria CargaUnitaria { get; }
+
+    /// <summary>Tabla 250-66: el conductor del electrodo y el puente de unión principal del equipo de acometida — P3-3.</summary>
+    public ITablaElectrodoTierra ElectrodoTierra { get; }
 
     /// <summary>Tabla 430-52: el porcentaje de la FLC que puede tener la protección del derivado.</summary>
     public ITablaProteccionMotor ProteccionMotor { get; }
