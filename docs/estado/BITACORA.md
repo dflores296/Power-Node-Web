@@ -25,6 +25,7 @@ propuesta y «una línea con dos cantidades, arranca»).
 - «Continua / No continua» en la columna Servicio; nombres genéricos por subtipo — I-138, `50a51ed`.
 - Campos que dependen de otro, solo cuando aplican — I-139, `4aa48e3`.
 - Renglón sin estirarse de más; desplegable con anchos fijos — I-140, `8203883`.
+- Flechas de subir y bajar en la cantidad — I-141, `a44533b`.
 
 Pruebas: 399 en `PowerNode.Web.Tests`, 24 en `PowerNode.Normativa.Tests`.
 

@@ -166,6 +166,7 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-138 · La casilla de continua sin contexto bajo «Servicio»; líneas sin nombre | P3 | **Cerrado** | `50a51ed` |
 | I-139 · Campos que dependen de otro visibles aunque no apliquen | P3 | **Cerrado** | `4aa48e3` |
 | I-140 · El renglón crece sin notas; la descripción del desplegable cambia de ancho con el tipo | P3 | **Cerrado** | `8203883` |
+| I-141 · La cantidad sin flechas de subir y bajar | P3 | **Cerrado** | `a44533b` |
 | M-14 · Sin el mínimo de alumbrado general por superficie (220-12) en el alimentador; en vivienda, contactos de uso general sumados aparte (220-14(j)) | P1 | **Cerrado** | `71abc56` |
 | R-01 · Caída del alimentador fija en 5 %, sin verificar la combinada — 215-2(a)(4) NOTA 2 | P1 | **Cerrado** | `2a973ea` |
 | R-02 · Caída del alimentador sin la caída del neutro | P2 | **Cerrado** | `d6cd1c6` |
@@ -527,6 +528,8 @@ Propuesta para cuando se haga:
 **I-139** — Hecho: David: «si dependen de otros, no aparezcan, solo aparezcan si se llena el campo del que depende». Cerrado en `4aa48e3`: «Uso — Tabla 220-12» solo con área servida; «Carga no lineal» solo en 3F-4H (310-15(b)(5)(3)). Navegador: el uso aparece al capturar 200 m² y se va al borrarla; la carga no lineal se va en 3F-3H.
 
 **I-140** — Hecho: David: con calefacción el renglón cambia de altura sin necesidad, y el ancho del nombre de la línea varía según el tipo de carga. El renglón crecía por tener una línea en el desplegable, aunque sin carga no hubiera nota; el desplegable repartía el ancho según su contenido. Cerrado en `8203883`: el renglón crece solo con carga; el desplegable con anchos fijos (la descripción, el resto: 356 px a 1920). Navegador: ocho tipos y subtipos, descripción siempre igual, ningún campo fuera de su celda ni selector cortado; cuadro de 1676 px.
+
+**I-141** — Hecho: David extrañaba las flechas en la cantidad; se fueron con los campos de texto de I-81. Cerrado en `a44533b`: flechas propias (una más, una menos, mínimo 1), fuera de la tabulación; no salen si la cantidad es fija. Navegador: 1 → 3 → 2; «una menos» apagada en 1; sin flechas en el contacto de refrigerador.
 
 **M-14** — Hecho: 220-12 fija la carga **mínima** de alumbrado general por m² (Tabla 220-12: oficinas 39 VA/m², vivienda 33, bodegas 3…) y 210-11(b) pide que el tablero la sirva; el alimentador solo suma lo capturado. Una oficina de 200 m² con 200 VA de LED pide 7,800 VA. En vivienda, 220-14(j) incluye los contactos de uso general en los 33 VA/m²; hoy se suman aparte. En oficinas y bancos, contactos = el mayor entre 180 VA por contacto y 11 VA/m² (220-14(k)). Cerrado en `71abc56`: Tabla 220-12 extraída del repo de la norma; área servida y uso del local en los datos; el alimentador no baja de área × VA/m² (continuo fuera de vivienda); en vivienda, los contactos de uso general van dentro (220-14(j)); en bancos y oficinas, 11 VA/m² de contactos (220-14(k)). Pruebas: `M14_…` (4), `Tabla220_12_…`; en el navegador, 200 m² de oficinas: 7.6 + 2.2 kVA.
 
