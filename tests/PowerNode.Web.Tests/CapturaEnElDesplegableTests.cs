@@ -329,4 +329,25 @@ public class CapturaEnElDesplegableTests
         Assert.Equal((10m, 40m), (abierto.Cargas[0].CorrientePlacaA, abierto.Cargas[0].ProteccionMaximaA));
         Assert.Equal(30m, abierto.Resultado!.ProteccionA);
     }
+
+    [Fact]
+    public void QuitarElEquipoDelRenglonDejaElCircuitoVacio()
+    {
+        var cuadro = Nuevo();
+        var c = Espacio(cuadro, 1);
+        c.Descripcion = "Bomba";
+        c.Categoria = CategoriaDeCarga.Motor;
+        c.Hp = 2m;
+        cuadro.Recalcular();
+        Assert.Equal(SubtipoDeCarga.MotorUsoGeneral, c.SubtipoDelRenglon);
+
+        c.QuitarEquipo();
+        cuadro.Recalcular();
+
+        Assert.Null(c.SubtipoDelRenglon);
+        Assert.False(c.TipoElegido);
+        Assert.False(c.TieneCarga);
+        Assert.Null(c.Resultado);
+        Assert.Equal("Bomba", c.Descripcion);
+    }
 }

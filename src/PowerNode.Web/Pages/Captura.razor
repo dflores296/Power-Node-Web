@@ -544,7 +544,7 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
                                                 </td>
                                                 <td><input data-requerido class="va fp" type="text" inputmode="decimal" autocomplete="off" data-numero min="@FactorMinimo" max="1" step="0.05" data-col="ap-fp" aria-label="Circuito @c.Espacio, equipo · F.P." value="@Factor(c.FactorPotencia)" @onchange="e => { c.FactorPotencia = LeerFactor(e, c.FactorPotencia); Recalcular(); }" /></td>
                                                 <td class="num">@c.CargaInstaladaVA.ToString("#,0.##")</td>
-                                                <td><button class="quitar" title="Quitar el equipo" aria-label="Quitar el equipo del circuito @c.Espacio" @onclick="() => QuitarRenglon(c)"><Icono Nombre="quitar" Tamano="14" /></button></td>
+                                                <td><button class="quitar" title="Quitar el equipo del circuito" aria-label="Quitar el equipo del circuito @c.Espacio" @onclick="() => QuitarRenglon(c)"><Icono Nombre="quitar" Tamano="14" /></button></td>
                                             </tr>
                                         }
                                         @foreach (var (aparato, n) in c.Cargas.Select((a, i) => (a, i + 1)))
@@ -1911,18 +1911,10 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
         Recalcular();
     }
 
-    /// <summary>Borra lo capturado del equipo del renglón; el tipo se queda.</summary>
+    /// <summary>Quita el equipo del renglón y su tipo: el circuito queda vacío, como uno nuevo.</summary>
     private void QuitarRenglon(CircuitoDelCuadro c)
     {
-        c.Hp = null;
-        c.CorrientePlacaA = 0m;
-        c.CorrienteSeleccionA = null;
-        c.AmpacidadMinimaA = 0m;
-        c.ProteccionMaximaA = 0m;
-        c.CorrienteEntradaVariadorA = 0m;
-        c.ProteccionMaximaVariadorA = 0m;
-        c.Continua = 0m;
-        c.NoContinua = 0m;
+        c.QuitarEquipo();
         Recalcular();
         _enfocar = AgregarDe(c.Espacio);
     }

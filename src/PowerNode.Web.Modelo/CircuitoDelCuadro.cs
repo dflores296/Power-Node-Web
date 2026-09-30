@@ -754,6 +754,30 @@ public sealed class CircuitoDelCuadro
     /// </summary>
     public decimal CargaPorFaseVA => Fases.Length == 0 ? 0m : CargaInstaladaVA / Fases.Length;
 
+    /// <summary>
+    /// <b>Quita el equipo del renglón</b> — el bote de su línea (David, 2026-09-30): borra lo capturado de
+    /// motor, variador, A/A o carga, y el tipo, como un espacio nuevo. La descripción, los polos, la
+    /// longitud y la canalización se quedan: son del espacio, no del equipo.
+    /// </summary>
+    public void QuitarEquipo()
+    {
+        Hp = null;
+        CorrientePlacaA = 0m;
+        CorrienteSeleccionA = null;
+        AmpacidadMinimaA = 0m;
+        ProteccionMaximaA = 0m;
+        CorrienteEntradaVariadorA = 0m;
+        ProteccionMaximaVariadorA = 0m;
+        Continua = 0m;
+        NoContinua = 0m;
+        Servicio = null;
+        CapturaMotor = CapturaDeMotor.Hp;
+        PlacaAire = PlacaDeAireAcondicionado.AmpacidadYProteccion;
+        Cargas.Clear();
+        categoria = CategoriaDeCarga.Alumbrado;
+        TipoElegido = false;
+    }
+
     internal void Limpiar()
     {
         Resultado = null;
