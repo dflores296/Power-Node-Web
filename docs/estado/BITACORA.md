@@ -24,6 +24,7 @@ propuesta y «una línea con dos cantidades, arranca»).
 - El equipo del renglón con su propio nombre, editable, aparte del del espacio — I-137, `8fc6d3b`.
 - «Continua / No continua» en la columna Servicio; nombres genéricos por subtipo — I-138, `50a51ed`.
 - Campos que dependen de otro, solo cuando aplican — I-139, `4aa48e3`.
+- Renglón sin estirarse de más; desplegable con anchos fijos — I-140, `8203883`.
 
 Pruebas: 399 en `PowerNode.Web.Tests`, 24 en `PowerNode.Normativa.Tests`.
 
