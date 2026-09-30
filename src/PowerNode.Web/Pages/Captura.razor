@@ -367,38 +367,6 @@
                         <tr class="fila-desglose">
                             <td></td>
                             <td colspan="@(Columnas - 1)">
-                                @* I-120: el servicio del motor, del circuito y no de un aparato, arriba del desglose. *@
-                                @if (c.EsMotor && !c.EsGrupo && c.CapturaMotor is CapturaDeMotor.Hp or CapturaDeMotor.Amperes)
-                                {
-                                <div class="opciones-circuito">
-                                        <label title="El servicio del motor. Continuo, salvo que lo que acciona no lo deje trabajar continuo con carga (nota de la Tabla 430-22(e)). Si no es continuo, el conductor va al porcentaje de la Tabla 430-22(e) sobre la corriente de placa — 430-22(e).">Servicio
-                                            <select aria-label="Circuito @c.Espacio · Servicio del motor" value="@(c.Servicio?.ToString() ?? "")" @onchange="e => CambiarServicio(c, e.Value?.ToString())">
-                                                <option value="">Continuo</option>
-                                                <option value="@ServicioDeMotor.CortaDuracion">Corta duración</option>
-                                                <option value="@ServicioDeMotor.Intermitente">Intermitente</option>
-                                                <option value="@ServicioDeMotor.Periodico">Periódico</option>
-                                                <option value="@ServicioDeMotor.Variable">Variable</option>
-                                            </select>
-                                        </label>
-                                        @if (c.Servicio is not null)
-                                        {
-                                            <label title="Para cuánto tiempo está especificado el motor en su placa: la columna de la Tabla 430-22(e).">Especificado para
-                                                <select aria-label="Circuito @c.Espacio · Especificado para" @bind="c.EspecificacionServicio" @bind:after="Recalcular">
-                                                    <option value="@EspecificacionDeTiempo.Minutos5">5 minutos</option>
-                                                    <option value="@EspecificacionDeTiempo.Minutos15">15 minutos</option>
-                                                    <option value="@EspecificacionDeTiempo.Minutos30y60">30 y 60 minutos</option>
-                                                    <option value="@EspecificacionDeTiempo.Continuo">Funcionamiento continuo</option>
-                                                </select>
-                                            </label>
-                                            @if (c.CapturaMotor == CapturaDeMotor.Hp)
-                                            {
-                                                <label title="La corriente de la placa del motor: 430-22(e) va sobre ella, no sobre la de la tabla.">Corriente de placa
-                                                    <input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="A" aria-label="Circuito @c.Espacio · Corriente de placa del motor (servicio)" value="@Carga(c.CorrientePlacaServicioA)" @onchange="e => { c.CorrientePlacaServicioA = LeerCarga(e, c.CorrientePlacaServicioA); Recalcular(); }" /> A
-                                                </label>
-                                            }
-                                        }
-                                </div>
-                                }
                                 <table class="desglose" data-circuito="@c.Espacio">
                                     <thead>
                                         <tr>
@@ -416,7 +384,7 @@
                                             }
                                             else
                                             {
-                                                <th data-col="ap-continua"><span class="ayuda" title="Opera 3 h o más: 125 % — 210-19(a)(1). Calefacción (424-3(b)) y calentador de agua (422-13): siempre. Un motor entra con su regla: el mayor al 125 % — 220-18(a), 430-24.">Continua</span></th>
+                                                <th data-col="ap-continua"><span class="ayuda" title="Cuánto tiempo trabaja. Una carga: continua si opera 3 h o más — 125 %, 210-19(a)(1); calefacción (424-3(b)) y calentador de agua (422-13), siempre. Un motor de uso general: su servicio — 430-22(e), Tabla 430-22(e).">Servicio</span></th>
                                             }
                                             <th data-col="ap-fp">F.P.</th>
                                             <th>Total <span class="simbolo">(VA)</span></th>
@@ -479,6 +447,12 @@ if (disponibles.Count == 0) { continue; }
 <option @key="@($"fuera|{fuera}")" value="@ValorHpConPolos(c.Polos, fuera)">@MotoresEnHp.Texto(fuera) HP</option>
 }
 </select>
+                                                        @if (c.Servicio is not null)
+                                                        {
+                                                            @* 430-22(e) va sobre la corriente de placa, no sobre la de tabla. *@
+                                                            <input class="va placa-servicio" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="Placa A" aria-label="Circuito @c.Espacio · Corriente de placa del motor (servicio)" value="@Carga(c.CorrientePlacaServicioA)" @onchange="e => { c.CorrientePlacaServicioA = LeerCarga(e, c.CorrientePlacaServicioA); Recalcular(); }"
+                                                                   title="La corriente de la placa del motor: con servicio no continuo, el conductor es un porcentaje de ella — 430-22(e), no de la de tabla." />
+                                                        }
                                                         <span class="nota-min">@Cuadro.AlimentacionDelMotor(c.Polos)@(c.FlcA > 0m ? $" · FLC {c.FlcA:N2} A" : "")</span>
                                                     </td>
                                                 }
@@ -537,9 +511,26 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
                                                         <label class="arranque-225" title="Marcar si la protección al 175 % no conduce la corriente de arranque del equipo: el máximo sube a 225 % — 440-22(a).">
                                                             <input type="checkbox" aria-label="Circuito @c.Espacio · No arranca al 175 %" checked="@c.ArranqueAl225" @onchange="e => { c.ArranqueAl225 = e.Value is true; Recalcular(); }" />225 %</label>
                                                     }
+                                                    else if (c.EsMotor && !c.EsVariador)
+                                                    {
+                                                        @* SERVICIO — 430-22(e), Tabla 430-22(e) (David, 2026-09-30): la clase y el tiempo en una lista. *@
+                                                        <select class="servicio" data-col="ap-continua" aria-label="Circuito @c.Espacio · Servicio del motor" value="@ValorServicio(c)" @onchange="e => CambiarServicio(c, e.Value?.ToString())"
+                                                                title="El servicio del motor: continuo, salvo que lo que acciona no lo deje trabajar continuo con carga (430-33). Si no es continuo, el conductor va al porcentaje de la Tabla 430-22(e) sobre la corriente de placa — 430-22(e).">
+                                                            <option value="">Continuo</option>
+                                                            @foreach (var sv in Enum.GetValues<ServicioDeMotor>())
+                                                            {
+                                                                <optgroup label="@NombreServicio(sv)">
+                                                                    @foreach (var t in Enum.GetValues<EspecificacionDeTiempo>().Where(t => !(sv == ServicioDeMotor.CortaDuracion && t == EspecificacionDeTiempo.Continuo)))
+                                                                    {
+                                                                        <option value="@($"{sv}|{t}")">@NombreServicio(sv, corto: true) · @NombreTiempo(t)</option>
+                                                                    }
+                                                                </optgroup>
+                                                            }
+                                                        </select>
+                                                    }
                                                     else
                                                     {
-                                                        <span class="clase-motor">@(c.EsMotor ? "motor" : "equipo")</span>
+                                                        <span class="tenue" title="El servicio (430-22(e)) es de un motor de uso general: el variador va con su corriente de entrada (430-122) y el A/A con su placa (Art. 440).">—</span>
                                                     }
                                                 </td>
                                                 <td><input data-requerido class="va fp" type="text" inputmode="decimal" autocomplete="off" data-numero min="@FactorMinimo" max="1" step="0.05" data-col="ap-fp" aria-label="Circuito @c.Espacio, equipo · F.P." value="@Factor(c.FactorPotencia)" @onchange="e => { c.FactorPotencia = LeerFactor(e, c.FactorPotencia); Recalcular(); }" /></td>
@@ -683,13 +674,17 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
                                                     {
                                                         <span class="clase-motor" title="Motor con variador: cuenta con la corriente de entrada del variador — 430-122(a); en grupo, 430-53.">variador</span>
                                                     }
+                                                    else if (ReferenceEquals(c.MotorAl125, aparato))
+                                                    {
+                                                        <span class="clase-motor" title="El motor mayor, con otras cargas: al 125 % — 220-18(a).">motor mayor · 125 %</span>
+                                                    }
+                                                    else if (aparato.Clase == ClaseDeAparato.Motor && c.TipoDe(aparato) == CategoriaDeCarga.Motor)
+                                                    {
+                                                        <span class="clase-motor" title="En un grupo, cada motor cuenta en servicio continuo. El servicio no continuo por motor (430-24 Excepción 1) todavía no se captura en el grupo.">Continuo</span>
+                                                    }
                                                     else
                                                     {
-                                                        @* Qué es y cómo cuenta: el selector cerrado solo dice «HP» o «A». *@
-                                                        <span class="clase-motor" title="@(aparato.Clase == ClaseDeAparato.Motocompresor ? "Motocompresor hermético: su corriente de placa, 440-6(a); el mayor, al 125 % — 440-33."
-                                                            : grupo ? "Motor del grupo: 125 % del mayor y los demás al 100 % — 430-24."
-                                                            : ReferenceEquals(c.MotorAl125, aparato) ? "El motor mayor, con otras cargas: al 125 % — 220-18(a)."
-                                                            : "Aparato con motor: al 100 %; solo el mayor va al 125 % — 220-18(a).")">@(aparato.Clase == ClaseDeAparato.Motocompresor ? "motocompresor" : ReferenceEquals(c.MotorAl125, aparato) ? "motor mayor · 125 %" : "motor")</span>
+                                                        <span class="tenue" title="@(aparato.Clase == ClaseDeAparato.Motocompresor ? "Motocompresor hermético: su corriente de placa — 440-6(a); el mayor, al 125 % — 440-33." : aparato.Clase == ClaseDeAparato.Variador ? "Motor con variador: cuenta con la corriente de entrada del variador — 430-122(a)." : "Aparato con motor: al 100 %; solo el mayor va al 125 % — 220-18(a).")">—</span>
                                                     }
                                                 </td>
                                                 }
@@ -1984,9 +1979,36 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
     /// <summary>Continuo (vacío) o una de las clases de la Tabla 430-22(e) — I-120.</summary>
     private void CambiarServicio(CircuitoDelCuadro c, string? valor)
     {
-        c.Servicio = Enum.TryParse<ServicioDeMotor>(valor, out var servicio) ? servicio : null;
+        var partes = valor?.Split('|');
+        if (partes is [var sv, var t] && Enum.TryParse<ServicioDeMotor>(sv, out var servicio) && Enum.TryParse<EspecificacionDeTiempo>(t, out var tiempo))
+        {
+            c.Servicio = servicio;
+            c.EspecificacionServicio = tiempo;
+        }
+        else
+            c.Servicio = null;
         Recalcular();
     }
+
+    /// <summary>«Intermitente|Minutos15», o vacío si es continuo: el valor del selector de servicio.</summary>
+    private static string ValorServicio(CircuitoDelCuadro c) =>
+        c.Servicio is { } sv ? $"{sv}|{c.EspecificacionServicio}" : "";
+
+    private static string NombreServicio(ServicioDeMotor s, bool corto = false) => s switch
+    {
+        ServicioDeMotor.CortaDuracion => corto ? "Corta dur." : "Corta duración",
+        ServicioDeMotor.Intermitente => "Intermitente",
+        ServicioDeMotor.Periodico => "Periódico",
+        _ => "Variable",
+    };
+
+    private static string NombreTiempo(EspecificacionDeTiempo t) => t switch
+    {
+        EspecificacionDeTiempo.Minutos5 => "5 min",
+        EspecificacionDeTiempo.Minutos15 => "15 min",
+        EspecificacionDeTiempo.Minutos30y60 => "30-60 min",
+        _ => "continuo",
+    };
 
     /// <summary>El par no simultáneo, de los dos lados: marcarlo en uno lo marca en el otro — I-121.</summary>
     private void CambiarNoSimultaneo(CircuitoDelCuadro c, string? valor)

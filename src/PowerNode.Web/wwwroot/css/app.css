@@ -996,6 +996,10 @@ polygon.riel-a { fill: var(--barra-a); } polygon.riel-b { fill: var(--barra-b); 
 .cuadro button.quitar { color: var(--tenue); }
 /* Una máquina del desglose (I-115, I-118): en lugar de la casilla «Continua», qué es. */
 .cuadro table.desglose .clase-motor { font-size: 11px; color: var(--tenue); white-space: nowrap; }
+/* Servicio del motor (430-22(e)) en su columna, y la corriente de placa junto a los HP (David, 2026-09-30). */
+.cuadro table.desglose select.servicio { width: 176px; }
+.cuadro table.desglose input.placa-servicio { width: 72px; margin-left: 4px; }
+.cuadro table.desglose td:has(> input.placa-servicio) { white-space: nowrap; }
 /* SALIDAS Y CARGAS (I-123): tipo y subtipo de cada línea, con su «?» a la guía; el mínimo de 220-14,
    debajo de la carga. */
 .cuadro table.desglose select.tipo { width: 122px; }
