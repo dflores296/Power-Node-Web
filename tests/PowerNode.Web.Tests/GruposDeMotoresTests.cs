@@ -643,7 +643,7 @@ public class GruposDeMotoresTests
         cuadro.Recalcular();
 
         var texto = ArchivoDelCuadro.Guardar(cuadro, DateTimeOffset.Now);
-        Assert.Contains("\"version\": 9", texto);
+        Assert.Contains("\"version\": 10", texto);
         var apertura = ArchivoDelCuadro.Abrir(texto, Motor);
 
         Assert.Null(apertura.Error);
@@ -690,7 +690,7 @@ public class GruposDeMotoresTests
         const string texto = """
             {
               "formato": "power-node/cuadro-de-carga",
-              "version": 10,
+              "version": 11,
               "circuitos": [ { "espacio": 1, "capturaMotor": "AlgoNuevo" } ]
             }
             """;

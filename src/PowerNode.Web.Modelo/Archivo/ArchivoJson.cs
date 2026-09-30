@@ -105,6 +105,8 @@ public sealed class CircuitoJson
     // Formato 4 — I-119: el motor con variador.
     public decimal? CorrienteEntradaVariador { get; set; }
     public decimal? ProteccionMaximaVariador { get; set; }
+    // Formato 10: el nombre del equipo del renglón, aparte del del espacio (David, 2026-09-30).
+    public string? DescripcionDelEquipo { get; set; }
     // Formato 4 — I-120, I-121: el servicio de un motor y el par no simultáneo.
     public PowerNode.DesignSuite.Calculo.TablasNom.ServicioDeMotor? Servicio { get; set; }
     public PowerNode.DesignSuite.Calculo.TablasNom.EspecificacionDeTiempo? EspecificacionServicio { get; set; }
@@ -136,6 +138,7 @@ public sealed class CircuitoJson
         ProteccionMaxima = c.ProteccionMaximaA == 0m ? null : c.ProteccionMaximaA,
         CorrienteEntradaVariador = c.CorrienteEntradaVariadorA == 0m ? null : c.CorrienteEntradaVariadorA,
         ProteccionMaximaVariador = c.ProteccionMaximaVariadorA == 0m ? null : c.ProteccionMaximaVariadorA,
+        DescripcionDelEquipo = string.IsNullOrWhiteSpace(c.DescripcionDelEquipo) ? null : c.DescripcionDelEquipo,
         Servicio = c.Servicio,
         EspecificacionServicio = c.EspecificacionServicio == PowerNode.DesignSuite.Calculo.TablasNom.EspecificacionDeTiempo.Continuo ? null : c.EspecificacionServicio,
         CorrientePlacaServicio = c.CorrientePlacaServicioA == 0m ? null : c.CorrientePlacaServicioA,
@@ -182,6 +185,7 @@ public sealed class CircuitoJson
         c.ProteccionMaximaA = ProteccionMaxima is >= 0m ? ProteccionMaxima.Value : c.ProteccionMaximaA;
         c.CorrienteEntradaVariadorA = CorrienteEntradaVariador is >= 0m ? CorrienteEntradaVariador.Value : c.CorrienteEntradaVariadorA;
         c.ProteccionMaximaVariadorA = ProteccionMaximaVariador is >= 0m ? ProteccionMaximaVariador.Value : c.ProteccionMaximaVariadorA;
+        c.DescripcionDelEquipo = DescripcionDelEquipo ?? c.DescripcionDelEquipo;
         c.Servicio = Servicio;
         c.EspecificacionServicio = EspecificacionServicio ?? c.EspecificacionServicio;
         c.CorrientePlacaServicioA = CorrientePlacaServicio is >= 0m ? CorrientePlacaServicio.Value : c.CorrientePlacaServicioA;

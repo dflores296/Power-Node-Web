@@ -88,7 +88,8 @@ public class CapturaEnElDesplegableTests
         Assert.Empty(c.Cargas);
         Assert.True(c.EsMotor);
         Assert.Equal(0.5m, c.Hp);
-        Assert.Equal("Bomba", c.Descripcion);
+        Assert.Equal("Bomba", c.DescripcionDelEquipo); // el nombre del equipo, no el del espacio
+        Assert.Equal("", c.Descripcion);
         Assert.Equal(SubtipoDeCarga.MotorUsoGeneral, c.SubtipoDelRenglon);
         Assert.Equal(ClaseDeCircuito.Individual, c.ClaseDelCircuito);
         Assert.Equal(25m, c.Resultado!.ProteccionA); // 8.9 A × 250 % → 25 A — 430-52
@@ -349,5 +350,26 @@ public class CapturaEnElDesplegableTests
         Assert.False(c.TieneCarga);
         Assert.Null(c.Resultado);
         Assert.Equal("Bomba", c.Descripcion);
+    }
+
+    [Fact]
+    public void ElNombreDelEquipoVaYRegresaSinTocarElDelEspacio()
+    {
+        var cuadro = Nuevo();
+        var c = Espacio(cuadro, 1);
+        c.Descripcion = "CCM";
+        c.Categoria = CategoriaDeCarga.Motor;
+        c.Hp = 2m;
+        c.DescripcionDelEquipo = "Bomba 1";
+
+        var otra = c.AgregarCarga(); // el motor pasa a su línea, con su nombre
+        Assert.Equal("Bomba 1", c.Cargas[0].Descripcion);
+        c.Cargas.Remove(otra);
+        Assert.True(c.LineaARenglon()); // y regresa
+        cuadro.Recalcular();
+
+        Assert.Equal(("CCM", "Bomba 1"), (c.Descripcion, c.DescripcionDelEquipo));
+        var abierto = Espacio(ArchivoDelCuadro.Abrir(ArchivoDelCuadro.Guardar(cuadro, DateTimeOffset.UnixEpoch), Motor).Cuadro!, 1);
+        Assert.Equal(("CCM", "Bomba 1"), (abierto.Descripcion, abierto.DescripcionDelEquipo));
     }
 }

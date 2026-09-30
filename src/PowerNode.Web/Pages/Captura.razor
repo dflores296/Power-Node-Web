@@ -399,7 +399,7 @@
                                                lo resume. *@
                                             var tipoDelRenglon = subtipoDelRenglon.Tipo();
                                             <tr class="linea-renglon">
-                                                <td class="izq"><span class="tenue" title="La descripción es la del renglón: la etiqueta del espacio.">@(string.IsNullOrWhiteSpace(c.Descripcion) ? "Equipo del circuito" : c.Descripcion)</span></td>
+                                                <td class="izq"><input class="desc" data-col="ap-desc" aria-label="Circuito @c.Espacio, equipo · Descripción" @bind="c.DescripcionDelEquipo" @bind:after="Recalcular" placeholder="Descripción" title="El nombre del equipo. La descripción del renglón es la del espacio." /></td>
                                                 <td>
                                                     <select class="tipo" data-col="ap-tipo" aria-label="Circuito @c.Espacio, equipo · Tipo" value="@tipoDelRenglon" title="@tipoDelRenglon.Descripcion()" @onchange="e => CambiarTipoDelRenglon(c, e.Value?.ToString())">
                                                         @foreach (var t in CategoriasDeCarga.Todas) { <option value="@t">@t.Nombre()</option> }
@@ -1899,7 +1899,8 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
                 c.NoContinua = 0m;
                 c.Categoria = subtipo.Tipo();
                 c.Cargas.Clear();
-                c.Cargas.Add(new CargaDelCircuito { Descripcion = c.Descripcion?.Trim() ?? "", Subtipo = subtipo, FactorPotencia = c.FactorPotencia });
+                c.Cargas.Add(new CargaDelCircuito { Descripcion = c.DescripcionDelEquipo.Trim(), Subtipo = subtipo, FactorPotencia = c.FactorPotencia });
+                c.DescripcionDelEquipo = string.Empty;
                 _enfocar = DescripcionDeAparato(c.Espacio, 1);
                 break;
         }
@@ -2034,6 +2035,7 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
     private void QuitarAparato(CircuitoDelCuadro c, CargaDelCircuito a, int n)
     {
         c.Cargas.Remove(a);
+        c.LineaARenglon(); // un solo motor, motocompresor, variador o A/A de habitación regresa al renglón
         Recalcular();
         _enfocar = c.Cargas.Count == 0 ? AgregarDe(c.Espacio) : DescripcionDeAparato(c.Espacio, Math.Min(n, c.Cargas.Count));
     }

@@ -22,6 +22,13 @@ public sealed class CircuitoDelCuadro
     public int Espacio { get; }
 
     public string Descripcion { get; set; } = string.Empty;
+
+    /// <summary>
+    /// El nombre del equipo capturado en el renglón —un motor, un variador, un A/A—, el de su línea del
+    /// desplegable (David, 2026-09-30). Aparte de <see cref="Descripcion"/>, que es la etiqueta del espacio:
+    /// igual que cada línea del desplegable lleva el suyo. Pasa con él a la línea y regresa.
+    /// </summary>
+    public string DescripcionDelEquipo { get; set; } = string.Empty;
     /// <summary>El tipo de carga de los seis del selector — R-17, I-74. Decide el factor de demanda y el cálculo.</summary>
     public CategoriaDeCarga Categoria
     {
@@ -346,7 +353,10 @@ public sealed class CircuitoDelCuadro
     {
         if (TieneDesglose || (Categoria == CategoriaDeCarga.Tablero && Cargas.Count > 0))
             return false;
-        var nombre = string.IsNullOrWhiteSpace(Descripcion) ? null : Descripcion.Trim();
+        // El nombre del equipo; en un archivo anterior, que no lo traía, el del espacio.
+        var nombre = !string.IsNullOrWhiteSpace(DescripcionDelEquipo) ? DescripcionDelEquipo.Trim()
+            : string.IsNullOrWhiteSpace(Descripcion) ? null : Descripcion.Trim();
+        DescripcionDelEquipo = string.Empty;
         if (Categoria == CategoriaDeCarga.Tablero)
         {
             // Otro tablero capturado en el renglón (formato 7 o anterior): su línea, con sus dos cantidades.
@@ -458,8 +468,7 @@ public sealed class CircuitoDelCuadro
                 return false;
         }
         FactorPotencia = linea.FactorPotencia;
-        if (string.IsNullOrWhiteSpace(Descripcion))
-            Descripcion = linea.Descripcion;
+        DescripcionDelEquipo = linea.Descripcion;
         Cargas.Clear();
         return true;
     }
@@ -485,8 +494,7 @@ public sealed class CircuitoDelCuadro
         if (linea is not null)
         {
             FactorPotencia = linea.FactorPotencia;
-            if (string.IsNullOrWhiteSpace(Descripcion))
-                Descripcion = linea.Descripcion;
+            DescripcionDelEquipo = linea.Descripcion;
         }
         Cargas.Clear();
         return true;
@@ -744,7 +752,7 @@ public sealed class CircuitoDelCuadro
     /// come el interruptor principal: se avisa y el principal espera a que uno de los dos se mueva.
     /// </summary>
     public bool TieneCaptura =>
-        !string.IsNullOrWhiteSpace(Descripcion) || Continua > 0m || NoContinua > 0m || Hp > 0m || CorrientePlacaA > 0m
+        !string.IsNullOrWhiteSpace(Descripcion) || !string.IsNullOrWhiteSpace(DescripcionDelEquipo) || Continua > 0m || NoContinua > 0m || Hp > 0m || CorrientePlacaA > 0m
         || AmpacidadMinimaA > 0m || CorrienteEntradaVariadorA > 0m || Cargas.Count > 0 || Polos > 1
         || Servicio is not null || NoSimultaneoCon is not null;
 
@@ -774,6 +782,7 @@ public sealed class CircuitoDelCuadro
         CapturaMotor = CapturaDeMotor.Hp;
         PlacaAire = PlacaDeAireAcondicionado.AmpacidadYProteccion;
         Cargas.Clear();
+        DescripcionDelEquipo = string.Empty;
         categoria = CategoriaDeCarga.Alumbrado;
         TipoElegido = false;
     }

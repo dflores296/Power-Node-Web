@@ -830,7 +830,8 @@ public static class MemoriaDeCalculo
     /// distintos no hay un tipo: «Cargas combinadas»; la clase va aparte — captura-en-el-desplegable.md.
     /// </summary>
     public static string Etiqueta(CircuitoDelCuadro circuito) =>
-        circuito.TieneCargasCombinadas ? "Cargas combinadas"
+        !string.IsNullOrWhiteSpace(circuito.DescripcionDelEquipo) && !circuito.TieneDesglose ? circuito.DescripcionDelEquipo.Trim()
+        : circuito.TieneCargasCombinadas ? "Cargas combinadas"
         : circuito.UsoEfectivo == UsoDeContactos.General
             ? circuito.Categoria.NombreCompleto()
             : $"{circuito.Categoria.NombreCompleto()} · {circuito.UsoEfectivo.Nombre()}";
