@@ -52,8 +52,17 @@ ofrece una reducción que la NOM permite, y que no dice cuánto se aleja un F.D.
 - Automatizarlo por completo, como pide la auditoría, cambiaría el resultado de todos los tableros
   guardados al abrirlos: la memoria de un tablero ya entregado dejaría de coincidir.
 
+## Lo que ya se hizo (2026-09-30)
+
+- **Piso de 220-56** (I-155): «en ningún caso» la cocina comercial abajo de la suma de los dos equipos
+  más grandes. Hoy **avisa** con el factor que lo cumple; el F.D. capturado sigue en el cálculo (R-12).
+- **220-12 solo con alumbrado general** (I-157). El F.D. de alumbrado, en cambio, se aplica a todo el tipo,
+  anuncios y aparadores incluidos, aunque la Tabla 220-42 es para el «alumbrado general».
+
 ## Preguntas para David
 
 1. ¿Sugerencia con botón (propuesta) o F.D. automático por omisión (auditoría)?
 2. ¿El aviso del F.D. manual abajo de la tabla?
 3. ¿La Nota 4 de la Tabla 220-55 como opción del derivado de cocción?
+4. ¿El piso de 220-56 se aplica solo, en lugar de avisar?
+5. ¿El F.D. de alumbrado deja fuera anuncios, aparadores y portalámparas de trabajo pesado?

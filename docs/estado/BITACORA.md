@@ -2,6 +2,27 @@
 
 Registro de acciones por sesión, con hallazgo y commit.
 
+## 2026-09-30 (tercera parte)
+
+**«Pendiente de probar» de la auditoría NOM del 2026-09-29.** Cada escenario, recalculado a mano con la
+NOM y fijado como regresión en `PendientesDeProbar20260930Tests` (34) — `4caba1f`:
+
+- 1F-2H y 1F-3H (neutro de solo las cargas F-N; corrimiento del neutro), motores monofásicos, tablero
+  alimentado, A/A en un alimentador (440-33), PVC, niple, ducto metálico, multiconductor, tierra común y
+  desnuda, azotea, vivienda popular, media (bomba, secadora) y grande (estufa, minisplits), restaurante
+  (Tabla 220-56), tienda, taller, «NOM completa» (32 y 63 A) y la Tabla 430-22(e). La charola sigue
+  fuera: segunda entrega de canalizaciones.
+- El aviso de principal menor que un motor citaba 430-53(c)(4) para un motor solo del desplegable —
+  I-154, `4caba1f`.
+- 220-56: aviso cuando el F.D. deja la cocina abajo de los dos equipos más grandes — I-155, `4caba1f`.
+- 600-5: el circuito de anuncios, continuo y de 20 A; avisos con otras cargas o más de 20 A — I-156,
+  `4caba1f`.
+- 220-12 sin anuncios, aparadores ni portalámparas de trabajo pesado — I-157, `4caba1f`.
+- Del lado seguro, a POR-VERIFICAR: la excepción de 220-52 para vivienda de 60 m² o menos (no solo
+  popular) y la lectura de 430-24 Excepción 1 con un motor continuo.
+
+Pruebas: 484 en `PowerNode.Web.Tests`, 52 en `PowerNode.Normativa.Tests`.
+
 ## 2026-09-30 (segunda parte)
 
 **Auditoría NOM-001-SEDE-2012 del 2026-09-29** (caja negra contra `55c120b`). Cada hallazgo, primero con

@@ -179,6 +179,10 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-151 · Sin capacidad interruptiva ni corriente de falla — 110-9, 110-10 | P3 | Propuesta, por decidir (David) | — |
 | I-152 · Descarga de 9.9 MB sin comprimir en GitHub Pages | P3 | Propuesta, abajo | — |
 | I-153 · Alumbrado «no continuo» por omisión fuera de vivienda | P3 | Propuesta, por decidir (David) | — |
+| I-154 · El aviso de principal menor que un motor citaba 430-53(c)(4) para un motor solo capturado en el desplegable | P3 | **Cerrado** | `4caba1f` |
+| I-155 · Sin el piso de 220-56: el F.D. dejaba el equipo de cocina abajo de los dos equipos más grandes | P2 | **Cerrado** (aviso) | `4caba1f` |
+| I-156 · Circuito de anuncios en 15 A y no continuo, contra 600-5(a) y (b) | P2 | **Cerrado** | `4caba1f` |
+| I-157 · El mínimo de 220-12 contaba anuncios, aparadores y portalámparas de trabajo pesado como alumbrado general | P2 | **Cerrado** | `4caba1f` |
 | M-14 · Sin el mínimo de alumbrado general por superficie (220-12) en el alimentador; en vivienda, contactos de uso general sumados aparte (220-14(j)) | P1 | **Cerrado** | `71abc56` |
 | M-15 · Motor: la Excepción 1 de 430-52(c)(1) redondeaba dentro de la serie (35 → 40 A en riel DIN) y se citaba sin redondeo; sin Excepción 2 | P1 | **Cerrado** | `8b4d893`, `60a4f91` |
 | M-16 · «Húmedo o mojado» en una opción: XHHW mojado a 90 °C (conductor de menos); RHH y XHH aceptados en mojado | P1 | **Cerrado** | `a3fded5` |
@@ -662,6 +666,52 @@ cadenas) y pide revisarla. Por decidir.
 
 **I-153** (riesgo 3) — Luminarias «continua» por omisión fuera de vivienda: en la misma propuesta que
 I-149.
+
+### «Pendiente de probar» de la auditoría, 2026-09-30
+
+Lo que la auditoría dejó para la siguiente sesión, recalculado a mano con la NOM y fijado como regresión
+en `PendientesDeProbar20260930Tests` (34 pruebas, `4caba1f`): 1F-2H (el alimentador sube a 8 AWG por
+caída), 1F-3H (el neutro suma solo las cargas F-N: 20.33 A; la fase sin carga sube por el neutro),
+motores de 1 HP a 120 y 240 V, tablero alimentado (91.85 A → 100 A, 2 AWG), tres A/A en un alimentador
+(440-33: 32 A → 35 A), A/A con MCA más A/A y motor (60.20 A → 70 A), PVC (X = 0.177), niple (sin ajuste,
+60 %), ducto metálico (sin ajuste hasta 30, 20 %), multiconductor (3 portadores; 4 con carga no lineal),
+tierra común, tierra desnuda (Tabla 8), azotea (+22 °C), vivienda popular de 55 m² (27.56 A → 30 A, 6 AWG),
+vivienda media con bomba (97.69 A → 100 A, 1 AWG; secadora a 5000 VA), vivienda grande con estufa y
+minisplits (130.99 A → 150 A, 1/0 AWG), restaurante con y sin la Tabla 220-56 (152.91 → 175 A; 124.34 →
+125 A), taller con tres motores (62.96 A → 70 A), «NOM completa» (32 y 63 A; 240-4(d) deja 8 AWG con
+terminales de 75 °C) y los cuatro regímenes de la Tabla 430-22(e). Todo coincidió, salvo:
+
+**I-154** — Hecho: un motor de 10 HP capturado en el desplegable (un grupo de un solo motor, que se
+calcula por 430-52 con 70 A) y un principal de 35 A: el aviso decía «que 430-53(c)(4) dimensiona para el
+arranque». Preguntaba si el circuito era grupo, no con qué regla se calculó. Corrección (`4caba1f`): cita
+la regla del grupo solo si el resultado trae una (`Grupo.Regla`: 430-53(c)(4), 440-22(b)(1) o (b)(2)); si
+no, 430-52. Prueba: `I154_…`.
+
+**I-155** — Hecho: restaurante con tres equipos de cocina (8, 6 y 1 kW) y F.D. de 0.90 por la Tabla
+220-56: 13 500 VA, sin aviso. 220-56: «en ningún caso, la carga calculada del alimentador … no deberá ser
+menor que la suma de las cargas de los dos equipos de cocina más grandes» (14 000 VA). Corrección
+(`4caba1f`): fuera de vivienda, con F.D. de aparatos menor que 1, aviso del alimentador con el factor
+que lo cumple (0.94), contando cada unidad; no con la Tabla 220-88, que sustituye a la Parte C. **Solo
+avisa**: el F.D. es del proyectista (R-12); si el piso se aplica solo, lo decide David con I-150. Prueba:
+`I155_…`.
+
+**I-156** — Hecho: un anuncio de 400 VA salía en 1200 VA (220-14(f)) pero no continuo y en 15 A. 600-5(a):
+la salida para anuncios va en un circuito «de cuando menos 20 amperes, y que no alimente otras cargas»;
+600-5(b): los circuitos de anuncios «se deben considerar que son cargas continuas» y no pasan de 20 A
+(30 A con tubos de neón). La guía de cargas ya citaba 600-5(a); el cálculo no. Corrección (`4caba1f`): el
+anuncio es siempre continuo (como el calentador, 422-13) y su circuito lleva 20 A de mínimo — 9.45 A ×
+1.25 → 20 A, 12 AWG; aviso en el renglón si comparte el circuito con otra carga (600-5(a)) o pasa de 20 A
+(600-5(b)(2); la app no distingue el neón). Como el mínimo de 1200 VA, cada circuito de anuncios se toma
+como el exigido. Un archivo guardado con un anuncio no continuo abre continuo. Prueba: `I156_…` (2);
+en el navegador.
+
+**I-157** — Hecho: tienda de 100 m² (33 VA/m² = 3300 VA) con 1000 VA de luminarias, un anuncio (1200 VA),
+un aparador (1500 VA) y un portalámparas pesado (600 VA): «capturado 4300 VA, ya lo cubre». 220-14 los
+calcula aparte, como «salidas no utilizadas para alumbrado general» ((e), (f), (g)); 220-12 es el mínimo
+del alumbrado general. Corrección (`4caba1f`): no cuentan para el mínimo; faltan 2300 VA. La memoria y la
+ayuda del renglón «Mínimo 220-12» dicen cuánto se dejó fuera; la guía lo anota en los tres subtipos. El
+F.D. de alumbrado (Tabla 220-42, «alumbrado general») se sigue aplicando a todo el tipo: va con I-150.
+Prueba: `I157_…`; en el navegador.
 
 
 
