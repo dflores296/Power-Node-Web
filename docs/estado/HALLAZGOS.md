@@ -161,7 +161,7 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-133 · El bote del equipo del renglón (motor, variador, A/A) no lo quita | P2 | **Cerrado** | `041cf90` |
 | I-134 · Campos del desplegable desparejos por la nota de abajo; Total (VA) a la derecha | P3 | **Cerrado** | `fc6aea4` |
 | I-135 · El servicio del motor arriba del desplegable y la columna «Continua» sin uso en un motor | P3 | **Cerrado** | `39b1071` |
-| I-136 · Sin servicio no continuo por motor en un grupo (430-24 Excepción 1) | P3 | Abierto | — |
+| I-136 · Sin servicio no continuo por motor en un grupo (430-24 Excepción 1) | P3 | Pendiente: hasta un caso real (David) | — |
 | M-14 · Sin el mínimo de alumbrado general por superficie (220-12) en el alimentador; en vivienda, contactos de uso general sumados aparte (220-14(j)) | P1 | **Cerrado** | `71abc56` |
 | R-01 · Caída del alimentador fija en 5 %, sin verificar la combinada — 215-2(a)(4) NOTA 2 | P1 | **Cerrado** | `2a973ea` |
 | R-02 · Caída del alimentador sin la caída del neutro | P2 | **Cerrado** | `d6cd1c6` |
@@ -505,7 +505,16 @@ Propuesta: [`../decisiones/cargas-y-clases-de-circuito.md`](../decisiones/cargas
 
 **I-135** — Hecho: David: «el botón de servicio aparece arriba y al mismo tiempo tenemos la columna continua completamente inútil». Cerrado en `39b1071`: la columna se llama «Servicio»; las cargas conservan su casilla de continua; un motor de uso general lleva ahí el servicio de 430-22(e) (clase y tiempo en una lista) y, si no es continuo, la corriente de placa junto a los HP. Navegador, 2 HP a 3 m: continuo, 10 AWG (1.25 × 22 A = 27.5 A); intermitente 15 min con placa de 20 A, 12 AWG (85 % × 20 A = 17 A); todos los campos a la misma altura.
 
-**I-136** — Abierto: en un grupo, 430-24 Excepción 1 deja que cada motor de servicio no continuo entre a la suma con su valor de 430-22(e), y el mayor con el mayor entre ese valor y 1.25 × la corriente del motor continuo más grande. Hoy cada motor del grupo cuenta como continuo, del lado seguro. Afecta el conductor del grupo, no la protección (430-53(c)(4) va con la corriente de plena carga). Pendiente de que David decida si se necesita.
+**I-136** — Pendiente hasta tener un caso real práctico (David, 2026-09-30). En un grupo, 430-24 Excepción 1 deja que cada motor de servicio no continuo entre a la suma con su valor de 430-22(e), y el término del mayor sea el mayor entre ese valor y 1.25 × la corriente del motor continuo más grande. Hoy cada motor del grupo cuenta como continuo, del lado seguro: el conductor sale igual o mayor, nunca menor. 430-33: el servicio no continuo es la excepción y se justifica por la máquina accionada.
+
+Propuesta para cuando se haga:
+
+- **Pantalla:** en cada línea Motor · Uso general de un grupo, el mismo selector de la columna «Servicio» que ya tiene el motor solo (clase y tiempo de la Tabla 430-22(e)); si no es continuo y va en HP, la corriente de placa junto a los HP. Variador, motocompresor, A/A y aparato con motor siguen con «—». La memoria del grupo, con un renglón por motor no continuo («Intermitente · 15 min: 85 % × 14 A = 11.9 A — 430-22(e)») y la suma de la Excepción 1.
+- **Cálculo del conductor (`CalculadoraCircuitoDerivadoGrupo`, motor copiado):** cada máquina con un valor opcional de 430-22(e); cada motor aporta su corriente de tabla si es continuo o su valor de 430-22(e) si no; el término del mayor es el mayor entre 1.25 × el continuo mayor y el valor de 430-22(e) del no continuo mayor; luego los demás y las otras cargas como hoy. Anotar en `motor-copiado.md`.
+- **Protección (430-53(c)(4)):** no cambia; va con la corriente de plena carga, sin excepción por servicio.
+- **Alimentador del tablero (430-24):** ya toma el servicio de un motor solo; tomaría también el de cada motor del grupo.
+- **Modelo y archivo:** servicio, tiempo y corriente de placa en cada línea de motor; formato 10.
+- **Prueba con números a mano:** grupo trifásico 220 V, M1 5 HP continuo (15.2 A) y M2 5 HP intermitente 15 min con 14 A de placa (85 % = 11.9 A). Hoy: 1.25 × 15.2 + 15.2 = 34.2 A. Con la Excepción 1: el mayor entre 19.0 y 11.9 = 19.0, más 11.9 = 30.9 A. Protección, en los dos casos: 2.5 × 15.2 + 15.2 = 53.2 → 50 A. Otra prueba con el no continuo como el mayor.
 
 **M-14** — Hecho: 220-12 fija la carga **mínima** de alumbrado general por m² (Tabla 220-12: oficinas 39 VA/m², vivienda 33, bodegas 3…) y 210-11(b) pide que el tablero la sirva; el alimentador solo suma lo capturado. Una oficina de 200 m² con 200 VA de LED pide 7,800 VA. En vivienda, 220-14(j) incluye los contactos de uso general en los 33 VA/m²; hoy se suman aparte. En oficinas y bancos, contactos = el mayor entre 180 VA por contacto y 11 VA/m² (220-14(k)). Cerrado en `71abc56`: Tabla 220-12 extraída del repo de la norma; área servida y uso del local en los datos; el alimentador no baja de área × VA/m² (continuo fuera de vivienda); en vivienda, los contactos de uso general van dentro (220-14(j)); en bancos y oficinas, 11 VA/m² de contactos (220-14(k)). Pruebas: `M14_…` (4), `Tabla220_12_…`; en el navegador, 200 m² de oficinas: 7.6 + 2.2 kVA.
 
