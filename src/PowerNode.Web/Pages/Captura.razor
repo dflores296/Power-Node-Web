@@ -572,8 +572,17 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
                                                     <a class="a-la-guia" href="@($"guia#{GuiaDeCargas.Ancla(aparato.Subtipo is { } sg ? GuiaDeCargas.DeSubtipo(sg) : GuiaDeCargas.DeTipo(tipoDeLinea))}")" target="_blank" rel="noopener" tabindex="-1"
                                                        title="Abrir su rama en la guía de cargas, en otra pestaña." aria-label="Guía: @(aparato.Subtipo?.Nombre() ?? tipoDeLinea.Nombre())">?</a>
                                                 </td>
-                                                <td><input data-requerido data-col="ap-cant" aria-label="Circuito @c.Espacio, carga @n · Cantidad" class="va corto" type="text" inputmode="decimal" autocomplete="off" data-numero min="1" step="1" @bind="aparato.Cantidad" @bind:culture="CultureInfo.InvariantCulture" @bind:after="() => TrasEditarLinea(c)"
-                                                           disabled="@(aparato.Subtipo?.VaSolo() == true || aparato.EsTablero)" title="@(aparato.Subtipo?.VaSolo() == true ? "Va solo en su circuito: uno." : aparato.EsTablero ? "Cada tablero en su línea, con su carga." : null)" /></td>
+                                                @{ var cantidadFija = aparato.Subtipo?.VaSolo() == true || aparato.EsTablero; }
+                                                <td><span class="cantidad"><input data-requerido data-col="ap-cant" aria-label="Circuito @c.Espacio, carga @n · Cantidad" class="va corto" type="text" inputmode="decimal" autocomplete="off" data-numero min="1" step="1" @bind="aparato.Cantidad" @bind:culture="CultureInfo.InvariantCulture" @bind:after="() => TrasEditarLinea(c)"
+                                                           disabled="@cantidadFija" title="@(aparato.Subtipo?.VaSolo() == true ? "Va solo en su circuito: uno." : aparato.EsTablero ? "Cada tablero en su línea, con su carga." : null)" />
+                                                    @* Las flechas de subir y bajar: el campo es de texto (I-81) y el navegador ya no las pone (David, 2026-09-30). *@
+                                                    @if (!cantidadFija)
+                                                    {
+                                                        <span class="flechas">
+                                                            <button type="button" class="flecha" tabindex="-1" title="Una más" aria-label="Circuito @c.Espacio, carga @n · Una más" @onclick="() => CambiarCantidad(c, aparato, 1)"><svg viewBox="0 0 10 6" width="9" height="6" aria-hidden="true"><path d="M1 5 5 1 9 5" fill="none" stroke="currentColor" stroke-width="1.6" /></svg></button>
+                                                            <button type="button" class="flecha" tabindex="-1" title="Una menos" aria-label="Circuito @c.Espacio, carga @n · Una menos" disabled="@(aparato.Cantidad <= 1)" @onclick="() => CambiarCantidad(c, aparato, -1)"><svg viewBox="0 0 10 6" width="9" height="6" aria-hidden="true"><path d="M1 1 5 5 9 1" fill="none" stroke="currentColor" stroke-width="1.6" /></svg></button>
+                                                        </span>
+                                                    }</span></td>
                                                 <td>
                                                     @* La unidad según cómo se captura: la fija el subtipo (I-123). *@
                                                     <select class="unidad" data-col="ap-unidad" aria-label="Circuito @c.Espacio, carga @n · Unidad" value="@UnidadDeMiembro(aparato)" @onchange="e => CambiarUnidadDeMiembro(aparato, e.Value?.ToString())">
@@ -1860,6 +1869,13 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
         }
         a.Subtipo = subtipo;
         Nombrar(c, a);
+        TrasEditarLinea(c);
+    }
+
+    /// <summary>Las flechas de la cantidad: una más o una menos, sin bajar de 1.</summary>
+    private void CambiarCantidad(CircuitoDelCuadro c, CargaDelCircuito a, int cambio)
+    {
+        a.Cantidad = Math.Max(1, a.Cantidad + cambio);
         TrasEditarLinea(c);
     }
 

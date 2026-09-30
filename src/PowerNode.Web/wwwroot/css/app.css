@@ -1015,6 +1015,15 @@ polygon.riel-a { fill: var(--barra-a); } polygon.riel-b { fill: var(--barra-b); 
 /* Servicio del motor (430-22(e)) en su columna, y la corriente de placa junto a los HP (David, 2026-09-30). */
 .cuadro table.desglose select.servicio { width: 188px; }
 .cuadro table.desglose select.servicio-carga { width: 128px; }
+/* Cantidad con sus flechas de subir y bajar, pegadas al campo (David, 2026-09-30). */
+.cuadro table.desglose .cantidad { display: inline-flex; align-items: center; gap: 2px; vertical-align: middle; }
+.cuadro table.desglose .flechas { display: inline-flex; flex-direction: column; gap: 1px; }
+.cuadro table.desglose .flecha { display: grid; place-items: center; width: 16px; height: 13px; padding: 0; cursor: pointer;
+                                  border: 1px solid var(--linea); background: var(--papel); color: var(--tenue); }
+.cuadro table.desglose .flecha:first-child { border-radius: var(--radio-xs) var(--radio-xs) 0 0; }
+.cuadro table.desglose .flecha:last-child { border-radius: 0 0 var(--radio-xs) var(--radio-xs); }
+.cuadro table.desglose .flecha:hover:not(:disabled) { color: var(--acento); border-color: var(--acento-borde); }
+.cuadro table.desglose .flecha:disabled { opacity: .4; cursor: default; }
 .cuadro table.desglose select.servicio-carga:disabled { opacity: 1; color: var(--tenue); }
 .cuadro table.desglose input.placa-servicio { width: 72px; margin-left: 4px; }
 .cuadro table.desglose td:has(> input.placa-servicio) { white-space: nowrap; }
