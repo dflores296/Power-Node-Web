@@ -2,6 +2,19 @@
 
 Registro de acciones por sesión, con hallazgo y commit.
 
+## 2026-09-30
+
+**La carga se captura en el desplegable** (David: «el desplegable es la fuente de verdad»; aprobó la
+propuesta y «una línea con dos cantidades, arranca»).
+
+- Modelo: el uso de vivienda como subtipo de Contactos; lo del renglón pasa a su línea; los circuitos
+  que la norma pide dedicados no admiten otra línea; clase «Grupo de motores»; formato 7 — I-128, `bb3caa8`.
+- Pantalla: la columna Tipo dice la clase del circuito; sin columna Unidad; continua, no continua y
+  F.P. de solo lectura; el motor, variador, A/A y tablero se capturan en su línea — I-128, `8b13b80`.
+- Documento y memoria con la clase — I-128, `51a2164`.
+
+Pruebas: 382 en `PowerNode.Web.Tests`, 24 en `PowerNode.Normativa.Tests`.
+
 ## 2026-09-29
 
 **Revisión de David de los P1 publicados**: los cuatro bien; un ajuste en I-79.

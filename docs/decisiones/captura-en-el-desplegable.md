@@ -1,6 +1,6 @@
 # La carga se captura en el desplegable; el renglón solo resume
 
-**PROPUESTA · Claude · 2026-09-30** — a pedido de David: «el desplegable es la fuente de verdad; el
+**PROPUESTA · Claude · 2026-09-30** · implementada el 2026-09-30 (`bb3caa8`, `8b13b80`, `51a2164`) — a pedido de David: «el desplegable es la fuente de verdad; el
 renglón del circuito ya no captura carga». David contestó las dudas el mismo día (abajo). Falta que la
 marque CONFIRMADA.
 

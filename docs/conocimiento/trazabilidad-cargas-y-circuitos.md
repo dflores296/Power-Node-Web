@@ -35,7 +35,12 @@ renglón siguiente.
 | 8 | `8d196f5` | B, C | Hallazgos con su hash; decisión: plan aprobado y ajuste de la clase; bitácora; esta tabla | I-123, I-125, I-127 | — |
 | 9 | `d029be3` | D | 240-4(b)(1) por lo que alimenta; 210-19(a)(3); reglas de la clase (210-21(b)(1), Tabla 210-21(b)(3), 210-23(a)(2)(b)(c)(d), 422-11(e)) en tooltip, avisos y memoria; el tooltip del tablero cita el 215 | I-124 | `I124_…` (6); navegador: avisos de 210-23(b) y Tabla 210-21(b)(3) |
 | 10 | `71abc56` | E | Tabla 220-12 (20 tablas); área servida y uso del local; mínimo por superficie en el alimentador, 220-14(j)(k); resumen, documento y memoria; archivo formato 6 | M-14 | `M14_…` (4), `Tabla220_12_…`; 369 + 24 pruebas; navegador: 200 m² de oficinas |
-| 11 | *(este)* | D, E | Hallazgos con su hash; requisitos; por verificar; bitácora; tablero; esta tabla | I-124, M-14 | — |
+| 11 | `cca712c` | D, E | Hallazgos con su hash; requisitos; por verificar; bitácora; tablero; esta tabla | I-124, M-14 | — |
+| 12 | `4b76d36` | — | Propuesta: la carga se captura en el desplegable y el renglón solo resume, con las respuestas de David | I-128 | — |
+| 13 | `bb3caa8` | 1 | Modelo: subtipos de uso de vivienda (Ap. pequeños, Lavadora, Baño, Refrigerador); renglón a líneas y línea a renglón; circuitos dedicados; clase «Grupo de motores»; archivo formato 7 | I-128 | `CapturaEnElDesplegableTests` (11); 380 + 24 pruebas |
+| 14 | `8b13b80` | 2 | Pantalla: clase en la columna Tipo; sin Unidad; sumas y F.P. de solo lectura; el equipo del renglón en su línea del desplegable; el tablero con dos cantidades | I-128 | 382 + 24 pruebas; navegador a 1920 y 390 px, claro y oscuro |
+| 15 | `51a2164` | 3 | Documento y memoria con la clase; «Cargas combinadas» sin descripción | I-128 | 382 + 24 pruebas; navegador: documento y memoria |
+| 16 | *(este)* | — | Hallazgo con su hash; bitácora; tablero; esta tabla | I-128 | — |
 
 ## Plan de las fases B a E — en pausa
 

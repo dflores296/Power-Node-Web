@@ -1,6 +1,6 @@
 # Tablero
 
-**Actualizado:** 2026-09-29.
+**Actualizado:** 2026-09-30.
 
 ## Alcance
 
@@ -15,7 +15,7 @@ Ejecutar en el navegador (Blazor WebAssembly), sin servidor, publicado en GitHub
 | Frente | Avance | Pendiente |
 |---|---|---|
 | Motor | 100 % | Llevar al escritorio los cambios listados en [`../conocimiento/motor-copiado.md`](../conocimiento/motor-copiado.md). |
-| Interfaz | ~90 % | Auditoría del 2026-09-28 en [`HALLAZGOS.md`](HALLAZGOS.md): cerrada (David, 2026-09-29). Puntos de David: I-99 a I-112 hechos. Motores y A/C contra la norma: las cinco fases hechas (M-12, M-13, I-113 a I-122); falta que David las revise y confirme [`../decisiones/motores-y-equipos-en-grupo.md`](../decisiones/motores-y-equipos-en-grupo.md). **Cargas y clases de circuito: las cinco fases hechas** — el tipo es de cada carga, la clase del circuito sale de sus cargas, otro tablero es alimentador, reglas por clase y mínimo por superficie (I-123 a I-127, M-14); falta que David la revise y confirme — [`../decisiones/cargas-y-clases-de-circuito.md`](../decisiones/cargas-y-clases-de-circuito.md), commits en [`../conocimiento/trazabilidad-cargas-y-circuitos.md`](../conocimiento/trazabilidad-cargas-y-circuitos.md). Confirmar las propuestas de motores (I-15) y de los seis tipos de carga (I-74). Modelar centros de carga de una barra por lado. |
+| Interfaz | ~90 % | Auditoría del 2026-09-28 en [`HALLAZGOS.md`](HALLAZGOS.md): cerrada (David, 2026-09-29). Puntos de David: I-99 a I-112 hechos. Motores y A/C contra la norma: las cinco fases hechas (M-12, M-13, I-113 a I-122); falta que David las revise y confirme [`../decisiones/motores-y-equipos-en-grupo.md`](../decisiones/motores-y-equipos-en-grupo.md). **Cargas y clases de circuito: las cinco fases hechas** — el tipo es de cada carga, la clase del circuito sale de sus cargas, otro tablero es alimentador, reglas por clase y mínimo por superficie (I-123 a I-127, M-14); falta que David la revise y confirme — [`../decisiones/cargas-y-clases-de-circuito.md`](../decisiones/cargas-y-clases-de-circuito.md), commits en [`../conocimiento/trazabilidad-cargas-y-circuitos.md`](../conocimiento/trazabilidad-cargas-y-circuitos.md). **La carga se captura solo en el desplegable; el renglón resume y dice la clase** (I-128) — falta que David la marque CONFIRMADA: [`../decisiones/captura-en-el-desplegable.md`](../decisiones/captura-en-el-desplegable.md). Después: ejercicios de cálculo (derivados, alimentadores, motores) y la rapidez de captura. Confirmar las propuestas de motores (I-15) y de los seis tipos de carga (I-74). Modelar centros de carga de una barra por lado. |
 | Publicación | 100 % | — |
 
 ## Motor
@@ -56,7 +56,7 @@ Ejecutar en el navegador (Blazor WebAssembly), sin servidor, publicado en GitHub
 - Canalizaciones: cada circuito con carga nace en su tubo (T1, T2…, EMT); agrupar en la columna
   «Canal.»; configurar nombre, tipo, opciones y tamaño en la tarjeta «Canalizaciones». El diámetro del
   fabricante de un aislamiento fuera de la Tabla 5 (THHW-LS, THW-LS, USE), en «Condiciones de cálculo» — I-98.
-- Pruebas: 326 en `PowerNode.Web.Tests` (20 del documento de pruebas del 2026-09-23).
+- Pruebas: 382 en `PowerNode.Web.Tests` (20 del documento de pruebas del 2026-09-23).
 
 Requisitos con su referencia NOM y su prueba: [`../conocimiento/requisitos.md`](../conocimiento/requisitos.md).
 
