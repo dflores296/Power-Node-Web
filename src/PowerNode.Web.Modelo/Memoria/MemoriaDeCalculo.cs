@@ -518,13 +518,9 @@ public static class MemoriaDeCalculo
     {
         if (circuito.ClaseDelCircuito is not { } clase)
             yield break;
-        if (circuito.EsGrupoDeMotores && circuito.Cargas.Sum(a => a.Cantidad) > 1)
-        {
-            yield return new RenglonMemoria("Clase del circuito", "Varios motores en un circuito derivado — 430-53, 440-22(b)");
-            yield break;
-        }
         yield return new RenglonMemoria("Clase del circuito", clase switch
         {
+            ClaseDeCircuito.GrupoDeMotores => "Varios motores en un circuito derivado — 430-53, 440-22(b)",
             ClaseDeCircuito.Individual => "Circuito derivado individual: alimenta a un solo equipo de utilización — Art. 100",
             ClaseDeCircuito.UsoGeneral => "Circuito derivado de uso general: dos o más salidas para alumbrado y aparatos — Art. 100",
             ClaseDeCircuito.ParaAparatos => "Circuito derivado para aparatos: salidas para aparatos, sin alumbrado conectado permanentemente — Art. 100",
@@ -800,9 +796,13 @@ public static class MemoriaDeCalculo
         $"{datos.TipoAislamiento} · lugar {(datos.LugarSeco ? "seco" : "húmedo o mojado")}" +
         (datos.TerminalesMarcadas75C ? " · terminales marcadas 75 °C" : "");
 
-    /// <summary>«Contactos · Aparatos pequeños (cocina)»: el tipo, y el uso si no es general.</summary>
+    /// <summary>
+    /// «Contactos · Aparatos pequeños (cocina)»: el tipo, y el uso si no es general. Con cargas de tipos
+    /// distintos no hay un tipo: «Cargas combinadas»; la clase va aparte — captura-en-el-desplegable.md.
+    /// </summary>
     public static string Etiqueta(CircuitoDelCuadro circuito) =>
-        circuito.UsoEfectivo == UsoDeContactos.General
+        circuito.TieneCargasCombinadas ? "Cargas combinadas"
+        : circuito.UsoEfectivo == UsoDeContactos.General
             ? circuito.Categoria.NombreCompleto()
             : $"{circuito.Categoria.NombreCompleto()} · {circuito.UsoEfectivo.Nombre()}";
 

@@ -101,7 +101,7 @@
                         }
                         <tr class="@(c.TieneCarga ? null : "libre")">
                             <td class="num">@c.Espacio</td>
-                            <td rowspan="@c.Polos" class="izq">@(c.SinTipo ? $"{(string.IsNullOrWhiteSpace(c.Descripcion) ? "" : c.Descripcion + " · ")}SIN TIPO" : string.IsNullOrWhiteSpace(c.Descripcion) ? (c.TieneCarga ? MemoriaDeCalculo.Etiqueta(c) : "LIBRE") : c.Descripcion)@if (TipoYClase(c) is { } tc)
+                            <td rowspan="@c.Polos" class="izq">@(c.SinTipo ? $"{(string.IsNullOrWhiteSpace(c.Descripcion) ? "" : c.Descripcion + " · ")}SIN TIPO" : string.IsNullOrWhiteSpace(c.Descripcion) ? (c.TieneCarga ? MemoriaDeCalculo.Etiqueta(c) : "LIBRE") : c.Descripcion)@if (ClaseDe(c) is { } tc)
                             {
                                 <span class="doc-clase">@tc</span>
                             }</td>
@@ -501,8 +501,10 @@ else
         builder.CloseElement();
     };
 
-    /// <summary>«Combinadas · Uso general», «Aparatos · Individual»: el tipo y la clase del circuito — I-123.</summary>
-    private static string? TipoYClase(CircuitoDelCuadro c) =>
-        c.SinTipo || c.ClaseDelCircuito is not { } clase ? null
-        : $"{(c.TieneCargasCombinadas ? "Combinadas" : c.Categoria.Nombre())} · {(c.EsGrupoDeMotores && c.Cargas.Sum(a => a.Cantidad) > 1 ? "Grupo" : clase.Nombre())}";
+    /// <summary>
+    /// «Uso general», «Individual», «Grupo de motores», «Alimentador»: la clase del circuito, como en la
+    /// captura — decisión captura-en-el-desplegable.md. El tipo es de cada carga, no del circuito.
+    /// </summary>
+    private static string? ClaseDe(CircuitoDelCuadro c) =>
+        c.SinTipo || c.ClaseDelCircuito is not { } clase ? null : clase.Nombre();
 }

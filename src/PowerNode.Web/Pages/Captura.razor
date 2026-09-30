@@ -2067,9 +2067,9 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
         : c.EsCargaTotal ? "carga total"
         : null;
 
-    /// <summary>«5 HP · FLC 15.20 A», «Ampacidad 18 A · prot. máx. 30 A»: la placa del equipo, bajo sus VA.</summary>
+    /// <summary>«5 HP · FLC 15.20 A», «Ampacidad 18 A · prot. máx. 30 A»: la placa del equipo, bajo sus VA. Un grupo, nada.</summary>
     private static string PlacaDelEquipo(CircuitoDelCuadro c) =>
-        c.EsGrupo ? TextoDelGrupo(c)
+        c.EsGrupo ? "" // lo que lleva ya va bajo la clase
         : c.EsVariador ? (c.TieneCarga ? $"Variador: entrada {c.CorrienteEntradaVariadorA:#,0.##} A · máx. {c.ProteccionMaximaVariadorA:#,0.##} A" : "")
         : c.EsAireAcondicionado ? (c.TieneCarga ? AireAcondicionadoDePlaca.Texto(c) : "")
         : c.MotorEnAmperes is { } m ? $"{m.Amperes:#,0.##} A ({m.Hp:0.##} HP) · FLC {c.FlcA:N2} A"
