@@ -78,8 +78,8 @@ Lo que cambia reglas es si el circuito alimenta **un solo equipo** o **dos o má
 | Cargas | Clase | Reglas |
 |---|---|---|
 | Un equipo, cantidad 1 | Individual | 210-21(b)(1) (contacto ≥ circuito), 422-10(a), 422-11(e), 240-4(b) |
-| Carga total, o dos o más salidas, con alumbrado | Uso general | 210-21(b)(2)(3), 210-23, 210-24, 240-4(b)(1) |
-| Igual, sin alumbrado | Para aparatos | Lo mismo; vivienda: 210-11(c), 210-52(b), 220-52 |
+| Carga total, o dos o más salidas, con alumbrado o contactos de uso general | Uso general | 210-21(b)(2)(3), 210-23, 210-24, 240-4(b)(1) |
+| Solo aparatos, o contactos de vivienda para aparatos pequeños y lavadora | Para aparatos | Lo mismo; vivienda: 210-11(c), 210-52(b), 220-52 |
 | Otro tablero | Alimentador | 215, 220-40 |
 
 ### 4. El tipo es de cada carga
@@ -169,6 +169,12 @@ Cada commit, con su fase y su verificación:
 
 La clase del circuito sin preguntarla (sección 3) y 220-12 en su propia fase (E) son recomendación de
 Claude, dentro de «implementa toda la propuesta».
+
+8. **Plan aprobado** (2026-09-30), después de ver el mockup de la captura: «Apruebo el plan,
+   implementalo». Con un ajuste de Claude a la tabla de la sección 3: los contactos de uso general dan
+   un circuito de uso general, como se lee en la práctica; «para aparatos» queda para los de solo
+   aparatos y los de aparatos pequeños y lavadora de vivienda. Un circuito de solo motores (430-53)
+   no tiene nombre de clase en el Art. 100: la pantalla dice «Grupo».
 
 ## Lo que queda fuera
 

@@ -13,9 +13,9 @@ Hallazgos: I-123 a I-127 y M-14 en [`../estado/HALLAZGOS.md`](../estado/HALLAZGO
 |---|---|---|---|
 | — | Propuesta y hallazgos abiertos | — | Hecha |
 | A | Guía de cargas y glosario | I-126 | Hecha |
-| B | Modelo: carga con tipo, subtipo y forma; clase del circuito; alimentador a tablero; F.D. por carga; archivo formato 5 | I-123, I-125 | En pausa |
-| C | Pantalla, documento y memoria con los nombres cortos; se retira «Varios» | I-127 | En pausa |
-| D | Reglas por clase de circuito | I-124 | En pausa |
+| B | Modelo: carga con tipo, subtipo y forma; clase del circuito; alimentador a tablero; F.D. por carga; archivo formato 5 | I-123, I-125 | Hecha |
+| C | Pantalla, documento y memoria con los nombres cortos; se retira «Varios» | I-127 | Hecha |
+| D | Reglas por clase de circuito | I-124 | En curso |
 | E | Mínimo de alumbrado general por superficie (220-12, 220-14(j)(k)) | M-14 | En pausa |
 
 ## Commits
@@ -28,7 +28,11 @@ renglón siguiente.
 | 1 | `0c988d6` | — | Propuesta con las decisiones de David; hallazgos abiertos; esta tabla | I-123 a I-127, M-14 | — |
 | 2 | `38e2c24` | A | Página «Guía de cargas» (`/guia`): mapa y árbol de los tipos con sus subtipos, clases de circuito, glosario; «?» en el encabezado Tipo; barra compacta desde 1040 y 800 px. Modelo: `GuiaDeCargas`, `SubtipoDeCarga` | I-126 | `GuiaDeCargasTests` (8); 334 + 23 pruebas; navegador 360–1920 px, claro y oscuro, mapa, dirección con `#rama-…`, impresión |
 | 3 | `4eb02ea` | A | I-126 con su hash; requisito E-7; bitácora; esta tabla | I-126 | — |
-| 4 | *(este)* | — | Plan de las fases B a E y cambios a la UI, en pausa (David) | — | — |
+| 4 | `e20d9dc` | — | Plan de las fases B a E y cambios a la UI, en pausa (David) | — | — |
+| 5 | `dc7cdd2` | B | `AparatoDelCircuito` → `CargaDelCircuito`, `Aparatos` → `Cargas`; el archivo no cambia | I-123 | 334 pruebas sin cambio |
+| 6 | `72bee16` | B | Subtipo y tipo de cada carga; porciones por tipo y F.D. por carga en resumen, alimentador, motores y no simultáneos; clase del circuito; grupo por contenido; mínimos por subtipo (220-14, 220-54); calentador y calefacción continuos; tipo Tablero con 215 y F.D. 1; archivo formato 5; `Tramo` en el motor (motor-copiado.md) | I-123, I-125 | `CargasYClasesTests` (25); 359 + 23 pruebas |
+| 7 | `0e48028` | C | Pantalla: «Salidas y cargas» con tipo, subtipo y «?»; «Combinadas»; clase bajo la descripción; sin «Varios»; nombres de la NOM; unidad de 80 px. Documento y memoria: tipo, clase, cargas combinadas, 215 del tablero | I-123, I-127 | 359 + 23 pruebas; navegador a 1920: cuadro de 1676 px, ningún selector cortado, circuito combinado, grupo de motores, tablero de 30.5 kVA (90 A), documento y memoria |
+| 8 | *(este)* | B, C | Hallazgos con su hash; decisión: plan aprobado y ajuste de la clase; bitácora; esta tabla | I-123, I-125, I-127 | — |
 
 ## Plan de las fases B a E — en pausa
 

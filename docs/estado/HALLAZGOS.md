@@ -148,11 +148,11 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-120 · Sin servicio no continuo (430-22(e)) | P3 | **Cerrado** | `c571d1b` |
 | I-121 · Sin cargas no simultáneas (430-24 Exc. 3, 440-33 Exc. 1, 220-60) | P2 | **Cerrado** | `c571d1b` |
 | I-122 · La memoria no dice el medio de desconexión mínimo (430-110, 440-12, 430-128) | P3 | **Cerrado** | `c571d1b` |
-| I-123 · El tipo es del circuito y no de cada carga: cargas combinadas con un solo F.D.; 180 VA por el texto | P1 | Abierto | — |
+| I-123 · El tipo es del circuito y no de cada carga: cargas combinadas con un solo F.D.; 180 VA por el texto | P1 | **Cerrado** | `72bee16`, `0e48028` |
 | I-124 · Sin clase de circuito (individual, uso general, para aparatos): 210-21(b)(1), 210-23(a), 422-11(e), 240-4(b)(1) | P2 | Abierto | — |
-| I-125 · Otro tablero se captura como carga de un derivado: sin 215 y con otro F.D. encima | P2 | Abierto | — |
+| I-125 · Otro tablero se captura como carga de un derivado: sin 215 y con otro F.D. encima | P2 | **Cerrado** | `72bee16` |
 | I-126 · Sin guía de clasificación de cargas con sus artículos | P3 | **Cerrado** | `38e2c24` |
-| I-127 · Nombres que no son de la NOM en pantalla, documento y memoria | P3 | Abierto | — |
+| I-127 · Nombres que no son de la NOM en pantalla, documento y memoria | P3 | **Cerrado** | `0e48028` |
 | M-14 · Sin el mínimo de alumbrado general por superficie (220-12) en el alimentador; en vivienda, contactos de uso general sumados aparte (220-14(j)) | P1 | Abierto | — |
 | R-01 · Caída del alimentador fija en 5 %, sin verificar la combinada — 215-2(a)(4) NOTA 2 | P1 | **Cerrado** | `2a973ea` |
 | R-02 · Caída del alimentador sin la caída del neutro | P2 | **Cerrado** | `d6cd1c6` |
@@ -470,15 +470,15 @@ NOM (corpus de `dflores296/NOM-001-SEDE-2012`). Propuesta y decisiones en
 
 Propuesta: [`../decisiones/cargas-y-clases-de-circuito.md`](../decisiones/cargas-y-clases-de-circuito.md).
 
-**I-123** — Hecho: el tipo (seis opciones) es del circuito; los aparatos del desglose no tienen tipo. Un circuito con lámparas y contactos escoge uno y todo entra al alimentador con su F.D. y en su renglón del resumen; los 180 VA de 220-14(i) salen de si la descripción empieza con «contacto». 220 Parte C aplica el F.D. por tipo de carga.
+**I-123** — Hecho: el tipo (seis opciones) es del circuito; los aparatos del desglose no tienen tipo. Un circuito con lámparas y contactos escoge uno y todo entra al alimentador con su F.D. y en su renglón del resumen; los 180 VA de 220-14(i) salen de si la descripción empieza con «contacto». 220 Parte C aplica el F.D. por tipo de carga. Cerrado en `72bee16` (modelo) y `0e48028` (pantalla): cada carga lleva su subtipo y su tipo; el F.D. se aplica carga por carga; la clase del circuito sale de sus cargas; mínimos de 220-14 por subtipo; el grupo sale de lo que lleva y se retira «Varios»; archivo formato 5. Pruebas: `CargasYClasesTests` (25); en el navegador, un circuito con luminarias, contactos y un extractor («Combinadas», «Uso general · 15 salidas»), un motor que pasa a grupo y el resumen por tipo de carga.
 
 **I-124** — Hecho: no hay clase de circuito. 210-21(b)(1) (contacto sencillo en circuito individual ≥ circuito), 210-23(a) (equipo fijo ≤ 50 % con alumbrado, con clavija ≤ 80 %), 422-11(e) (un solo aparato no operado por motor) y 240-4(b)(1) dependen de si el circuito alimenta un solo equipo o dos o más salidas; hoy 240-4(b) se niega a todo «Contactos».
 
-**I-125** — Hecho: un tablero alimentado solo se puede capturar como carga de un derivado (210), y en el alimentador de este tablero recibe otro F.D. encima de los suyos. Es un alimentador (Art. 100, 215); 220-40: la suma, después de los F.D.
+**I-125** — Hecho: un tablero alimentado solo se puede capturar como carga de un derivado (210), y en el alimentador de este tablero recibe otro F.D. encima de los suyos. Es un alimentador (Art. 100, 215); 220-40: la suma, después de los F.D. Cerrado en `72bee16`: tipo Tablero, con la carga calculada del otro tablero; cálculo con 215-2(a)(1) y 215-3 (`Tramo` en el derivado no-motor); F.D. fijo en 1. Pruebas: `I125_…` (2); en el navegador, TB-2 de 30.5 kVA a 3 polos: 80.04 A, 90 A.
 
 **I-126** — Hecho: no hay una guía que diga en qué tipo va cada carga y a qué artículos, secciones y tablas queda sujeta. Cerrado en `38e2c24`: página «Guía de cargas» (`/guia`) en la barra — mapa y árbol desplegable de los siete tipos con sus 22 subtipos, las clases de circuito del Art. 100 y el glosario de la pantalla contra la norma; cada rama cita la carga, el circuito derivado y el alimentador. Sale de `GuiaDeCargas` en el modelo, la fuente del selector de la fase B. Imprimible (vertical, desplegada); «?» en el encabezado Tipo de la captura. Pruebas: `GuiaDeCargasTests` (8); en el navegador, de 360 a 1920 px, claro y oscuro, llegar a una rama por el mapa y por la dirección, impresión.
 
-**I-127** — Hecho: la pantalla, el documento y la memoria usan nombres propios («Equipo», «Hab.», «VFD», «Varios», «Neutro comp.», «Carga instalada»…) donde la NOM tiene los suyos.
+**I-127** — Hecho: la pantalla, el documento y la memoria usan nombres propios («Equipo», «Hab.», «VFD», «Varios», «Neutro comp.», «Carga instalada»…) donde la NOM tiene los suyos. Cerrado en `0e48028`: Aparatos, Motores, A/A y refrig.; Vel. aj., Ampac., Nominal, De hab.; Ampacidad y Prot. máx.; Ap. pequeños; Multicond.; Carga conectada y Demanda; en el documento y la memoria, los nombres de la NOM.
 
 **M-14** — Hecho: 220-12 fija la carga **mínima** de alumbrado general por m² (Tabla 220-12: oficinas 39 VA/m², vivienda 33, bodegas 3…) y 210-11(b) pide que el tablero la sirva; el alimentador solo suma lo capturado. Una oficina de 200 m² con 200 VA de LED pide 7,800 VA. En vivienda, 220-14(j) incluye los contactos de uso general en los 33 VA/m²; hoy se suman aparte. En oficinas y bancos, contactos = el mayor entre 180 VA por contacto y 11 VA/m² (220-14(k)).
 

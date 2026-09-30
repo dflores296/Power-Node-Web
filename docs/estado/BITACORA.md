@@ -145,6 +145,18 @@ aparatos; «cargas combinadas» en lugar de «mixto».
 
 Pruebas: 334 en `PowerNode.Web.Tests`, 23 en `PowerNode.Normativa.Tests`.
 
+**Cargas y clases, fases B y C** (David, 2026-09-30, después del mockup: «Apruebo el plan,
+implementalo»).
+
+- `AparatoDelCircuito` pasa a `CargaDelCircuito` — `dc7cdd2`.
+- Modelo: el tipo es de cada carga (subtipo), F.D. carga por carga, clase del circuito, grupo por lo
+  que lleva, mínimos de 220-14, tipo Tablero con 215 y sin F.D., archivo formato 5 — I-123, I-125,
+  `72bee16`.
+- Pantalla, documento y memoria: «Salidas y cargas» con tipo y subtipo, «Combinadas», la clase bajo la
+  descripción, sin «Varios», nombres de la NOM — I-123, I-127, `0e48028`.
+
+Pruebas: 359 en `PowerNode.Web.Tests`, 23 en `PowerNode.Normativa.Tests`.
+
 ## 2026-09-28
 
 **Auditoría de interfaz** (pedido de David: botones desalineados, texto cortado o chueco, funcionalidad).
