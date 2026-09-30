@@ -39,9 +39,10 @@ public static class ArchivoDelCuadro
     /// el tipo de su circuito, y se calculan igual que antes. 6: el área servida y el renglón de la Tabla
     /// 220-12 (M-14); la 5 los ignoraría y el alimentador saldría sin el mínimo. 7: los subtipos de uso de
     /// vivienda de los contactos (captura-en-el-desplegable.md); la 6 no los conoce. 8: varios tableros en un
-    /// alimentador, cada uno con su no continua en su línea; la 7 los leería sin ella.
+    /// alimentador, cada uno con su no continua en su línea; la 7 los leería sin ella. 9: el variador en el
+    /// desplegable, con su protección máxima y cuántos motores mueve; la 8 lo perdería.
     /// </summary>
-    public const int Version = 8;
+    public const int Version = 9;
 
     /// <summary>El archivo, listo para escribirse.</summary>
     public static string Guardar(CuadroDeCarga cuadro, DateTimeOffset cuando) =>

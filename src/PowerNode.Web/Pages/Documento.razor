@@ -469,6 +469,7 @@ else
         var maquinas = c.Cargas.Where(a => a.EsMaquina && a.TieneCapturaDeMaquina).Select(a =>
             (a.Cantidad > 1 ? $"{a.Cantidad} × " : "") +
             (a.Clase == ClaseDeAparato.Motocompresor ? $"motocompresor {a.CorrienteUnitariaA:#,0.##} A"
+             : a.Clase == ClaseDeAparato.Variador ? $"variador {a.CorrientePlacaA:#,0.##} A"
              : a.CapturaMotor == CapturaDeMotor.Hp ? $"{MotoresEnHp.Texto(a.Hp ?? 0m)} HP" : $"{a.CorrientePlacaA:#,0.##} A"));
         var otras = c.ContinuaVA + c.NoContinuaVA;
         return string.Join(" + ", maquinas)

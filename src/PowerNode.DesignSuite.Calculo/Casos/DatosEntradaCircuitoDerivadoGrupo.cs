@@ -10,6 +10,13 @@ public enum ClaseDeMiembro
 
     /// <summary>Motocompresor hermético de refrigeración — Art. 440; su protección, 175 % / 225 % de 440-22(a).</summary>
     Motocompresor,
+
+    /// <summary>
+    /// Motor con variador de velocidad — 430 Parte J (nace en Power Node Web, David 2026-09-30): su
+    /// corriente es la de entrada del variador (430-122(a)); su protección, la máxima que marca su
+    /// fabricante (110-3(b)), en lugar del porcentaje de la Tabla 430-52.
+    /// </summary>
+    Variador,
 }
 
 /// <summary>
@@ -19,7 +26,8 @@ public enum ClaseDeMiembro
 /// </summary>
 /// <param name="Hp">Los caballos de un motor (de placa, o interpolados si se marcó en amperes); null en un
 /// motocompresor. Solo sirven para la nota de 430-53(a).</param>
-public sealed record MiembroDelGrupo(string Nombre, ClaseDeMiembro Clase, int Cantidad, decimal CorrienteUnitariaA, string Origen, decimal? Hp = null);
+/// <param name="ProteccionMaximaA">Solo en un variador: la protección máxima que marca su fabricante — 110-3(b).</param>
+public sealed record MiembroDelGrupo(string Nombre, ClaseDeMiembro Clase, int Cantidad, decimal CorrienteUnitariaA, string Origen, decimal? Hp = null, decimal? ProteccionMaximaA = null);
 
 /// <summary>
 /// La lista de máquinas, comparable por su contenido: el cálculo se recuerda por su entrada
@@ -83,6 +91,7 @@ public sealed record DatosEntradaCircuitoDerivadoGrupo(
 /// <param name="TechoA">El límite de la protección.</param>
 /// <param name="PisoA">La corriente de operación: las máquinas al 100 % y la continua al 125 % — el interruptor no puede quedar abajo.</param>
 /// <param name="Limite240_4bA">Solo si se subió por 240-4(b): hasta dónde se podía.</param>
+/// <param name="TopeDelFabricante">El límite es la protección máxima de un variador — 430-53(c)(2), 110-3(b): no se sube por 240-4(b).</param>
 public sealed record DetalleDelGrupo(
     string Regla,
     MiembroDelGrupo Mayor,
@@ -92,4 +101,5 @@ public sealed record DetalleDelGrupo(
     decimal OtrasCargasA,
     decimal TechoA,
     decimal PisoA,
-    decimal? Limite240_4bA);
+    decimal? Limite240_4bA,
+    bool TopeDelFabricante = false);

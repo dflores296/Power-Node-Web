@@ -73,7 +73,7 @@ public class CalculadoraCircuitoDerivadoGrupo(
 
         // 1. Cada máquina con su corriente — 430-6(a) (tabla) o 440-6(a) (placa). El que la redacta es el llamador.
         foreach (var m in miembros)
-            citas.Add(new Cita(m.Clase == ClaseDeMiembro.Motor ? "430-6(a)" : "440-6(a)",
+            citas.Add(new Cita(m.Clase switch { ClaseDeMiembro.Motor => "430-6(a)", ClaseDeMiembro.Variador => "430-122(a)", _ => "440-6(a)" },
                 $"{m.Nombre}: {(m.Cantidad > 1 ? $"{m.Cantidad} × " : "")}{m.CorrienteUnitariaA:0.##} A — {m.Origen}"));
 
         var sumaMaquinas = miembros.Sum(m => m.Cantidad * m.CorrienteUnitariaA);
@@ -82,7 +82,8 @@ public class CalculadoraCircuitoDerivadoGrupo(
             .OrderByDescending(m => m.CorrienteUnitariaA)
             .ThenBy(m => m.Clase == ClaseDeMiembro.Motocompresor ? 0 : 1)
             .First();
-        var mayorMotor = miembros.Where(m => m.Clase == ClaseDeMiembro.Motor).MaxBy(m => m.CorrienteUnitariaA);
+        // Un variador cuenta como motor del grupo, con la corriente de entrada del variador — 430-120, 430-122(a).
+        var mayorMotor = miembros.Where(m => m.Clase is ClaseDeMiembro.Motor or ClaseDeMiembro.Variador).MaxBy(m => m.CorrienteUnitariaA);
         var mayorCompresor = miembros.Where(m => m.Clase == ClaseDeMiembro.Motocompresor).MaxBy(m => m.CorrienteUnitariaA);
 
         // 2. Capacidad mínima del conductor — 430-24; con motocompresores, 440-33 (y 440-34 con otras cargas).
@@ -156,6 +157,10 @@ public class CalculadoraCircuitoDerivadoGrupo(
         // oración: si el límite queda abajo de la ampacidad del conductor, se puede subir hasta lo que
         // permite 240-4(b). Se sube lo necesario, no más.
         decimal? limite240_4b = null;
+        if ((breaker is null || breaker < piso) && detalle.TopeDelFabricante)
+            throw new InvalidOperationException(
+                $"430-53(c)(2): la protección máxima de un variador ({techo:0.##} A, la de su fabricante — 110-3(b)) no lleva la " +
+                $"corriente de operación del grupo ({piso:0.##} A). Pasa ese variador a su propio circuito.");
         if (breaker is null || breaker < piso)
         {
             var ampacidadConductor = seleccion.AmpacidadUtilizableTotalA;
@@ -280,10 +285,19 @@ public class CalculadoraCircuitoDerivadoGrupo(
         {
             regla = mayorCompresor is null ? "430-53(c)(4)" : "440-22(b)(2)";
             mayor = mayorMotor;
-            porcentaje = proteccionMotor.PorcentajeMaximo(d.TipoMotor, d.TipoDispositivoProteccion);
             otrasEnElLimite = otras;
-            porQue = $"{porcentaje:0} % de la Tabla 430-52 para el motor mayor" +
-                     (mayorCompresor is null ? "" : ", porque el motocompresor no es la carga más grande — con 430-53(c)(4)");
+            if (mayor.Clase == ClaseDeMiembro.Variador)
+            {
+                // El «valor de 430-52» de un variador es la protección máxima de su fabricante — 430-120, 110-3(b).
+                porcentaje = mayor.ProteccionMaximaA is > 0m and var pm ? 100m * pm / mayor.CorrienteUnitariaA : 100m;
+                porQue = "la protección máxima del fabricante del variador mayor (110-3(b)) en lugar de la Tabla 430-52";
+            }
+            else
+            {
+                porcentaje = proteccionMotor.PorcentajeMaximo(d.TipoMotor, d.TipoDispositivoProteccion);
+                porQue = $"{porcentaje:0} % de la Tabla 430-52 para el motor mayor";
+            }
+            porQue += mayorCompresor is null ? "" : ", porque el motocompresor no es la carga más grande — con 430-53(c)(4)";
         }
         else
         {
@@ -300,14 +314,30 @@ public class CalculadoraCircuitoDerivadoGrupo(
         var demas = sumaMaquinas - mayor.CorrienteUnitariaA;
         var techo = valorDelMayor + demas + otrasEnElLimite;
 
-        var partes = new List<string> { $"{porcentaje:0} % × {mayor.CorrienteUnitariaA:0.##} A ({mayor.Nombre})" };
+        var partes = new List<string>
+        {
+            mayor.Clase == ClaseDeMiembro.Variador
+                ? $"{valorDelMayor:0.##} A ({mayor.Nombre}, protección máxima del fabricante)"
+                : $"{porcentaje:0} % × {mayor.CorrienteUnitariaA:0.##} A ({mayor.Nombre})",
+        };
         if (demas > 0m)
             partes.Add($"{demas:0.##} A (las demás máquinas)");
         if (otrasEnElLimite > 0m)
             partes.Add($"{otrasEnElLimite:0.##} A (otras cargas{(regla == "440-22(b)(2)" && mayorMotor is null ? ", por 240-4" : "")})");
         citas.Add(new Cita(regla, $"Límite de la protección — {porQue}: {string.Join(" + ", partes)} = {techo:0.##} A"));
 
-        return new DetalleDelGrupo(regla, mayor, porcentaje, valorDelMayor, demas, otrasEnElLimite, techo, 0m, null);
+        // 430-53(c)(2)(a): cada variador, como controlador, admite hasta la protección que marca su fabricante.
+        var tope = false;
+        if (d.Miembros.Lista.Where(m => m.Clase == ClaseDeMiembro.Variador && m.ProteccionMaximaA is > 0m)
+                .MinBy(m => m.ProteccionMaximaA) is { } limitante && limitante.ProteccionMaximaA < techo)
+        {
+            techo = limitante.ProteccionMaximaA!.Value;
+            tope = true;
+            citas.Add(new Cita("430-53(c)(2)",
+                $"{limitante.Nombre} admite a lo más {techo:0.##} A de protección, la que marca su fabricante (110-3(b)): el límite baja a ese valor."));
+        }
+
+        return new DetalleDelGrupo(regla, mayor, porcentaje, valorDelMayor, demas, otrasEnElLimite, techo, 0m, null, tope);
     }
 
     /// <summary>

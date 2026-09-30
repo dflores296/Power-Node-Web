@@ -162,6 +162,9 @@ public static class MemoriaDeCalculo
                 "Con variador, la corriente del circuito es la de entrada del variador: la FLC del motor y la Tabla 430-52 no se " +
                 "usan. El interruptor del tablero puede quedar arriba de la ampacidad del conductor — 240-4(g).",
                 "La sobrecarga del motor la da el variador si así lo marca; si no, va aparte — 430-124(a).",
+                .. c.MotoresDelVariador > 1
+                    ? [$"El variador mueve {c.MotoresDelVariador} motores: cada motor con su protección contra sobrecarga — 430-124(c)."]
+                    : Array.Empty<string>(),
             ],
             Corriente: "corriente de entrada");
     }
@@ -185,7 +188,7 @@ public static class MemoriaDeCalculo
         var proteccion = new List<RenglonMemoria>();
         foreach (var a in maquinas)
             proteccion.Add(new(
-                $"{CuadroDeCarga.NombreDeMaquina(c, a)} — {(a.Clase == ClaseDeAparato.Motocompresor ? "440-6(a)" : a.MotorEnAmperes is null ? "430-6(a)" : "430-6(a)(1)")}",
+                $"{CuadroDeCarga.NombreDeMaquina(c, a)} — {(a.Clase == ClaseDeAparato.Variador ? "430-122(a)" : a.Clase == ClaseDeAparato.Motocompresor ? "440-6(a)" : a.MotorEnAmperes is null ? "430-6(a)" : "430-6(a)(1)")}",
                 $"{(a.Cantidad > 1 ? $"{a.Cantidad} × " : "")}{a.CorrienteUnitariaA:N2} A — {cuadro.OrigenDeLaCorriente(a, c.Polos)}"));
         var divisor = TensionDeCalculo.Divisor(c.Polos, cuadro.Datos.TensionFaseNeutroV, cuadro.Datos.TensionFaseFaseV);
         if (c.ContinuaVA + c.NoContinuaVA > 0m)
@@ -210,11 +213,16 @@ public static class MemoriaDeCalculo
             "Cada motor lleva su protección contra sobrecarga (430-32); controladores y relevadores aprobados para instalación " +
             "en grupo con este interruptor, que no pase del que permite 430-40 al relevador del motor más chico — 430-53(c).",
         };
-        notas.AddRange(r.Citas.Where(x => x.Referencia is "430-53(c)(6)" or "430-53(a)").Select(x => $"{x.Descripcion} — {x.Referencia}."));
+        notas.AddRange(r.Citas.Where(x => x.Referencia is "430-53(c)(6)" or "430-53(a)" or "430-53(c)(2)").Select(x => $"{x.Descripcion} — {x.Referencia}."));
+        if (maquinas.Any(a => a.Clase == ClaseDeAparato.Variador))
+            notas.Add("Cada variador, aprobado para instalación en grupo con este interruptor: no pasa de la protección máxima que marca su fabricante — 430-53(c)(2), 110-3(b).");
+        if (maquinas.Where(a => a.Clase == ClaseDeAparato.Variador && a.Motores > 1).ToList() is { Count: > 0 } conVarios)
+            notas.Add($"{string.Join(", ", conVarios.Select(a => $"{CuadroDeCarga.NombreDeMaquina(c, a)} mueve {a.Motores} motores"))}: " +
+                      "cada motor con su protección contra sobrecarga — 430-124(c).");
 
         return new EquipoDeLaHoja(
             Rotulo: c.EsAireAcondicionado ? "Equipo de A/C" : "Grupo de motores",
-            Descripcion: $"{Cuantas(maquinas, ClaseDeAparato.Motor, "motor", "motores")}{Cuantas(maquinas, ClaseDeAparato.Motocompresor, "motocompresor", "motocompresores")}" +
+            Descripcion: $"{Cuantas(maquinas, ClaseDeAparato.Motor, "motor", "motores")}{Cuantas(maquinas, ClaseDeAparato.Variador, "motor con variador", "motores con variador")}{Cuantas(maquinas, ClaseDeAparato.Motocompresor, "motocompresor", "motocompresores")}" +
                          $"{(c.ContinuaVA + c.NoContinuaVA > 0m ? " y otras cargas" : "")} · {tipo} {tension:0} V · varios motores en un circuito — " +
                          (maquinas.Any(a => a.Clase == ClaseDeAparato.Motocompresor) ? "430-53, 440-22(b)" : "430-53"),
             Proteccion: proteccion,
@@ -262,7 +270,9 @@ public static class MemoriaDeCalculo
     private static string Cuantas(IEnumerable<CargaDelCircuito> maquinas, ClaseDeAparato clase, string una, string varias)
     {
         var n = maquinas.Where(a => a.Clase == clase).Sum(a => a.Cantidad);
-        var primera = clase == ClaseDeAparato.Motor || !maquinas.Any(a => a.Clase == ClaseDeAparato.Motor);
+        // Solo la primera clase presente va sin coma, en el orden motor, variador, motocompresor.
+        ClaseDeAparato[] orden = [ClaseDeAparato.Motor, ClaseDeAparato.Variador, ClaseDeAparato.Motocompresor];
+        var primera = orden.First(x => x == clase || maquinas.Any(a => a.Clase == x)) == clase;
         return n == 0 ? "" : $"{(primera ? "" : ", ")}{n} {(n == 1 ? una : varias)}";
     }
 

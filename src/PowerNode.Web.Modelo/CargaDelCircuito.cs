@@ -22,6 +22,12 @@ public enum ClaseDeAparato
     /// equipo: su corriente total de placa — 440-62(b), (c) (I-117). No es máquina de un grupo.
     /// </summary>
     AireDeHabitacion,
+
+    /// <summary>
+    /// Un motor con variador de velocidad — 430 Parte J (David, 2026-09-30): la corriente de entrada del
+    /// variador (430-122(a)) y la protección máxima de su fabricante (110-3(b)). Es máquina de un grupo.
+    /// </summary>
+    Variador,
 }
 
 /// <summary>
@@ -111,7 +117,16 @@ public sealed class CargaDelCircuito
     public string? ReferenciaContinua { get; internal set; }
 
     /// <summary>Motor o motocompresor: su corriente cuenta en 430-24 y 430-53, no como carga de placa.</summary>
-    public bool EsMaquina => Clase is ClaseDeAparato.Motor or ClaseDeAparato.Motocompresor;
+    public bool EsMaquina => Clase is ClaseDeAparato.Motor or ClaseDeAparato.Motocompresor or ClaseDeAparato.Variador;
+
+    /// <summary>Solo en un variador: la protección máxima que marca su fabricante — 110-3(b). Su corriente de entrada va en <see cref="CorrientePlacaA"/>.</summary>
+    public decimal ProteccionMaximaA { get; set; }
+
+    /// <summary>
+    /// Solo en un variador: cuántos motores mueve. No cambia el cálculo del circuito (430-122(a) va con la
+    /// entrada del variador); con más de uno, cada motor lleva su protección contra sobrecarga — 430-124(c).
+    /// </summary>
+    public int Motores { get; set; } = 1;
 
     /// <summary>Un motor se captura en HP o en amperes — 430-6(a)(1). Solo HP o amperes, nunca «Varios».</summary>
     public CapturaDeMotor CapturaMotor { get; set; } = CapturaDeMotor.Hp;

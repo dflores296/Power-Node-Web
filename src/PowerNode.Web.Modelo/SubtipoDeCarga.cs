@@ -83,16 +83,16 @@ public static class SubtiposDeCarga
         SubtipoDeCarga.MotorUsoGeneral or SubtipoDeCarga.AparatoConMotor or SubtipoDeCarga.CalefaccionConMotor => ClaseDeAparato.Motor,
         SubtipoDeCarga.Motocompresor => ClaseDeAparato.Motocompresor,
         SubtipoDeCarga.AireDeHabitacion => ClaseDeAparato.AireDeHabitacion,
+        SubtipoDeCarga.MotorVelocidadAjustable => ClaseDeAparato.Variador,
         _ => ClaseDeAparato.Carga,
     };
 
     /// <summary>
-    /// Solo en el renglón: un motor con variador y un equipo de A/C con MCA y MOCP son un solo equipo que
-    /// no se mezcla con otras cargas (430 Parte J, 440-4(b)). Otro tablero ya no: un alimentador puede
-    /// llevar varios tableros, cada uno en su línea (David, 2026-09-30).
+    /// Solo en el renglón: un equipo de A/C con MCA y MOCP es un solo equipo que no se mezcla con otras
+    /// cargas (440-4(b)). Otro tablero y el motor con variador ya no: un alimentador puede llevar varios
+    /// tableros, y un circuito, varios variadores como grupo — 430-53 (David, 2026-09-30).
     /// </summary>
-    public static bool SoloEnElRenglon(this SubtipoDeCarga s) =>
-        s is SubtipoDeCarga.MotorVelocidadAjustable or SubtipoDeCarga.CargaCombinada;
+    public static bool SoloEnElRenglon(this SubtipoDeCarga s) => s is SubtipoDeCarga.CargaCombinada;
 
     /// <summary>El uso de vivienda de un subtipo de contactos — 210-11(c); <c>null</c> si no es uno.</summary>
     public static UsoDeContactos? Uso(this SubtipoDeCarga s) => s switch
@@ -115,12 +115,12 @@ public static class SubtiposDeCarga
     };
 
     /// <summary>
-    /// <b>Va solo en su circuito, cantidad 1</b> — decisión <c>captura-en-el-desplegable.md</c>: el variador
-    /// (430-122, 110-3(b)), el A/A con ampacidad de placa (440-4(b)) y el contacto del refrigerador
-    /// (210-52(b)(1) Exc. 2). Un tablero alimentado va con otros tableros, no con otras cargas.
+    /// <b>Va solo en su circuito, cantidad 1</b> — decisión <c>captura-en-el-desplegable.md</c>:
+    /// el A/A con ampacidad de placa (440-4(b)) y el contacto del refrigerador (210-52(b)(1) Exc. 2). Un
+    /// tablero alimentado va con otros tableros; un variador, con otros motores como grupo (430-53).
     /// </summary>
     public static bool VaSolo(this SubtipoDeCarga s) =>
-        s is SubtipoDeCarga.MotorVelocidadAjustable or SubtipoDeCarga.CargaCombinada or SubtipoDeCarga.ContactoRefrigerador;
+        s is SubtipoDeCarga.CargaCombinada or SubtipoDeCarga.ContactoRefrigerador;
 
     /// <summary>
     /// Solo con líneas de su mismo subtipo: los contactos de aparatos pequeños, de lavadora y de baño

@@ -237,4 +237,97 @@ public class CapturaEnElDesplegableTests
 
         Assert.Equal(ClaseDeCircuito.Individual, c.ClaseDelCircuito);
     }
+
+    // ---- Variadores (David, 2026-09-30) -------------------------------------------------------------
+
+    private static CargaDelCircuito Variador(string nombre, decimal entradaA, decimal maximaA, int motores = 1) =>
+        new() { Descripcion = nombre, Subtipo = SubtipoDeCarga.MotorVelocidadAjustable, CorrientePlacaA = entradaA, ProteccionMaximaA = maximaA, Motores = motores };
+
+    [Fact]
+    public void DosVariadoresEnUnCircuitoSonUnGrupoConElTopeDelFabricante()
+    {
+        var cuadro = Nuevo();
+        var c = Espacio(cuadro, 1);
+        c.Categoria = CategoriaDeCarga.Motor;
+        cuadro.CambiarPolos(c, 3);
+        c.Cargas.Add(Variador("V1", 10m, 40m));
+        c.Cargas.Add(Variador("V2", 6m, 30m));
+        cuadro.Recalcular();
+
+        Assert.True(c.EsGrupo);
+        Assert.Equal(ClaseDeCircuito.GrupoDeMotores, c.ClaseDelCircuito);
+        Assert.Equal(16m, c.CorrienteDeMotorA);
+        var r = c.Resultado!;
+        // 430-24: 125 % × 10 + 6 = 18.5 A. 430-53(c)(4): 40 (máx. de V1) + 6 = 46 A; 430-53(c)(2): V2 admite 30 A.
+        Assert.Contains(r.Citas, x => x.Referencia == "430-24" && x.Descripcion.Contains("18.5"));
+        Assert.Contains(r.Citas, x => x.Referencia == "430-53(c)(4)" && x.Descripcion.Contains("46"));
+        Assert.Contains(r.Citas, x => x.Referencia == "430-53(c)(2)");
+        Assert.Equal(30m, r.ProteccionA);
+    }
+
+    [Fact]
+    public void UnVariadorQueNoLlevaLaCorrienteDelGrupoPideSuCircuito()
+    {
+        var cuadro = Nuevo();
+        var c = Espacio(cuadro, 1);
+        c.Categoria = CategoriaDeCarga.Motor;
+        cuadro.CambiarPolos(c, 3);
+        c.Cargas.Add(Variador("V1", 10m, 40m));
+        c.Cargas.Add(Variador("V2", 6m, 15m)); // 15 A no lleva los 16 A del grupo
+        cuadro.Recalcular();
+
+        Assert.Null(c.Resultado);
+        Assert.Contains("430-53(c)(2)", c.Error);
+    }
+
+    [Fact]
+    public void UnSoloVariadorEnSuLineaRegresaAlRenglonConSusMotores()
+    {
+        var cuadro = Nuevo();
+        var c = Espacio(cuadro, 1);
+        c.Categoria = CategoriaDeCarga.Motor;
+        c.Cargas.Add(Variador("Mezcladoras", 12m, 30m, motores: 3));
+
+        Assert.True(c.LineaARenglon());
+        cuadro.Recalcular();
+
+        Assert.True(c.EsVariador);
+        Assert.Equal((12m, 30m, 3), (c.CorrienteEntradaVariadorA, c.ProteccionMaximaVariadorA, c.MotoresDelVariador));
+        Assert.Empty(c.Cargas);
+    }
+
+    [Fact]
+    public void ElVariadorDelRenglonPasaASuLineaAlAgregarOtraCarga()
+    {
+        var cuadro = Nuevo();
+        var c = Espacio(cuadro, 1);
+        c.Categoria = CategoriaDeCarga.Motor;
+        c.CapturaMotor = CapturaDeMotor.Variador;
+        c.CorrienteEntradaVariadorA = 12m;
+        c.ProteccionMaximaVariadorA = 30m;
+        c.MotoresDelVariador = 2;
+
+        c.AgregarCarga();
+
+        var v = c.Cargas[0];
+        Assert.Equal(ClaseDeAparato.Variador, v.Clase);
+        Assert.Equal((12m, 30m, 2), (v.CorrientePlacaA, v.ProteccionMaximaA, v.Motores));
+    }
+
+    [Fact]
+    public void LosVariadoresSeGuardanYAbrenIgual()
+    {
+        var cuadro = Nuevo();
+        var c = Espacio(cuadro, 1);
+        c.Categoria = CategoriaDeCarga.Motor;
+        cuadro.CambiarPolos(c, 3);
+        c.Cargas.Add(Variador("V1", 10m, 40m, motores: 2));
+        c.Cargas.Add(Variador("V2", 6m, 30m));
+        cuadro.Recalcular();
+
+        var abierto = Espacio(ArchivoDelCuadro.Abrir(ArchivoDelCuadro.Guardar(cuadro, DateTimeOffset.UnixEpoch), Motor).Cuadro!, 1);
+
+        Assert.Equal((10m, 40m, 2), (abierto.Cargas[0].CorrientePlacaA, abierto.Cargas[0].ProteccionMaximaA, abierto.Cargas[0].Motores));
+        Assert.Equal(30m, abierto.Resultado!.ProteccionA);
+    }
 }

@@ -130,6 +130,12 @@ public sealed class CircuitoDelCuadro
     public bool EsVariador => EsMotor && CapturaMotor == CapturaDeMotor.Variador;
 
     /// <summary>
+    /// Motor con variador: cuántos motores mueve (David, 2026-09-30). No cambia el cálculo — 430-122(a) va con
+    /// la entrada del variador —; con más de uno, cada motor con su protección contra sobrecarga — 430-124(c).
+    /// </summary>
+    public int MotoresDelVariador { get; set; } = 1;
+
+    /// <summary>
     /// El servicio de un motor solo, en HP o en amperes: <c>null</c> = continuo, el de casi todos (nota de la
     /// Tabla 430-22(e)); si no, corta duración, intermitente, periódico o variable — 430-22(e), I-120.
     /// </summary>
@@ -337,8 +343,8 @@ public sealed class CircuitoDelCuadro
     /// <b>Lo capturado en el renglón pasa a sus líneas</b> — I-35, I-123, decisión
     /// <c>captura-en-el-desplegable.md</c>. Un motor, un motocompresor o un acondicionador de habitación, a
     /// una línea (con otra carga el circuito es un grupo: 430-53, 440-22(b)); una carga de placa, a una
-    /// línea continua y otra no continua; otro tablero, a su línea con sus dos cantidades. Un variador y un A/A con ampacidad de placa van
-    /// solos en su circuito: se quedan en el renglón. Con <paramref name="conSubtipo"/>, cada línea lleva
+    /// línea continua y otra no continua; otro tablero, a su línea con sus dos cantidades; un variador, a
+    /// su línea. Un A/A con ampacidad de placa va solo en su circuito: se queda en el renglón. Con <paramref name="conSubtipo"/>, cada línea lleva
     /// ya su subtipo (el uso de vivienda, el de contactos); sin él, toma el tipo del circuito, como hasta
     /// el formato 4. <c>false</c> si no había nada que pasar.
     /// </summary>
@@ -373,6 +379,16 @@ public sealed class CircuitoDelCuadro
                 CapturaMotor = CapturaMotor,
                 Hp = Hp,
                 CorrientePlacaA = CorrientePlacaA,
+                FactorPotencia = FactorPotencia,
+            });
+        else if (EsVariador && CorrienteEntradaVariadorA > 0m)
+            Cargas.Insert(0, new CargaDelCircuito
+            {
+                Descripcion = nombre ?? "Variador",
+                Subtipo = SubtipoDeCarga.MotorVelocidadAjustable,
+                CorrientePlacaA = CorrienteEntradaVariadorA,
+                ProteccionMaximaA = ProteccionMaximaVariadorA,
+                Motores = MotoresDelVariador,
                 FactorPotencia = FactorPotencia,
             });
         else if (EsAireAcondicionado && PlacaAire == PlacaDeAireAcondicionado.CorrienteNominal && CorrientePlacaA > 0m)
@@ -439,6 +455,13 @@ public sealed class CircuitoDelCuadro
                 PlacaAire = PlacaDeAireAcondicionado.Habitacion;
                 CorrientePlacaA = linea.CorrientePlacaA;
                 break;
+            case SubtipoDeCarga.MotorVelocidadAjustable:
+                Categoria = CategoriaDeCarga.Motor;
+                CapturaMotor = CapturaDeMotor.Variador;
+                CorrienteEntradaVariadorA = linea.CorrientePlacaA;
+                ProteccionMaximaVariadorA = linea.ProteccionMaximaA;
+                MotoresDelVariador = linea.Motores;
+                break;
             default:
                 return false;
         }
@@ -450,7 +473,7 @@ public sealed class CircuitoDelCuadro
     }
 
     /// <summary>
-    /// Pasa el circuito a un equipo que va solo — un variador o un A/A con ampacidad de placa —
+    /// Pasa el circuito a un equipo que va solo — un A/A con ampacidad de placa —
     /// con lo capturado en su única línea. <c>false</c> si hay otras líneas: van solos (David, 2026-09-30).
     /// </summary>
     public bool PasarARenglon(SubtipoDeCarga subtipo)
@@ -460,10 +483,6 @@ public sealed class CircuitoDelCuadro
         var linea = Cargas.SingleOrDefault();
         switch (subtipo)
         {
-            case SubtipoDeCarga.MotorVelocidadAjustable:
-                Categoria = CategoriaDeCarga.Motor;
-                CapturaMotor = CapturaDeMotor.Variador;
-                break;
             case SubtipoDeCarga.CargaCombinada:
                 Categoria = CategoriaDeCarga.AireAcondicionado;
                 PlacaAire = PlacaDeAireAcondicionado.AmpacidadYProteccion;

@@ -1341,6 +1341,8 @@ public sealed class CuadroDeCarga
 
         if (a.Clase == ClaseDeAparato.Motocompresor)
             a.CorrienteUnitariaA = CalculadoraCarga440.CorrienteBase(a.CorrientePlacaA, a.CorrienteSeleccionA);
+        else if (a.Clase == ClaseDeAparato.Variador)
+            a.CorrienteUnitariaA = a.CorrientePlacaA; // la de entrada del variador — 430-122(a)
         else if (a.CapturaMotor == CapturaDeMotor.Amperes)
         {
             a.MotorEnAmperes = MotoresEnHp.DeAmperes(_motor.FlcMotor, a.CorrientePlacaA, polos, tension);
@@ -1960,11 +1962,17 @@ public sealed class CuadroDeCarga
         c.Resultado = Recordado(new DatosEntradaCircuitoDerivadoGrupo(
             Miembros: new MiembrosDelGrupo(maquinas.Select(a => new MiembroDelGrupo(
                 NombreDeMaquina(c, a),
-                a.Clase == ClaseDeAparato.Motocompresor ? ClaseDeMiembro.Motocompresor : ClaseDeMiembro.Motor,
+                a.Clase switch
+                {
+                    ClaseDeAparato.Motocompresor => ClaseDeMiembro.Motocompresor,
+                    ClaseDeAparato.Variador => ClaseDeMiembro.Variador,
+                    _ => ClaseDeMiembro.Motor,
+                },
                 a.Cantidad,
                 a.CorrienteUnitariaA,
                 OrigenDeLaCorriente(a, c.Polos, tension),
-                a.Clase == ClaseDeAparato.Motor ? a.MotorEnAmperes?.Hp ?? a.Hp : null))),
+                a.Clase == ClaseDeAparato.Motor ? a.MotorEnAmperes?.Hp ?? a.Hp : null,
+                a.Clase == ClaseDeAparato.Variador && a.ProteccionMaximaA > 0m ? a.ProteccionMaximaA : null))),
             OtrasContinuaA: c.ContinuaVA / divisor,
             OtrasNoContinuaA: c.NoContinuaVA / divisor,
             MayorOtraCargaA: otras.Count == 0 ? 0m : otras.Max(a => a.TotalVA / a.Cantidad) / divisor,
@@ -2016,7 +2024,7 @@ public sealed class CuadroDeCarga
     /// <summary>«Extractor», o «Motor 2» si no se describió: el número de su renglón en el desglose.</summary>
     public static string NombreDeMaquina(CircuitoDelCuadro c, CargaDelCircuito a) =>
         !string.IsNullOrWhiteSpace(a.Descripcion) ? a.Descripcion.Trim()
-        : $"{(a.Clase == ClaseDeAparato.Motocompresor ? "Motocompresor" : "Motor")} {c.Cargas.IndexOf(a) + 1}";
+        : $"{a.Clase switch { ClaseDeAparato.Motocompresor => "Motocompresor", ClaseDeAparato.Variador => "Variador", _ => "Motor" }} {c.Cargas.IndexOf(a) + 1}";
 
     /// <summary>
     /// De dónde sale la corriente de una máquina del grupo, para la cita: «½ HP, Tabla 430-248, columna
@@ -2026,7 +2034,10 @@ public sealed class CuadroDeCarga
         OrigenDeLaCorriente(a, polos, MotoresEnHp.Tension(polos, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV));
 
     private string OrigenDeLaCorriente(CargaDelCircuito a, int polos, decimal tension) =>
-        a.Clase == ClaseDeAparato.Motocompresor
+        a.Clase == ClaseDeAparato.Variador
+            ? $"corriente nominal de entrada del variador — 430-122(a)" +
+              (a.ProteccionMaximaA > 0m ? $"; protección máxima del fabricante {a.ProteccionMaximaA:0.##} A — 110-3(b)" : "")
+        : a.Clase == ClaseDeAparato.Motocompresor
             ? a.CorrienteSeleccionA > a.CorrientePlacaA
                 ? $"corriente de selección del circuito derivado de la placa (mayor que la de carga nominal, {a.CorrientePlacaA:0.##} A) — 440-6(a) Exc. 1"
                 : "corriente de carga nominal de la placa — 440-6(a)"
