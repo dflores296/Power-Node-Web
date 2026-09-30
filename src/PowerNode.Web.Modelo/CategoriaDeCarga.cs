@@ -49,25 +49,29 @@ public static class CategoriasDeCarga
     /// <summary>Todos los tipos: cada uno lleva su factor de demanda, 1.0 por omisión.</summary>
     public static readonly IReadOnlyList<CategoriaDeCarga> Todas = Enum.GetValues<CategoriaDeCarga>();
 
-    /// <summary>Para el selector del renglón, que mide 108 px.</summary>
+    /// <summary>
+    /// El nombre corto, basado en la NOM (David, 2026-09-29 — I-127): el del selector y la tabla. El de
+    /// la norma es <see cref="NombreCompleto"/>.
+    /// </summary>
     public static string Nombre(this CategoriaDeCarga c) => c switch
     {
         CategoriaDeCarga.Alumbrado => "Alumbrado",
         CategoriaDeCarga.Contactos => "Contactos",
-        CategoriaDeCarga.Equipo => "Equipo",
-        CategoriaDeCarga.Motor => "Motor",
-        CategoriaDeCarga.AireAcondicionado => "A/C y refrig.",
+        CategoriaDeCarga.Equipo => "Aparatos",
+        CategoriaDeCarga.Motor => "Motores",
+        CategoriaDeCarga.AireAcondicionado => "A/A y refrig.",
         CategoriaDeCarga.Tablero => "Tablero",
         _ => "Calefacción",
     };
 
-    /// <summary>Para el resumen, el documento y la memoria.</summary>
+    /// <summary>El de la NOM (I-127): para el resumen, el documento y la memoria.</summary>
     public static string NombreCompleto(this CategoriaDeCarga c) => c switch
     {
-        CategoriaDeCarga.Equipo => "Equipo (aparatos)",
+        CategoriaDeCarga.Contactos => "Salidas para contactos",
+        CategoriaDeCarga.Equipo => "Aparatos y cargas específicas",
         CategoriaDeCarga.Motor => "Motores",
         CategoriaDeCarga.AireAcondicionado => "Aire acondicionado y refrigeración",
-        CategoriaDeCarga.CalefaccionFija => "Calefacción eléctrica fija",
+        CategoriaDeCarga.CalefaccionFija => "Calefacción eléctrica fija de ambiente",
         CategoriaDeCarga.Tablero => "Alimentador a tablero",
         _ => c.Nombre(),
     };
@@ -76,10 +80,10 @@ public static class CategoriasDeCarga
     public static string Descripcion(this CategoriaDeCarga c) => c switch
     {
         CategoriaDeCarga.Alumbrado => "Alumbrado: luminarias y alumbrado general — Tabla 220-42.",
-        CategoriaDeCarga.Contactos => "Contactos: contactos de uso general. En vivienda, seleccionar el uso (cocina, lavadora, baño) — 210-11(c).",
-        CategoriaDeCarga.Equipo => "Equipo: aparatos con su valor de placa, también los que traen motor o compresor: hornos, estufas, parrillas, secadoras, lavadoras, lavavajillas, calentadores de agua, refrigeradores y congeladores domésticos, enfriadores de agua (son aparatos — 440-3(c)), equipo electrónico — Art. 422; 220-53 a 220-56.",
-        CategoriaDeCarga.Motor => "Motor: bombas, ventiladores, extractores, compresores de aire, bandas; también manejadoras de aire y condensadores sin motocompresor (440-3(b)) — Art. 430. Se captura en HP, o en A si la placa no trae HP: la corriente sale de la tabla — 430-6(a)(1). Dos polos a 220 V es monofásico (Tabla 430-248); arranque estrella-delta no cambia el cálculo del tablero (430-22(c)).",
-        CategoriaDeCarga.AireAcondicionado => "A/C y refrigeración: equipos con motocompresor hermético: minisplit (también inverter frío/calor), bomba de calor, paquete, condensadora, cámara de refrigeración comercial — Art. 440. El refrigerador doméstico no: es aparato (Equipo o el contacto de la cocina — 440-3(c)). Se captura la placa: ampacidad mínima y protección máxima (MCA, MOCP — 440-4(b)), o la corriente de carga nominal del compresor (440-6(a)).",
+        CategoriaDeCarga.Contactos => "Contactos: salidas para contactos de uso general. En vivienda, seleccionar el uso (aparatos pequeños, lavadora, baño) — 210-11(c).",
+        CategoriaDeCarga.Equipo => "Aparatos: aparatos con su valor de placa, también los que traen motor o compresor: hornos, estufas, parrillas, secadoras, lavadoras, lavavajillas, calentadores de agua, refrigeradores y congeladores domésticos, enfriadores de agua (son aparatos — 440-3(c)), equipo electrónico — Art. 422; 220-53 a 220-56.",
+        CategoriaDeCarga.Motor => "Motores: bombas, ventiladores, extractores, compresores de aire, bandas; también manejadoras de aire y condensadores sin motocompresor (440-3(b)) — Art. 430. Se captura en HP, o en A si la placa no trae HP, o con variador (Vel. aj.): la corriente sale de la tabla — 430-6(a)(1). Dos polos a 220 V es monofásico (Tabla 430-248); arranque estrella-delta no cambia el cálculo del tablero (430-22(c)).",
+        CategoriaDeCarga.AireAcondicionado => "A/A y refrigeración: equipos con motocompresor hermético: minisplit (también inverter frío/calor), bomba de calor, paquete, condensadora, cámara de refrigeración comercial — Art. 440. El refrigerador doméstico no: es aparato (Aparatos o el contacto de la cocina — 440-3(c)). Se captura la placa: ampacidad y protección máxima (Ampac.: MCA y MOCP — 440-4(b)), o la corriente de carga nominal del compresor (440-6(a)).",
         CategoriaDeCarga.Tablero => "Tablero: otro tablero alimentado desde este. Es un alimentador (Art. 100, 215): se captura la carga calculada del otro tablero, continua y no continua, ya con sus factores de demanda; aquí no lleva otro — 220-40.",
         _ => "Calefacción: calefacción por resistencia eléctrica: calefactores, cables calefactores, calderas eléctricas. Carga continua — 424-3(b); 220-51.",
     };

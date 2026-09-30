@@ -88,12 +88,12 @@ public class MemoriaDeCalculoTests
         cuadro.Recalcular();
 
         var seccion1 = MemoriaDeCalculo.Secciones(MemoriaDeCalculo.DelAlimentador(cuadro)!)[0];
-        Assert.Equal("500 VA", seccion1.Renglones.Single(r => r.Rotulo == "Carga total instalada").Valor);
+        Assert.Equal("500 VA", seccion1.Renglones.Single(r => r.Rotulo == "Carga total conectada").Valor);
         Assert.StartsWith("1,000 VA — aparatos pequeños y lavadora", seccion1.Renglones.Single(r => r.Rotulo == "Mínimo 220-52").Valor);
         Assert.Equal("1,500 VA", seccion1.Renglones.Single(r => r.Rotulo == "Carga calculada").Valor);
 
         var derivado = MemoriaDeCalculo.DeCircuito(cuadro, cocina);
-        Assert.Contains("Contactos · Aparatos pequeños (cocina)", derivado.Sujeto);
+        Assert.Contains("Salidas para contactos · Aparatos pequeños (cocina)", derivado.Sujeto); // el nombre de la NOM — I-127
         Assert.DoesNotContain(MemoriaDeCalculo.Secciones(derivado)[0].Renglones, r => r.Rotulo == "Mínimo 220-52");
     }
 
@@ -283,7 +283,7 @@ public class MemoriaDeCalculoTests
 
         var seccion1 = MemoriaDeCalculo.Secciones(MemoriaDeCalculo.DeCircuito(cuadro, c))[0];
         Assert.Equal("1 × 900 W = 900 VA · no continua · F.P. 1.00",
-            seccion1.Renglones.Single(r => r.Rotulo == "Aparato 1: Estufa").Valor);
+            seccion1.Renglones.Single(r => r.Rotulo == "1. Alumbrado: Estufa").Valor); // el tipo de la carga: sin subtipo, el del circuito — I-123
     }
 
     [Fact]

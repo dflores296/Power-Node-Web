@@ -42,10 +42,10 @@ public static class AireAcondicionadoDePlaca
     /// <summary>Para el selector de unidad del renglón.</summary>
     public static string Nombre(this PlacaDeAireAcondicionado p) => p switch
     {
-        PlacaDeAireAcondicionado.AmpacidadYProteccion => "MCA",
-        PlacaDeAireAcondicionado.Grupo => "Varios",
-        PlacaDeAireAcondicionado.Habitacion => "Hab.",
-        _ => "A",
+        PlacaDeAireAcondicionado.AmpacidadYProteccion => "Ampac.",
+        PlacaDeAireAcondicionado.Grupo => "Grupo",
+        PlacaDeAireAcondicionado.Habitacion => "De hab.",
+        _ => "Nominal",
     };
 
     /// <summary>
@@ -68,7 +68,7 @@ public static class AireAcondicionadoDePlaca
     /// </remarks>
     public static string Texto(CircuitoDelCuadro c) => c.PlacaAire switch
     {
-        PlacaDeAireAcondicionado.AmpacidadYProteccion => $"MCA {c.AmpacidadMinimaA:#,0.##} A · MOCP {c.ProteccionMaximaA:#,0.##} A",
+        PlacaDeAireAcondicionado.AmpacidadYProteccion => $"Ampacidad {c.AmpacidadMinimaA:#,0.##} A · prot. máx. {c.ProteccionMaximaA:#,0.##} A",
         PlacaDeAireAcondicionado.Habitacion => $"De habitación {c.CorrientePlacaA:#,0.##} A",
         _ => $"Nominal {c.CorrientePlacaA:#,0.##} A" + (c.CorrienteSeleccionA is > 0m and { } s ? $" · selección {s:#,0.##} A" : ""),
     };

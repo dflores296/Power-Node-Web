@@ -200,7 +200,10 @@ public sealed class CircuitoDelCuadro
          // grupo (430-53, 440-22(b)); también varios aparatos con motor sin otras cargas, que 220-18(a) manda
          // al Art. 430.
          || Cargas.Any(a => a.EsMaquina && TipoDe(a).EsDeMotor())
-         || (Cargas.Any(a => a.EsMaquina) && Cargas.All(a => a.EsMaquina)));
+         || (Cargas.Any(a => a.EsMaquina) && Cargas.All(a => a.EsMaquina))
+         // Un Motor o un A/C con cargas capturadas en el desplegable (con subtipo): sin máquinas, el grupo lo
+         // dice («no tiene motores») en vez de ignorarlas. Las de otro tipo que traía de antes no cuentan.
+         || (EsDeMotor && Cargas.Any(a => a.Subtipo is not null)));
 
     /// <summary>El tipo de una de sus cargas: el de su subtipo, o el del circuito — I-123.</summary>
     public CategoriaDeCarga TipoDe(CargaDelCircuito carga) => carga.TipoEn(this);
@@ -258,6 +261,12 @@ public sealed class CircuitoDelCuadro
             return ClaseDeCircuito.ParaAparatos;
         }
     }
+
+    /// <summary>
+    /// Un grupo de solo motores o motocompresores (430-53, 440-22(b)): el Art. 100 no le da nombre de clase;
+    /// la pantalla y la memoria dicen «grupo» — I-123.
+    /// </summary>
+    public bool EsGrupoDeMotores => EsGrupo && Cargas.All(a => a.EsMaquina || TipoDe(a).EsDeMotor());
 
     /// <summary>Contactos de vivienda para aparatos pequeños o lavadora — 210-11(c)(1), (2).</summary>
     private bool UsoParaAparatos => UsoEfectivo is UsoDeContactos.AparatosPequenos or UsoDeContactos.Lavadora;
@@ -322,7 +331,7 @@ public sealed class CircuitoDelCuadro
             Cargas.Insert(0, new CargaDelCircuito
             {
                 Descripcion = string.IsNullOrWhiteSpace(Descripcion) ? "Motor" : Descripcion.Trim(),
-                Clase = ClaseDeAparato.Motor,
+                Subtipo = SubtipoDeCarga.MotorUsoGeneral,
                 CapturaMotor = CapturaMotor,
                 Hp = Hp,
                 CorrientePlacaA = CorrientePlacaA,
@@ -332,7 +341,7 @@ public sealed class CircuitoDelCuadro
             Cargas.Insert(0, new CargaDelCircuito
             {
                 Descripcion = string.IsNullOrWhiteSpace(Descripcion) ? "Motocompresor" : Descripcion.Trim(),
-                Clase = ClaseDeAparato.Motocompresor,
+                Subtipo = SubtipoDeCarga.Motocompresor,
                 CorrientePlacaA = CorrientePlacaA,
                 CorrienteSeleccionA = CorrienteSeleccionA,
                 FactorPotencia = FactorPotencia,
@@ -383,7 +392,9 @@ public sealed class CircuitoDelCuadro
                 CorrienteSeleccionA = CorrienteSeleccionA,
                 FactorPotencia = FactorPotencia,
             });
-        PlacaAire = PlacaDeAireAcondicionado.Grupo;
+        // Sin la unidad «Varios» (I-123): el grupo sale de sus motocompresores; la placa regresa a la nominal.
+        if (PlacaAire == PlacaDeAireAcondicionado.Grupo)
+            PlacaAire = PlacaDeAireAcondicionado.CorrienteNominal;
     }
 
     /// <summary>
@@ -404,7 +415,9 @@ public sealed class CircuitoDelCuadro
                 CorrientePlacaA = CorrientePlacaA,
                 FactorPotencia = FactorPotencia,
             });
-        CapturaMotor = CapturaDeMotor.Grupo;
+        // Sin la unidad «Varios» (I-123): el grupo sale de sus motores.
+        if (CapturaMotor is CapturaDeMotor.Grupo or CapturaDeMotor.Variador)
+            CapturaMotor = CapturaDeMotor.Hp;
     }
 
     /// <summary>La carga continua <b>tal como viene en la placa</b>, en <see cref="Unidad"/>.</summary>

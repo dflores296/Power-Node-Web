@@ -314,7 +314,7 @@ select, input { font: inherit; padding: 5px 8px; border: 1px solid var(--linea);
 
 /* La descripción se queda con lo que sobra: las demás columnas son de ancho de contenido, así que
    sin esto el navegador le daba lo mínimo y "Alumbrado oficinas" salía cortado. */
-.cuadro th.descripcion { min-width: 224px; } /* 224 y no 240: con las columnas de resultados parejas (76 px) el cuadro sigue cabiendo a 1920 */
+.cuadro th.descripcion { min-width: 210px; } /* 210 y no 240: con las columnas de resultados parejas y la unidad de 80 px (I-127) el cuadro sigue cabiendo a 1920 */
 .cuadro td { padding: 3px 6px; border-bottom: 1px solid var(--linea); text-align: center; white-space: nowrap;
              vertical-align: middle; }
 .cuadro tr.fila-desglose td { white-space: normal; }
@@ -678,6 +678,8 @@ label.suelto input { width: 90px; }
 .doc-cuadro td { border: 1px solid var(--linea-suave); padding: 3px 6px; text-align: center; }
 .doc-cuadro tr.libre td { color: var(--vacio); }
 .doc-cuadro .tenue { color: var(--tenue); font-style: italic; }
+/* El tipo y la clase del circuito bajo su descripción (I-123). */
+.doc-cuadro .doc-clase { display: block; font-size: 8px; color: var(--tenue); line-height: 1.2; }
 
 .doc-pie { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 18px; }
 @media (max-width: 900px) { .doc-pie { grid-template-columns: 1fr; } }
@@ -983,6 +985,15 @@ polygon.riel-a { fill: var(--barra-a); } polygon.riel-b { fill: var(--barra-b); 
 .cuadro button.quitar { color: var(--tenue); }
 /* Una máquina del desglose (I-115, I-118): en lugar de la casilla «Continua», qué es. */
 .cuadro table.desglose .clase-motor { font-size: 11px; color: var(--tenue); white-space: nowrap; }
+/* SALIDAS Y CARGAS (I-123): tipo y subtipo de cada línea, con su «?» a la guía; el mínimo de 220-14,
+   debajo de la carga. */
+.cuadro table.desglose select.tipo { width: 122px; }
+.cuadro table.desglose select.subtipo { width: 150px; padding: 2px 2px 2px 5px; border-radius: var(--radio-xs); }
+.cuadro table.desglose td.subtipo { white-space: nowrap; }
+.cuadro table.desglose .nota-min { display: block; font-size: 10px; color: var(--tenue); line-height: 1.2; margin-top: 2px; white-space: nowrap; }
+/* La clase del circuito bajo su descripción, y el tipo «Combinadas» (I-123). */
+.cuadro .en-va.clase { color: var(--acento); }
+.cuadro select.tipo.combinadas { font-style: italic; color: var(--acento); background: var(--acento-suave); border-color: var(--acento-borde); opacity: 1; }
 /* RLA y selección de un motocompresor, lado a lado en la celda de la carga (I-116). */
 .cuadro table.desglose td.dos-campos { white-space: nowrap; }
 .cuadro table.desglose td.dos-campos input.va { width: 58px; }
@@ -1204,8 +1215,9 @@ body.arrastrando-principal .zona-zocalo .al-arrastrar { display: inline; }
 #sec-cuadro > .cuadro input.va { text-align: center; }
 #sec-cuadro > .cuadro select.canal { min-width: 76px; }
 #sec-cuadro > .cuadro select.polos { width: 52px; }
-/* «Varios» del motor (I-115) completo; cabe en la celda sin moverla. */
-#sec-cuadro > .cuadro select.unidad { width: 66px; }
+/* Los nombres de la NOM completos: «Nominal», «De hab.», «Ampac.», «Vel. aj.» (I-127). 80 y no 66; la
+   descripción cede los 14 px para que el cuadro siga cabiendo a 1920. */
+#sec-cuadro > .cuadro select.unidad { width: 80px; }
 #sec-cuadro > .cuadro select.tipo { width: 122px; } /* «Refrigerador» completo con la letra de 13 px */
 
 /* Las notas se posicionan contra su celda. No el N.º: es la columna fija (sticky), y relative la

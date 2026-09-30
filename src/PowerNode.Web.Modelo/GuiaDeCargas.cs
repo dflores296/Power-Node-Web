@@ -376,7 +376,7 @@ public static class GuiaDeCargas
                     [
                         new("clase-aparatos-pequenos", "Aparatos pequeños", "Circuito derivado para aparatos pequeños",
                             "En vivienda, los contactos de cocina, despensa, comedor y desayunador.",
-                            "Contactos, uso «Aparatos pequeños».",
+                            "Contactos, uso «Ap. pequeños».",
                             [
                                 D("210-11(c)(1)", "Dos o más circuitos de 20 A para los contactos de 210-52(b)."),
                                 A("220-52(a)", "1500 VA por cada uno en el alimentador; se permite sumarlos al alumbrado general con la Tabla 220-42."),
@@ -456,7 +456,7 @@ public static class GuiaDeCargas
         new("Selección", "Corriente de selección del circuito derivado", "440-6(a) Exc. 1", "BCSC, Sel."),
         new("Ampacidad", "Ampacidad de los conductores (placa del equipo)", "440-4(b)", "MCA"),
         new("Prot. máx.", "Valor nominal máximo del dispositivo de protección (placa del equipo)", "440-4(b)", "MOCP"),
-        new("Aparatos pequeños", "Circuito derivado para aparatos pequeños", "210-11(c)(1)", "Cocina"),
+        new("Ap. pequeños", "Circuito derivado para aparatos pequeños", "210-11(c)(1)", "Cocina"),
         new("Lavadora", "Circuito derivado para lavadora", "210-11(c)(2)"),
         new("Baño", "Circuito derivado para cuartos de baño", "210-11(c)(3)"),
         new("Refrigerador", "Circuito derivado individual del refrigerador", "210-52(b)(1) Exc. 2"),

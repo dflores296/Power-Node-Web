@@ -50,10 +50,13 @@ public static class UsosDeContactos
         _ => "General",
     };
 
-    /// <summary>Para el selector del renglón, que mide 108 px: «Cocina» en vez de «Aparatos pequeños (cocina)».</summary>
+    /// <summary>
+    /// Para el selector del renglón, que mide 122 px: «Ap. pequeños», el corto del circuito derivado para
+    /// aparatos pequeños de 210-11(c)(1) — antes «Cocina» (I-127).
+    /// </summary>
     public static string NombreCorto(this UsoDeContactos uso) => uso switch
     {
-        UsoDeContactos.AparatosPequenos => "Cocina",
+        UsoDeContactos.AparatosPequenos => "Ap. pequeños",
         UsoDeContactos.Refrigerador => "Refrigerador",
         _ => uso.Nombre(),
     };

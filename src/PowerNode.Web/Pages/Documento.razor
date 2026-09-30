@@ -63,7 +63,7 @@
                     <th rowspan="2"><span class="simbolo">e (%)</span></th>
                 </tr>
                 <tr>
-                    <th>Continua</th><th>F.D.</th><th>No cont.</th><th>F.D.</th><th>Instalada</th>
+                    <th>Continua</th><th>F.D.</th><th>No cont.</th><th>F.D.</th><th>Conectada</th>
                     @foreach (var barra in Datos.Barras) { <th class="col-fase">@barra</th> }
                     <th>P</th><th>A</th>
                 </tr>
@@ -101,7 +101,10 @@
                         }
                         <tr class="@(c.TieneCarga ? null : "libre")">
                             <td class="num">@c.Espacio</td>
-                            <td rowspan="@c.Polos" class="izq">@(c.SinTipo ? $"{(string.IsNullOrWhiteSpace(c.Descripcion) ? "" : c.Descripcion + " · ")}SIN TIPO" : string.IsNullOrWhiteSpace(c.Descripcion) ? (c.TieneCarga ? MemoriaDeCalculo.Etiqueta(c) : "LIBRE") : c.Descripcion)</td>
+                            <td rowspan="@c.Polos" class="izq">@(c.SinTipo ? $"{(string.IsNullOrWhiteSpace(c.Descripcion) ? "" : c.Descripcion + " · ")}SIN TIPO" : string.IsNullOrWhiteSpace(c.Descripcion) ? (c.TieneCarga ? MemoriaDeCalculo.Etiqueta(c) : "LIBRE") : c.Descripcion)@if (TipoYClase(c) is { } tc)
+                            {
+                                <span class="doc-clase">@tc</span>
+                            }</td>
                             @if (c.EsDeMotor)
                             {
                                 @* I-15, I-74: un motor o un equipo de A/C no es continua ni no continua; va por 430-24 / 440-33. *@
@@ -147,7 +150,7 @@
             <div>
                 <h3>Resumen de carga</h3>
                 <table class="doc-resumen">
-                    <tr><th></th><th>Instalada <span class="simbolo">(kVA)</span></th><th>F.D.</th><th>Demandada <span class="simbolo">(kVA)</span></th></tr>
+                    <tr><th></th><th>Carga conectada <span class="simbolo">(kVA)</span></th><th>F.D.</th><th>Demanda <span class="simbolo">(kVA)</span></th></tr>
                     @foreach (var fila in (Cuadro.Resumen.PorCategoria ?? []).Where(f => f.InstaladaVA > 0m))
                     {
                         <tr>
@@ -479,4 +482,9 @@ else
         }
         builder.CloseElement();
     };
+
+    /// <summary>«Combinadas · Uso general», «Aparatos · Individual»: el tipo y la clase del circuito — I-123.</summary>
+    private static string? TipoYClase(CircuitoDelCuadro c) =>
+        c.SinTipo || c.ClaseDelCircuito is not { } clase ? null
+        : $"{(c.TieneCargasCombinadas ? "Combinadas" : c.Categoria.Nombre())} · {(c.EsGrupoDeMotores && c.Cargas.Sum(a => a.Cantidad) > 1 ? "Grupo" : clase.Nombre())}";
 }

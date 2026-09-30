@@ -513,7 +513,7 @@ public class CuadroDeCargaTests
         Assert.Equal(0m, c.Ajuste220_52VA);               // sin los 1500 VA
         Assert.Equal(0m, cuadro.Resumen.Minimo220_52VA);
         Assert.Contains(cuadro.Desglose(c)!.Proteccion, x => x.Contains("210-52(b)(1) Excepción 2") && x.Contains("220-52(a) Excepción"));
-        Assert.Equal("Contactos · Refrigerador (circuito individual)", PowerNode.Web.Modelo.Memoria.MemoriaDeCalculo.Etiqueta(c));
+        Assert.Equal("Salidas para contactos · Refrigerador (circuito individual)", PowerNode.Web.Modelo.Memoria.MemoriaDeCalculo.Etiqueta(c));
         var s3 = PowerNode.Web.Modelo.Memoria.MemoriaDeCalculo.Secciones(PowerNode.Web.Modelo.Memoria.MemoriaDeCalculo.DeCircuito(cuadro, c))[2];
         Assert.Contains(s3.Renglones, r => r.Rotulo == "Uso del circuito" && r.Valor.Contains("210-52(b)(1) Excepción 2"));
         // No es un circuito de aparatos pequeños: no cuenta para el aviso de 210-11(c)(1).
@@ -795,7 +795,7 @@ public class CuadroDeCargaTests
 
     // ---- R-12 · El factor de demanda lo decide el proyectista, con justificación --------------------------
 
-    private const string AvisoSinJustificacion = "El factor de demanda de equipo (aparatos) es menor que 1 y no tiene justificación.";
+    private const string AvisoSinJustificacion = "El factor de demanda de aparatos y cargas específicas es menor que 1 y no tiene justificación.";
 
     [Fact]
     public void R12_SinReduccionNoSePideJustificacion()

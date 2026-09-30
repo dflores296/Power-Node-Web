@@ -68,8 +68,8 @@ public class TiposDeCargaTests
              CategoriaDeCarga.Motor, CategoriaDeCarga.AireAcondicionado, CategoriaDeCarga.CalefaccionFija,
              CategoriaDeCarga.Tablero], // el séptimo, otro tablero — I-125
             CategoriasDeCarga.Todas);
-        Assert.Equal("Motor", CategoriaDeCarga.Motor.Nombre());
-        Assert.Equal("A/C y refrig.", CategoriaDeCarga.AireAcondicionado.Nombre());
+        Assert.Equal("Motores", CategoriaDeCarga.Motor.Nombre()); // nombres cortos de la NOM — I-127
+        Assert.Equal("A/A y refrig.", CategoriaDeCarga.AireAcondicionado.Nombre());
         Assert.Equal("Aire acondicionado y refrigeración", CategoriaDeCarga.AireAcondicionado.NombreCompleto());
         Assert.True(CategoriaDeCarga.Motor.EsDeMotor());
         Assert.True(CategoriaDeCarga.AireAcondicionado.EsDeMotor());
@@ -272,7 +272,7 @@ public class TiposDeCargaTests
         c.Cargas[0].CargaUnitaria = 1500m;
         cuadro.Recalcular();
         Assert.Contains(PowerNode.Web.Modelo.Memoria.MemoriaDeCalculo.Secciones(PowerNode.Web.Modelo.Memoria.MemoriaDeCalculo.DeCircuito(cuadro, c))[0].Renglones,
-            r => r.Rotulo.StartsWith("Aparato 1"));
+            r => r.Rotulo.StartsWith("1. "));
 
         c.Categoria = CategoriaDeCarga.AireAcondicionado;
         c.AmpacidadMinimaA = 18m;
@@ -281,7 +281,7 @@ public class TiposDeCargaTests
 
         Assert.Single(c.Cargas);
         var seccion1 = PowerNode.Web.Modelo.Memoria.MemoriaDeCalculo.Secciones(PowerNode.Web.Modelo.Memoria.MemoriaDeCalculo.DeCircuito(cuadro, c))[0];
-        Assert.DoesNotContain(seccion1.Renglones, r => r.Rotulo.StartsWith("Aparato"));
+        Assert.DoesNotContain(seccion1.Renglones, r => r.Rotulo.StartsWith("1. "));
     }
 
     // ---- El alimentador ------------------------------------------------------------------------

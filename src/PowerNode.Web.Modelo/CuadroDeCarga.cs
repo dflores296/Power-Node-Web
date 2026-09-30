@@ -1198,7 +1198,7 @@ public sealed class CuadroDeCarga
         return $"Circuito {c.Espacio}: {(unidades.Sum(a => a.Cantidad) == 1 ? "el acondicionador de habitación" : "los acondicionadores de habitación")} " +
                $"({total:0.##} A) pasa{(unidades.Sum(a => a.Cantidad) == 1 ? "" : "n")} del {fraccion * 100m:0} % del circuito de {r.ProteccionA:0} A " +
                $"({fraccion * r.ProteccionA:0.##} A) — 440-62({(conOtras ? "c" : "b")}). " +
-               (conOtras ? "Llévalo a un circuito propio: A/C, unidad «Hab.»." : "Captúralo como A/C, unidad «Hab.»: el circuito sale del tamaño que lo deja en 80 %.");
+               (conOtras ? "Llévalo a un circuito propio: A/A y refrig., unidad «De hab.»." : "Captúralo como A/A y refrig., unidad «De hab.»: el circuito sale del tamaño que lo deja en 80 %.");
     }
 
     /// <summary>Los avisos de los circuitos que no son de caída: por ahora, 440-62 (I-117).</summary>
@@ -1221,8 +1221,8 @@ public sealed class CuadroDeCarga
         if (c.Cargas.FirstOrDefault(a => a.EsMaquina && a.Error is not null) is { } malo)
             return $"{NombreDeMaquina(c, malo)}: {malo.Error}";
         if (c.Cargas.Any(a => a.EsMaquina && a.CorrienteUnitariaA > 0m) && !c.Cargas.Any(a => !a.EsMaquina && a.TotalVA > 0m))
-            return "220-18(a): el circuito solo alimenta motores, y eso se calcula con el Art. 430. Cambia el tipo a Motor " +
-                   "con la unidad «Varios» (430-53), o agrega las otras cargas del circuito.";
+            return "220-18(a): el circuito solo alimenta motores, y eso se calcula con el Art. 430 (430-53). Quita las líneas " +
+                   "sin carga del desplegable, o captura las otras cargas del circuito.";
         return null;
     }
 
@@ -1739,7 +1739,7 @@ public sealed class CuadroDeCarga
         var otras = c.Cargas.Where(a => !a.EsMaquina && a.TotalVA > 0m).ToList();
         if (maquinas.Count == 0)
         {
-            c.Error = "430-53: el grupo no tiene motores. Agrégalos en el desglose (la flecha junto a la descripción), o cambia la unidad.";
+            c.Error = "430-53: el grupo no tiene motores. Agrégalos en el desplegable (la flecha junto a la descripción), o cambia el tipo del circuito.";
             return;
         }
 

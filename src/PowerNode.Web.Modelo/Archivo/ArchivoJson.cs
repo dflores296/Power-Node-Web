@@ -202,6 +202,12 @@ public sealed class CircuitoJson
         c.Cargas.Clear();
         foreach (var (a, n) in (Aparatos ?? []).Select((a, i) => (a, i + 1)))
             c.Cargas.Add(a.Crear($"El aparato {n} del circuito {Espacio}", avisos));
+        // «Varios» se retiró (I-123): el grupo sale de lo que lleva el circuito. Sus motores y motocompresores
+        // siguen haciéndolo grupo; la unidad regresa a la de un equipo.
+        if (c.CapturaMotor == CapturaDeMotor.Grupo)
+            c.CapturaMotor = CapturaDeMotor.Hp;
+        if (c.PlacaAire == PlacaDeAireAcondicionado.Grupo)
+            c.PlacaAire = PlacaDeAireAcondicionado.CorrienteNominal;
 
         if (eraMotorOAire)
             DeMotorOAire(c, datos, avisos);

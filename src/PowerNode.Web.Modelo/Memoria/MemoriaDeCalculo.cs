@@ -56,7 +56,7 @@ public static class MemoriaDeCalculo
 
         return new HojaDeMemoria(
             Sujeto: $"Circuito {circuito.Espacio} — {nombre}  ·  fase {circuito.Fases}",
-            Articulo: circuito.EsMotor ? "430" : circuito.EsAireAcondicionado ? "440" : "210",
+            Articulo: circuito.Categoria == CategoriaDeCarga.Tablero ? "215" : circuito.EsMotor ? "430" : circuito.EsAireAcondicionado ? "440" : "210",
             FrecuenciaHz: datos.FrecuenciaHz,
             CargaContinuaVa: circuito.ContinuaVA,
             CargaNoContinuaVa: circuito.NoContinuaVA,
@@ -493,18 +493,46 @@ public static class MemoriaDeCalculo
     /// circuito que tuvo aparatos y pasó a Motor o A/C los conserva por si regresa, pero no se calculan
     /// con ellos, y la memoria los imprimía con su VA viejo — I-113.
     /// </summary>
-    private static IReadOnlyList<RenglonMemoria> Desglose(CircuitoDelCuadro circuito) => !circuito.TieneDesglose ? [] :
+    private static IReadOnlyList<RenglonMemoria> Desglose(CircuitoDelCuadro circuito) =>
     [
-        .. circuito.Cargas.Select((a, i) => new RenglonMemoria(
-            $"{(a.EsMaquina ? a.Clase == ClaseDeAparato.Motocompresor ? "Motocompresor" : "Motor" : "Aparato")} {i + 1}: " +
+        .. Clase(circuito),
+        .. !circuito.TieneDesglose ? [] : circuito.Cargas.Select((a, i) => new RenglonMemoria(
+            // El tipo y el subtipo de cada salida o carga — I-123: de ellos salen su F.D. y su mínimo.
+            $"{i + 1}. {circuito.TipoDe(a).Nombre()}{(a.Subtipo is { } st ? $" · {st.Nombre()}" : "")}: " +
             $"{(string.IsNullOrWhiteSpace(a.Descripcion) ? "—" : a.Descripcion.Trim())}",
             // Una máquina de un grupo (I-115): su corriente por unidad, que es con la que calcula.
             a.EsMaquina
                 ? $"{a.Cantidad} × {(a.Clase == ClaseDeAparato.Motor && a.MotorEnAmperes is null ? $"{MotoresEnHp.Texto(a.Hp ?? 0m)} HP · " : "")}" +
                   $"{a.CorrienteUnitariaA:N2} A = {a.TotalVA:N0} VA · F.P. {a.FactorPotencia:N2}"
-                : $"{a.Cantidad} × {a.CargaUnitaria:N0} {Simbolo(a.Unidad)} = {a.TotalVA:N0} VA · " +
-                  $"{(a.Continua ? "continua" : "no continua")} · F.P. {a.FactorPotencia:N2}")),
+                : $"{a.Cantidad} × {a.CargaUnitaria:N0} {Simbolo(a.Unidad)}{(a.ReferenciaMinimo is { } rm ? $", con el mínimo de {rm}," : "")} = {a.TotalVA:N0} VA · " +
+                  $"{(a.Continua ? a.ReferenciaContinua is { } rc ? $"continua — {rc}" : "continua" : "no continua")} · F.P. {a.FactorPotencia:N2}")),
     ];
+
+    /// <summary>
+    /// La clase del circuito, con su definición del Art. 100, y si lleva cargas combinadas — I-123. En otro
+    /// tablero, que entra sin factor de demanda — 220-40 (I-125).
+    /// </summary>
+    private static IEnumerable<RenglonMemoria> Clase(CircuitoDelCuadro circuito)
+    {
+        if (circuito.ClaseDelCircuito is not { } clase)
+            yield break;
+        if (circuito.EsGrupoDeMotores && circuito.Cargas.Sum(a => a.Cantidad) > 1)
+        {
+            yield return new RenglonMemoria("Clase del circuito", "Varios motores en un circuito derivado — 430-53, 440-22(b)");
+            yield break;
+        }
+        yield return new RenglonMemoria("Clase del circuito", clase switch
+        {
+            ClaseDeCircuito.Individual => "Circuito derivado individual: alimenta a un solo equipo de utilización — Art. 100",
+            ClaseDeCircuito.UsoGeneral => "Circuito derivado de uso general: dos o más salidas para alumbrado y aparatos — Art. 100",
+            ClaseDeCircuito.ParaAparatos => "Circuito derivado para aparatos: salidas para aparatos, sin alumbrado conectado permanentemente — Art. 100",
+            _ => "Alimentador a otro tablero: la carga calculada de ese tablero, sin otro factor de demanda — Art. 100, 215-2(a)(1), 220-40",
+        });
+        if (circuito.TieneCargasCombinadas)
+            yield return new RenglonMemoria("Cargas combinadas",
+                string.Join(" · ", circuito.Porciones.Where(p => p.TotalVA > 0m).Select(p => $"{p.Tipo.NombreCompleto()} {p.TotalVA:N0} VA")) +
+                " — cada una con el factor de demanda de su tipo en el alimentador (220 Parte C)");
+    }
 
     private static string Simbolo(UnidadConsumo unidad) => unidad switch
     {
@@ -556,7 +584,7 @@ public static class MemoriaDeCalculo
 
         // ---- 1
         var seccion1 = Seccion("1. DATOS DEL SISTEMA", [
-            ("Carga total instalada", $"{cargaTotal:N0} VA"),
+            ("Carga total conectada", $"{cargaTotal:N0} VA"),
             (m?.Rotulo ?? "Motor", m is null ? null
                 : $"{m.Descripcion}. {hoja.CargaMotoresVa:N0} VA = {m.Corriente} × tensión{(hoja.NumeroFases == 3 ? " × √3" : "")}"),
             ("Carga continua", m is null ? $"{hoja.CargaContinuaVa:N0} VA" : null),

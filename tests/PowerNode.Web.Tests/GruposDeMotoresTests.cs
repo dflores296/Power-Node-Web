@@ -207,6 +207,7 @@ public class GruposDeMotoresTests
         var cuadro = Nuevo();
         var c = Grupo(cuadro, 1, 1);
         var luz = c.AgregarCarga();
+        luz.Subtipo = SubtipoDeCarga.Luminarias; // capturada en el desplegable — I-123
         luz.CargaUnitaria = 500m;
         cuadro.Recalcular();
 
@@ -285,7 +286,7 @@ public class GruposDeMotoresTests
         Assert.Equal("Grupo de motores", hoja.Equipo!.Rotulo);
         Assert.Contains(hoja.Equipo.Proteccion, x => x.Rotulo == "Protección máxima — 430-53(c)(4)" && x.Valor.EndsWith("= 40.2 A"));
         Assert.Contains(hoja.Equipo.Proteccion, x => x.Rotulo == "Capacidad mínima del conductor — 430-24" && x.Valor.EndsWith("= 21.2 A"));
-        Assert.Contains(hoja.Desglose!, x => x.Rotulo == "Motor 1: Compresor de aire" && x.Valor.StartsWith("1 × 5 HP · 15.20 A"));
+        Assert.Contains(hoja.Desglose!, x => x.Rotulo == "1. Motores: Compresor de aire" && x.Valor.StartsWith("1 × 5 HP · 15.20 A"));
         var texto = string.Join("\n", MemoriaDeCalculo.Secciones(hoja).SelectMany(s => s.Renglones).Select(x => $"{x.Rotulo} {x.Valor}"));
         Assert.Contains("Compresor de aire", texto);
         Assert.Contains("430-53(c)(4)", texto);
@@ -586,7 +587,7 @@ public class GruposDeMotoresTests
         cuadro.Recalcular();
         Assert.Equal(15m, c.Resultado!.ProteccionA);
         Assert.Contains("440-62(b)", c.AvisoAireDeHabitacion);
-        Assert.Contains("«Hab.»", c.AvisoAireDeHabitacion);
+        Assert.Contains("«De hab.»", c.AvisoAireDeHabitacion); // I-127
     }
 
     // ---- El archivo: formato 4 -----------------------------------------------------------------
