@@ -87,6 +87,7 @@
         </svg>
         <p class="arranque-nombre">Power Node</p>
         <p class="arranque-nota">Cargando el cálculo y las tablas de la norma… <span class="arranque-pct"></span></p>
+        <p class="arranque-nota arranque-espera" hidden>La primera vez se descargan unos 3 MB; después abre desde la caché del navegador.</p>
     </div>
     <div id="app"></div>
 
@@ -112,7 +113,9 @@
             const app = document.getElementById('app');
             const raiz = document.documentElement;
             const quieto = matchMedia('(prefers-reduced-motion: reduce)').matches;
+            const espera = arranque.querySelector('.arranque-espera');
             let real = 0, mostrado = 0, lista = false, recibido = false, antes = performance.now();
+            const inicio = antes;
 
             const avance = new MutationObserver(() => {
                 const v = parseFloat(raiz.style.getPropertyValue('--blazor-load-percentage'));
@@ -134,11 +137,25 @@
                 mostrado = quieto ? real : Math.min(real, mostrado + Math.min(ahora - antes, 1000 / 30) / DIBUJO_MS);
                 antes = ahora;
                 arranque.style.setProperty('--p', mostrado);
-                texto.textContent = Math.floor(mostrado * 100) + ' %';
+                texto.textContent = Math.floor(mostrado * 100) + ' %' + Estimacion(ahora);
                 if (lista && mostrado >= 1)
                     return setTimeout(salir, quieto ? 0 : PAUSA_MS);
                 requestAnimationFrame(cuadro);
             });
+
+            // CUÁNTO FALTA (auditoría del 2026-09-29, riesgo 7: la primera carga tardó de 3 a 4.5 min en
+            // su conexión). Solo en una carga lenta; el avance de Blazor cuenta recursos, no bytes, así
+            // que es aproximado y se redondea.
+            function Estimacion(ahora) {
+                const s = (ahora - inicio) / 1000;
+                if (s < 6 || lista)
+                    return '';
+                espera.hidden = false;
+                if (real <= 0.05 || real >= 0.97)
+                    return '';
+                const faltan = s * (1 - real) / real;
+                return faltan < 60 ? ` · faltan unos ${Math.max(5, Math.ceil(faltan / 5) * 5)} s` : ` · faltan unos ${Math.ceil(faltan / 60)} min`;
+            }
 
             function salir() {
                 avance.disconnect();
