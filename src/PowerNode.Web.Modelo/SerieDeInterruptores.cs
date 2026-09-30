@@ -91,8 +91,16 @@ public sealed class ProteccionEstandarDeLaSerie : ITablaProteccionEstandar
         return _nom.SiguienteEstandar(amperes);
     }
 
+    /// <summary>
+    /// El mayor de la serie que no pasa de <paramref name="amperes"/>. Arriba de la serie —riel DIN
+    /// pasa de 125 A—, el de la NOM, igual que <see cref="SiguienteEstandar"/>: un techo de 400 A
+    /// no se cumple con 125 A (auditoría del 2026-09-29, P1-1).
+    /// </summary>
     public decimal? AnteriorEstandar(decimal amperes)
     {
+        if (_serie.Count == 0 || amperes > _serie[^1])
+            return _nom.AnteriorEstandar(amperes);
+
         decimal? candidato = null;
         foreach (var v in _serie)
         {

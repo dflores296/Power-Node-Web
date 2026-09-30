@@ -437,7 +437,7 @@ public sealed class CuadroDeCarga
                 origenFlc: OrigenDeLaFlc(c),
                 flcA: c.FlcA,
                 porcentaje: PorcentajeProteccionMotor(c),
-                proteccionA: r.ProteccionA,
+                seleccion: ProteccionDelMotor(c),
                 calibre: r.CalibreFase,
                 conductoresPorFase: r.NumeroConductoresParalelo,
                 d: detalle,
@@ -531,6 +531,15 @@ public sealed class CuadroDeCarga
     /// </summary>
     public decimal PorcentajeProteccionMotor(CircuitoDelCuadro c) =>
         _motor.ProteccionMotor.PorcentajeMaximo(MotoresEnHp.TipoDeMotor(c.Polos), TipoDispositivoProteccionMotor.InterruptorTiempoInverso);
+
+    /// <summary>
+    /// La protección del derivado de un motor: techo de la Tabla 430-52, máximo permitido por
+    /// 430-52(c)(1) y su Excepción 1 contra la lista de 240-6(a), y el tamaño de la serie — P1-1.
+    /// </summary>
+    public ProteccionDeMotor ProteccionDelMotor(CircuitoDelCuadro c) =>
+        CalculadoraCircuitoDerivadoMotor.ProteccionDeLaTabla430_52(
+            new ProteccionEstandarDeLaSerie(_motor.ProteccionEstandar, Datos.SerieInterruptores),
+            c.FlcA * PorcentajeProteccionMotor(c) / 100m);
 
     /// <summary>Hay equipos de A/C en el tablero: el grupo de motores del alimentador cita también 440-33.</summary>
     public bool TieneAireAcondicionado => _circuitos.Any(c => c.TieneCarga && c.EsAireAcondicionado);
@@ -2701,6 +2710,19 @@ public sealed class CuadroDeCarga
                 : null;
             if (AvisoRielDin(circuitos, principal) is { } avisoDin)
                 avisos.Add(avisoDin);
+
+            // Por abajo también se acaba (16 A): un motor cuyo máximo por la Tabla 430-52 es 15 A, o un
+            // A/C en el mínimo de 440-22(a), toman 15 A de la lista de 240-6(a) — P1-1.
+            var chicos = _circuitos
+                .Where(c => c.Resultado is { } r && r.ProteccionA <= SeriesDeInterruptores.MaximoRielDinA
+                            && !SerieDeInterruptores.RielDinIec.Admite(r.ProteccionA))
+                .Select(c => $"{c.Espacio} ({c.Resultado!.ProteccionA:N0} A)")
+                .ToList();
+            if (chicos.Count > 0)
+                avisos.Add(
+                    $"En riel DIN el interruptor más chico es de {SeriesDeInterruptores.RielDin[0]:N0} A. " +
+                    (chicos.Count == 1 ? $"El circuito {chicos[0]} no puede" : $"Los circuitos {Enumerar(chicos)} no pueden") +
+                    " pasar de su máximo, así que se tomó de la lista completa de 240-6(a); ese tamaño no es de riel DIN.");
         }
 
         // R-12: el factor de demanda lo decide el proyectista, pero no sin sustento. Uno por tipo (R-17).

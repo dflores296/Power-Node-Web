@@ -98,8 +98,8 @@ public static class MemoriaDeCalculo
     /// <summary>
     /// <b>La hoja de un motor</b> — I-15, I-74, Art. 430: la corriente es la de la tabla (430-6(a)), o
     /// la de un motor marcado en amperes con sus caballos interpolados (430-6(a)(1)); el conductor,
-    /// 125 % de ella (430-22); la protección, el porcentaje de la Tabla 430-52 y el tamaño inmediato
-    /// superior.
+    /// 125 % de ella (430-22); la protección, el porcentaje de la Tabla 430-52, con el tamaño inmediato
+    /// superior solo si el máximo no es valor normalizado (430-52(c)(1) Excepción 1).
     /// </summary>
     private static EquipoDeLaHoja DelMotor(CuadroDeCarga cuadro, CircuitoDelCuadro c, ResultadoCircuitoDerivado r, decimal? hp, MotorEnAmperes? enAmperes)
     {
@@ -125,7 +125,10 @@ public static class MemoriaDeCalculo
                     ? new("Capacidad mínima del conductor — 430-22(e)", servicio.Descripcion["Servicio no continuo: capacidad mínima del conductor ".Length..])
                     : new("Capacidad mínima del conductor — 430-22", $"125 % × {flc:N2} A = {1.25m * flc:N2} A"),
                 new("Protección máxima — Tabla 430-52", $"{porcentaje:0} % × {flc:N2} A = {flc * porcentaje / 100m:N2} A (interruptor automático de tiempo inverso)"),
-                new("Protección seleccionada — 430-52(c)(1) Excepción 1", $"{r.ProteccionA:N0} A"),
+                // La Excepción 1 solo cuando hubo redondeo hacia arriba — auditoría del 2026-09-29, P1-1.
+                cuadro.ProteccionDelMotor(c) is var p && p.UsaExcepcion1
+                    ? new("Protección seleccionada — 430-52(c)(1) Excepción 1", $"{r.ProteccionA:N0} A, el valor inmediato superior: {p.TechoA:N2} A no es valor normalizado de 240-6(a)")
+                    : new("Protección seleccionada — 430-52(c)(1)", $"{r.ProteccionA:N0} A — " + DesgloseDeSeleccion.LineaDeLaProteccion(p, cuadro.Datos.SerieInterruptores)),
             ],
             Notas:
             [

@@ -76,12 +76,14 @@ public class CalculadoraCircuitoDerivadoMotor(
             citas.Add(new Cita("430-22", $"Capacidad mínima del conductor: 125% x {flc:0.##} A = {capacidadMinConductor:0.##} A"));
         }
 
-        // 3. Protección -- Tabla 430-52: techo = FLC x %, redondeado al estándar inmediato superior.
+        // 3. Protección -- Tabla 430-52: techo = FLC x %. La Excepción 1 de 430-52(c)(1) solo deja
+        // subir cuando el techo NO es un valor de 240-6(a), y se evalúa contra esa lista, no contra
+        // la serie que se instala (Power Node Web, auditoría del 2026-09-29, P1-1).
         var porcentaje = proteccionMotor.PorcentajeMaximo(d.TipoMotor, d.TipoDispositivoProteccion);
         var techoProteccion = flc * porcentaje / 100m;
-        var breaker = proteccionEstandar.SiguienteEstandar(techoProteccion);
-        citas.Add(new Cita("430-52", $"Techo de protección: {porcentaje}% x {flc:0.##} A = {techoProteccion:0.##} A -> {breaker} A " +
-            "(430-52(c)(1) Excepción 1: redondeo al estándar inmediato superior)"));
+        var proteccion = ProteccionDeLaTabla430_52(proteccionEstandar, techoProteccion);
+        var breaker = proteccion.ProteccionA;
+        citas.Add(new Cita("430-52", $"Techo de protección: {porcentaje}% x {flc:0.##} A = {proteccion.Explicacion()}"));
 
         // 4. Temperatura de terminales -- 110-14(c)(1). Con equipo marcado 75 °C la columna depende
         // también del aislamiento, igual que en el circuito no-motor (M-06).
@@ -166,7 +168,7 @@ public class CalculadoraCircuitoDerivadoMotor(
         if (d.TipoDispositivoProteccion == TipoDispositivoProteccionMotor.InterruptorDisparoInstantaneo)
         {
             var pctFusible = proteccionMotor.PorcentajeMaximo(d.TipoMotor, TipoDispositivoProteccionMotor.FusibleDeDosElementosConRetardo);
-            proteccionParaTierra = proteccionEstandar.SiguienteEstandar(flc * pctFusible / 100m);
+            proteccionParaTierra = ProteccionDeLaTabla430_52(proteccionEstandar, flc * pctFusible / 100m).MaximoA;
             citas.Add(new Cita("250-122(d)(2)",
                 $"El dispositivo es de disparo instantáneo, así que la tierra NO se dimensiona con sus {breaker} A: se usa el máximo " +
                 $"fusible de doble elemento con retardo que permitiría 430-52(c)(1) Exc. 1 ({pctFusible}% x {flc:0.##} A -> {proteccionParaTierra} A)"));
@@ -211,6 +213,32 @@ public class CalculadoraCircuitoDerivadoMotor(
     }
 
     /// <summary>
+    /// <b>La protección del derivado de un motor</b> — Tabla 430-52 y 430-52(c)(1) Excepción 1.
+    ///
+    /// <para>
+    /// La Excepción 1 aplica cuando el techo «no corresponde» a un valor normalizado: se evalúa contra
+    /// la lista de 240-6(a) (<see cref="ITablaProteccionEstandar.ValoresDeLaNorma"/>), no contra la
+    /// serie que se instala. Un techo de 35 A ya es normalizado: el máximo es 35 A aunque la serie
+    /// (riel DIN) no lo tenga, y de ella se toma el mayor que no lo excede, 32 A — no 40. Un techo de
+    /// 77 A no lo es: el máximo es 80 A, el siguiente de la lista.
+    /// </para>
+    ///
+    /// <para>
+    /// Si la serie no tiene ningún tamaño que no exceda el máximo (riel DIN empieza en 16 A), se usa
+    /// el máximo de la lista de 240-6(a), marcado <see cref="ProteccionDeMotor.FueraDeLaSerie"/>.
+    /// Hallazgo de la auditoría del 2026-09-29 (P1-1): antes se redondeaba hacia arriba dentro de la
+    /// serie (35 → 40 en riel DIN) y se citaba la Excepción 1 aunque no hubiera redondeo.
+    /// </para>
+    /// </summary>
+    public static ProteccionDeMotor ProteccionDeLaTabla430_52(ITablaProteccionEstandar tabla, decimal techoA)
+    {
+        var normalizado = tabla.ValoresDeLaNorma.Contains(techoA);
+        var maximo = normalizado ? techoA : tabla.SiguienteDeLaNorma(techoA);
+        var deLaSerie = tabla.AnteriorEstandar(maximo);
+        return new ProteccionDeMotor(techoA, maximo, deLaSerie ?? maximo, normalizado, FueraDeLaSerie: deLaSerie is null);
+    }
+
+    /// <summary>
     /// FLC de tabla (430-6(a)), compartida con la agregación de varios motores en un alimentador
     /// (430-24, en CascadaCalculoService) para no repetir el mensaje de error en dos lugares.
     /// </summary>
@@ -219,4 +247,35 @@ public class CalculadoraCircuitoDerivadoMotor(
             ?? throw new InvalidOperationException(
                 $"Las Tablas 430-247/248/249/250 no traen una fila para {hp} Hp / {tensionNominalMotorV} V / {tipoAlimentacion} -- " +
                 "verifica que la tensión de placa del motor sea una de las clases estándar de la tabla (115, 127, 200, 208, 230, 460, 575, 2300...).");
+}
+
+/// <summary>
+/// La protección del derivado de un motor por la Tabla 430-52 — ver
+/// <see cref="CalculadoraCircuitoDerivadoMotor.ProteccionDeLaTabla430_52"/>.
+/// </summary>
+/// <param name="TechoA">% de la Tabla 430-52 × FLC.</param>
+/// <param name="MaximoA">Lo más que se permite: el techo si es valor de 240-6(a); si no, el siguiente de la lista (Excepción 1).</param>
+/// <param name="ProteccionA">El mayor tamaño de la serie que no excede el máximo.</param>
+/// <param name="TechoNormalizado">El techo es un valor de 240-6(a): la Excepción 1 no aplica.</param>
+/// <param name="FueraDeLaSerie">La serie no tiene un tamaño que no exceda el máximo; se usó el de 240-6(a).</param>
+public sealed record ProteccionDeMotor(decimal TechoA, decimal MaximoA, decimal ProteccionA, bool TechoNormalizado, bool FueraDeLaSerie)
+{
+    /// <summary>Hubo redondeo hacia arriba del techo: solo entonces se cita la Excepción 1.</summary>
+    public bool UsaExcepcion1 => ProteccionA > TechoA;
+
+    /// <summary>«35 A, valor normalizado de 240-6(a) -> 32 A, el mayor de la serie que no lo excede».</summary>
+    public string Explicacion()
+    {
+        if (UsaExcepcion1)
+            return $"{TechoA:0.##} A, que no es valor normalizado de 240-6(a) -> {ProteccionA:0.##} A " +
+                   "(430-52(c)(1) Excepción 1: el valor inmediato superior)";
+        if (ProteccionA == TechoA)
+            return $"{TechoA:0.##} A -> {ProteccionA:0.##} A (valor normalizado de 240-6(a))";
+        var maximo = TechoNormalizado
+            ? $"{TechoA:0.##} A, valor normalizado de 240-6(a)"
+            : $"{TechoA:0.##} A; la Excepción 1 permite hasta {MaximoA:0.##} A, el siguiente de 240-6(a)";
+        return FueraDeLaSerie
+            ? $"{maximo} -> {ProteccionA:0.##} A de la lista de 240-6(a): la serie de interruptores no tiene un tamaño que no lo exceda"
+            : $"{maximo} -> {ProteccionA:0.##} A, el mayor tamaño de la serie de interruptores que no lo excede";
+    }
 }

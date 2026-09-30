@@ -100,33 +100,33 @@ public sealed record DesgloseDeSeleccion(IReadOnlyList<string> Proteccion, IRead
 
     /// <summary>
     /// <b>El derivado de un motor</b> — I-15: la FLC de tabla, el 125 % para el conductor (430-22) y el
-    /// porcentaje de la Tabla 430-52 para la protección, con el tamaño inmediato superior que permite
-    /// su Excepción 1. La protección puede quedar arriba de la ampacidad del conductor: es protección
-    /// contra cortocircuito y falla a tierra; la sobrecarga la cuida el arrancador — 430-32, 240-4(g).
+    /// porcentaje de la Tabla 430-52 para la protección. La Excepción 1 de 430-52(c)(1) solo se cita
+    /// cuando hubo redondeo hacia arriba (auditoría del 2026-09-29, P1-1). La protección puede quedar
+    /// arriba de la ampacidad del conductor: es protección contra cortocircuito y falla a tierra; la
+    /// sobrecarga la cuida el arrancador — 430-32, 240-4(g).
     /// </summary>
     /// <param name="origenFlc">De dónde sale la FLC, ya redactado — <see cref="CuadroDeCarga.OrigenDeLaFlc"/>.</param>
     /// <param name="porcentaje">El de la Tabla 430-52: 250 % con interruptor de tiempo inverso.</param>
+    /// <param name="seleccion">El techo, el máximo permitido y el tamaño elegido — <see cref="CuadroDeCarga.ProteccionDelMotor"/>.</param>
     internal static DesgloseDeSeleccion DeMotor(
         ITablaAmpacidad ampacidad,
         DatosDelTablero datos,
         string origenFlc,
         decimal flcA,
         decimal porcentaje,
-        decimal proteccionA,
+        ProteccionDeMotor seleccion,
         Calibre calibre,
         int conductoresPorFase,
         DetalleDelCalculo d,
         IReadOnlyList<Cita> citas,
         string? servicio = null)
     {
-        var techo = flcA * porcentaje / 100m;
+        var proteccionA = seleccion.ProteccionA;
         var proteccion = new List<string>
         {
             origenFlc,
-            $"Máximo = {porcentaje:0} % × {flcA:N2} A = {techo:N2} A, interruptor de tiempo inverso — Tabla 430-52",
-            $"Protección: {proteccionA:N0} A, " +
-                (proteccionA == techo ? "igual al máximo" : "tamaño inmediato superior al máximo") +
-                $" en «{datos.SerieInterruptores.Nombre()}» — 430-52(c)(1) Excepción 1",
+            $"Máximo = {porcentaje:0} % × {flcA:N2} A = {seleccion.TechoA:N2} A, interruptor de tiempo inverso — Tabla 430-52",
+            $"Protección: {proteccionA:N0} A, " + LineaDeLaProteccion(seleccion, datos.SerieInterruptores),
             "Sobrecarga del motor: relevador en el arrancador o protector del motor — 430-32",
         };
 
@@ -138,6 +138,24 @@ public sealed record DesgloseDeSeleccion(IReadOnlyList<string> Proteccion, IRead
               $"{(d.AmpacidadConductorA >= d.CapacidadMinimaA ? "✔" : "✘")} — 430-22");
         conductor.AddRange(PorQueCrecio(citas, proteccionA, d));
         return new DesgloseDeSeleccion(proteccion, conductor);
+    }
+
+    /// <summary>
+    /// Por qué ese tamaño: igual al máximo; el inmediato superior de un máximo que no es normalizado
+    /// (Excepción 1); o el mayor de la serie que no excede el máximo — P1-1.
+    /// </summary>
+    internal static string LineaDeLaProteccion(ProteccionDeMotor p, SerieDeInterruptores serie)
+    {
+        if (p.UsaExcepcion1)
+            return $"tamaño inmediato superior al máximo, que no es valor normalizado de 240-6(a) — 430-52(c)(1) Excepción 1";
+        if (p.ProteccionA == p.TechoA)
+            return "igual al máximo, valor normalizado de 240-6(a) — 430-52(c)(1)";
+        var maximo = p.TechoNormalizado
+            ? $"{p.TechoA:N2} A, valor normalizado de 240-6(a)"
+            : $"la Excepción 1 permite hasta {p.MaximoA:N0} A";
+        return p.FueraDeLaSerie
+            ? $"de la lista de 240-6(a): «{serie.Nombre()}» no tiene un tamaño que no exceda el máximo ({maximo}) — 430-52(c)(1)"
+            : $"el mayor de «{serie.Nombre()}» que no excede el máximo ({maximo}) — 430-52(c)(1)";
     }
 
     /// <summary>
