@@ -49,7 +49,7 @@ public sealed record DatosEntradaAlimentador(
     ClaseDeTramo Clase = ClaseDeTramo.Alimentador,
     AgregadoMotores CargaMotores = default,
     string TipoAislamiento = "THHN",
-    bool LugarInstalacionSeco = true,
+    LugarDeInstalacion Lugar = LugarDeInstalacion.Seco,
     MetodoInstalacion MetodoInstalacion = MetodoInstalacion.CanalizacionOCable,
 
     // La excepción del 100 % -- ver CargaContinua100Pct.

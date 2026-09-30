@@ -36,7 +36,7 @@ public sealed record DatosEntradaCircuitoDerivado440(
     decimal FactorPotencia,
     decimal CaidaTensionMaxPct,
     string TipoAislamiento = "THHN",
-    bool LugarInstalacionSeco = true,
+    LugarDeInstalacion Lugar = LugarDeInstalacion.Seco,
     MetodoInstalacion MetodoInstalacion = MetodoInstalacion.CanalizacionOCable,
     int MaxConductoresParaleloAutomatico = SeleccionConductor.MaxNParaleloAutoResueltoPorOmision,
     bool TerminalesMarcadas75C = false,

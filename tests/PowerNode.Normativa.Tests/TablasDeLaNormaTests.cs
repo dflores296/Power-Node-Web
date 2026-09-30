@@ -222,13 +222,51 @@ public class TablasDeLaNormaTests
         // El DOF publica THW solo como «75 °C · Lugares mojados»; 310-10(a) permite en lugar seco
         // cualquier tipo de la NOM, y 310-10(b) lo nombra. En seco: los 75 °C que da la tabla.
         var tabla = new TablaAislamientoJson(Fuente);
-        Assert.Equal(TemperaturaAislamiento.T75, tabla.TemperaturaMaxima("THW", lugarSeco: true));
-        Assert.Equal(TemperaturaAislamiento.T75, tabla.TemperaturaMaxima("THW", lugarSeco: false));
+        Assert.Equal(TemperaturaAislamiento.T75, tabla.TemperaturaMaxima("THW", LugarDeInstalacion.Seco));
+        Assert.Equal(TemperaturaAislamiento.T75, tabla.TemperaturaMaxima("THW", LugarDeInstalacion.Mojado));
         // Con renglón propio para seco no cambia nada: THHW, 90 °C seco y 75 °C mojado.
-        Assert.Equal(TemperaturaAislamiento.T90, tabla.TemperaturaMaxima("THHW", lugarSeco: true));
-        Assert.Equal(TemperaturaAislamiento.T75, tabla.TemperaturaMaxima("THHW", lugarSeco: false));
+        Assert.Equal(TemperaturaAislamiento.T90, tabla.TemperaturaMaxima("THHW", LugarDeInstalacion.Seco));
+        Assert.Equal(TemperaturaAislamiento.T75, tabla.TemperaturaMaxima("THHW", LugarDeInstalacion.Mojado));
         // THHN sigue sin valer en mojado.
-        Assert.Null(tabla.TemperaturaMaxima("THHN", lugarSeco: false));
+        Assert.Null(tabla.TemperaturaMaxima("THHN", LugarDeInstalacion.Mojado));
+    }
+
+    /// <summary>
+    /// <b>Seco, húmedo y mojado</b> — auditoría del 2026-09-29, P1-2. La temperatura, de la fila de la
+    /// Tabla 310-104(a) de ese lugar; el permiso, de 310-10(b) y 310-10(c)(2). Antes «húmedo o
+    /// mojado» era una sola opción y tomaba la fila más caliente: XHHW mojado a 90 °C.
+    /// </summary>
+    [Theory]
+    // XHHW: 90 °C secos y húmedos, 75 °C mojados.
+    [InlineData("XHHW", LugarDeInstalacion.Seco, 90)]
+    [InlineData("XHHW", LugarDeInstalacion.Humedo, 90)]
+    [InlineData("XHHW", LugarDeInstalacion.Mojado, 75)]
+    // THHW y THHW-LS: 90 °C secos, 75 °C mojados; en húmedo, la de mojado.
+    [InlineData("THHW", LugarDeInstalacion.Humedo, 75)]
+    [InlineData("THHW-LS", LugarDeInstalacion.Seco, 90)]
+    [InlineData("THHW-LS", LugarDeInstalacion.Mojado, 75)]
+    // Sin permiso en mojado: 310-10(c)(2) no los nombra.
+    [InlineData("THHN", LugarDeInstalacion.Mojado, null)]
+    [InlineData("RHH", LugarDeInstalacion.Mojado, null)]
+    [InlineData("XHH", LugarDeInstalacion.Mojado, null)]
+    // En húmedo sí: 310-10(b) nombra a THHN aunque la tabla lo publique solo para secos.
+    [InlineData("THHN", LugarDeInstalacion.Humedo, 90)]
+    [InlineData("RHH", LugarDeInstalacion.Humedo, 90)]
+    // La tabla los da para «secos y húmedos», pero 310-10(c)(2) los nombra para mojados.
+    [InlineData("THWN", LugarDeInstalacion.Mojado, 75)]
+    [InlineData("THW-2", LugarDeInstalacion.Mojado, 90)]
+    [InlineData("THWN-2", LugarDeInstalacion.Mojado, 90)]
+    // Con su fila de mojados.
+    [InlineData("TW", LugarDeInstalacion.Mojado, 60)]
+    [InlineData("RHW", LugarDeInstalacion.Mojado, 75)]
+    [InlineData("RHW-2", LugarDeInstalacion.Mojado, 90)]
+    [InlineData("THW-LS", LugarDeInstalacion.Mojado, 75)]
+    [InlineData("XHHW-2", LugarDeInstalacion.Mojado, 90)]
+    [InlineData("USE-2", LugarDeInstalacion.Mojado, 90)]
+    public void Tabla310_104a_SecoHumedoYMojado(string tipo, LugarDeInstalacion lugar, int? esperada)
+    {
+        var tabla = new TablaAislamientoJson(Fuente);
+        Assert.Equal(esperada, (int?)tabla.TemperaturaMaxima(tipo, lugar));
     }
 
     /// <summary>

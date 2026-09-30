@@ -140,4 +140,75 @@ public class Auditoria20260929Tests
         Assert.Equal(15m, c.Resultado!.ProteccionA);
         Assert.Contains(cuadro.Alimentador.Avisos, a => a.StartsWith("En riel DIN el interruptor más chico es de 16 A") && a.Contains("circuito 1 (15 A)"));
     }
+
+    // ---- P1-2 · Lugar seco, húmedo y mojado ------------------------------------------------------
+
+    /// <summary>
+    /// Un circuito de 2 polos a 220 V, «Aparatos · Otra carga», 6 380 VA no continua (29 A), XHHW a
+    /// 45 °C. Mojado: XHHW es de 75 °C (Tabla 310-104(a)); 10 AWG da 35 A × 0.82 = 28.7 A &lt; 29 A → 8
+    /// AWG. Húmedo: 90 °C, 40 A × 0.87 = 34.8 A → 10 AWG. Antes «húmedo o mojado» daba 10 AWG en los dos.
+    /// </summary>
+    [Theory]
+    [InlineData(LugarDeInstalacion.Humedo, "10", 90)]
+    [InlineData(LugarDeInstalacion.Mojado, "8", 75)]
+    public void P1_2_XhhwEnMojadoVaA75Grados(LugarDeInstalacion lugar, string calibre, int temperatura)
+    {
+        var cuadro = Nuevo();
+        cuadro.Datos.TipoAislamiento = "XHHW";
+        cuadro.Datos.TemperaturaAmbienteC = 45m;
+        cuadro.Datos.Lugar = lugar;
+        var c = Espacio(cuadro, 1);
+        c.Categoria = CategoriaDeCarga.Equipo;
+        Assert.Null(cuadro.CambiarPolos(c, 2));
+        var a = c.AgregarCarga();
+        a.Subtipo = SubtipoDeCarga.OtraCargaEspecifica;
+        a.Unidad = UnidadConsumo.VoltAmperes;
+        a.CargaUnitaria = 6380m;
+        cuadro.Recalcular();
+
+        Assert.Null(c.Error);
+        Assert.Equal(29m, c.Resultado!.CorrienteDisenoA);
+        Assert.Equal(temperatura, c.Resultado.Detalle!.TemperaturaAislamientoC);
+        Assert.Equal(calibre, c.Resultado.CalibreFase.Designacion);
+        Assert.Contains($"lugar {lugar.Nombre()}", MemoriaDeCalculo.Aislamiento(cuadro.Datos));
+    }
+
+    [Theory]
+    // 310-10(c)(2) no los nombra: no se permiten en lugar mojado.
+    [InlineData("RHH")]
+    [InlineData("XHH")]
+    [InlineData("THHN")]
+    public void P1_2_EnMojadoSeBloqueanLosQue310_10cNoNombra(string tipo)
+    {
+        var cuadro = Nuevo();
+        Espacio(cuadro, 1).NoContinua = 1000m;
+        cuadro.Datos.TipoAislamiento = tipo;
+        cuadro.Datos.Lugar = LugarDeInstalacion.Mojado;
+        cuadro.Recalcular();
+
+        Assert.Null(Espacio(cuadro, 1).Resultado);
+        Assert.StartsWith($"{tipo} no se permite en lugar mojado", cuadro.AvisoAislamientoDelLugar);
+
+        cuadro.Datos.Lugar = LugarDeInstalacion.Humedo;
+        cuadro.Recalcular();
+        Assert.Null(cuadro.AvisoAislamientoDelLugar);
+        Assert.NotNull(Espacio(cuadro, 1).Resultado);
+    }
+
+    [Fact]
+    public void P1_2_UnArchivoConHumedoOMojadoAbreComoMojadoYLoDice()
+    {
+        var cuadro = Nuevo();
+        cuadro.Datos.TipoAislamiento = "XHHW";
+        var texto = PowerNode.Web.Modelo.Archivo.ArchivoDelCuadro.Guardar(cuadro, DateTimeOffset.Now)
+            .Replace("\"lugar\": \"Seco\"", "\"lugarSeco\": false")
+            .Replace("\"version\": 11", "\"version\": 10");
+        Assert.Contains("\"lugarSeco\": false", texto);
+
+        var apertura = PowerNode.Web.Modelo.Archivo.ArchivoDelCuadro.Abrir(texto, Motor);
+
+        Assert.Null(apertura.Error);
+        Assert.Equal(LugarDeInstalacion.Mojado, apertura.Cuadro!.Datos.Lugar);
+        Assert.Contains(apertura.Avisos, a => a.Contains("«húmedo o mojado»") && a.Contains("mojado, la más estricta"));
+    }
 }

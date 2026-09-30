@@ -825,7 +825,7 @@ public static class MemoriaDeCalculo
 
     /// <summary>«THHN · lugar seco»: lo que decide la columna de la Tabla 310-15(b)(16).</summary>
     public static string Aislamiento(DatosDelTablero datos) =>
-        $"{datos.TipoAislamiento} · lugar {(datos.LugarSeco ? "seco" : "húmedo o mojado")}" +
+        $"{datos.TipoAislamiento} · lugar {datos.Lugar.Nombre()}" +
         (datos.TerminalesMarcadas75C ? " · terminales marcadas 75 °C" : "");
 
     /// <summary>

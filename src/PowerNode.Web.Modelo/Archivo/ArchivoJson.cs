@@ -67,7 +67,10 @@ public sealed class DatosJson
 
     public MaterialConductor? MaterialConductor { get; set; }
     public string? TipoAislamiento { get; set; }
+    /// <summary>Hasta el formato 10: seco, o «húmedo o mojado». Solo se lee — ver <see cref="Lugar"/>.</summary>
     public bool? LugarSeco { get; set; }
+    // Formato 11 — auditoría del 2026-09-29, P1-2: seco, húmedo o mojado.
+    public LugarDeInstalacion? Lugar { get; set; }
     public bool? TerminalesMarcadas75C { get; set; }
     public decimal? TemperaturaAmbienteC { get; set; }
     public bool? CargaNoLineal { get; set; }

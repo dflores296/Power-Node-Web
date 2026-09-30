@@ -6,7 +6,7 @@ Por qué existe
 El repo público `dflores296/NOM-001-SEDE-2012` publica las 245 tablas de la norma
 (`data/tablas_revisadas.json`, 1.1 MB) y el corpus completo (`data/corpus.json`, 8 MB).
 Mandarle eso a un navegador para calcular un circuito sería absurdo: el cálculo de un
-cuadro de carga toca **20 tablas y una sección**, y nada más.
+cuadro de carga toca **20 tablas y tres secciones**, y nada más.
 
 Este script produce `wwwroot/datos/tablas-nom.json` con exactamente esas, en la MISMA forma
 cruda que publica el repo de origen (celdas con `t`/`rs`/`cs`). **No interpreta nada**: la
@@ -58,6 +58,10 @@ TABLAS = {
 # ("15, 16, 20, 25, 30..."). ITablaProteccionEstandar lo parsea del texto.
 SECCIONES = {
     "240-6(a)": "Capacidades estandarizadas de protecciones — ITablaProteccionEstandar",
+    # Qué aislamientos se permiten en lugar húmedo y en lugar mojado (auditoría del 2026-09-29,
+    # P1-2). La Tabla 310-104(a) da la temperatura; estas dos listas, el permiso — ITablaAislamiento.
+    "310-10(b)": "Aislamientos permitidos en lugares secos y húmedos — ITablaAislamiento",
+    "310-10(c)(2)": "Aislamientos permitidos en lugares mojados — ITablaAislamiento",
 }
 
 

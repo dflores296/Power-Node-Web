@@ -38,7 +38,7 @@ public class ArchivoDelCuadroTests
         d.EsEquipoDeAcometida = true;
         d.Inmueble = TipoDeInmueble.ViviendaUnifamiliar;
         d.TensionFaseFaseV = 208m;
-        d.LugarSeco = false;
+        d.Lugar = LugarDeInstalacion.Humedo;
         d.TipoAislamiento = "THW-LS";
         d.DiametrosFabricante[DatosDelTablero.ClaveDiametro("THW-LS", "12")] = 3.9m;
         d.TemperaturaAmbienteC = 35m;
@@ -133,7 +133,7 @@ public class ArchivoDelCuadroTests
         var texto = ArchivoDelCuadro.Guardar(TableroCompleto(), Cuando);
 
         Assert.Contains("\"formato\": \"power-node/cuadro-de-carga\"", texto);
-        Assert.Contains("\"version\": 10", texto); // 10: el nombre del equipo del renglón; 9: el variador en el desplegable; 8: varios tableros, cada uno con su no continua; 7: subtipos de uso de vivienda; 6, M-14: área servida (5: I-123, subtipo y Tablero; 4: I-116, I-117; 3: I-115; 2: I-74)
+        Assert.Contains("\"version\": 11", texto); // 11: lugar seco, húmedo o mojado; 10: el nombre del equipo del renglón; 9: el variador en el desplegable; 8: varios tableros, cada uno con su no continua; 7: subtipos de uso de vivienda; 6, M-14: área servida (5: I-123, subtipo y Tablero; 4: I-116, I-117; 3: I-115; 2: I-74)
         Assert.Contains("\"guardado\": \"2026-09-25T18:30:00-06:00\"", texto);
         Assert.Contains("\"ubicacion\": \"Cocina y baño, planta baja\"", texto); // sin \u00F1
         Assert.Contains("\"justificacionOtra\": {", texto);

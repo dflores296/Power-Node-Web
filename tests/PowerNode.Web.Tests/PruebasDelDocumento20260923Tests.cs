@@ -302,7 +302,7 @@ public class PruebasDelDocumento20260923Tests
         {
             var cuadro = Nuevo();
             cuadro.Datos.TipoAislamiento = aislamiento;
-            cuadro.Datos.LugarSeco = seco;
+            cuadro.Datos.Lugar = seco ? LugarDeInstalacion.Seco : LugarDeInstalacion.Mojado;
             var c = Capturar(cuadro, 1, TipoCarga.Alumbrado, UnidadConsumo.Amperes, 0m, 26m, 0.9m, 5m);
             Agrupar.EnTubo(cuadro, c, 9);
 

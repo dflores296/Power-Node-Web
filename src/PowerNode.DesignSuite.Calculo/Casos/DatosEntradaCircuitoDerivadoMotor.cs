@@ -26,7 +26,7 @@ public sealed record DatosEntradaCircuitoDerivadoMotor(
     decimal CaidaTensionMaxPct,
     decimal? PisoPracticoCalibreMm2,
     string TipoAislamiento = "THHN",
-    bool LugarInstalacionSeco = true,
+    LugarDeInstalacion Lugar = LugarDeInstalacion.Seco,
     MetodoInstalacion MetodoInstalacion = MetodoInstalacion.CanalizacionOCable,
 
     /// <summary>

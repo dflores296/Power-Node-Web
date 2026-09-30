@@ -463,11 +463,12 @@ public sealed class DatosDelTablero
     public string TipoAislamiento { get; set; } = "THHN";
 
     /// <summary>
-    /// Lugar seco, o húmedo/mojado. Algunos aislamientos cambian de temperatura según el lugar
-    /// (THHW-LS: 90 °C seco, 75 °C mojado) y otros no se permiten fuera de lugar seco (THHN) —
-    /// Tabla 310-104(a).
+    /// Lugar seco, húmedo o mojado — Art. 100. Algunos aislamientos cambian de temperatura según el
+    /// lugar (XHHW: 90 °C seco y húmedo, 75 °C mojado) y otros no se permiten en mojado (THHN, RHH,
+    /// XHH) — Tabla 310-104(a), 310-10. Húmedo y mojado eran una sola opción hasta la auditoría del
+    /// 2026-09-29 (P1-2).
     /// </summary>
-    public bool LugarSeco { get; set; } = true;
+    public LugarDeInstalacion Lugar { get; set; } = LugarDeInstalacion.Seco;
 
     /// <summary>
     /// Las terminales del circuito —interruptor y equipo— están aprobadas e identificadas para 75 °C:

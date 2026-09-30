@@ -64,19 +64,19 @@ public class CuadroDeCargaTests
         cuadro.Recalcular();
         Assert.Null(cuadro.AvisoAislamientoDelLugar);
 
-        cuadro.Datos.LugarSeco = false;
+        cuadro.Datos.Lugar = LugarDeInstalacion.Mojado;
         cuadro.Recalcular();
 
         var aviso = cuadro.AvisoAislamientoDelLugar;
         Assert.NotNull(aviso);
-        Assert.StartsWith("THHN solo es para lugar seco", aviso);
+        Assert.StartsWith("THHN no se permite en lugar mojado, solo en seco y húmedo", aviso);
         Assert.Contains("THWN-2", aviso);
         foreach (var n in new[] { 1, 2, 3 })
         {
             Assert.DoesNotContain("no se reconoce", Espacio(cuadro, n).Error);
-            Assert.Contains("THHN no vale en lugar húmedo o mojado", Espacio(cuadro, n).Error);
+            Assert.Contains("THHN no vale en lugar mojado", Espacio(cuadro, n).Error);
         }
-        Assert.Contains("THHN no vale en lugar húmedo o mojado", cuadro.Alimentador.Error);
+        Assert.Contains("THHN no vale en lugar mojado", cuadro.Alimentador.Error);
 
         cuadro.Datos.TipoAislamiento = "THWN-2";
         cuadro.Recalcular();
@@ -1909,7 +1909,7 @@ public class CuadroDeCargaTests
         var cuadro = Nuevo();
 
         Assert.Equal("THHN", cuadro.Datos.TipoAislamiento);
-        Assert.True(cuadro.Datos.LugarSeco);
+        Assert.Equal(LugarDeInstalacion.Seco, cuadro.Datos.Lugar);
     }
 
     [Fact]
@@ -1948,7 +1948,7 @@ public class CuadroDeCargaTests
         // Tabla 310-104(a): THHN es «lugares secos».
         var cuadro = Nuevo();
         var c = VeinteAmperesContinuos(cuadro);
-        cuadro.Datos.LugarSeco = false;
+        cuadro.Datos.Lugar = LugarDeInstalacion.Mojado;
         cuadro.Recalcular();
 
         Assert.Null(c.Resultado);

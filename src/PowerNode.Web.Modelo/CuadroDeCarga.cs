@@ -276,13 +276,15 @@ public sealed class CuadroDeCarga
         {
             var tabla = _motor.Aislamiento;
             var tipo = Datos.TipoAislamiento;
-            if (tabla.TemperaturaMaxima(tipo, Datos.LugarSeco) is not null || tabla.TemperaturaMaxima(tipo, !Datos.LugarSeco) is null)
+            var lugares = Enum.GetValues<LugarDeInstalacion>();
+            if (tabla.TemperaturaMaxima(tipo, Datos.Lugar) is not null || lugares.All(l => tabla.TemperaturaMaxima(tipo, l) is null))
                 return null;
 
-            var lugar = Datos.LugarSeco ? "seco" : "húmedo o mojado";
-            var validos = tabla.DesignacionesReconocidas.Where(x => tabla.TemperaturaMaxima(x, Datos.LugarSeco) is not null).ToList();
-            return $"{tipo} solo es para lugar {(Datos.LugarSeco ? "húmedo o mojado" : "seco")} — Tabla 310-104(a): ningún circuito calcula. " +
-                   $"Cambiar el lugar o el aislamiento; en lugar {lugar}: {string.Join(", ", validos)}.";
+            var donde = lugares.Where(l => tabla.TemperaturaMaxima(tipo, l) is not null).Select(l => l.Nombre()).ToList();
+            var validos = tabla.DesignacionesReconocidas.Where(x => tabla.TemperaturaMaxima(x, Datos.Lugar) is not null).ToList();
+            return $"{tipo} no se permite en lugar {Datos.Lugar.Nombre()}, solo en {Enumerar(donde)} — " +
+                   $"Tabla 310-104(a), {(Datos.Lugar == LugarDeInstalacion.Mojado ? "310-10(c)" : "310-10(b)")}: ningún circuito calcula. " +
+                   $"Cambiar el lugar o el aislamiento; en lugar {Datos.Lugar.Nombre()}: {string.Join(", ", validos)}.";
         }
     }
 
@@ -292,7 +294,7 @@ public sealed class CuadroDeCarga
             return;
 
         var largo = $"'{Datos.TipoAislamiento}' no se reconoce";
-        var corto = $"{Datos.TipoAislamiento} no vale en lugar {(Datos.LugarSeco ? "seco" : "húmedo o mojado")}: ver el aviso de Condiciones de cálculo.";
+        var corto = $"{Datos.TipoAislamiento} no vale en lugar {Datos.Lugar.Nombre()}: ver el aviso de Condiciones de cálculo.";
         foreach (var c in Circuitos.Where(c => c.Error?.StartsWith(largo, StringComparison.Ordinal) == true))
             c.Error = corto;
         if (Alimentador.Error?.StartsWith(largo, StringComparison.Ordinal) == true)
@@ -1694,7 +1696,7 @@ public sealed class CuadroDeCarga
                     // producía el piso. Ver docs/decisiones/sin-piso-practico-de-calibre.md.
                     PisoPracticoCalibreMm2: null,
                     TipoAislamiento: Datos.TipoAislamiento,
-                    LugarInstalacionSeco: Datos.LugarSeco,
+                    Lugar: Datos.Lugar,
                     TerminalesMarcadas75C: Datos.TerminalesMarcadas75C,
                     // SIN MÍNIMO POR TIPO DE CARGA: solo el que exige la norma para el circuito — 210-11(c) según
                     // el uso; 210-19(a)(3) para una estufa doméstica de 8.75 kW o más (I-124).
@@ -1858,7 +1860,7 @@ public sealed class CuadroDeCarga
             CaidaTensionMaxPct: Datos.CaidaMaxAlimentadorPct,
             PisoPracticoCalibreMm2: null,
             TipoAislamiento: Datos.TipoAislamiento,
-            LugarInstalacionSeco: Datos.LugarSeco,
+            Lugar: Datos.Lugar,
             TerminalesMarcadas75C: Datos.TerminalesMarcadas75C,
             Tramo: ClaseDeTramo.Alimentador));
 
@@ -1929,7 +1931,7 @@ public sealed class CuadroDeCarga
             CaidaTensionMaxPct: Datos.CaidaMaxDerivadoPct,
             PisoPracticoCalibreMm2: null,
             TipoAislamiento: Datos.TipoAislamiento,
-            LugarInstalacionSeco: Datos.LugarSeco,
+            Lugar: Datos.Lugar,
             TerminalesMarcadas75C: Datos.TerminalesMarcadas75C);
     }
 
@@ -2003,7 +2005,7 @@ public sealed class CuadroDeCarga
             CaidaTensionMaxPct: Datos.CaidaMaxDerivadoPct,
             PisoPracticoCalibreMm2: null,
             TipoAislamiento: Datos.TipoAislamiento,
-            LugarInstalacionSeco: Datos.LugarSeco,
+            Lugar: Datos.Lugar,
             TerminalesMarcadas75C: Datos.TerminalesMarcadas75C));
     }
 
@@ -2027,7 +2029,7 @@ public sealed class CuadroDeCarga
             FactorPotencia: c.FactorPotencia,
             CaidaTensionMaxPct: Datos.CaidaMaxDerivadoPct,
             TipoAislamiento: Datos.TipoAislamiento,
-            LugarInstalacionSeco: Datos.LugarSeco,
+            Lugar: Datos.Lugar,
             TerminalesMarcadas75C: Datos.TerminalesMarcadas75C));
 
     /// <summary>«Extractor», o «Motor 2» si no se describió: el número de su renglón en el desglose.</summary>
@@ -2077,7 +2079,7 @@ public sealed class CuadroDeCarga
             FactorPotencia: c.FactorPotencia,
             CaidaTensionMaxPct: Datos.CaidaMaxDerivadoPct,
             TipoAislamiento: Datos.TipoAislamiento,
-            LugarInstalacionSeco: Datos.LugarSeco,
+            Lugar: Datos.Lugar,
             TerminalesMarcadas75C: Datos.TerminalesMarcadas75C,
             CorrienteNominalPlacaA: porPlaca || deHabitacion ? null : c.CorrientePlacaA,
             CorrienteSeleccionCircuitoA: porPlaca || deHabitacion ? null : c.CorrienteSeleccionA,
@@ -2548,7 +2550,7 @@ public sealed class CuadroDeCarga
                 FactorDemandaContinua: 1m,
                 FactorDemandaNoContinua: 1m,
                 TipoAislamiento: Datos.TipoAislamiento,
-                LugarInstalacionSeco: Datos.LugarSeco,
+                Lugar: Datos.Lugar,
                 ConjuntoAprobado100Pct: Datos.ConjuntoAprobado100Pct,
                 TerminalesMarcadas75C: Datos.TerminalesMarcadas75C,
                 CorrientesPorFase: CorrientesParaElMotor(),

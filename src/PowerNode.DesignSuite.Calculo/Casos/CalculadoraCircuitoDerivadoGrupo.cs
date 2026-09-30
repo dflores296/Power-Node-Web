@@ -114,9 +114,9 @@ public class CalculadoraCircuitoDerivadoGrupo(
         }
 
         // 4-8. Terminales, aislamiento, factores y conductor — con la protección que resulte.
-        var tempAislamiento = aislamiento.TemperaturaMaxima(d.TipoAislamiento, d.LugarInstalacionSeco)
+        var tempAislamiento = aislamiento.TemperaturaMaxima(d.TipoAislamiento, d.Lugar)
             ?? throw new AislamientoIncompatibleException(
-                $"'{d.TipoAislamiento}' no se reconoce, o no es válido para el lugar capturado ({(d.LugarInstalacionSeco ? "seco" : "húmedo/mojado")}) -- " +
+                $"'{d.TipoAislamiento}' no se reconoce, o no es válido para el lugar capturado ({d.Lugar.Nombre()}) -- " +
                 $"revisa la Tabla 310-104(a). Designaciones reconocidas: {string.Join(", ", aislamiento.DesignacionesReconocidas)}.");
         var factorTemp = correccionTemperatura.Factor(d.TemperaturaAmbienteC, tempAislamiento)
             ?? throw new InvalidOperationException($"La Tabla 310-15(b)(2)(a) no cubre {d.TemperaturaAmbienteC}°C para la columna de {(int)tempAislamiento}°C.");
@@ -193,7 +193,7 @@ public class CalculadoraCircuitoDerivadoGrupo(
         detalle = detalle with { PisoA = piso, Limite240_4bA = limite240_4b };
 
         citas.Add(new Cita("110-14(c)(1)", TemperaturaTerminales.Explicacion(proteccion, d.TerminalesMarcadas75C, tempTerminales)));
-        citas.Add(new Cita("110-14(c)", $"Aislamiento {d.TipoAislamiento} ({(int)tempAislamiento}°C, lugar {(d.LugarInstalacionSeco ? "seco" : "húmedo/mojado")}) cubre los {(int)tempTerminales}°C de la terminal."));
+        citas.Add(new Cita("110-14(c)", $"Aislamiento {d.TipoAislamiento} ({(int)tempAislamiento}°C, lugar {d.Lugar.Nombre()}) cubre los {(int)tempTerminales}°C de la terminal."));
         if (factorTemp != 1m)
             citas.Add(new Cita("310-15(b)(2)(a)", $"Factor de corrección por temperatura ambiente ({d.TemperaturaAmbienteC}°C): x{factorTemp}"));
         if (correccionTemperatura.ErrataAplicada(d.TemperaturaAmbienteC) is { } errataTemp)

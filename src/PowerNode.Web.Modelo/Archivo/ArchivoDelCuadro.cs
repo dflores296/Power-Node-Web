@@ -41,9 +41,10 @@ public static class ArchivoDelCuadro
     /// vivienda de los contactos (captura-en-el-desplegable.md); la 6 no los conoce. 8: varios tableros en un
     /// alimentador, cada uno con su no continua en su línea; la 7 los leería sin ella. 9: el variador en el
     /// desplegable, con su protección máxima; la 8 lo perdería. 10: el nombre del equipo del renglón,
-    /// aparte del del espacio; la 9 lo perdería.
+    /// aparte del del espacio; la 9 lo perdería. 11: el lugar seco, húmedo o mojado (auditoría del
+    /// 2026-09-29, P1-2); la 10 leería todo como seco.
     /// </summary>
-    public const int Version = 10;
+    public const int Version = 11;
 
     /// <summary>El archivo, listo para escribirse.</summary>
     public static string Guardar(CuadroDeCarga cuadro, DateTimeOffset cuando) =>
@@ -151,7 +152,7 @@ public static class ArchivoDelCuadro
                 JustificacionOtra = d.JustificacionOtra
                     .Where(j => !string.IsNullOrWhiteSpace(j.Value))
                     .ToDictionary(j => j.Key.AlArchivo(), j => j.Value),
-                MaterialConductor = d.MaterialConductor, TipoAislamiento = d.TipoAislamiento, LugarSeco = d.LugarSeco,
+                MaterialConductor = d.MaterialConductor, TipoAislamiento = d.TipoAislamiento, Lugar = d.Lugar,
                 TerminalesMarcadas75C = d.TerminalesMarcadas75C, TemperaturaAmbienteC = d.TemperaturaAmbienteC,
                 CargaNoLineal = d.CargaNoLineal,
                 DiametrosFabricante = d.DiametrosFabricante.Count == 0 ? null : new Dictionary<string, decimal>(d.DiametrosFabricante),
@@ -264,7 +265,16 @@ public static class ArchivoDelCuadro
 
             d.MaterialConductor = a.MaterialConductor ?? d.MaterialConductor;
             d.TipoAislamiento = a.TipoAislamiento ?? d.TipoAislamiento;
-            d.LugarSeco = a.LugarSeco ?? d.LugarSeco;
+            // Hasta el formato 10, «húmedo o mojado» era una opción: se abre como mojado, la más estricta, y se dice.
+            if (a.Lugar is { } lugar)
+                d.Lugar = lugar;
+            else if (a.LugarSeco is { } seco)
+            {
+                d.Lugar = seco ? LugarDeInstalacion.Seco : LugarDeInstalacion.Mojado;
+                if (!seco)
+                    avisos.Add("El archivo decía lugar «húmedo o mojado», que ahora son dos opciones: se abrió como mojado, la más " +
+                               "estricta — Tabla 310-104(a), 310-10(c). Si el lugar es húmedo, cámbialo en Condiciones de cálculo.");
+            }
             d.TerminalesMarcadas75C = a.TerminalesMarcadas75C ?? d.TerminalesMarcadas75C;
             d.TemperaturaAmbienteC = a.TemperaturaAmbienteC ?? d.TemperaturaAmbienteC;
             d.CargaNoLineal = a.CargaNoLineal ?? d.CargaNoLineal;

@@ -143,10 +143,11 @@
                 <option value="60">60 °C hasta 100 A (regla general)</option>
                 <option value="75">Marcadas 75 °C</option>
             </select></label>
-        <label><span class="ayuda" title="Seleccionar el lugar de instalación — Tabla 310-104(a). Determina la temperatura del aislamiento (THHW-LS: 90 °C seco, 75 °C mojado) y su validez (THHN: solo lugar seco).">Lugar</span>
-            <select @bind="Lugar" @bind:after="Recalcular">
-                <option value="seco">Seco</option>
-                <option value="mojado">Húmedo o mojado</option>
+        <label><span class="ayuda" title="Seleccionar el lugar de instalación — Art. 100. Determina la temperatura del aislamiento (XHHW: 90 °C seco y húmedo, 75 °C mojado — Tabla 310-104(a)) y si se permite (THHN, RHH y XHH: no en mojado — 310-10(c)). Húmedo: protegido de la intemperie con humedad moderada (bajo aleros, porches techados, algunos sótanos). Mojado: en contacto con la tierra, saturado de agua o a la intemperie; el interior de una canalización subterránea o en lugar mojado también lo es — 300-5(b), 300-9.">Lugar</span>
+            <select @bind="Datos.Lugar" @bind:after="Recalcular">
+                <option value="@LugarDeInstalacion.Seco">Seco</option>
+                <option value="@LugarDeInstalacion.Humedo">Húmedo</option>
+                <option value="@LugarDeInstalacion.Mojado">Mojado</option>
             </select></label>
         <label>T. ambiente (°C) <input data-requerido type="text" inputmode="decimal" autocomplete="off" data-numero min="10" max="80" step="1" value="@Numero(Datos.TemperaturaAmbienteC)" @onchange="e => { Datos.TemperaturaAmbienteC = Leer(e, Datos.TemperaturaAmbienteC); Recalcular(); }" /></label>
         @* Solo en 3F-4H: el neutro de un circuito de 3 fases cuenta por armónicas — 310-15(b)(5)(3); en los demás sistemas no cambia nada. *@
@@ -1663,13 +1664,6 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
     /// Tabla 310-104(a) que lee el motor. THW no está: la tabla lo da solo para lugares mojados;
     /// THW-LS cubre secos y mojados.
     /// </summary>
-    /// <summary>El lugar como texto: un <c>select</c> enlazado directo a un <c>bool</c> no reconoce «true»/«false» y se queda en blanco.</summary>
-    private string Lugar
-    {
-        get => Datos.LugarSeco ? "seco" : "mojado";
-        set => Datos.LugarSeco = value == "seco";
-    }
-
     private string Terminales
     {
         get => Datos.TerminalesMarcadas75C ? "75" : "60";

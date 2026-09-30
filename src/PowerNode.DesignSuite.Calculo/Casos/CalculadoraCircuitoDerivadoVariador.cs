@@ -26,7 +26,7 @@ public sealed record DatosEntradaCircuitoDerivadoVariador(
     decimal FactorPotencia,
     decimal CaidaTensionMaxPct,
     string TipoAislamiento = "THHN",
-    bool LugarInstalacionSeco = true,
+    LugarDeInstalacion Lugar = LugarDeInstalacion.Seco,
     MetodoInstalacion MetodoInstalacion = MetodoInstalacion.CanalizacionOCable,
     int MaxConductoresParaleloAutomatico = SeleccionConductor.MaxNParaleloAutoResueltoPorOmision,
     bool TerminalesMarcadas75C = false);
@@ -87,16 +87,16 @@ public class CalculadoraCircuitoDerivadoVariador(
 
         // 3. Terminales y aislamiento — 110-14(c).
         var tempTerminales = TemperaturaTerminales.Para(
-            breaker, d.TerminalesMarcadas75C, aislamiento.TemperaturaMaxima(d.TipoAislamiento, d.LugarInstalacionSeco));
+            breaker, d.TerminalesMarcadas75C, aislamiento.TemperaturaMaxima(d.TipoAislamiento, d.Lugar));
         citas.Add(new Cita("110-14(c)(1)", TemperaturaTerminales.Explicacion(breaker, d.TerminalesMarcadas75C, tempTerminales)));
-        var tempAislamiento = aislamiento.TemperaturaMaxima(d.TipoAislamiento, d.LugarInstalacionSeco)
+        var tempAislamiento = aislamiento.TemperaturaMaxima(d.TipoAislamiento, d.Lugar)
             ?? throw new AislamientoIncompatibleException(
-                $"'{d.TipoAislamiento}' no se reconoce, o no es válido para el lugar capturado ({(d.LugarInstalacionSeco ? "seco" : "húmedo/mojado")}) -- " +
+                $"'{d.TipoAislamiento}' no se reconoce, o no es válido para el lugar capturado ({d.Lugar.Nombre()}) -- " +
                 $"revisa la Tabla 310-104(a). Designaciones reconocidas: {string.Join(", ", aislamiento.DesignacionesReconocidas)}.");
         if (tempAislamiento < tempTerminales)
             throw new AislamientoIncompatibleException(
                 $"El aislamiento {d.TipoAislamiento} ({(int)tempAislamiento}°C) no alcanza los {(int)tempTerminales}°C que exige la terminal del equipo -- 110-14(c).");
-        citas.Add(new Cita("110-14(c)", $"Aislamiento {d.TipoAislamiento} ({(int)tempAislamiento}°C, lugar {(d.LugarInstalacionSeco ? "seco" : "húmedo/mojado")}) cubre los {(int)tempTerminales}°C de la terminal."));
+        citas.Add(new Cita("110-14(c)", $"Aislamiento {d.TipoAislamiento} ({(int)tempAislamiento}°C, lugar {d.Lugar.Nombre()}) cubre los {(int)tempTerminales}°C de la terminal."));
 
         // 4. Factores de corrección, en la columna del aislamiento — 310-15(b)(2)(a)/(3)(a).
         var factorTemp = correccionTemperatura.Factor(d.TemperaturaAmbienteC, tempAislamiento)

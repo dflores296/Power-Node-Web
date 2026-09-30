@@ -14,6 +14,39 @@ public enum TemperaturaAislamiento
     T90 = 90
 }
 
+/// <summary>
+/// <b>El lugar de instalación</b> — Art. 100, «Lugar seco», «Lugar húmedo», «Lugar mojado». Decide
+/// qué aislamientos se permiten (310-10) y con qué temperatura (Tabla 310-104(a)).
+///
+/// <para>
+/// Hasta el 2026-09-29 era un <c>bool</c> «seco o húmedo/mojado», y en la opción de dos lugares se
+/// tomaba la temperatura más alta de las filas de húmedo y de mojado: XHHW en lugar mojado salía a
+/// 90 °C cuando la tabla le da 75 °C (Power Node Web, auditoría del 2026-09-29, P1-2).
+/// </para>
+/// </summary>
+public enum LugarDeInstalacion
+{
+    /// <summary>Normalmente no está húmedo ni sujeto a ser mojado — 310-10(a).</summary>
+    Seco,
+
+    /// <summary>Protegido de la intemperie, expuesto a humedad moderada: bajo aleros, porches techados, algunos sótanos — 310-10(b).</summary>
+    Humedo,
+
+    /// <summary>En contacto con la tierra, saturado de agua o a la intemperie sin protección; el interior de una canalización subterránea — 310-10(c), 300-5(b), 300-9.</summary>
+    Mojado,
+}
+
+public static class LugaresDeInstalacion
+{
+    /// <summary>«seco», «húmedo», «mojado».</summary>
+    public static string Nombre(this LugarDeInstalacion lugar) => lugar switch
+    {
+        LugarDeInstalacion.Humedo => "húmedo",
+        LugarDeInstalacion.Mojado => "mojado",
+        _ => "seco",
+    };
+}
+
 /// <summary>Material de la canalización, relevante para la reactancia/resistencia CA de la Tabla 9.</summary>
 public enum MaterialCanalizacion
 {

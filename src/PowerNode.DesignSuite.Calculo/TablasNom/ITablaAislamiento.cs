@@ -8,10 +8,10 @@ public interface ITablaAislamiento
     /// <summary>
     /// Temperatura máxima del aislamiento para esta designación (p.ej. "THHN", "THW") en el lugar
     /// dado. Null si la designación no está reconocida, o no es válida para ese lugar (p.ej. THHN en
-    /// lugar mojado -- solo está listada para lugares secos), o su temperatura real (150-250°C, los
+    /// lugar mojado -- 310-10(c)(2) no lo nombra), o su temperatura real (150-250°C, los
     /// aislamientos especiales) queda fuera del alcance de este motor (solo cubre 60/75/90°C).
     /// </summary>
-    TemperaturaAislamiento? TemperaturaMaxima(string designacion, bool lugarSeco);
+    TemperaturaAislamiento? TemperaturaMaxima(string designacion, LugarDeInstalacion lugar);
 
     /// <summary>Las designaciones que este motor reconoce, para armar un mensaje de error útil.</summary>
     IReadOnlyList<string> DesignacionesReconocidas { get; }

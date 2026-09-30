@@ -115,18 +115,18 @@ public class CalculadoraAlimentador(
         // Con equipo marcado 75 °C la columna depende también del aislamiento (un TW de 60 °C se
         // queda en 60), así que se consulta aquí; si no se reconoce, se rechaza abajo como siempre.
         var tempTerminales = TemperaturaTerminales.Para(
-            breaker, d.TerminalesMarcadas75C, aislamiento.TemperaturaMaxima(d.TipoAislamiento, d.LugarInstalacionSeco));
+            breaker, d.TerminalesMarcadas75C, aislamiento.TemperaturaMaxima(d.TipoAislamiento, d.Lugar));
         citas.Add(new Cita("110-14(c)(1)", TemperaturaTerminales.Explicacion(breaker, d.TerminalesMarcadas75C, tempTerminales)));
 
         // 4.5. Aislamiento -- 110-14(c): debe alcanzar o superar la temperatura que exige la terminal.
-        var tempAislamiento = aislamiento.TemperaturaMaxima(d.TipoAislamiento, d.LugarInstalacionSeco)
+        var tempAislamiento = aislamiento.TemperaturaMaxima(d.TipoAislamiento, d.Lugar)
             ?? throw new AislamientoIncompatibleException(
-                $"'{d.TipoAislamiento}' no se reconoce, o no es válido para el lugar capturado ({(d.LugarInstalacionSeco ? "seco" : "húmedo/mojado")}) -- " +
+                $"'{d.TipoAislamiento}' no se reconoce, o no es válido para el lugar capturado ({d.Lugar.Nombre()}) -- " +
                 $"revisa la Tabla 310-104(a). Designaciones reconocidas: {string.Join(", ", aislamiento.DesignacionesReconocidas)}.");
         if (tempAislamiento < tempTerminales)
             throw new AislamientoIncompatibleException(
                 $"El aislamiento {d.TipoAislamiento} ({(int)tempAislamiento}°C) no alcanza los {(int)tempTerminales}°C que exige la terminal del equipo -- 110-14(c).");
-        citas.Add(new Cita("110-14(c)", $"Aislamiento {d.TipoAislamiento} ({(int)tempAislamiento}°C, lugar {(d.LugarInstalacionSeco ? "seco" : "húmedo/mojado")}) cubre los {(int)tempTerminales}°C de la terminal."));
+        citas.Add(new Cita("110-14(c)", $"Aislamiento {d.TipoAislamiento} ({(int)tempAislamiento}°C, lugar {d.Lugar.Nombre()}) cubre los {(int)tempTerminales}°C de la terminal."));
 
         // El aislamiento de 90 °C que exige el fabricante con un interruptor de 100 %. Va aquí y no
         // arriba porque hasta este punto no se conoce la temperatura del aislamiento.

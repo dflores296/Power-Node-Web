@@ -74,7 +74,7 @@ public sealed record DatosEntradaCircuitoDerivadoGrupo(
     decimal CaidaTensionMaxPct,
     decimal? PisoPracticoCalibreMm2,
     string TipoAislamiento = "THHN",
-    bool LugarInstalacionSeco = true,
+    LugarDeInstalacion Lugar = LugarDeInstalacion.Seco,
     MetodoInstalacion MetodoInstalacion = MetodoInstalacion.CanalizacionOCable,
     int MaxConductoresParaleloAutomatico = SeleccionConductor.MaxNParaleloAutoResueltoPorOmision,
     bool TerminalesMarcadas75C = false);

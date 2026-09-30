@@ -25,7 +25,7 @@ public sealed record DatosEntradaCircuitoDerivadoNoMotor(
     decimal CaidaTensionMaxPct,
     decimal? PisoPracticoCalibreMm2,
     string TipoAislamiento = "THHN",
-    bool LugarInstalacionSeco = true,
+    LugarDeInstalacion Lugar = LugarDeInstalacion.Seco,
     MetodoInstalacion MetodoInstalacion = MetodoInstalacion.CanalizacionOCable,
 
     // La excepción del 100 % -- ver CargaContinua100Pct. Los dos van al final y con valor por

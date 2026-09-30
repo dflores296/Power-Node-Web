@@ -40,11 +40,36 @@ public partial class TablaAislamientoJson(IFuenteTablas fuente) : ITablaAislamie
         var resultado = new Dictionary<string, List<(decimal, string)>>(StringComparer.OrdinalIgnoreCase);
         string? designacionActual = null;
 
+        // La columna 3 («Aplicaciones previstas») también viene combinada: RHW trae «Lugares secos y
+        // mojados» con RowSpan = 2, que cubre a RHW-2; THWN, «Lugares secos y húmedos», que cubre a
+        // THWN-2. Se hereda con el RowSpan, igual que el material (ver Familias). Antes RHW-2 y THWN-2
+        // quedaban «sin lugar» y valían en todos (auditoría del 2026-09-29, P1-2).
+        string? condicionHeredada = null;
+        var filasQueFaltan = 0;
+
         foreach (var f in fuente.FilasDatos(TablaId))
         {
             var designacionCelda = f.Texto(1);
             if (!string.IsNullOrWhiteSpace(designacionCelda))
                 designacionActual = designacionCelda.Trim();
+
+            string condicion;
+            var span = f.RowSpan(3);
+            if (span > 0)
+            {
+                condicion = f.Texto(3) ?? "";
+                condicionHeredada = condicion;
+                filasQueFaltan = span - 1;
+            }
+            else if (filasQueFaltan > 0)
+            {
+                condicion = condicionHeredada ?? "";
+                filasQueFaltan--;
+            }
+            else
+            {
+                condicion = "";
+            }
 
             if (designacionActual is null || !Curadas.Contains(designacionActual))
                 continue;
@@ -56,8 +81,6 @@ public partial class TablaAislamientoJson(IFuenteTablas fuente) : ITablaAislamie
             if (!match.Success) continue;
             var temp = decimal.Parse(match.Value, System.Globalization.CultureInfo.InvariantCulture);
 
-            var condicion = f.Texto(3) ?? "";
-
             if (!resultado.TryGetValue(designacionActual, out var lista))
                 resultado[designacionActual] = lista = [];
             lista.Add((temp, condicion));
@@ -65,6 +88,36 @@ public partial class TablaAislamientoJson(IFuenteTablas fuente) : ITablaAislamie
 
         _cache = resultado;
         return _cache;
+    }
+
+    /// <summary>
+    /// Los tipos que nombran 310-10(b) (lugares secos y húmedos) y 310-10(c)(2) (lugares mojados),
+    /// leídos del texto de la sección como la lista de 240-6(a).
+    ///
+    /// <para>
+    /// ⚠ <b>La tabla y el texto no dicen lo mismo.</b> La Tabla 310-104(a) publica THWN, THWN-2 y THW-2
+    /// solo para «lugares secos y húmedos», pero 310-10(c)(2) los nombra para lugares mojados; y
+    /// THHN solo para «lugares secos», pero 310-10(b) lo nombra para húmedos. Los «Usos permitidos»
+    /// son los de 310-10; la tabla da la temperatura. Hallazgo de la auditoría del 2026-09-29 (P1-2),
+    /// que pedía bloquear THWN y THW-2 en mojado leyendo solo la tabla.
+    /// </para>
+    /// </summary>
+    private HashSet<string> Permitidos(string seccionId) =>
+        seccionId == "310-10(b)"
+            ? _humedos ??= TiposDeLaSeccion(seccionId)
+            : _mojados ??= TiposDeLaSeccion(seccionId);
+
+    private HashSet<string>? _humedos;
+    private HashSet<string>? _mojados;
+
+    private HashSet<string> TiposDeLaSeccion(string seccionId)
+    {
+        var texto = fuente.TextoDeSeccion(seccionId);
+        var inicio = texto.IndexOf("tipos", StringComparison.OrdinalIgnoreCase);
+        var lista = inicio >= 0 ? texto[(inicio + "tipos".Length)..] : texto;
+        return new HashSet<string>(
+            ExpresionTipo().Matches(lista).Select(m => m.Value),
+            StringComparer.OrdinalIgnoreCase);
     }
 
     /// <summary>
@@ -165,24 +218,39 @@ public partial class TablaAislamientoJson(IFuenteTablas fuente) : ITablaAislamie
     public FamiliaAislamiento? FamiliaDe(string designacion) =>
         Familias().TryGetValue(designacion.Trim(), out var familia) ? familia : null;
 
-    public TemperaturaAislamiento? TemperaturaMaxima(string designacion, bool lugarSeco)
+    /// <summary>
+    /// La temperatura del aislamiento en el lugar:
+    /// <list type="bullet">
+    /// <item><b>Seco</b>: la fila de lugares secos; sin ella, la que tenga — 310-10(a) admite
+    /// cualquier tipo en lugar seco (THW, que el DOF publica solo para mojados, M-08).</item>
+    /// <item><b>Húmedo</b>: la fila de húmedos; sin ella, la de mojados (lo que aguanta mojado aguanta
+    /// húmedo: THHW, 75 °C); sin ninguna, la que tenga si 310-10(b) lo nombra (THHN, 90 °C).</item>
+    /// <item><b>Mojado</b>: la fila de mojados (XHHW, 75 °C); sin ella, la de húmedos si 310-10(c)(2) lo
+    /// nombra (THWN, 75 °C; THW-2, 90 °C). Si no, no se permite (THHN, RHH, XHH).</item>
+    /// </list>
+    /// Una fila con el lugar en blanco vale en los tres. USE («Ver el Artículo 340») no nombra lugar ni
+    /// está en 310-10(b) o (c)(2): solo en seco, por 310-10(a), como antes.
+    /// </summary>
+    public TemperaturaAislamiento? TemperaturaMaxima(string designacion, LugarDeInstalacion lugar)
     {
-        if (!Entradas().TryGetValue(designacion.Trim(), out var entradas))
+        var tipo = designacion.Trim();
+        if (!Entradas().TryGetValue(tipo, out var entradas))
             return null;
 
-        // Entre las filas de esta designación compatibles con el lugar pedido, la de temperatura más
-        // alta -- normalmente solo hay una compatible (p.ej. THHN nada más aplica a "secos"), pero si
-        // el texto no especifica lugar (celda en blanco, común en los tipos "-2") se trata como
-        // válido para ambos.
-        var compatibles = entradas.Where(e => EsCompatible(e.Condicion, lugarSeco)).ToList();
+        List<(decimal TempC, string Condicion)> Filas(string palabra) =>
+            entradas.Where(e => string.IsNullOrWhiteSpace(e.Condicion) || e.Condicion.Contains(palabra, StringComparison.OrdinalIgnoreCase)).ToList();
 
-        // LUGAR SECO SIN RENGLÓN PROPIO — 310-10(a): «Los conductores y cables aislados usados en
-        // lugares secos, deben ser de cualquiera de los tipos identificados en esta NOM». El DOF
-        // publica THW solo con «75 °C · Lugares mojados» (verificado contra el PDF, pág. 156), y el
-        // 310-10(b) lo nombra también para secos y húmedos. Sin esto, THW en lugar seco se rechazaba
-        // como si no existiera. Se toma la temperatura que la tabla sí le da. (Web, 2026-09-24, M-08.)
-        if (compatibles.Count == 0 && lugarSeco)
-            compatibles = entradas;
+        var compatibles = lugar switch
+        {
+            LugarDeInstalacion.Humedo => Filas("húmedo") is { Count: > 0 } humedo ? humedo
+                : Filas("mojado") is { Count: > 0 } mojado ? mojado
+                : Permitidos("310-10(b)").Contains(tipo) ? entradas
+                : [],
+            LugarDeInstalacion.Mojado => Filas("mojado") is { Count: > 0 } mojado ? mojado
+                : Permitidos("310-10(c)(2)").Contains(tipo) ? Filas("húmedo")
+                : [],
+            _ => Filas("seco") is { Count: > 0 } seco ? seco : entradas,
+        };
         if (compatibles.Count == 0) return null;
 
         var tempMaxima = compatibles.Max(e => e.TempC);
@@ -195,16 +263,8 @@ public partial class TablaAislamientoJson(IFuenteTablas fuente) : ITablaAislamie
         };
     }
 
-    private static bool EsCompatible(string condicion, bool lugarSeco)
-    {
-        if (string.IsNullOrWhiteSpace(condicion)) return true; // sin lugar especificado -- válido para ambos.
-
-        var esSeco = condicion.Contains("seco", StringComparison.OrdinalIgnoreCase);
-        var esHumedoOMojado = condicion.Contains("húmedo", StringComparison.OrdinalIgnoreCase)
-            || condicion.Contains("mojado", StringComparison.OrdinalIgnoreCase);
-
-        return lugarSeco ? esSeco : esHumedoOMojado;
-    }
+    [GeneratedRegex(@"[A-Z][A-Z0-9]*(-[A-Z0-9]+)*")]
+    private static partial Regex ExpresionTipo();
 
     [GeneratedRegex(@"\d+(\.\d+)?")]
     private static partial Regex ExpresionTemperatura();
