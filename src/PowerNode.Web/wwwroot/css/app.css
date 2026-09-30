@@ -314,7 +314,7 @@ select, input { font: inherit; padding: 5px 8px; border: 1px solid var(--linea);
 
 /* La descripción se queda con lo que sobra: las demás columnas son de ancho de contenido, así que
    sin esto el navegador le daba lo mínimo y "Alumbrado oficinas" salía cortado. */
-.cuadro th.descripcion { min-width: 210px; } /* 210 y no 240: con las columnas de resultados parejas y la unidad de 80 px (I-127) el cuadro sigue cabiendo a 1920 */
+.cuadro th.descripcion { min-width: 240px; } /* Sin la columna de unidad (captura-en-el-desplegable.md), la descripción recupera sus 240 px */
 .cuadro td { padding: 3px 6px; border-bottom: 1px solid var(--linea); text-align: center; white-space: nowrap;
              vertical-align: middle; }
 .cuadro tr.fila-desglose td { white-space: normal; }
@@ -993,6 +993,15 @@ polygon.riel-a { fill: var(--barra-a); } polygon.riel-b { fill: var(--barra-b); 
 .cuadro table.desglose .nota-min { display: block; font-size: 10px; color: var(--tenue); line-height: 1.2; margin-top: 2px; white-space: nowrap; }
 /* La clase del circuito bajo su descripción, y el tipo «Combinadas» (I-123). */
 .cuadro .en-va.clase { color: var(--acento); }
+/* LA CLASE DEL CIRCUITO Y LA CARGA, SOLO LECTURA (captura-en-el-desplegable.md): el renglón resume lo que
+   se captura en el desplegable. La clase, centrada, con su detalle debajo; las sumas, a la derecha. */
+.cuadro td.clase-td { text-align: center; min-width: 122px; }
+.cuadro .clase-circuito { font-size: 13px; white-space: nowrap; }
+#sec-cuadro > .cuadro > tbody > tr > td.clase-td > .en-va { white-space: nowrap; }
+.cuadro td.num.suma { text-align: right; padding-right: 8px; font-variant-numeric: tabular-nums; }
+#sec-cuadro > .cuadro > tbody > tr > td.suma > .en-va { text-align: right; padding-right: 8px; }
+/* El equipo del renglón (motor, variador, A/A, otro tablero), como la primera línea del desplegable. */
+.cuadro table.desglose tr.linea-renglon td { background: var(--acento-suave); }
 .cuadro select.tipo.combinadas { font-style: italic; color: var(--acento); background: var(--acento-suave); border-color: var(--acento-borde); opacity: 1; }
 /* RLA y selección de un motocompresor, lado a lado en la celda de la carga (I-116). */
 .cuadro table.desglose td.dos-campos { white-space: nowrap; }

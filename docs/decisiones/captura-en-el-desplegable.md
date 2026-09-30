@@ -75,3 +75,4 @@ el circuito individual del refrigerador.
 2. Los circuitos que por norma son dedicados no admiten más líneas ni cantidad mayor que 1.
 3. El uso de vivienda, subtipo de Contactos: «lo más correcto».
 4. El desplegable no se abre solo; la rapidez, después.
+5. El tablero alimentado, una línea con dos cantidades: «Sí, una línea con dos cantidades, arranca».

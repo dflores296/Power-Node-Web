@@ -192,4 +192,34 @@ public class CapturaEnElDesplegableTests
         Assert.Contains("\"subtipo\": \"ContactoBano\"", texto);
         Assert.Equal(SubtipoDeCarga.ContactoBano, Espacio(ArchivoDelCuadro.Abrir(texto, Motor).Cuadro!, 1).Cargas.Single().Subtipo);
     }
+
+    [Fact]
+    public void AgregarUnaCargaAUnMotorDelRenglonLoVuelveGrupo()
+    {
+        var cuadro = Nuevo();
+        var c = Espacio(cuadro, 1);
+        c.Categoria = CategoriaDeCarga.Motor;
+        c.Hp = 0.5m;
+        cuadro.Recalcular();
+
+        var nueva = c.AgregarCarga();
+        nueva.Subtipo = SubtiposDeCarga.PorOmision(c.Categoria);
+        cuadro.Recalcular();
+
+        Assert.Equal(2, c.Cargas.Count);
+        Assert.True(c.EsGrupo);
+        Assert.Null(c.SubtipoDelRenglon);
+    }
+
+    [Fact]
+    public void UnSoloContactoDeRefrigeradorEsIndividualAunFueraDeVivienda()
+    {
+        var cuadro = Nuevo();
+        var c = Espacio(cuadro, 1);
+        c.Categoria = CategoriaDeCarga.Contactos;
+        c.Cargas.Add(new CargaDelCircuito { Subtipo = SubtipoDeCarga.ContactoRefrigerador, CargaUnitaria = 600m });
+        cuadro.Recalcular();
+
+        Assert.Equal(ClaseDeCircuito.Individual, c.ClaseDelCircuito);
+    }
 }

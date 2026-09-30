@@ -187,8 +187,8 @@
             <tr>
                 <th rowspan="2"><span class="ayuda" title="@(Cuadro.UnaSolaBarra ? "Identificar el circuito por su espacio en la barra. Una sola barra: en orden." : "Identificar el circuito por su espacio en la barra. Nones arriba, pares abajo.")">N.º</span></th>
                 <th rowspan="2" class="izq descripcion" data-col="desc" title="Describir el circuito. Ctrl+Enter abre o cierra el desglose de sus aparatos.">Descripción</th>
-                <th rowspan="2" data-col="tipo"><span class="ayuda" title="Seleccionar el tipo de carga del renglón. El tipo es de cada carga: decide su factor de demanda en el alimentador — Art. 220. Con cargas de tipos distintos en el desplegable, el renglón dice «Combinadas».&#10;&#10;Alumbrado: luminarias, anuncios, aparadores.&#10;Contactos: salidas para contactos; en vivienda, seleccionar el uso (aparatos pequeños, lavadora, baño, refrigerador).&#10;Aparatos: aparatos y cargas específicas con su placa, también con motor: estufas, secadoras, calentadores de agua, lavavajillas, refrigeradores domésticos (son aparatos — 440-3(c)) — Art. 422.&#10;Motores: bombas, ventiladores, extractores, compresores de aire; manejadoras sin motocompresor (440-3(b)) — Art. 430.&#10;A/A y refrig.: equipos con motocompresor hermético: minisplit, paquete, condensadora, cámara — Art. 440.&#10;Calefacción: calefacción eléctrica fija de ambiente; carga continua — 424-3(b).&#10;Tablero: otro tablero alimentado desde este; su carga ya calculada, sin F.D. — Art. 215, 220-40.&#10;&#10;Debajo de la descripción, la clase del circuito, que sale de sus cargas: individual, uso general, para aparatos o alimentador (Art. 100). «?»: la guía de cargas.">Tipo</span><a class="a-la-guia" href="guia#rama-tipos" target="_blank" rel="noopener" title="Abrir la guía de cargas en otra pestaña: en qué tipo va cada carga y a qué artículos queda sujeta — I-126." aria-label="Guía de cargas">?</a></th>
-                <th colspan="4"><span class="ayuda" title="Capturar la carga de placa en VA, W o A y su factor de potencia. Continua (3 h o más): 125 % — 210-19(a)(1), 210-20(a). No continua: 100 %. En W o A, consultar abajo el VA de cálculo.&#10;&#10;Motor: los HP, o los amperes si la placa no trae HP. La corriente sale de la tabla — 430-6(a).&#10;A/C y refrigeración: MCA y MOCP de la placa (440-4(b)), o la corriente de carga nominal del compresor y la de selección si viene (440-6(a)).">Carga</span></th>
+                <th rowspan="2" data-col="tipo"><span class="ayuda" title="La clase del circuito, que sale de sus cargas — Art. 100: Individual (un solo equipo), Uso general (salidas de alumbrado o contactos), Para aparatos, Grupo de motores (430-53) o Alimentador (otro tablero, Art. 215). No se captura: el tipo de cada carga se escoge en el desplegable (la flecha junto a la descripción). «?»: la guía de cargas.">Tipo</span><a class="a-la-guia" href="guia#rama-clases" target="_blank" rel="noopener" title="Abrir la guía de cargas en otra pestaña: los tipos de carga y las clases de circuito." aria-label="Guía de cargas">?</a></th>
+                <th colspan="3"><span class="ayuda" title="La carga del circuito: la suma de sus salidas y cargas del desplegable, en VA. Se captura en el desplegable (la flecha junto a la descripción), no aquí. Continua (3 h o más): 125 % — 210-19(a)(1), 210-20(a). No continua: 100 %. Un motor o un equipo de A/C, con su corriente — 430-24, 440-33.">Carga</span></th>
                 <th colspan="@Datos.Barras.Count"><span class="ayuda" title="Consultar la carga del circuito repartida entre las barras que toca.">Balanceo de fases <span class="simbolo">(VA)</span></span></th>
                 <th rowspan="2" class="col-res" data-col="l"><span class="ayuda" title="Capturar la longitud del circuito. Determina la caída de tensión — Tabla 9."><span class="simbolo">L (m)</span></span></th>
                 <th rowspan="2" data-col="canal"><span class="ayuda" title="Seleccionar la canalización del circuito de la lista de la tarjeta «Canalizaciones». Al capturar la carga, cada circuito nace en la suya (T1, T2…); para agrupar, elegir la de otro circuito, o «+ Nueva». Los circuitos de una misma canalización se agrupan y el programa cuenta sus portadores — 310-15(b)(3)(a). Si el circuito pasa por varias, la del tramo más desfavorable — 310-15(a)(2). Debajo: el tamaño que resultó.">Canal.</span></th>
@@ -201,10 +201,9 @@
                 <th rowspan="2" class="ultima col-res"><span class="ayuda" title="Consultar la caída de tensión del circuito. Límite recomendado: 3 % en el derivado y 5 % combinada — 210-19(a)(1), nota 4."><span class="simbolo">e (%)</span></span></th>
             </tr>
             <tr>
-                <th data-col="unidad"><span class="ayuda" title="Seleccionar la unidad de placa. W: convertir con el factor de potencia. A: convertir con la tensión y los polos del circuito.&#10;&#10;Motor: HP, o A si la placa no trae HP — 430-6(a)(1).&#10;A/C y refrigeración: MCA (ampacidad mínima y protección máxima, 440-4(b)) o A (corriente de carga nominal, 440-6(a)).">Unidad</span></th>
-                <th data-col="continua"><span class="ayuda" title="Capturar la carga que opera 3 h o más. Aplicar 125 % — 210-19(a)(1), 210-20(a).">Continua</span></th>
-                <th data-col="nocontinua"><span class="ayuda" title="Capturar la carga que opera menos de 3 h. Aplicar 100 %.">No continua</span></th>
-                <th data-col="fp"><span class="ayuda" title="Capturar el factor de potencia de la carga. Valor inicial: 0.9.&#10;&#10;Capturada en W: VA = W ÷ F.P. Modifica corriente, protección, conductor, caída de tensión y kW.&#10;&#10;Capturada en VA o A: modifica solo la caída de tensión (y el conductor, si excede el límite) y los kW — Tabla 9, nota 2.">F.P.</span></th>
+                <th data-col="continua"><span class="ayuda" title="La suma de las cargas continuas (3 h o más), en VA: entran al 125 % — 210-19(a)(1), 210-20(a).">Continua</span></th>
+                <th data-col="nocontinua"><span class="ayuda" title="La suma de las cargas no continuas, en VA: entran al 100 %.">No continua</span></th>
+                <th data-col="fp"><span class="ayuda" title="El factor de potencia del conjunto de sus cargas: P ÷ √(P² + Q²). Cada carga lleva el suyo en el desplegable.">F.P.</span></th>
                 @foreach (var barra in Datos.Barras)
                 {
                     <th class="col-fase"><span class="ayuda" title="Consultar la carga que el circuito asigna a la barra @barra."><span class="fase-rect fase-rect-@char.ToLowerInvariant(barra)">@barra</span></span></th>
@@ -256,207 +255,48 @@
                         <td rowspan="@c.Polos">
                             <div class="desc-linea">
                                 <button class="desglosar" tabindex="-1" aria-label="Desglose del circuito @c.Espacio" aria-expanded="@(Abierto(c) ? "true" : "false")"
-                                        title="@(c.EsGrupo ? "Los motores y las otras cargas del circuito — 430-53, 440-22(b); y si no funciona a la vez que otro circuito — 220-60. Con el teclado: Ctrl+Enter."
-                                                 : c.EsMotor ? "Detalle del motor: servicio no continuo (430-22(e)), si no funciona a la vez que otro circuito (430-24 Excepción 3) y sus salidas y cargas: con otra, el circuito es un grupo — 430-53. Con el teclado: Ctrl+Enter."
-                                                 : c.EsAireAcondicionado ? "Detalle del equipo: si no funciona a la vez que otro circuito — 440-33 Excepción 1, 220-60; con corriente nominal, sus salidas y cargas — 440-22(b). Con el teclado: Ctrl+Enter."
-                                                 : c.Categoria == CategoriaDeCarga.Tablero ? "Detalle del alimentador: si no funciona a la vez que otro circuito — 220-60. Con el teclado: Ctrl+Enter."
-                                                 : "Las salidas y cargas del circuito, cada una con su tipo. La carga del circuito es la suma. Con el teclado: Ctrl+Enter.")"
+                                        title="Las salidas y cargas del circuito: se capturan aquí, cada una con su tipo; el renglón muestra la suma. Con el teclado: Ctrl+Enter."
                                         @onclick="() => AlternarDesglose(c)"><Icono Nombre="@(Abierto(c) ? "desglose-abierto" : "desglose")" Tamano="14" /></button>
                                 <input class="desc" data-col="desc" aria-label="Circuito @c.Espacio · Descripción" @bind="c.Descripcion" @bind:event="oninput" @bind:after="DibujarAlPausar" placeholder="—" />
                             </div>
-                            @* La clase del circuito, que sale de sus cargas — Art. 100, I-123. *@
-                            @if (NotaDeClase(c) is { } clase)
-                            {
-                                <span class="en-va izq clase" title="@c.ClaseDelCircuito?.NombreNom() — Art. 100. Sale de sus cargas; no se captura.">@clase</span>
-                            }
                         </td>
-                        <td rowspan="@c.Polos">
-                            <div class="tipo-uso">
-                            @* Sin icono (David, 2026-09-29 — I-112): el selector ya dice el tipo; el icono queda en el
-                               resumen de carga. Sin tipo elegido, «—» y el renglón no calcula (I-111). *@
-                            @* CARGAS COMBINADAS (I-123): el tipo es de cada carga; con tipos distintos, el renglón lo dice y se
-                               cambia en el desplegable — 220-18(a), 440-34, 430-110(c). *@
-                            <select class="tipo @(c.TipoElegido ? null : "sin-elegir") @(c.TieneCargasCombinadas ? "combinadas" : null)" data-col="tipo" aria-label="Circuito @c.Espacio · Tipo"
-                                    title="@(c.TieneCargasCombinadas ? $"Cargas combinadas — 220-18(a): {string.Join(", ", c.TiposDeSusCargas.Select(t => t.Nombre()))}. Cada una con su factor de demanda; el tipo se cambia en cada línea del desplegable." : c.TipoElegido ? c.Categoria.Descripcion() : "Seleccionar el tipo de carga. Decide el factor de demanda y el cálculo.")"
-                                    value="@(c.TieneCargasCombinadas ? "Combinadas" : c.TipoElegido ? c.Categoria.ToString() : "")" disabled="@c.TieneCargasCombinadas" @onchange="e => ElegirTipo(c, e.Value?.ToString())">
-                                @if (c.TieneCargasCombinadas)
-                                {
-                                    <option value="Combinadas">Combinadas</option>
-                                }
-                                @if (!c.TipoElegido)
-                                {
-                                    <option value="">—</option>
-                                }
-                                @foreach (var categoria in Enum.GetValues<CategoriaDeCarga>()) { <option value="@categoria">@categoria.Nombre()</option> }
-                            </select>
-                            @* El uso solo cuenta en vivienda de más de 60 m² — 210-11(c), 220-52 (I-46). *@
-                            @if (c.Tipo == TipoCarga.Contactos && Datos.Inmueble.AplicaUsoDeContactos())
+                        @* LA CLASE DEL CIRCUITO, NO EL TIPO DE CARGA (captura-en-el-desplegable.md, David 2026-09-30): sale
+                           de sus líneas del desplegable; no se captura. *@
+                        <td rowspan="@c.Polos" class="clase-td">
+                            @if (c.SinTipo)
                             {
-                                <select class="tipo uso" data-col="uso" aria-label="Circuito @c.Espacio · Uso de los contactos" title="Seleccionar el uso del circuito de contactos. Cocina = aparatos pequeños (cocina, despensa, comedor, desayunador), lavadora y baño llevan 20 A — 210-11(c) — y solo esas salidas — 210-52(b)(2), 210-11(c)(2) y (3). Aparatos pequeños y lavadora cuentan 1500 VA en el alimentador — 220-52. Refrigerador: el contacto del refrigerador en su propio circuito, de 15 A o más — 210-52(b)(1) Excepción 2 —, fuera de los 1500 VA — 220-52(a) Excepción; conectado a los contactos de la cocina, va en Cocina y no se captura aparte. Solo en vivienda; no en la popular de hasta 60 m² ni fuera de vivienda."
-                                        @bind="c.Uso" @bind:after="Recalcular">
-                                    @foreach (var uso in Enum.GetValues<UsoDeContactos>()) { <option value="@uso">@uso.NombreCorto()</option> }
-                                </select>
-                                @if (c.Ajuste220_52VA > 0m)
+                                <span class="tenue">Sin tipo</span>
+                            }
+                            else if (c.ClaseDelCircuito is { } claseDelCircuito)
+                            {
+                                <span class="clase-circuito" title="@(claseDelCircuito.NombreNom()) — sale de sus cargas; no se captura.">@claseDelCircuito.Nombre()</span>
+                                @if (DetalleDeClase(c) is { } detalle)
                                 {
-                                    @* Notas cortas, en una línea; la referencia, en el título (David, 2026-09-29): partidas en
-                                       dos renglones, «Exc. 2» quedaba solo y la celda se veía amontonada. *@
-                                    <span class="en-va" title="Entra al alimentador con 1,500 VA — @c.UsoEfectivo.ReferenciaCargaMinima().">1,500 VA al alimentador</span>
-                                }
-                                else if (c.UsoEfectivo.Nota() is { } nota)
-                                {
-                                    <span class="en-va" title="210-52(b)(1) Excepción 2. @nota">Circuito individual</span>
+                                    <span class="en-va">@detalle</span>
                                 }
                             }
-                            </div>
+                            else
+                            {
+                                <span class="tenue">—</span>
+                            }
                         </td>
-                        <td rowspan="@c.Polos">
-                            @* Sin «Varios» (I-123): varios motores o motocompresores se capturan en el desplegable. *@
-                            <select class="unidad" data-col="unidad" aria-label="Circuito @c.Espacio · Unidad" value="@UnidadDe(c)" @onchange="e => CambiarUnidad(c, e.Value?.ToString())" disabled="@c.TieneDesglose" title="@AyudaUnidad(c)">
-                                @if (c.EsGrupo)
+                        @* LA CARGA, SOLO LECTURA: la suma de las líneas del desplegable, en VA. *@
+                        @if (c.EsDeMotor || c.EsGrupo)
+                        {
+                            <td rowspan="@c.Polos" colspan="2" class="num suma" title="@PlacaDelEquipo(c)">
+                                @(c.TieneCarga ? c.CargaInstaladaVA.ToString("#,0.##") : "")
+                                @if (c.TieneCarga && PlacaDelEquipo(c) is { Length: > 0 } placa)
                                 {
-                                    <option value="Grupo">A</option>
+                                    <span class="en-va">@placa</span>
                                 }
-                                else if (c.EsMotor)
-                                {
-                                    <option value="@nameof(CapturaDeMotor.Hp)">HP</option>
-                                    <option value="@nameof(CapturaDeMotor.Amperes)">A</option>
-                                    <option value="@nameof(CapturaDeMotor.Variador)">Vel. aj.</option>
-                                }
-                                else if (c.EsAireAcondicionado)
-                                {
-                                    <option value="@nameof(PlacaDeAireAcondicionado.AmpacidadYProteccion)">Ampac.</option>
-                                    <option value="@nameof(PlacaDeAireAcondicionado.CorrienteNominal)">Nominal</option>
-                                    <option value="@nameof(PlacaDeAireAcondicionado.Habitacion)">De hab.</option>
-                                }
-                                else
-                                {
-                                    <option value="@UnidadConsumo.VoltAmperes">VA</option>
-                                    <option value="@UnidadConsumo.Watts">W</option>
-                                    <option value="@UnidadConsumo.Amperes">A</option>
-                                }
-                            </select>
-                        </td>
-                        @* I-15, I-74: un motor o un equipo de A/C no tiene continua ni no continua; su placa ocupa las dos celdas. *@
-                        @if (c.EsGrupo)
-                        {
-                            @* I-115: la corriente del grupo es la suma de sus máquinas; se captura en el desglose. *@
-                            <td rowspan="@c.Polos" colspan="2">
-                                <input class="va" type="text" data-col="continua" aria-label="Circuito @c.Espacio · Corriente de los motores (A)" disabled
-                                       value="@(c.CorrienteDeMotorA > 0m ? $"{c.CorrienteDeMotorA:N2} A" : "")" placeholder="A"
-                                       title="@(c.EsAireAcondicionado
-                                           ? "Suma de las corrientes de las máquinas del desglose (la flecha junto a la descripción): motocompresores con su corriente de placa (440-6(a)), ventiladores con su FLC. Conductor por 440-33 / 440-34; protección por 440-22(b)."
-                                           : "Suma de las corrientes de los motores del desglose (la flecha junto a la descripción), cada uno con su FLC de tabla — 430-6(a). Conductor por 430-24; protección por 430-53(c)(4).")" />
-                                <span class="en-va">@(c.EsAireAcondicionado ? $"{MotoresEnHp.AlimentacionTexto(c.Polos, MotoresEnHp.Tension(c.Polos, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV))} · 440-22(b)" : Cuadro.AlimentacionDelMotor(c.Polos))</span>
-                            </td>
-                        }
-                        else if (c.EsMotor && c.CapturaMotor == CapturaDeMotor.Hp)
-                        {
-                            <td rowspan="@c.Polos" colspan="2">
-                                @* Los HP de las tres alimentaciones, agrupados: elegir uno de otra cambia los polos (I-114).
-                                   Antes solo se veían los de los polos del renglón, que nace en 1: un motor trifásico
-                                   pedía cambiar P primero, hasta el otro extremo del renglón. *@
-                                <select class="hp" data-col="continua" aria-label="Circuito @c.Espacio · HP" value="@ValorHpConPolos(c.Polos, c.Hp ?? 0m)" @onchange="e => CambiarHp(c, e.Value?.ToString())"
-                                        title="Seleccionar los caballos de placa del motor, con su corriente de tabla, agrupados por alimentación: elegir uno de otro grupo cambia los polos. La corriente sale de la tabla, no de la placa — 430-6(a). Dos polos a 220 V es monofásico (Tabla 430-248). Si la placa solo trae amperes, elegir A en la unidad.">
-                                    <option @key="@($"{c.Polos}|0")" value="@ValorHpConPolos(c.Polos, 0m)">—</option>
-                                    @* @key: la lista cambia con los polos (1 fase ↔ 3 fases); sin llave, Blazor reutilizaba las
-                                       opciones por posición y el selector decía «15 HP» con el motor en 5 (como I-45). *@
-                                    @for (var p = 1; p <= Datos.MaximoPolos; p++)
-                                    {
-                                        var polos = p;
-                                        var disponibles = Cuadro.HpDisponibles(polos);
-                                        if (disponibles.Count == 0) { continue; }
-                                        <optgroup @key="@($"g{polos}")" label="@Cuadro.AlimentacionDelMotor(polos) · @polos @(polos == 1 ? "polo" : "polos")">
-                                            @foreach (var hp in disponibles) { <option @key="@ValorHpConPolos(polos, hp)" value="@ValorHpConPolos(polos, hp)">@MotoresEnHp.Texto(hp) HP — @Cuadro.FlcDe(hp, polos).ToString("N2") A</option> }
-                                        </optgroup>
-                                    }
-                                    @if (c.Hp is > 0m and { } fuera && !Cuadro.HpDisponibles(c).Contains(fuera))
-                                    {
-                                        <option @key="@($"fuera|{fuera}")" value="@ValorHpConPolos(c.Polos, fuera)">@MotoresEnHp.Texto(fuera) HP</option>
-                                    }
-                                </select>
-                                <span class="en-va" title="@(c.FlcA > 0m ? $"Corriente a plena carga de la {Cuadro.FuenteDeFlc(c)} — 430-6(a): {c.FlcA:N2} A. La carga en VA es la FLC por la tensión del circuito{(c.Polos == 3 ? " por √3" : "")}: {c.MotorVA:#,0} VA." : $"La FLC sale de la {Cuadro.FuenteDeFlc(c)} — 430-6(a).")">@Cuadro.AlimentacionDelMotor(c.Polos)</span>
-                            </td>
-                        }
-                        else if (c.EsVariador)
-                        {
-                            @* I-119: la corriente de entrada del variador y la protección máxima de su fabricante, como la MCA y la MOCP de un A/C. *@
-                            <td rowspan="@c.Polos">
-                                <input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="A" data-col="continua" aria-label="Circuito @c.Espacio · Corriente de entrada del variador (A)" value="@Carga(c.CorrienteEntradaVariadorA)" @onchange="e => { c.CorrienteEntradaVariadorA = LeerCarga(e, c.CorrienteEntradaVariadorA); Recalcular(); }"
-                                       title="Capturar la corriente nominal de entrada del variador, de su placa. El conductor es 125 % de ella — 430-122(a); la FLC del motor no se usa." />
-                                <span class="en-va" title="@AyudaDeEntrada(c)">Entrada</span>
-                            </td>
-                            <td rowspan="@c.Polos">
-                                <input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="Máx." data-col="nocontinua" aria-label="Circuito @c.Espacio · Protección máxima del variador (A)" value="@Carga(c.ProteccionMaximaVariadorA)" @onchange="e => { c.ProteccionMaximaVariadorA = LeerCarga(e, c.ProteccionMaximaVariadorA); Recalcular(); }"
-                                       title="Capturar la protección máxima que marca el fabricante del variador (fusible o interruptor). La del circuito no la excede — 110-3(b)." />
-                                <span class="en-va">Prot. máx.</span>
-                            </td>
-                        }
-                        else if (c.EsMotor)
-                        {
-                            <td rowspan="@c.Polos" colspan="2">
-                                <input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="A" data-col="continua" aria-label="Circuito @c.Espacio · Corriente de placa del motor (A)" value="@Carga(c.CorrientePlacaA)" @onchange="e => { c.CorrientePlacaA = LeerCarga(e, c.CorrientePlacaA); Recalcular(); }"
-                                       title="Capturar la corriente de placa de un motor que no trae HP. Se toman los HP que le corresponden en la tabla, interpolando; su FLC es esa corriente — 430-6(a)(1)." />
-                                @if (c.MotorEnAmperes is { } m)
-                                {
-                                    <span class="en-va" title="@MotoresEnHp.Interpolacion(m, c.Polos) — 430-6(a)(1). La carga en VA es la FLC por la tensión del circuito@(c.Polos == 3 ? " por √3" : ""): @c.MotorVA.ToString("#,0") VA. @Cuadro.AlimentacionDelMotor(c.Polos).">@m.Hp.ToString("0.##") HP · @MotoresEnHp.AlimentacionTexto(c.Polos, MotoresEnHp.Tension(c.Polos, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV))</span>
-                                }
-                                else
-                                {
-                                    <span class="en-va">@Cuadro.AlimentacionDelMotor(c.Polos)</span>
-                                }
-                            </td>
-                        }
-                        else if (c.EsAireAcondicionado && c.PlacaAire == PlacaDeAireAcondicionado.AmpacidadYProteccion)
-                        {
-                            <td rowspan="@c.Polos">
-                                <input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="Ampac." data-col="continua" aria-label="Circuito @c.Espacio · Ampacidad de los conductores (MCA)" value="@Carga(c.AmpacidadMinimaA)" @onchange="e => { c.AmpacidadMinimaA = LeerCarga(e, c.AmpacidadMinimaA); Recalcular(); }"
-                                       title="Capturar la ampacidad mínima de los conductores que marca la placa (MCA, «Min. circuit ampacity») — 440-4(b). Ya trae el 125 % del motor mayor." />
-                                <span class="en-va" title="Ampacidad de los conductores de la placa (MCA) — 440-4(b). @MotoresEnHp.AlimentacionTexto(c.Polos, MotoresEnHp.Tension(c.Polos, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV)).@(c.MotorVA > 0m ? $" {c.MotorVA:#,0} VA: la MCA por la tensión del circuito." : null)">Ampacidad</span>
-                            </td>
-                            <td rowspan="@c.Polos">
-                                <input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="Máx." data-col="nocontinua" aria-label="Circuito @c.Espacio · Protección máxima (MOCP)" value="@Carga(c.ProteccionMaximaA)" @onchange="e => { c.ProteccionMaximaA = LeerCarga(e, c.ProteccionMaximaA); Recalcular(); }"
-                                       title="Capturar la protección máxima que marca la placa (MOCP, «Max. fuse / breaker») — 440-4(b). La protección del circuito no la excede." />
-                                <span class="en-va">Prot. máx.</span>
-                            </td>
-                        }
-                        else if (c.EsAireAcondicionado && c.PlacaAire == PlacaDeAireAcondicionado.Habitacion)
-                        {
-                            @* I-117: acondicionador de habitación con cordón y clavija, en su circuito — 440 Parte G. *@
-                            <td rowspan="@c.Polos" colspan="2">
-                                <input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="A" data-col="continua" aria-label="Circuito @c.Espacio · Corriente total del acondicionador (A)" value="@Carga(c.CorrientePlacaA)" @onchange="e => { c.CorrientePlacaA = LeerCarga(e, c.CorrientePlacaA); Recalcular(); }"
-                                       title="Capturar la corriente total de carga nominal de la placa del acondicionador de habitación (ventana, consola o pared, con cordón y clavija). Cuenta como una sola unidad de motor; sin otras cargas no pasa del 80 % del circuito — 440-62." />
-                                <span class="en-va" title="@(c.MotorVA > 0m ? $"{c.MotorVA:#,0} VA: la corriente por la tensión del circuito." : null)">De hab. · @MotoresEnHp.AlimentacionTexto(c.Polos, MotoresEnHp.Tension(c.Polos, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV))</span>
-                            </td>
-                        }
-                        else if (c.EsAireAcondicionado)
-                        {
-                            <td rowspan="@c.Polos">
-                                <input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="A" data-col="continua" aria-label="Circuito @c.Espacio · Corriente de carga nominal (A)" value="@Carga(c.CorrientePlacaA)" @onchange="e => { c.CorrientePlacaA = LeerCarga(e, c.CorrientePlacaA); Recalcular(); }"
-                                       title="Capturar la corriente de carga nominal del motocompresor que marca la placa (RLA) — 440-6(a). Conductor al 125 % (440-32); protección hasta 175 % (440-22(a))." />
-                                <span class="en-va" title="@(c.MotorVA > 0m ? $"{c.MotorVA:#,0} VA: la corriente por la tensión del circuito." : null)">Nominal · @MotoresEnHp.AlimentacionTexto(c.Polos, MotoresEnHp.Tension(c.Polos, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV))</span>
-                            </td>
-                            <td rowspan="@c.Polos">
-                                <input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="—" data-col="nocontinua" aria-label="Circuito @c.Espacio · Corriente de selección del circuito (A)" value="@Carga(c.CorrienteSeleccionA ?? 0m)" @onchange="e => { var v = LeerCarga(e, c.CorrienteSeleccionA ?? 0m); c.CorrienteSeleccionA = v > 0m ? v : null; Recalcular(); }"
-                                       title="Capturar la corriente de selección del circuito derivado, si la placa la trae. Si es mayor que la nominal, se usa ella — 440-6(a) Excepción 1." />
-                                <label class="mas-n" title="Marcar si la protección al 175 % no conduce la corriente de arranque del equipo: el máximo sube a 225 % — 440-22(a).">
-                                    <input type="checkbox" aria-label="Circuito @c.Espacio · No arranca al 175 %" checked="@c.ArranqueAl225" @onchange="e => { c.ArranqueAl225 = e.Value is true; Recalcular(); }" />225 %</label>
                             </td>
                         }
                         else
                         {
-                        <td rowspan="@c.Polos">
-                            <input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="0" data-col="continua" aria-label="Circuito @c.Espacio · Continua" value="@Carga(c.Continua)" @onchange="e => { c.Continua = LeerCarga(e, c.Continua); Recalcular(); }"
-                                   disabled="@c.TieneDesglose" title="@SumaDelDesglose(c)" />
-                            @EnVA(c, c.Continua, c.ContinuaVA)
-                        </td>
-                        <td rowspan="@c.Polos">
-                            <input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="0" data-col="nocontinua" aria-label="Circuito @c.Espacio · No continua" value="@Carga(c.NoContinua)" @onchange="e => { c.NoContinua = LeerCarga(e, c.NoContinua); Recalcular(); }"
-                                   disabled="@(c.TieneDesglose || c.Categoria == CategoriaDeCarga.CalefaccionFija)"
-                                   title="@(c.Categoria == CategoriaDeCarga.CalefaccionFija ? "Calefacción fija: carga continua — 424-3(b)." : SumaDelDesglose(c))" />
-                            @EnVA(c, c.NoContinua, c.NoContinuaVA)
-                        </td>
+                            <td rowspan="@c.Polos" class="num suma">@(c.TieneCarga && c.ContinuaVA > 0m ? c.ContinuaVA.ToString("#,0.##") : "")</td>
+                            <td rowspan="@c.Polos" class="num suma">@(c.TieneCarga && c.NoContinuaVA > 0m ? c.NoContinuaVA.ToString("#,0.##") : "")</td>
                         }
-                        <td rowspan="@c.Polos"><input data-requerido data-col="fp" aria-label="Circuito @c.Espacio · F.P." class="va fp" type="text" inputmode="decimal" autocomplete="off" data-numero min="@FactorMinimo" max="1" step="0.05" title="@(c.TieneDesglose ? "F.P. combinado de los aparatos: P ÷ √(P² + Q²)." : AyudaFactorPotencia(c))" value="@Factor(c.FactorPotencia)" @onchange="e => { c.FactorPotencia = LeerFactor(e, c.FactorPotencia); Recalcular(); }" disabled="@c.TieneDesglose" /></td>
+                        <td rowspan="@c.Polos" class="num suma" title="F.P. del conjunto de sus cargas: P ÷ √(P² + Q²).">@(c.TieneCarga ? c.FactorPotencia.ToString("N2") : "")</td>
                         @foreach (var barra in Datos.Barras)
                         {
                             <td rowspan="@c.Polos" class="num tenue col-fase">@(c.TieneCarga && c.Fases.Contains(barra) ? c.CargaPorFaseVA.ToString("#,0.##") : "")</td>
@@ -576,7 +416,7 @@
                                         <span class="nota-opcion">No entra al alimentador: es el menor del par.</span>
                                     }
                                 </div>
-                                @if (MuestraSalidas(c))
+                                @if (c.Categoria != CategoriaDeCarga.Tablero || c.SubtipoDelRenglon is not null)
                                 {
                                 <table class="desglose" data-circuito="@c.Espacio">
                                     <thead>
@@ -596,29 +436,176 @@
                                         </tr>
                                     </thead>
                                     <tbody>
+                                        @if (c.SubtipoDelRenglon is { } subtipoDelRenglon)
+                                        {
+                                            @* UN SOLO EQUIPO (captura-en-el-desplegable.md): un motor, un variador, un motocompresor, un A/A con
+                                               ampacidad de placa, uno de habitación u otro tablero. Se captura aquí, en su línea; el renglón
+                                               lo resume. *@
+                                            var tipoDelRenglon = subtipoDelRenglon.Tipo();
+                                            <tr class="linea-renglon">
+                                                <td class="izq"><span class="tenue" title="La descripción es la del renglón: la etiqueta del espacio.">@(string.IsNullOrWhiteSpace(c.Descripcion) ? "Equipo del circuito" : c.Descripcion)</span></td>
+                                                <td>
+                                                    <select class="tipo" data-col="ap-tipo" aria-label="Circuito @c.Espacio, equipo · Tipo" value="@tipoDelRenglon" title="@tipoDelRenglon.Descripcion()" @onchange="e => CambiarTipoDelRenglon(c, e.Value?.ToString())">
+                                                        @foreach (var t in CategoriasDeCarga.Todas) { <option value="@t">@t.Nombre()</option> }
+                                                    </select>
+                                                </td>
+                                                <td class="subtipo">
+                                                    <select class="subtipo" data-col="ap-subtipo" aria-label="Circuito @c.Espacio, equipo · Subtipo" value="@subtipoDelRenglon" title="@(GuiaDeCargas.DeSubtipo(subtipoDelRenglon).NombreNom ?? subtipoDelRenglon.Nombre())" @onchange="e => CambiarSubtipoDelRenglon(c, e.Value?.ToString())">
+                                                        @foreach (var sub in SubtiposDeCarga.De(tipoDelRenglon)) { <option @key="sub" value="@sub">@sub.Nombre()</option> }
+                                                    </select>
+                                                    <a class="a-la-guia" href="@($"guia#{GuiaDeCargas.Ancla(GuiaDeCargas.DeSubtipo(subtipoDelRenglon))}")" target="_blank" rel="noopener" tabindex="-1" title="Abrir su rama en la guía de cargas, en otra pestaña." aria-label="Guía: @subtipoDelRenglon.Nombre()">?</a>
+                                                </td>
+                                                <td><span title="Va solo en su circuito: un equipo.">1</span></td>
+                                                <td>
+                                                    @if (c.EsMotor && !c.EsVariador)
+                                                    {
+                                                        <select class="unidad" data-col="ap-unidad" aria-label="Circuito @c.Espacio, equipo · Unidad" value="@c.CapturaMotor" @onchange="e => CambiarUnidad(c, e.Value?.ToString())" title="HP: los caballos de placa, con su corriente de tabla. A: la corriente de placa de un motor que no trae HP; se le asignan los HP de la tabla, interpolando — 430-6(a)(1).">
+                                                            <option value="@nameof(CapturaDeMotor.Hp)">HP</option>
+                                                            <option value="@nameof(CapturaDeMotor.Amperes)">A</option>
+                                                        </select>
+                                                    }
+                                                    else if (c.Categoria == CategoriaDeCarga.Tablero)
+                                                    {
+                                                        <select class="unidad" data-col="ap-unidad" aria-label="Circuito @c.Espacio, equipo · Unidad" value="@c.Unidad" @onchange="e => CambiarUnidad(c, e.Value?.ToString())">
+                                                            <option value="@UnidadConsumo.VoltAmperes">VA</option>
+                                                            <option value="@UnidadConsumo.Watts">W</option>
+                                                            <option value="@UnidadConsumo.Amperes">A</option>
+                                                        </select>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="clase-motor">A</span>
+                                                    }
+                                                </td>
+                                                @if (c.EsMotor && c.CapturaMotor == CapturaDeMotor.Hp)
+                                                {
+                                                    <td>
+                                                        <select class="hp" aria-label="Circuito @c.Espacio · HP" value="@ValorHpConPolos(c.Polos, c.Hp ?? 0m)" @onchange="e => CambiarHp(c, e.Value?.ToString())"
+title="Seleccionar los caballos de placa del motor, con su corriente de tabla, agrupados por alimentación: elegir uno de otro grupo cambia los polos. La corriente sale de la tabla, no de la placa — 430-6(a). Dos polos a 220 V es monofásico (Tabla 430-248). Si la placa solo trae amperes, elegir A en la unidad.">
+<option @key="@($"{c.Polos}|0")" value="@ValorHpConPolos(c.Polos, 0m)">—</option>
+@* @key: la lista cambia con los polos (1 fase ↔ 3 fases); sin llave, Blazor reutilizaba las
+opciones por posición y el selector decía «15 HP» con el motor en 5 (como I-45). *@
+@for (var p = 1; p <= Datos.MaximoPolos; p++)
+{
+var polos = p;
+var disponibles = Cuadro.HpDisponibles(polos);
+if (disponibles.Count == 0) { continue; }
+<optgroup @key="@($"g{polos}")" label="@Cuadro.AlimentacionDelMotor(polos) · @polos @(polos == 1 ? "polo" : "polos")">
+@foreach (var hp in disponibles) { <option @key="@ValorHpConPolos(polos, hp)" value="@ValorHpConPolos(polos, hp)">@MotoresEnHp.Texto(hp) HP — @Cuadro.FlcDe(hp, polos).ToString("N2") A</option> }
+</optgroup>
+}
+@if (c.Hp is > 0m and { } fuera && !Cuadro.HpDisponibles(c).Contains(fuera))
+{
+<option @key="@($"fuera|{fuera}")" value="@ValorHpConPolos(c.Polos, fuera)">@MotoresEnHp.Texto(fuera) HP</option>
+}
+</select>
+                                                        <span class="nota-min">@Cuadro.AlimentacionDelMotor(c.Polos)@(c.FlcA > 0m ? $" · FLC {c.FlcA:N2} A" : "")</span>
+                                                    </td>
+                                                }
+                                                else if (c.EsVariador)
+                                                {
+                                                    <td class="dos-campos">
+                                                        <input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="A" aria-label="Circuito @c.Espacio · Corriente de entrada del variador (A)" value="@Carga(c.CorrienteEntradaVariadorA)" @onchange="e => { c.CorrienteEntradaVariadorA = LeerCarga(e, c.CorrienteEntradaVariadorA); Recalcular(); }"
+title="Capturar la corriente nominal de entrada del variador, de su placa. El conductor es 125 % de ella — 430-122(a); la FLC del motor no se usa." />
+                                                        <input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="Máx." aria-label="Circuito @c.Espacio · Protección máxima del variador (A)" value="@Carga(c.ProteccionMaximaVariadorA)" @onchange="e => { c.ProteccionMaximaVariadorA = LeerCarga(e, c.ProteccionMaximaVariadorA); Recalcular(); }"
+title="Capturar la protección máxima que marca el fabricante del variador (fusible o interruptor). La del circuito no la excede — 110-3(b)." />
+                                                        <span class="nota-min">Entrada · Prot. máx. — 430-122(a), 110-3(b)</span>
+                                                    </td>
+                                                }
+                                                else if (c.EsMotor)
+                                                {
+                                                    <td>
+                                                        <input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="A" aria-label="Circuito @c.Espacio · Corriente de placa del motor (A)" value="@Carga(c.CorrientePlacaA)" @onchange="e => { c.CorrientePlacaA = LeerCarga(e, c.CorrientePlacaA); Recalcular(); }"
+title="Capturar la corriente de placa de un motor que no trae HP. Se toman los HP que le corresponden en la tabla, interpolando; su FLC es esa corriente — 430-6(a)(1)." />
+                                                        @if (c.MotorEnAmperes is { } m)
+                                                        {
+                                                            <span class="nota-min" title="@MotoresEnHp.Interpolacion(m, c.Polos) — 430-6(a)(1).">@m.Hp.ToString("0.##") HP · @Cuadro.AlimentacionDelMotor(c.Polos)</span>
+                                                        }
+                                                    </td>
+                                                }
+                                                else if (c.EsAireAcondicionado && c.PlacaAire == PlacaDeAireAcondicionado.AmpacidadYProteccion)
+                                                {
+                                                    <td class="dos-campos">
+                                                        <input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="Ampac." aria-label="Circuito @c.Espacio · Ampacidad de los conductores (MCA)" value="@Carga(c.AmpacidadMinimaA)" @onchange="e => { c.AmpacidadMinimaA = LeerCarga(e, c.AmpacidadMinimaA); Recalcular(); }"
+title="Capturar la ampacidad mínima de los conductores que marca la placa (MCA, «Min. circuit ampacity») — 440-4(b). Ya trae el 125 % del motor mayor." />
+                                                        <input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="Máx." aria-label="Circuito @c.Espacio · Protección máxima (MOCP)" value="@Carga(c.ProteccionMaximaA)" @onchange="e => { c.ProteccionMaximaA = LeerCarga(e, c.ProteccionMaximaA); Recalcular(); }"
+title="Capturar la protección máxima que marca la placa (MOCP, «Max. fuse / breaker») — 440-4(b). La protección del circuito no la excede." />
+                                                        <span class="nota-min">Ampacidad · Prot. máx. — 440-4(b)</span>
+                                                    </td>
+                                                }
+                                                else if (c.EsAireAcondicionado && c.PlacaAire == PlacaDeAireAcondicionado.Habitacion)
+                                                {
+                                                    <td>
+                                                        <input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="A" aria-label="Circuito @c.Espacio · Corriente total del acondicionador (A)" value="@Carga(c.CorrientePlacaA)" @onchange="e => { c.CorrientePlacaA = LeerCarga(e, c.CorrientePlacaA); Recalcular(); }"
+title="Capturar la corriente total de carga nominal de la placa del acondicionador de habitación (ventana, consola o pared, con cordón y clavija). Cuenta como una sola unidad de motor; sin otras cargas no pasa del 80 % del circuito — 440-62." />
+                                                        <span class="nota-min">Corriente total — 440 Parte G</span>
+                                                    </td>
+                                                }
+                                                else if (c.EsAireAcondicionado)
+                                                {
+                                                    <td class="dos-campos">
+                                                        <input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="A" aria-label="Circuito @c.Espacio · Corriente de carga nominal (A)" value="@Carga(c.CorrientePlacaA)" @onchange="e => { c.CorrientePlacaA = LeerCarga(e, c.CorrientePlacaA); Recalcular(); }"
+title="Capturar la corriente de carga nominal del motocompresor que marca la placa (RLA) — 440-6(a). Conductor al 125 % (440-32); protección hasta 175 % (440-22(a))." />
+                                                        <input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="—" aria-label="Circuito @c.Espacio · Corriente de selección del circuito (A)" value="@Carga(c.CorrienteSeleccionA ?? 0m)" @onchange="e => { var v = LeerCarga(e, c.CorrienteSeleccionA ?? 0m); c.CorrienteSeleccionA = v > 0m ? v : null; Recalcular(); }"
+title="Capturar la corriente de selección del circuito derivado, si la placa la trae. Si es mayor que la nominal, se usa ella — 440-6(a) Excepción 1." />
+                                                        <span class="nota-min">Nominal · Selección — 440-6(a)</span>
+                                                    </td>
+                                                }
+                                                else
+                                                {
+                                                    @* Otro tablero: una línea con dos cantidades, ya con sus factores de demanda — 220-40. *@
+                                                    <td class="dos-campos">
+                                                        <input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="Continua" data-col="ap-carga" aria-label="Circuito @c.Espacio, tablero · Continua" value="@Carga(c.Continua)" @onchange="e => { c.Continua = LeerCarga(e, c.Continua); Recalcular(); }"
+                                                               title="Capturar la carga continua calculada del otro tablero, ya con sus factores de demanda." />
+                                                        <input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="No cont." aria-label="Circuito @c.Espacio, tablero · No continua" value="@Carga(c.NoContinua)" @onchange="e => { c.NoContinua = LeerCarga(e, c.NoContinua); Recalcular(); }"
+                                                               title="Capturar la carga no continua calculada del otro tablero, ya con sus factores de demanda." />
+                                                        <span class="nota-min">Continua · No continua — sin F.D. aquí, 220-40</span>
+                                                    </td>
+                                                }
+                                                <td>
+                                                    @if (c.EsAireAcondicionado && c.PlacaAire == PlacaDeAireAcondicionado.CorrienteNominal)
+                                                    {
+                                                        <label class="arranque-225" title="Marcar si la protección al 175 % no conduce la corriente de arranque del equipo: el máximo sube a 225 % — 440-22(a).">
+                                                            <input type="checkbox" aria-label="Circuito @c.Espacio · No arranca al 175 %" checked="@c.ArranqueAl225" @onchange="e => { c.ArranqueAl225 = e.Value is true; Recalcular(); }" />225 %</label>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="clase-motor">@(c.Categoria == CategoriaDeCarga.Tablero ? "las dos" : c.EsMotor ? "motor" : "equipo")</span>
+                                                    }
+                                                </td>
+                                                <td><input data-requerido class="va fp" type="text" inputmode="decimal" autocomplete="off" data-numero min="@FactorMinimo" max="1" step="0.05" data-col="ap-fp" aria-label="Circuito @c.Espacio, equipo · F.P." value="@Factor(c.FactorPotencia)" @onchange="e => { c.FactorPotencia = LeerFactor(e, c.FactorPotencia); Recalcular(); }" /></td>
+                                                <td class="num">@c.CargaInstaladaVA.ToString("#,0.##")</td>
+                                                <td><button class="quitar" title="Quitar el equipo" aria-label="Quitar el equipo del circuito @c.Espacio" @onclick="() => QuitarRenglon(c)"><Icono Nombre="quitar" Tamano="14" /></button></td>
+                                            </tr>
+                                        }
                                         @foreach (var (aparato, n) in c.Cargas.Select((a, i) => (a, i + 1)))
                                         {
                                             var tipoDeLinea = c.TipoDe(aparato);
                                             <tr>
                                                 <td class="izq"><input class="desc" data-col="ap-desc" aria-label="Circuito @c.Espacio, carga @n · Descripción" @bind="aparato.Descripcion" @bind:after="Recalcular" placeholder="Descripción" /></td>
                                                 <td>
-                                                    <select class="tipo" data-col="ap-tipo" aria-label="Circuito @c.Espacio, carga @n · Tipo" value="@tipoDeLinea" title="@tipoDeLinea.Descripcion()" @onchange="e => CambiarTipoDeCarga(c, aparato, e.Value?.ToString())">
-                                                        @foreach (var t in CategoriasDeCarga.Todas.Where(t => t != CategoriaDeCarga.Tablero)) { <option value="@t">@t.Nombre()</option> }
+                                                    <select class="tipo" data-col="ap-tipo" aria-label="Circuito @c.Espacio, carga @n · Tipo" value="@(aparato.Subtipo is null && !c.TipoElegido ? "" : tipoDeLinea.ToString())" title="@tipoDeLinea.Descripcion()" @onchange="e => CambiarTipoDeCarga(c, aparato, e.Value?.ToString())">
+                                                        @if (aparato.Subtipo is null && !c.TipoElegido)
+                                                        {
+                                                            <option value="">—</option>
+                                                        }
+                                                        @foreach (var t in CategoriasDeCarga.Todas.Where(t => t != CategoriaDeCarga.Tablero || c.Cargas.Count == 1)) { <option value="@t">@t.Nombre()</option> }
                                                     </select>
                                                 </td>
                                                 <td class="subtipo">
-                                                    <select class="subtipo" data-col="ap-subtipo" aria-label="Circuito @c.Espacio, carga @n · Subtipo" value="@(aparato.Subtipo?.ToString() ?? "")" @onchange="e => CambiarSubtipo(aparato, e.Value?.ToString())"
+                                                    <select class="subtipo" data-col="ap-subtipo" aria-label="Circuito @c.Espacio, carga @n · Subtipo" value="@(aparato.Subtipo?.ToString() ?? "")" @onchange="e => CambiarSubtipo(c, aparato, e.Value?.ToString())"
                                                             title="@(aparato.Subtipo is { } st ? GuiaDeCargas.DeSubtipo(st).NombreNom ?? st.Nombre() : "Sin subtipo: la carga toma el tipo del circuito.")">
                                                         @if (aparato.Subtipo is null)
                                                         {
                                                             <option value="">—</option>
                                                         }
-                                                        @foreach (var sub in SubtiposDeCarga.De(tipoDeLinea).Where(x => !x.SoloEnElRenglon())) { <option @key="sub" value="@sub">@sub.Nombre()</option> }
+                                                        @foreach (var sub in SubtiposDeCarga.De(tipoDeLinea).Where(x => !x.SoloEnElRenglon() || c.Cargas.Count == 1)) { <option @key="sub" value="@sub">@sub.Nombre()</option> }
                                                     </select>
                                                     <a class="a-la-guia" href="@($"guia#{GuiaDeCargas.Ancla(aparato.Subtipo is { } sg ? GuiaDeCargas.DeSubtipo(sg) : GuiaDeCargas.DeTipo(tipoDeLinea))}")" target="_blank" rel="noopener" tabindex="-1"
                                                        title="Abrir su rama en la guía de cargas, en otra pestaña." aria-label="Guía: @(aparato.Subtipo?.Nombre() ?? tipoDeLinea.Nombre())">?</a>
                                                 </td>
-                                                <td><input data-requerido data-col="ap-cant" aria-label="Circuito @c.Espacio, carga @n · Cantidad" class="va corto" type="text" inputmode="decimal" autocomplete="off" data-numero min="1" step="1" @bind="aparato.Cantidad" @bind:culture="CultureInfo.InvariantCulture" @bind:after="Recalcular" /></td>
+                                                <td><input data-requerido data-col="ap-cant" aria-label="Circuito @c.Espacio, carga @n · Cantidad" class="va corto" type="text" inputmode="decimal" autocomplete="off" data-numero min="1" step="1" @bind="aparato.Cantidad" @bind:culture="CultureInfo.InvariantCulture" @bind:after="() => TrasEditarLinea(c)"
+                                                           disabled="@(aparato.Subtipo?.VaSolo() == true)" title="@(aparato.Subtipo?.VaSolo() == true ? "Va solo en su circuito: uno." : null)" /></td>
                                                 <td>
                                                     @* La unidad según cómo se captura: la fija el subtipo (I-123). *@
                                                     <select class="unidad" data-col="ap-unidad" aria-label="Circuito @c.Espacio, carga @n · Unidad" value="@UnidadDeMiembro(aparato)" @onchange="e => CambiarUnidadDeMiembro(aparato, e.Value?.ToString())">
@@ -714,8 +701,8 @@
                                     <tfoot>
                                         <tr>
                                             <td class="izq">
-                                                <button class="agregar" data-agregar="@c.Espacio" @onclick="() => AgregarCarga(c)"
-                                                        title="@(c.EsDeMotor && !c.TieneDesglose ? "Agregar otra carga: lo capturado en el renglón pasa a ser la primera línea, y el circuito se calcula como grupo — 430-53, 440-22(b)." : "Agregar una salida o una carga al circuito.")"><Icono Nombre="agregar" Tamano="14" />Agregar carga</button>
+                                                <button class="agregar" data-agregar="@c.Espacio" @onclick="() => AgregarCarga(c)" disabled="@(VaSolo(c) is not null)"
+                                                        title="@(VaSolo(c) is { } solo ? $"{solo} va solo en su circuito: no admite otra carga." : c.SubtipoDelRenglon is not null ? "Agregar otra carga: el equipo pasa a ser la primera línea, y el circuito se calcula como grupo — 430-53, 440-22(b)." : "Agregar una salida o una carga al circuito.")"><Icono Nombre="agregar" Tamano="14" />Agregar carga</button>
                                             </td>
                                             <td colspan="9" class="num">
                                                 @if (grupo && c.EsAireAcondicionado && c.Cargas.Any(a => a.Clase == ClaseDeAparato.Motocompresor))
@@ -1689,7 +1676,7 @@
     private static bool LlevaNotas(CircuitoDelCuadro c) =>
         c.Polos == 1 && (c.TieneCarga || c.TieneDesglose || c.EsMotor || c.EsAireAcondicionado || c.Unidad != UnidadConsumo.VoltAmperes);
 
-    private int Columnas => 16 + Datos.Barras.Count;
+    private int Columnas => 15 + Datos.Barras.Count;
 
     /// <summary>Los dos bloques del cuadro, ya materializados: cada uno se recorre más de una vez.</summary>
     private IReadOnlyList<IReadOnlyList<CircuitoDelCuadro>> Lados => Cuadro.Lados;
@@ -1742,29 +1729,6 @@
         builder.CloseElement();
     };
 
-    /// <summary>
-    /// El VA con el que de verdad se calcula, debajo de lo capturado en W o A — I-25. En VA no se
-    /// repite: sería el mismo número dos veces.
-    /// </summary>
-    private static RenderFragment? EnVA(CircuitoDelCuadro c, decimal capturado, decimal va) =>
-        c.Unidad == UnidadConsumo.VoltAmperes || capturado <= 0m
-            ? null
-            : @<span class="en-va">= @va.ToString("#,0.##") VA</span>;
-
-    /// <summary>
-    /// Qué hace el F.P. en ESTE renglón, que depende de la unidad: con W convierte a VA y mueve todo;
-    /// con VA o A la corriente no pasa por él, y solo mueve la caída de tensión y los kW.
-    /// </summary>
-    private static string AyudaFactorPotencia(CircuitoDelCuadro c) =>
-        c.EsMotor
-        ? "Motor: la corriente es la FLC de tabla — 430-6(a). El F.P. modifica solo la caída de tensión (y el conductor, si excede el límite) y los kW."
-        : c.EsAireAcondicionado
-        ? "A/C y refrigeración: la corriente es la de la placa — 440-6(a), 440-4(b). El F.P. modifica solo la caída de tensión (y el conductor, si excede el límite) y los kW."
-        : c.Unidad == UnidadConsumo.Watts
-        ? "Capturada en W: VA = W ÷ F.P. Modifica corriente, protección, conductor, caída de tensión y kW."
-        : $"Capturada en {(c.Unidad == UnidadConsumo.Amperes ? "A" : "VA")}: el F.P. no modifica la corriente ni la protección. " +
-          "Modifica la caída de tensión (y el conductor, si excede el límite) y los kW.";
-
     /// <summary>«6.77 % (fase C)»: la caída del alimentador y la fase que la da.</summary>
     private static string CaidaDelAlimentador(ResultadoAlimentador a) =>
         a.CaidaPorFase is { Count: > 0 } fases
@@ -1789,35 +1753,22 @@
             return;
         }
         _desgloseAbierto.Add(c.Espacio);
+        // Un archivo de antes traía la carga en el renglón: al abrir, pasa a sus líneas, con su subtipo.
+        if (c.RenglonALineas(conSubtipo: true))
+            Recalcular();
         _enfocar = c.Cargas.Count > 0 ? DescripcionDeAparato(c.Espacio, 1) : AgregarDe(c.Espacio);
     }
-
-    /// <summary>
-    /// La tabla de salidas y cargas: en cualquier circuito que se desglosa, y en un motor o un motocompresor
-    /// del renglón, para agregarle otra carga (sin la unidad «Varios» — I-123). Un variador, un A/C con
-    /// ampacidad de placa, uno de habitación y otro tablero son un solo equipo.
-    /// </summary>
-    private static bool MuestraSalidas(CircuitoDelCuadro c) =>
-        c.Categoria != CategoriaDeCarga.Tablero &&
-        (!c.EsDeMotor || c.EsGrupo
-         || (c.EsMotor && c.CapturaMotor is CapturaDeMotor.Hp or CapturaDeMotor.Amperes)
-         || (c.EsAireAcondicionado && c.PlacaAire == PlacaDeAireAcondicionado.CorrienteNominal));
 
     /// <summary>Una línea nueva lleva ya su subtipo: el primero del tipo del circuito — I-123.</summary>
     private void AgregarCarga(CircuitoDelCuadro c)
     {
         var nueva = c.AgregarCarga();
-        nueva.Subtipo = SubtiposDeCarga.PorOmision(c.Categoria);
+        // Sin tipo elegido, la línea empieza en «—»: el tipo se escoge en ella, una sola vez.
+        nueva.Subtipo = c.TipoElegido ? SubtiposDeCarga.PorOmision(c.Categoria) : null;
         Recalcular();
         _enfocar = DescripcionDeAparato(c.Espacio, c.Cargas.Count);
     }
 
-    private void AgregarMotor(CircuitoDelCuadro c, ClaseDeAparato clase = ClaseDeAparato.Motor)
-    {
-        c.AgregarMotor(clase);
-        Recalcular();
-        _enfocar = DescripcionDeAparato(c.Espacio, c.Cargas.Count);
-    }
 
     /// <summary>«3 motores», «2 motores, 1 carga»: lo que lleva un grupo — I-115.</summary>
     private static string TextoDelGrupo(CircuitoDelCuadro c)
@@ -1839,19 +1790,124 @@
     /// </summary>
     private void CambiarTipoDeCarga(CircuitoDelCuadro c, CargaDelCircuito a, string? valor)
     {
-        if (!Enum.TryParse<CategoriaDeCarga>(valor, out var tipo) || tipo == CategoriaDeCarga.Tablero)
+        if (!Enum.TryParse<CategoriaDeCarga>(valor, out var tipo))
             return;
+        if (!c.TipoElegido)
+            c.Categoria = tipo;
+        if (tipo == CategoriaDeCarga.Tablero)
+        {
+            CambiarSubtipo(c, a, nameof(SubtipoDeCarga.TableroAlimentado));
+            return;
+        }
         var subtipos = SubtiposDeCarga.De(tipo).Where(s => !s.SoloEnElRenglon()).ToList();
         a.Subtipo = subtipos.FirstOrDefault(s => s.Clase() == a.Clase, subtipos[0]);
+        TrasEditarLinea(c);
+    }
+
+    /// <summary>
+    /// El subtipo de una línea. Un variador, un A/A con ampacidad de placa y otro tablero van solos: el
+    /// circuito pasa a ese equipo, con lo capturado en la línea — captura-en-el-desplegable.md.
+    /// </summary>
+    private void CambiarSubtipo(CircuitoDelCuadro c, CargaDelCircuito a, string? valor)
+    {
+        if (!Enum.TryParse<SubtipoDeCarga>(valor, out var subtipo))
+            return;
+        if (subtipo.SoloEnElRenglon())
+        {
+            if (!c.PasarARenglon(subtipo))
+                Avisar($"{subtipo.Nombre()} va solo en su circuito: quita primero las demás líneas del circuito {c.Espacio}.", bien: false);
+            Recalcular();
+            return;
+        }
+        a.Subtipo = subtipo;
+        TrasEditarLinea(c);
+    }
+
+    /// <summary>Un solo motor, motocompresor o acondicionador de habitación se calcula con su artículo, no como grupo.</summary>
+    private void TrasEditarLinea(CircuitoDelCuadro c)
+    {
+        c.LineaARenglon();
         Recalcular();
     }
 
-    private void CambiarSubtipo(CargaDelCircuito a, string? valor)
+    /// <summary>El tipo del equipo capturado en el renglón: toma el subtipo por omisión del nuevo tipo.</summary>
+    private void CambiarTipoDelRenglon(CircuitoDelCuadro c, string? valor)
     {
-        if (Enum.TryParse<SubtipoDeCarga>(valor, out var subtipo))
-            a.Subtipo = subtipo;
+        if (Enum.TryParse<CategoriaDeCarga>(valor, out var tipo))
+            CambiarSubtipoDelRenglon(c, (tipo == CategoriaDeCarga.Tablero ? SubtipoDeCarga.TableroAlimentado : SubtiposDeCarga.PorOmision(tipo)).ToString());
+    }
+
+    /// <summary>
+    /// El subtipo del equipo del renglón. Entre las formas de un equipo (motor, variador, motocompresor,
+    /// A/A con ampacidad, de habitación, tablero) se cambia la forma; lo capturado en las otras se queda.
+    /// Cualquier otro subtipo pasa a ser la línea del desplegable.
+    /// </summary>
+    private void CambiarSubtipoDelRenglon(CircuitoDelCuadro c, string? valor)
+    {
+        if (!Enum.TryParse<SubtipoDeCarga>(valor, out var subtipo) || subtipo == c.SubtipoDelRenglon)
+            return;
+        switch (subtipo)
+        {
+            case SubtipoDeCarga.MotorUsoGeneral:
+                c.Categoria = CategoriaDeCarga.Motor;
+                if (c.CapturaMotor is not (CapturaDeMotor.Hp or CapturaDeMotor.Amperes))
+                    c.CapturaMotor = CapturaDeMotor.Hp;
+                break;
+            case SubtipoDeCarga.MotorVelocidadAjustable:
+                c.Categoria = CategoriaDeCarga.Motor;
+                c.CapturaMotor = CapturaDeMotor.Variador;
+                break;
+            case SubtipoDeCarga.Motocompresor:
+                c.Categoria = CategoriaDeCarga.AireAcondicionado;
+                c.PlacaAire = PlacaDeAireAcondicionado.CorrienteNominal;
+                break;
+            case SubtipoDeCarga.CargaCombinada:
+                c.Categoria = CategoriaDeCarga.AireAcondicionado;
+                c.PlacaAire = PlacaDeAireAcondicionado.AmpacidadYProteccion;
+                break;
+            case SubtipoDeCarga.AireDeHabitacion:
+                c.Categoria = CategoriaDeCarga.AireAcondicionado;
+                c.PlacaAire = PlacaDeAireAcondicionado.Habitacion;
+                break;
+            case SubtipoDeCarga.TableroAlimentado:
+                c.Categoria = CategoriaDeCarga.Tablero;
+                break;
+            default:
+                // Deja de ser un equipo del renglón: su línea, vacía, con el nuevo subtipo.
+                c.Continua = 0m;
+                c.NoContinua = 0m;
+                c.Categoria = subtipo.Tipo();
+                c.Cargas.Clear();
+                c.Cargas.Add(new CargaDelCircuito { Descripcion = c.Descripcion?.Trim() ?? "", Subtipo = subtipo, FactorPotencia = c.FactorPotencia });
+                _enfocar = DescripcionDeAparato(c.Espacio, 1);
+                break;
+        }
         Recalcular();
     }
+
+    /// <summary>Borra lo capturado del equipo del renglón; el tipo se queda.</summary>
+    private void QuitarRenglon(CircuitoDelCuadro c)
+    {
+        c.Hp = null;
+        c.CorrientePlacaA = 0m;
+        c.CorrienteSeleccionA = null;
+        c.AmpacidadMinimaA = 0m;
+        c.ProteccionMaximaA = 0m;
+        c.CorrienteEntradaVariadorA = 0m;
+        c.ProteccionMaximaVariadorA = 0m;
+        c.Continua = 0m;
+        c.NoContinua = 0m;
+        Recalcular();
+        _enfocar = AgregarDe(c.Espacio);
+    }
+
+    /// <summary>
+    /// El nombre del equipo o del subtipo que va solo en su circuito — un variador, un A/A con ampacidad de
+    /// placa, otro tablero, el contacto del refrigerador —; <c>null</c> si el circuito admite otra carga.
+    /// </summary>
+    private static string? VaSolo(CircuitoDelCuadro c) =>
+        c.SubtipoDelRenglon is { } r && r.VaSolo() ? r.Nombre()
+        : c.Cargas.FirstOrDefault(a => a.Subtipo?.VaSolo() == true)?.Subtipo?.Nombre();
 
     /// <summary>«Motor|Hp», «Carga|Watts»: la clase y la unidad de un miembro del grupo en un valor — I-115.</summary>
     private static string UnidadDeMiembro(CargaDelCircuito a) => a.Clase switch
@@ -1922,16 +1978,6 @@
     }
 
     /// <summary>
-    /// Lo que dice el selector de unidad, que depende del tipo — I-74: VA, W o A; en Motor, HP o A; en
-    /// A/C, MCA o A (corriente nominal).
-    /// </summary>
-    private static string UnidadDe(CircuitoDelCuadro c) =>
-        c.EsGrupo ? "Grupo"
-        : c.EsMotor ? c.CapturaMotor.ToString()
-        : c.EsAireAcondicionado ? c.PlacaAire.ToString()
-        : c.Unidad.ToString();
-
-    /// <summary>
     /// Cambia la unidad del tipo que tiene el renglón. Lo capturado en las otras formas se queda: es lo
     /// que vuelve a contar al regresar a ellas.
     /// </summary>
@@ -1945,12 +1991,6 @@
             c.Unidad = unidad;
         Recalcular();
     }
-
-    private static string? AyudaUnidad(CircuitoDelCuadro c) =>
-        c.EsGrupo ? "Varios motores o motocompresores, o con otras cargas: se capturan en el desplegable (la flecha junto a la descripción) — 430-53, 440-22(b). La corriente es la suma de sus máquinas."
-        : c.EsMotor ? "HP: seleccionar los caballos de placa. A: capturar la corriente de placa de un motor que no trae HP; se le asignan los HP de la tabla, interpolando — 430-6(a)(1). Vel. aj.: motor con variador de velocidad (equipo de conversión de potencia); la corriente de entrada del variador y la protección máxima de su fabricante — 430-122(a), 110-3(b). Varios motores o con otras cargas: en el desplegable — 430-53."
-        : c.EsAireAcondicionado ? "Ampac.: la placa trae la ampacidad de los conductores y la protección máxima (MCA, MOCP) — 440-4(b). Nominal: la placa trae la corriente de carga nominal del motocompresor (RLA) — 440-6(a). De hab.: acondicionador de aire para habitación, con cordón y clavija, en su circuito — 440 Parte G. Varias máquinas sin ampacidad de conjunto: en el desplegable — 440-22(b)."
-        : SumaDelDesglose(c);
 
     private static string ValorHpConPolos(int polos, decimal hp) => $"{polos}|{hp.ToString(CultureInfo.InvariantCulture)}";
 
@@ -1974,9 +2014,6 @@
         c.Hp = hp;
         Recalcular();
     }
-
-    private static string? SumaDelDesglose(CircuitoDelCuadro c) =>
-        c.TieneDesglose ? "Suma de las salidas y cargas del desplegable (la flecha junto a la descripción)." : null;
 
     private void Justificar(CategoriaDeCarga categoria, JustificacionFactorDemanda j, ChangeEventArgs e)
     {
@@ -2019,39 +2056,24 @@
     }
 
     /// <summary>
-    /// El tipo del renglón. Con salidas y cargas de un solo tipo, se cambian con él: las que eran del tipo de
-    /// antes toman el nuevo (su subtipo vuelve a «del circuito») — I-123.
+    /// Bajo la clase: «15 salidas», «carga total», «sin F.D. (220-40)», «2 motores, 1 carga» — cómo está
+    /// hecha. <c>null</c> sin nada que añadir.
     /// </summary>
-    private void ElegirTipo(CircuitoDelCuadro c, string? valor)
-    {
-        if (Enum.TryParse<CategoriaDeCarga>(valor, out var categoria))
-        {
-            var antes = c.Categoria;
-            if (c.TipoElegido && categoria != CategoriaDeCarga.Tablero)
-                foreach (var a in c.Cargas.Where(a => a.Subtipo?.Tipo() == antes && a.Clase == ClaseDeAparato.Carga))
-                    a.Subtipo = null;
-            c.Categoria = categoria;
-        }
-        Recalcular();
-    }
+    private static string? DetalleDeClase(CircuitoDelCuadro c) =>
+        c.ClaseDelCircuito is not { } clase ? null
+        : clase == ClaseDeCircuito.Alimentador ? "sin F.D. (220-40)"
+        : c.EsGrupo ? TextoDelGrupo(c)
+        : c.Salidas is { } n && clase != ClaseDeCircuito.Individual ? $"{n} {(n == 1 ? "salida" : "salidas")}"
+        : c.EsCargaTotal ? "carga total"
+        : null;
 
-    /// <summary>
-    /// «Uso general · 15 salidas», «Individual», «Uso general · carga total», «Alimentador · sin F.D.»: la
-    /// clase del circuito y cómo se capturó — I-123. <c>null</c> sin carga.
-    /// </summary>
-    private static string? NotaDeClase(CircuitoDelCuadro c)
-    {
-        if (c.ClaseDelCircuito is not { } clase)
-            return null;
-        if (c.EsGrupoDeMotores && !(c.Cargas is [{ Cantidad: <= 1 }]))
-            return $"Grupo · {TextoDelGrupo(c)}";
-        var detalle = clase == ClaseDeCircuito.Alimentador ? "sin F.D. (220-40)"
-            : c.EsGrupo ? TextoDelGrupo(c)
-            : c.Salidas is { } n && clase != ClaseDeCircuito.Individual ? $"{n} {(n == 1 ? "salida" : "salidas")}"
-            : c.EsCargaTotal ? "carga total"
-            : null;
-        return detalle is null ? clase.Nombre() : $"{clase.Nombre()} · {detalle}";
-    }
+    /// <summary>«5 HP · FLC 15.20 A», «Ampacidad 18 A · prot. máx. 30 A»: la placa del equipo, bajo sus VA.</summary>
+    private static string PlacaDelEquipo(CircuitoDelCuadro c) =>
+        c.EsGrupo ? TextoDelGrupo(c)
+        : c.EsVariador ? (c.TieneCarga ? $"Variador: entrada {c.CorrienteEntradaVariadorA:#,0.##} A · máx. {c.ProteccionMaximaVariadorA:#,0.##} A" : "")
+        : c.EsAireAcondicionado ? (c.TieneCarga ? AireAcondicionadoDePlaca.Texto(c) : "")
+        : c.MotorEnAmperes is { } m ? $"{m.Amperes:#,0.##} A ({m.Hp:0.##} HP) · FLC {c.FlcA:N2} A"
+        : (c.Hp > 0m ? $"{MotoresEnHp.Texto(c.Hp.Value)} HP" : "") + (c.FlcA > 0m ? $" · FLC {c.FlcA:N2} A" : "");
 
     /// <summary>Dos canalizaciones con el mismo nombre se verían iguales en «Canal.»: se rechaza — I-94.</summary>
     private async Task RenombrarCanalizacion(CanalizacionDelTablero t, string? nombre)

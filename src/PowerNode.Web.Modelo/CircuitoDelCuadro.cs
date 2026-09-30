@@ -245,7 +245,7 @@ public sealed class CircuitoDelCuadro
                 return ClaseDeCircuito.Alimentador;
             if (EsGrupoDeMotores && Cargas.Sum(a => Math.Max(1, a.Cantidad)) > 1)
                 return ClaseDeCircuito.GrupoDeMotores;
-            if (UsoEfectivo == UsoDeContactos.Refrigerador)
+            if (UsoEfectivo == UsoDeContactos.Refrigerador || Cargas.Any(a => a.Subtipo == SubtipoDeCarga.ContactoRefrigerador))
                 return ClaseDeCircuito.Individual;
             if (!TieneDesglose)
                 return Categoria switch
