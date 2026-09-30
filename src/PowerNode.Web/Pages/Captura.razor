@@ -153,15 +153,15 @@
                 <option value="@LugarDeInstalacion.Humedo">Húmedo</option>
                 <option value="@LugarDeInstalacion.Mojado">Mojado</option>
             </select></label>
-        <label>T. ambiente (°C) <input data-requerido type="text" inputmode="decimal" autocomplete="off" data-numero min="10" max="80" step="1" value="@Numero(Datos.TemperaturaAmbienteC)" @onchange="e => { Datos.TemperaturaAmbienteC = Leer(e, Datos.TemperaturaAmbienteC); Recalcular(); }" /></label>
+        <label>T. ambiente (°C) <input data-requerido type="text" inputmode="decimal" autocomplete="off" data-numero min="10" max="80" step="1" value="@Numero(Datos.TemperaturaAmbienteC)" @onchange="e => { Datos.TemperaturaAmbienteC = Leer(e, Datos.TemperaturaAmbienteC, 10m, 80m); Recalcular(); }" /></label>
         @* Solo en 3F-4H: el neutro de un circuito de 3 fases cuenta por armónicas — 310-15(b)(5)(3); en los demás sistemas no cambia nada. *@
         @if (Datos.Fases == 3 && Datos.Hilos == 4)
         {
             <label><span class="ayuda" title="Marcar si la mayor parte de la carga es no lineal (electrónica, iluminación LED, equipo de cómputo): en 3F-4H el neutro lleva armónicas y cuenta como portador — 310-15(b)(5)(3).">Carga no lineal</span>
                 <input type="checkbox" class="casilla" @bind="Datos.CargaNoLineal" @bind:after="Recalcular" /></label>
         }
-        <label><span class="ayuda" title="Capturar el límite de caída del circuito derivado. Recomendado: 3 % — 210-19(a)(1), NOTA 4.">e% máx. derivado</span> <input data-requerido type="text" inputmode="decimal" autocomplete="off" data-numero min="0.5" max="10" step="0.5" value="@Numero(Datos.CaidaMaxDerivadoPct)" @onchange="e => { Datos.CaidaMaxDerivadoPct = Leer(e, Datos.CaidaMaxDerivadoPct); Recalcular(); }" /></label>
-        <label><span class="ayuda" title="Capturar el límite de caída del alimentador. Valor inicial: 2 %, para que con el 3 % del derivado sumen el 5 % combinado — 215-2(a)(4), NOTA 2; 210-19(a)(1), NOTA 4.">e% máx. alimentador</span> <input data-requerido type="text" inputmode="decimal" autocomplete="off" data-numero min="0.5" max="10" step="0.5" value="@Numero(Datos.CaidaMaxAlimentadorPct)" @onchange="e => { Datos.CaidaMaxAlimentadorPct = Leer(e, Datos.CaidaMaxAlimentadorPct); Recalcular(); }" /></label>
+        <label><span class="ayuda" title="Capturar el límite de caída del circuito derivado. Recomendado: 3 % — 210-19(a)(1), NOTA 4.">e% máx. derivado</span> <input data-requerido type="text" inputmode="decimal" autocomplete="off" data-numero min="0.5" max="10" step="0.5" value="@Numero(Datos.CaidaMaxDerivadoPct)" @onchange="e => { Datos.CaidaMaxDerivadoPct = Leer(e, Datos.CaidaMaxDerivadoPct, 0.5m, 10m); Recalcular(); }" /></label>
+        <label><span class="ayuda" title="Capturar el límite de caída del alimentador. Valor inicial: 2 %, para que con el 3 % del derivado sumen el 5 % combinado — 215-2(a)(4), NOTA 2; 210-19(a)(1), NOTA 4.">e% máx. alimentador</span> <input data-requerido type="text" inputmode="decimal" autocomplete="off" data-numero min="0.5" max="10" step="0.5" value="@Numero(Datos.CaidaMaxAlimentadorPct)" @onchange="e => { Datos.CaidaMaxAlimentadorPct = Leer(e, Datos.CaidaMaxAlimentadorPct, 0.5m, 10m); Recalcular(); }" /></label>
         @if (Datos.AvisoLimitesDeCaida is { } avisoLimites)
         {
             <p class="aviso"><Icono Nombre="aviso" Clase="aviso-icono" /><span>@avisoLimites</span></p>
@@ -314,7 +314,7 @@
                         {
                             <td rowspan="@c.Polos" class="num tenue col-fase">@(c.TieneCarga && c.Fases.Contains(barra) ? c.CargaPorFaseVA.ToString("#,0.##") : "")</td>
                         }
-                        <td rowspan="@c.Polos"><input data-requerido class="va corto" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" data-col="l" aria-label="Circuito @c.Espacio · Longitud (m)" value="@Numero(c.LongitudM)" @onchange="e => { c.LongitudM = Leer(e, c.LongitudM); Recalcular(); }" /></td>
+                        <td rowspan="@c.Polos"><input data-requerido class="va corto" type="text" inputmode="decimal" autocomplete="off" data-numero min="@Numero(LongitudMinimaM)" data-col="l" aria-label="Circuito @c.Espacio · Longitud (m)" value="@Numero(c.LongitudM)" @onchange="e => { c.LongitudM = Leer(e, c.LongitudM, LongitudMinimaM); Recalcular(); }" /></td>
                         <td rowspan="@c.Polos" class="canal">
                             <select class="canal" data-col="canal" aria-label="Circuito @c.Espacio · Canalización" value="@(c.Canalizacion ?? "")" @onchange="e => CambiarCanalizacion(c, e.Value?.ToString())">
                                 @if (!c.TieneCarga)
@@ -907,7 +907,7 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
                         }
                         else
                         {
-                        <input data-requerido data-col="fd" aria-label="F.D. · @fila.Categoria.NombreCompleto()" class="va chico" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" max="1" step="0.05"
+                        <input data-requerido data-col="fd" aria-label="F.D. · @fila.Categoria.NombreCompleto()" class="va chico" type="text" inputmode="decimal" autocomplete="off" data-numero min="@Numero(FactorDemandaMinimo)" max="1" step="0.05"
                                value="@Factor(fila.FactorDemanda)"
                                @onchange="e => CambiarFactor(fila.Categoria, e)" />
                         }
@@ -1081,7 +1081,7 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
             <p class="derivado">Canalización: <strong>@Datos.CanalizacionAlimentador.Rotulo · @Datos.CanalizacionAlimentador.TamanoRotulo</strong> · @(Datos.CanalizacionAlimentador.Conteo?.Portadores) portadores — ver «Canalizaciones».</p>
 
             <label class="suelto">Longitud del alimentador (m)
-                <input data-requerido type="text" inputmode="decimal" autocomplete="off" data-numero min="0" step="1" value="@Numero(Datos.LongitudAlimentadorM)" @onchange="e => { Datos.LongitudAlimentadorM = Leer(e, Datos.LongitudAlimentadorM); Recalcular(); }" />
+                <input data-requerido type="text" inputmode="decimal" autocomplete="off" data-numero min="0" step="1" value="@Numero(Datos.LongitudAlimentadorM)" @onchange="e => { Datos.LongitudAlimentadorM = Leer(e, Datos.LongitudAlimentadorM, 0m); Recalcular(); }" />
             </label>
             <table class="datos">
                 @if (Cuadro.Alimentador.Gobierna is { } g && Datos.Barras.Count > 1)
@@ -1110,7 +1110,7 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
         else
         {
             <label class="suelto">Longitud del alimentador (m)
-                <input data-requerido type="text" inputmode="decimal" autocomplete="off" data-numero min="0" step="1" value="@Numero(Datos.LongitudAlimentadorM)" @onchange="e => { Datos.LongitudAlimentadorM = Leer(e, Datos.LongitudAlimentadorM); Recalcular(); }" />
+                <input data-requerido type="text" inputmode="decimal" autocomplete="off" data-numero min="0" step="1" value="@Numero(Datos.LongitudAlimentadorM)" @onchange="e => { Datos.LongitudAlimentadorM = Leer(e, Datos.LongitudAlimentadorM, 0m); Recalcular(); }" />
             </label>
             @if (Cuadro.Alimentador.Error is { } error)
             {
@@ -1427,9 +1427,12 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
     /// <summary>Una carga: el 0 no se escribe, se ve como marca de agua — teclear 5 sobre un «0» daba «50» (I-55).</summary>
     private static string Carga(decimal v) => v == 0m ? "" : Numero(v);
 
-    /// <summary>Una carga capturada: vacía es 0 — cortar el valor dejaba el anterior en el cálculo (I-55).</summary>
-    private static decimal LeerCarga(ChangeEventArgs e, decimal actual) =>
-        string.IsNullOrWhiteSpace(e.Value?.ToString()) ? 0m : Leer(e, actual);
+    /// <summary>
+    /// Una carga capturada: vacía es 0 — cortar el valor dejaba el anterior en el cálculo (I-55).
+    /// Negativa no entra: «Total −500» en el desglose, sin error (auditoría del 2026-09-29, P2-3).
+    /// </summary>
+    private decimal LeerCarga(ChangeEventArgs e, decimal actual) =>
+        string.IsNullOrWhiteSpace(e.Value?.ToString()) ? 0m : Leer(e, actual, 0m, decimal.MaxValue, Carga);
 
     /// <summary>
     /// Un número capturable, como se muestra: hasta dos decimales, sin ceros de más — «1500»,
@@ -1449,15 +1452,25 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
         decimal.TryParse(e.Value?.ToString(), NumberStyles.Float, CultureInfo.InvariantCulture, out var v) ? v : actual;
 
     /// <summary>
-    /// Fuera de <paramref name="min"/> y <paramref name="max"/>, también se queda el que estaba — I-77,
-    /// I-80. El campo lo regresa js/teclado.js y dice por qué; esto cuida el cálculo aunque no llegue.
+    /// Fuera de <paramref name="min"/> y <paramref name="max"/>, o ilegible, se queda el que estaba —
+    /// I-77, I-80— y la casilla regresa a él con su aviso. js/teclado.js ya lo hace cuando vio el valor
+    /// de antes (al recibir el foco); si no lo vio, la casilla se quedaba diciendo «1.5» con el cálculo
+    /// en 0.90. Por eso la página la regresa aquí también: lo que se ve es lo que se calcula (P2-3).
     /// </summary>
-    private static decimal Leer(ChangeEventArgs e, decimal actual, decimal min, decimal max = decimal.MaxValue) =>
-        Leer(e, actual) is var v && v >= min && v <= max ? v : actual;
+    private decimal Leer(ChangeEventArgs e, decimal actual, decimal min, decimal max = decimal.MaxValue, Func<decimal, string>? mostrar = null)
+    {
+        if (decimal.TryParse(e.Value?.ToString(), NumberStyles.Float, CultureInfo.InvariantCulture, out var v) && v >= min && v <= max)
+            return v;
+        _ = JS.InvokeVoidAsync("powerNode.regresarUltimo", (mostrar ?? Numero)(actual)).AsTask();
+        return actual;
+    }
 
     /// <summary>Un F.P., entre 0.1 y 1 — I-80.</summary>
-    private static decimal LeerFactor(ChangeEventArgs e, decimal actual) =>
-        Leer(e, actual, CircuitoDelCuadro.FactorPotenciaMinimo, 1m);
+    private decimal LeerFactor(ChangeEventArgs e, decimal actual) =>
+        Leer(e, actual, CircuitoDelCuadro.FactorPotenciaMinimo, 1m, Factor);
+
+    /// <summary>La longitud de un derivado: más de 0 m. Con −10 m la caída salía −0.58 % (P2-3).</summary>
+    private const decimal LongitudMinimaM = 0.1m;
 
     private static readonly string FactorMinimo = Numero(CircuitoDelCuadro.FactorPotenciaMinimo);
 
@@ -2155,14 +2168,22 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
     }
 
     /// <summary>El F.D. de un tipo. Fuera de 0 a 1 o ilegible, se queda el que estaba.</summary>
+    /// <summary>
+    /// El F.D. va de más de 0 a 1: con 1.5 la casilla lo mostraba y la demanda seguía en 1.0; con 0 el
+    /// tipo desaparecía del alimentador (auditoría del 2026-09-29, P2-3).
+    /// </summary>
     private void CambiarFactor(CategoriaDeCarga categoria, ChangeEventArgs e)
     {
-        if (!decimal.TryParse(e.Value?.ToString(), NumberStyles.Float, CultureInfo.InvariantCulture, out var factor) || factor < 0m || factor > 1m)
+        var actual = Datos.FactorDeDemanda(categoria);
+        var factor = Leer(e, actual, FactorDemandaMinimo, 1m, Factor);
+        if (factor == actual)
             return;
 
         Datos.CambiarFactorDeDemanda(categoria, factor);
         Recalcular();
     }
+
+    private const decimal FactorDemandaMinimo = 0.01m;
 
     private bool Excede(CircuitoDelCuadro c) =>
         c.Resultado is not null && c.Resultado.CaidaTensionPct > Datos.CaidaMaxDerivadoPct;

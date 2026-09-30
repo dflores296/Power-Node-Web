@@ -57,6 +57,8 @@
         const el = e.target;
         if (!esNumero(el))
             return;
+        ultimo = el;
+        delete el.dataset.rechazo;
         const tecleado = el.value.trim();
         if (tecleado === '') {
             el.value = '';
@@ -105,8 +107,12 @@
 
     /** El campo regresa al valor que tenía al entrar: «Circuito 1 · F.P.: 1.5 no se admite; va de 0.1 a 1. Se regresó a 0.90.» */
     function regresar(el, tecleado, porque) {
-        if (!('previo' in el.dataset))
-            return; // sin valor de antes no hay a dónde regresar; la página lo rechaza igual
+        if (!('previo' in el.dataset)) {
+            // Sin valor de antes —llegó sin foco, p. ej. escrito por otro programa—, la página lo
+            // rechaza y lo regresa con regresarUltimo; aquí se guarda el porqué (auditoría 2026-09-29, P2-3).
+            el.dataset.rechazo = `${tecleado} ${porque}`;
+            return;
+        }
         el.value = el.dataset.previo;
         const queda = el.value === '' ? 'Se dejó vacío.' : `Se regresó a ${el.value}.`;
         avisar(`${ayudaDe(el).nombre}: ${tecleado} ${porque}. ${queda}`, 'mal');
@@ -115,6 +121,9 @@
     }
 
     let avisoFlotante;
+
+    /** El último campo numérico que cambió: al que la página regresa un valor que no aceptó (P2-3). */
+    let ultimo;
 
     function avisar(texto, clase) {
         avisoFlotante?.remove();
@@ -320,5 +329,22 @@
             return;
         el.value = valor;
         el.dataset.previo = valor;
+    };
+
+    // ---- Para la página: regresar el último número que el modelo no aceptó (P2-3) -----------------
+    // Lo mismo, para un campo numérico: si el valor llegó sin foco, el filtro de arriba no sabía a qué
+    // regresarlo y la casilla se quedaba con «1.5» mientras el cálculo seguía con 0.90 (auditoría del
+    // 2026-09-29). La página, que sí sabe el valor vigente, lo manda aquí; se marca y se dice por qué.
+    window.powerNode.regresarUltimo = valor => {
+        const el = ultimo;
+        if (!el)
+            return;
+        const tecleado = el.dataset.rechazo ?? `${el.value} no se admite`;
+        delete el.dataset.rechazo;
+        el.value = valor;
+        el.dataset.previo = valor;
+        avisar(`${ayudaDe(el).nombre}: ${tecleado}. ${valor === '' ? 'Se dejó vacío.' : `Se regresó a ${valor}.`}`, 'mal');
+        el.classList.add('rechazado');
+        setTimeout(() => el.classList.remove('rechazado'), 1500);
     };
 })();
