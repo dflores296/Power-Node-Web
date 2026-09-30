@@ -38,7 +38,7 @@ respuesta 2):
 
 | Subtipo | Por qué | Regla |
 |---|---|---|
-| Motor con velocidad ajustable | Un equipo de conversión de potencia con su protección de fabricante — 430-122, 110-3(b) | Solo, cantidad 1 |
+| Motor con velocidad ajustable | Un equipo de conversión de potencia con su protección de fabricante — 430-122, 110-3(b) | Ya no va solo (David, 2026-09-30): varios en un circuito como grupo (430-120, 430-53), cada uno con su protección máxima (430-53(c)(2)); varios motores por variador (430-124(c)) |
 | A/A con ampacidad de placa (MCA, MOCP) | La placa ya suma sus motores — 440-4(b) | Solo, cantidad 1 |
 | Tablero alimentado | Es un alimentador — Art. 100, 215 | Solo con otros tableros, cada uno en su línea (David, 2026-09-30; 215-2(a)(1), 408-36, 240-21(b)) |
 | Contactos · Refrigerador | Circuito derivado individual — 210-52(b)(1) Exc. 2 | Solo, cantidad 1 |

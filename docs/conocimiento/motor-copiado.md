@@ -177,3 +177,12 @@ interruptor de este tablero que alimenta otro.
 |---|---|
 | `Calculo/TablasNom/ITablaCargaUnitaria.cs` | La interfaz de la Tabla 220-12: VA/m² de alumbrado general por tipo de inmueble. |
 | `Normativa/TablaCargaUnitariaJson.cs` | Su lector. La tabla entra a `tablas-nom.json` con `tools/extraer_tablas.py` (20 tablas); la llamada de nota («39 (b)») no se lee como número. |
+
+### Variadores en un grupo — I-132
+
+| Archivo | Qué es |
+|---|---|
+| `Calculo/Casos/DatosEntradaCircuitoDerivadoGrupo.cs` | `ClaseDeMiembro.Variador`; `MiembroDelGrupo.ProteccionMaximaA` (la del fabricante, 110-3(b)); `DetalleDelGrupo.TopeDelFabricante`. |
+| `Calculo/Casos/CalculadoraCircuitoDerivadoGrupo.cs` | Un variador cuenta como motor del grupo con su corriente de entrada (430-120, 430-122(a)). Si el mayor es un variador, el límite de 430-53(c)(4) toma su protección máxima en lugar del porcentaje de la Tabla 430-52; ningún variador admite más que la suya (430-53(c)(2)), y ese tope no se sube por 240-4(b): si no lleva la corriente del grupo, error. Sin variadores, idéntico. |
+
+El escritorio calcula un motor por circuito: no tiene grupo ni variador en grupo.

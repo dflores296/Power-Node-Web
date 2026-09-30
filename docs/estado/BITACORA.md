@@ -16,8 +16,9 @@ propuesta y «una línea con dos cantidades, arranca»).
 - Revisión de David: columnas de carga centradas y parejas, desplegable como tabla, línea del tablero — I-129, `8e4de59`.
 - Varios tableros en un mismo alimentador (David: «Sí, hazlo») — I-130, `34e6b74`.
 - «No simultáneo con» abajo y solo donde aplica — I-131, `afc8998`.
+- Variadores: varios en un circuito como grupo y varios motores por variador (David: «haz la 1 y la 2») — I-132, `5291d19`.
 
-Pruebas: 384 en `PowerNode.Web.Tests`, 24 en `PowerNode.Normativa.Tests`.
+Pruebas: 389 en `PowerNode.Web.Tests`, 24 en `PowerNode.Normativa.Tests`.
 
 ## 2026-09-29
 
