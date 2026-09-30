@@ -15,8 +15,8 @@ Hallazgos: I-123 a I-127 y M-14 en [`../estado/HALLAZGOS.md`](../estado/HALLAZGO
 | A | Guía de cargas y glosario | I-126 | Hecha |
 | B | Modelo: carga con tipo, subtipo y forma; clase del circuito; alimentador a tablero; F.D. por carga; archivo formato 5 | I-123, I-125 | Hecha |
 | C | Pantalla, documento y memoria con los nombres cortos; se retira «Varios» | I-127 | Hecha |
-| D | Reglas por clase de circuito | I-124 | En curso |
-| E | Mínimo de alumbrado general por superficie (220-12, 220-14(j)(k)) | M-14 | En pausa |
+| D | Reglas por clase de circuito | I-124 | Hecha |
+| E | Mínimo de alumbrado general por superficie (220-12, 220-14(j)(k)) | M-14 | Hecha |
 
 ## Commits
 
@@ -32,7 +32,10 @@ renglón siguiente.
 | 5 | `dc7cdd2` | B | `AparatoDelCircuito` → `CargaDelCircuito`, `Aparatos` → `Cargas`; el archivo no cambia | I-123 | 334 pruebas sin cambio |
 | 6 | `72bee16` | B | Subtipo y tipo de cada carga; porciones por tipo y F.D. por carga en resumen, alimentador, motores y no simultáneos; clase del circuito; grupo por contenido; mínimos por subtipo (220-14, 220-54); calentador y calefacción continuos; tipo Tablero con 215 y F.D. 1; archivo formato 5; `Tramo` en el motor (motor-copiado.md) | I-123, I-125 | `CargasYClasesTests` (25); 359 + 23 pruebas |
 | 7 | `0e48028` | C | Pantalla: «Salidas y cargas» con tipo, subtipo y «?»; «Combinadas»; clase bajo la descripción; sin «Varios»; nombres de la NOM; unidad de 80 px. Documento y memoria: tipo, clase, cargas combinadas, 215 del tablero | I-123, I-127 | 359 + 23 pruebas; navegador a 1920: cuadro de 1676 px, ningún selector cortado, circuito combinado, grupo de motores, tablero de 30.5 kVA (90 A), documento y memoria |
-| 8 | *(este)* | B, C | Hallazgos con su hash; decisión: plan aprobado y ajuste de la clase; bitácora; esta tabla | I-123, I-125, I-127 | — |
+| 8 | `8d196f5` | B, C | Hallazgos con su hash; decisión: plan aprobado y ajuste de la clase; bitácora; esta tabla | I-123, I-125, I-127 | — |
+| 9 | `d029be3` | D | 240-4(b)(1) por lo que alimenta; 210-19(a)(3); reglas de la clase (210-21(b)(1), Tabla 210-21(b)(3), 210-23(a)(2)(b)(c)(d), 422-11(e)) en tooltip, avisos y memoria; el tooltip del tablero cita el 215 | I-124 | `I124_…` (6); navegador: avisos de 210-23(b) y Tabla 210-21(b)(3) |
+| 10 | `71abc56` | E | Tabla 220-12 (20 tablas); área servida y uso del local; mínimo por superficie en el alimentador, 220-14(j)(k); resumen, documento y memoria; archivo formato 6 | M-14 | `M14_…` (4), `Tabla220_12_…`; 369 + 24 pruebas; navegador: 200 m² de oficinas |
+| 11 | *(este)* | D, E | Hallazgos con su hash; requisitos; por verificar; bitácora; tablero; esta tabla | I-124, M-14 | — |
 
 ## Plan de las fases B a E — en pausa
 

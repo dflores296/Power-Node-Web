@@ -26,6 +26,11 @@ Cada requisito se relaciona con su referencia normativa y con su verificación e
 | C-6 | Capturar un motor (tipo Motor) por sus HP. Tomar la FLC de la tabla por los polos (1 y 2: monofásico; 3: trifásico) y la tensión del circuito; ofrecer solo los HP que trae la tabla, con su FLC. Cargar al cuadro FLC × tensión (× √3). | 430-6(a), Tablas 430-248 y 430-250 | `I15_…` |
 | C-7 | Capturar un motor marcado en amperes y no en HP: tomar los HP de la tabla que le corresponden, interpolando (desde 0 HP y 0 A por debajo del más chico); su FLC es esa corriente. Rechazar la que pasa del más grande. | 430-6(a)(1) | `I74_…` |
 | C-8 | Separar Motor (Art. 430) y A/C y refrigeración (Art. 440) en seis tipos de carga; el tipo decide el artículo, no la unidad. Un motor o un equipo de A/C no se desglosa. | 220-50, 440-3(a), 422-3 | `I74_…` |
+| C-10 | Cada carga lleva su tipo y subtipo; el F.D. del alimentador se aplica por el tipo de cada carga, y la clase del circuito sale de sus cargas (individual, uso general, para aparatos, alimentador). | Art. 100, 220 Parte C | `I123_…` |
+| C-11 | Llevar cada carga al mínimo de su subtipo: 180 VA por contacto, 90 VA por contacto de uno múltiple, 600 VA por portalámparas pesado, 180 VA por tramo de ensamble, 1200 VA por circuito de anuncios, 5000 VA por secadora en vivienda; calentador de agua y calefacción, continuos. | 220-14(e)(f)(h)(i), 220-54, 422-13, 424-3(b) | `I123_CadaSubtipoLlevaSuMinimo` |
+| C-12 | Capturar otro tablero como alimentador: su carga calculada, sin F.D., con 215-2(a)(1) y 215-3. | Art. 215, 220-40 | `I125_…` |
+| C-13 | Revisar las reglas de la clase: 210-21(b)(1), Tabla 210-21(b)(3), 210-23, 422-11(e); 240-4(b)(1) por lo que alimenta; 40 A para la estufa doméstica de 8.75 kW o más. | 210-19(a)(3), 210-21(b), 210-23, 240-4(b)(1), 422-11(e) | `I124_…` |
+| C-14 | No bajar el alimentador del mínimo de alumbrado general por superficie; en vivienda, con los contactos de uso general dentro; en bancos y oficinas, contactos de 11 VA/m². | 220-12, Tabla 220-12, 220-14(j)(k) | `M14_…` |
 | C-9 | Capturar un equipo de A/C por su placa: ampacidad mínima y protección máxima (MCA, MOCP), o la corriente de carga nominal y la de selección del circuito, la mayor. | 440-4(b), 440-6(a) y su Excepción 1 | `I74_…` |
 
 ## Protección

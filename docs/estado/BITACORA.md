@@ -157,6 +157,16 @@ implementalo»).
 
 Pruebas: 359 en `PowerNode.Web.Tests`, 23 en `PowerNode.Normativa.Tests`.
 
+**Fases D y E.**
+
+- Reglas de la clase del circuito: 240-4(b)(1) por lo que alimenta, 210-19(a)(3), 210-21(b), 210-23,
+  422-11(e) — I-124, `d029be3`.
+- Mínimo de alumbrado general por superficie: Tabla 220-12 extraída, área servida, 220-14(j)(k),
+  archivo formato 6 — M-14, `71abc56`.
+
+Pruebas: 369 en `PowerNode.Web.Tests`, 24 en `PowerNode.Normativa.Tests`. Las cinco fases del cambio
+«cargas y clases de circuito» hechas.
+
 ## 2026-09-28
 
 **Auditoría de interfaz** (pedido de David: botones desalineados, texto cortado o chueco, funcionalidad).

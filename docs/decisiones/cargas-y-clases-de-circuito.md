@@ -3,7 +3,8 @@
 **PROPUESTA · Claude · 2026-09-29** — a pedido de David: «la columna tipo describe el tipo de carga, y no
 tenemos tipo de carga para los aparatos; no tenemos clasificación para circuitos individuales ni con
 cargas combinadas». David contestó las preguntas el mismo día («Decisiones de David», abajo). Falta que
-la marque CONFIRMADA.
+la marque CONFIRMADA. Implementada en las cinco fases (2026-09-30):
+[`../conocimiento/trazabilidad-cargas-y-circuitos.md`](../conocimiento/trazabilidad-cargas-y-circuitos.md).
 
 Amplía [`tipos-de-carga.md`](tipos-de-carga.md) (los seis tipos, I-74) y
 [`motores-y-equipos-en-grupo.md`](motores-y-equipos-en-grupo.md). Texto leído del repo

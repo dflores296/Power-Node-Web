@@ -170,3 +170,10 @@ una tercera forma de `DatosEntradaCircuitoDerivado440` (`CorrienteTotalHabitacio
 
 El escritorio ya tiene `ClaseDeTramo` para el alimentador del tablero; lo nuevo es usarlo en un
 interruptor de este tablero que alimenta otro.
+
+### Tabla 220-12 — M-14
+
+| Archivo | Qué es |
+|---|---|
+| `Calculo/TablasNom/ITablaCargaUnitaria.cs` | La interfaz de la Tabla 220-12: VA/m² de alumbrado general por tipo de inmueble. |
+| `Normativa/TablaCargaUnitariaJson.cs` | Su lector. La tabla entra a `tablas-nom.json` con `tools/extraer_tablas.py` (20 tablas); la llamada de nota («39 (b)») no se lee como número. |
