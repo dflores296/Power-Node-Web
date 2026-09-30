@@ -51,6 +51,16 @@ public sealed class CargaDelCircuito
     /// <summary>Opera 3 h o más: entra al 125 % — 210-19(a)(1).</summary>
     public bool Continua { get; set; }
 
+    /// <summary>
+    /// <b>Solo en un tablero alimentado</b> — la única línea con dos cantidades (captura-en-el-desplegable.md):
+    /// su carga no continua calculada, en <see cref="Unidad"/>. La continua es <see cref="CargaUnitaria"/>.
+    /// Ya traen los factores de demanda de ese tablero; aquí no lleva otro — 220-40.
+    /// </summary>
+    public decimal NoContinua { get; set; }
+
+    /// <summary>Otro tablero alimentado desde este circuito.</summary>
+    public bool EsTablero => Subtipo == SubtipoDeCarga.TableroAlimentado;
+
     public decimal FactorPotencia { get; set; } = CircuitoDelCuadro.FactorPotenciaSupuesto;
 
     /// <summary>Los VA de todos (cantidad × carga), convertidos con la tensión y los polos del circuito.</summary>

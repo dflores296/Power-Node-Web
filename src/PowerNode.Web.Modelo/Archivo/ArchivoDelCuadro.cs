@@ -38,9 +38,10 @@ public static class ArchivoDelCuadro
     /// (I-123, I-125); la 4 los leería mal. Los anteriores se siguen leyendo: sus cargas sin subtipo toman
     /// el tipo de su circuito, y se calculan igual que antes. 6: el área servida y el renglón de la Tabla
     /// 220-12 (M-14); la 5 los ignoraría y el alimentador saldría sin el mínimo. 7: los subtipos de uso de
-    /// vivienda de los contactos (captura-en-el-desplegable.md); la 6 no los conoce.
+    /// vivienda de los contactos (captura-en-el-desplegable.md); la 6 no los conoce. 8: varios tableros en un
+    /// alimentador, cada uno con su no continua en su línea; la 7 los leería sin ella.
     /// </summary>
-    public const int Version = 7;
+    public const int Version = 8;
 
     /// <summary>El archivo, listo para escribirse.</summary>
     public static string Guardar(CuadroDeCarga cuadro, DateTimeOffset cuando) =>

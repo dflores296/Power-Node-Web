@@ -282,6 +282,8 @@ public sealed class AparatoJson
     public decimal? CorrienteSeleccion { get; set; }
     // Formato 5 — I-123: el subtipo de la carga, y con él su tipo. Sin él, la carga toma el del circuito.
     public SubtipoDeCarga? Subtipo { get; set; }
+    // Formato 8: la no continua de un tablero alimentado; su continua es la carga (David, 2026-09-30).
+    public decimal? NoContinua { get; set; }
 
     public static AparatoJson De(CargaDelCircuito a) => new()
     {
@@ -297,6 +299,7 @@ public sealed class AparatoJson
         CorrientePlaca = a.CorrientePlacaA == 0m ? null : a.CorrientePlacaA,
         CorrienteSeleccion = a.CorrienteSeleccionA,
         Subtipo = a.Subtipo,
+        NoContinua = a.EsTablero ? a.NoContinua : null,
     };
 
     internal CargaDelCircuito Crear(string quien, List<string> avisos)
@@ -320,9 +323,11 @@ public sealed class AparatoJson
         a.Hp = Hp is > 0m ? Hp : null;
         a.CorrientePlacaA = CircuitoJson.NoNegativo(CorrientePlaca, a.CorrientePlacaA, $"{quien}, en la corriente,", avisos);
         a.CorrienteSeleccionA = CorrienteSeleccion is > 0m ? CorrienteSeleccion : null;
-        // El subtipo fija la clase; uno que solo va en el renglón (variador, MCA, tablero) no se lee.
+        // El subtipo fija la clase; uno que solo va en el renglón (variador, MCA) no se lee.
         if (Subtipo is { } s && Enum.IsDefined(s) && !s.SoloEnElRenglon())
             a.Subtipo = s;
+        if (a.EsTablero)
+            a.NoContinua = CircuitoJson.NoNegativo(NoContinua, a.NoContinua, $"{quien}, en la no continua,", avisos);
         return a;
     }
 }

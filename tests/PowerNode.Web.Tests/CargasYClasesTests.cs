@@ -197,17 +197,33 @@ public class CargasYClasesTests
     }
 
     [Fact]
-    public void I125_OtroTableroNoSeDesglosa()
+    public void I125_VariosTablerosEnUnAlimentadorSeSumanSinOtroFD()
     {
         var cuadro = Nuevo();
         var c = Espacio(cuadro, 1);
         c.Categoria = CategoriaDeCarga.Tablero;
-        c.NoContinua = 1000m;
-        c.Cargas.Add(new CargaDelCircuito { CargaUnitaria = 5000m });
+        c.Cargas.Add(new CargaDelCircuito { Subtipo = SubtipoDeCarga.TableroAlimentado, CargaUnitaria = 10000m, NoContinua = 5000m });
+        c.Cargas.Add(new CargaDelCircuito { Subtipo = SubtipoDeCarga.TableroAlimentado, NoContinua = 3000m });
         cuadro.Recalcular();
 
         Assert.False(c.TieneDesglose);
-        Assert.Equal(1000m, c.CargaInstaladaVA);
+        Assert.Equal(10000m, c.ContinuaVA);
+        Assert.Equal(8000m, c.NoContinuaVA);
+        Assert.Equal(ClaseDeCircuito.Alimentador, c.ClaseDelCircuito);
+        Assert.Null(c.ErrorDeExclusividad());
+    }
+
+    [Fact]
+    public void I125_UnAlimentadorATablerosNoLlevaOtrasCargas()
+    {
+        var cuadro = Nuevo();
+        var c = Espacio(cuadro, 1);
+        c.Categoria = CategoriaDeCarga.Tablero;
+        c.Cargas.Add(new CargaDelCircuito { Subtipo = SubtipoDeCarga.TableroAlimentado, CargaUnitaria = 10000m });
+        c.Cargas.Add(new CargaDelCircuito { Subtipo = SubtipoDeCarga.Luminarias, CargaUnitaria = 500m });
+        cuadro.Recalcular();
+
+        Assert.Contains("solo lleva tableros", c.ErrorDeExclusividad());
     }
 
     // ---- La clase del circuito ----------------------------------------------------------------------
@@ -314,7 +330,7 @@ public class CargasYClasesTests
               "formato": "power-node/cuadro-de-carga",
               "version": 5,
               "circuitos": [ { "espacio": 1, "categoria": "Equipo",
-                "aparatos": [ { "cargaUnitaria": 500, "subtipo": "TableroAlimentado" } ] } ]
+                "aparatos": [ { "cargaUnitaria": 500, "subtipo": "CargaCombinada" } ] } ]
             }
             """;
         var abierto = ArchivoDelCuadro.Abrir(texto, Motor).Cuadro!;

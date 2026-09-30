@@ -1049,7 +1049,15 @@ public sealed class CuadroDeCarga
                 continue;
             }
 
-            if (c.TieneDesglose)
+            // OTROS TABLEROS (David, 2026-09-30): uno o varios, cada uno en su línea con su continua y su no
+            // continua; el alimentador lleva la suma — 215-2(a)(1), 220-40.
+            if (c.Categoria == CategoriaDeCarga.Tablero)
+            {
+                c.RenglonALineas();
+                if (c.Cargas.Count > 0)
+                    SumarTableros(c);
+            }
+            else if (c.TieneDesglose)
                 SumarDesglose(c);
             // 424-3(b): la calefacción fija de ambiente es carga continua. Lo capturado como no continua
             // pasa a continua — R-18. En el desglose, cada carga de calefacción ya es continua.
@@ -1061,8 +1069,10 @@ public sealed class CuadroDeCarga
 
             c.ContinuaVA = AVoltAmperes(c, c.Continua);
             c.NoContinuaVA = AVoltAmperes(c, c.NoContinua);
-            if (!c.TieneDesglose)
+            if (!c.TieneDesglose && c.Categoria != CategoriaDeCarga.Tablero)
                 c.Porciones = [new PorcionDeCarga(c.Categoria, c.ContinuaVA, c.NoContinuaVA, 0m)];
+            else if (c.Categoria == CategoriaDeCarga.Tablero)
+                c.Porciones = [new PorcionDeCarga(CategoriaDeCarga.Tablero, c.ContinuaVA, c.NoContinuaVA, 0m)];
             c.Ajuste220_52VA = c.TieneCarga && c.UsoEfectivo.ReferenciaCargaMinima() is not null
                 ? Math.Max(0m, UsosDeContactos.CargaMinimaAlimentadorVA - c.CargaInstaladaVA)
                 : 0m;
@@ -1121,6 +1131,33 @@ public sealed class CuadroDeCarga
         c.Continua = c.Porciones.Sum(p => p.ContinuaVA);
         c.NoContinua = c.Porciones.Sum(p => p.NoContinuaVA);
         c.FactorPotencia = c.Continua + c.NoContinua > 0m
+            ? FactorPotenciaCombinado.De(c.Cargas.Select(a => (a.TotalVA, a.FactorPotencia)))
+            : CircuitoDelCuadro.FactorPotenciaSupuesto;
+    }
+
+    /// <summary>
+    /// <b>Uno o varios tableros alimentados</b> — 215-2(a)(1), 220-40. Cada línea trae la continua y la no
+    /// continua ya calculadas de su tablero; se convierten a VA con su F.P. y se suman, sin otro factor de
+    /// demanda. El circuito queda en VA, como un desglose.
+    /// </summary>
+    private void SumarTableros(CircuitoDelCuadro c)
+    {
+        decimal EnVA(CargaDelCircuito a, decimal valor) => ConsumoDePlaca.AVoltAmperes(
+            valor, a.Unidad, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV, c.Polos, a.FactorPotencia);
+        decimal continua = 0m, noContinua = 0m;
+        foreach (var a in c.Cargas)
+        {
+            a.Cantidad = 1;
+            var (x, y) = a.EsTablero ? (EnVA(a, a.CargaUnitaria), EnVA(a, a.NoContinua)) : (0m, 0m);
+            a.TotalVA = x + y;
+            continua += x;
+            noContinua += y;
+        }
+        c.Porciones = [new PorcionDeCarga(CategoriaDeCarga.Tablero, continua, noContinua, 0m)];
+        c.Unidad = UnidadConsumo.VoltAmperes;
+        c.Continua = continua;
+        c.NoContinua = noContinua;
+        c.FactorPotencia = continua + noContinua > 0m
             ? FactorPotenciaCombinado.De(c.Cargas.Select(a => (a.TotalVA, a.FactorPotencia)))
             : CircuitoDelCuadro.FactorPotenciaSupuesto;
     }

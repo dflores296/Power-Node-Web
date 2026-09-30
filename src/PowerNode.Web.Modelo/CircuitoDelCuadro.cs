@@ -337,16 +337,34 @@ public sealed class CircuitoDelCuadro
     /// <b>Lo capturado en el renglón pasa a sus líneas</b> — I-35, I-123, decisión
     /// <c>captura-en-el-desplegable.md</c>. Un motor, un motocompresor o un acondicionador de habitación, a
     /// una línea (con otra carga el circuito es un grupo: 430-53, 440-22(b)); una carga de placa, a una
-    /// línea continua y otra no continua. Un variador, un A/A con ampacidad de placa y otro tablero van
+    /// línea continua y otra no continua; otro tablero, a su línea con sus dos cantidades. Un variador y un A/A con ampacidad de placa van
     /// solos en su circuito: se quedan en el renglón. Con <paramref name="conSubtipo"/>, cada línea lleva
     /// ya su subtipo (el uso de vivienda, el de contactos); sin él, toma el tipo del circuito, como hasta
     /// el formato 4. <c>false</c> si no había nada que pasar.
     /// </summary>
     public bool RenglonALineas(bool conSubtipo = false)
     {
-        if (TieneDesglose)
+        if (TieneDesglose || (Categoria == CategoriaDeCarga.Tablero && Cargas.Count > 0))
             return false;
         var nombre = string.IsNullOrWhiteSpace(Descripcion) ? null : Descripcion.Trim();
+        if (Categoria == CategoriaDeCarga.Tablero)
+        {
+            // Otro tablero capturado en el renglón (formato 7 o anterior): su línea, con sus dos cantidades.
+            if (Continua <= 0m && NoContinua <= 0m)
+                return false;
+            Cargas.Add(new CargaDelCircuito
+            {
+                Descripcion = nombre ?? "Tablero",
+                Subtipo = SubtipoDeCarga.TableroAlimentado,
+                Unidad = Unidad,
+                CargaUnitaria = Continua,
+                NoContinua = NoContinua,
+                FactorPotencia = FactorPotencia,
+            });
+            Continua = 0m;
+            NoContinua = 0m;
+            return true;
+        }
         if (EsMotor && CapturaMotor is CapturaDeMotor.Hp or CapturaDeMotor.Amperes && TieneCapturaDeMotor)
             Cargas.Insert(0, new CargaDelCircuito
             {
@@ -432,7 +450,7 @@ public sealed class CircuitoDelCuadro
     }
 
     /// <summary>
-    /// Pasa el circuito a un equipo que va solo — un variador, un A/A con ampacidad de placa u otro tablero —
+    /// Pasa el circuito a un equipo que va solo — un variador o un A/A con ampacidad de placa —
     /// con lo capturado en su única línea. <c>false</c> si hay otras líneas: van solos (David, 2026-09-30).
     /// </summary>
     public bool PasarARenglon(SubtipoDeCarga subtipo)
@@ -450,15 +468,6 @@ public sealed class CircuitoDelCuadro
                 Categoria = CategoriaDeCarga.AireAcondicionado;
                 PlacaAire = PlacaDeAireAcondicionado.AmpacidadYProteccion;
                 break;
-            case SubtipoDeCarga.TableroAlimentado:
-                Categoria = CategoriaDeCarga.Tablero;
-                if (linea is { Clase: ClaseDeAparato.Carga, CargaUnitaria: > 0m })
-                {
-                    Unidad = linea.Unidad;
-                    Continua = linea.Continua ? linea.CargaUnitaria * linea.Cantidad : 0m;
-                    NoContinua = linea.Continua ? 0m : linea.CargaUnitaria * linea.Cantidad;
-                }
-                break;
             default:
                 return false;
         }
@@ -474,12 +483,11 @@ public sealed class CircuitoDelCuadro
 
     /// <summary>
     /// El subtipo de lo que está capturado en el renglón, para mostrarlo como su línea: un motor, un
-    /// variador, un motocompresor, un A/A con ampacidad de placa, uno de habitación u otro tablero.
+    /// variador, un motocompresor, un A/A con ampacidad de placa o uno de habitación.
     /// <c>null</c> si el renglón no es un equipo.
     /// </summary>
     public SubtipoDeCarga? SubtipoDelRenglon =>
-        TieneDesglose ? null
-        : Categoria == CategoriaDeCarga.Tablero ? SubtipoDeCarga.TableroAlimentado
+        TieneDesglose || Categoria == CategoriaDeCarga.Tablero ? null
         : EsMotor ? CapturaMotor == CapturaDeMotor.Variador ? SubtipoDeCarga.MotorVelocidadAjustable : SubtipoDeCarga.MotorUsoGeneral
         : EsAireAcondicionado ? PlacaAire switch
         {
@@ -496,6 +504,10 @@ public sealed class CircuitoDelCuadro
     /// </summary>
     public string? ErrorDeExclusividad()
     {
+        // Un alimentador puede llevar varios tableros (215-2(a)(1), 408-36), pero no otras cargas: esas van
+        // en sus circuitos derivados (David, 2026-09-30).
+        if (Cargas.Any(a => a.EsTablero) && Cargas.Any(a => !a.EsTablero))
+            return "Un alimentador a tableros solo lleva tableros — Art. 100, 215. Pasa las demás cargas a otro circuito.";
         if (!TieneDesglose)
             return null;
         if (Cargas.FirstOrDefault(a => a.Subtipo?.VaSolo() == true) is { } sola && (Cargas.Count > 1 || sola.Cantidad > 1))

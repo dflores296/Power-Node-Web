@@ -95,23 +95,38 @@ public class CapturaEnElDesplegableTests
     }
 
     [Fact]
-    public void OtroTableroPasaAlRenglonConSusDosCantidades()
+    public void OtroTableroDelRenglonPasaASuLineaConSusDosCantidades()
     {
         var cuadro = Nuevo();
         var c = Espacio(cuadro, 1);
-        var linea = c.AgregarCarga();
-        linea.CargaUnitaria = 12000m;
-        linea.Continua = true;
-
-        Assert.True(c.PasarARenglon(SubtipoDeCarga.TableroAlimentado));
-        c.NoContinua = 18500m; // la segunda cantidad de la misma línea
+        c.Categoria = CategoriaDeCarga.Tablero;
+        c.Continua = 12000m;
+        c.NoContinua = 18500m;
         cuadro.Recalcular();
 
-        Assert.Equal(CategoriaDeCarga.Tablero, c.Categoria);
+        var linea = Assert.Single(c.Cargas);
+        Assert.True(linea.EsTablero);
+        Assert.Equal((12000m, 18500m), (linea.CargaUnitaria, linea.NoContinua));
         Assert.Equal(12000m, c.ContinuaVA);
         Assert.Equal(18500m, c.NoContinuaVA);
-        Assert.Equal(SubtipoDeCarga.TableroAlimentado, c.SubtipoDelRenglon);
+        Assert.Null(c.SubtipoDelRenglon);
         Assert.Equal(ClaseDeCircuito.Alimentador, c.ClaseDelCircuito);
+    }
+
+    [Fact]
+    public void VariosTablerosSeGuardanYAbrenIgual()
+    {
+        var cuadro = Nuevo();
+        var c = Espacio(cuadro, 1);
+        c.Categoria = CategoriaDeCarga.Tablero;
+        c.Cargas.Add(new CargaDelCircuito { Descripcion = "TA", Subtipo = SubtipoDeCarga.TableroAlimentado, CargaUnitaria = 10000m, NoContinua = 5000m });
+        c.Cargas.Add(new CargaDelCircuito { Descripcion = "TB", Subtipo = SubtipoDeCarga.TableroAlimentado, CargaUnitaria = 2000m, NoContinua = 3000m });
+        cuadro.Recalcular();
+
+        var abierto = Espacio(ArchivoDelCuadro.Abrir(ArchivoDelCuadro.Guardar(cuadro, DateTimeOffset.UnixEpoch), Motor).Cuadro!, 1);
+
+        Assert.Equal(2, abierto.Cargas.Count(a => a.EsTablero));
+        Assert.Equal((12000m, 8000m), (abierto.ContinuaVA, abierto.NoContinuaVA));
     }
 
     [Fact]

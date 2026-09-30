@@ -416,8 +416,6 @@
                                         <span class="nota-opcion">No entra al alimentador: es el menor del par.</span>
                                     }
                                 </div>
-                                @if (c.Categoria != CategoriaDeCarga.Tablero || c.SubtipoDelRenglon is not null)
-                                {
                                 <table class="desglose" data-circuito="@c.Espacio">
                                     <thead>
                                         <tr>
@@ -428,10 +426,10 @@
                                             <th data-col="ap-subtipo"><span class="ayuda" title="Qué es la carga dentro de su tipo: cómo se captura y su carga mínima — 220-14. «?» lleva a su rama en la guía de cargas.">Subtipo</span></th>
                                             <th data-col="ap-cant">Cant.</th>
                                             <th data-col="ap-unidad"><span class="ayuda" title="Carga: VA, W o A de placa. Motor o aparato con motor: en HP, con su FLC de tabla (430-6(a)), o en A de placa (430-6(a)(1)). Motocompresor: su corriente nominal (440-6(a)). De habitación: su corriente total (440-62). Todos a la tensión y los polos del circuito.">Unidad</span></th>
-                                            <th data-col="ap-carga">@(c.Categoria == CategoriaDeCarga.Tablero ? "Continua (VA)" : "Carga c/u")</th>
-                                            @if (c.Categoria == CategoriaDeCarga.Tablero)
+                                            <th data-col="ap-carga">@(SoloTableros(c) ? "Continua" : "Carga c/u")</th>
+                                            @if (SoloTableros(c))
                                             {
-                                                <th data-col="ap-continua"><span class="ayuda" title="La carga no continua calculada del otro tablero, ya con sus factores de demanda: aquí no lleva otro — 220-40.">No continua (VA)</span></th>
+                                                <th data-col="ap-continua"><span class="ayuda" title="La carga no continua calculada de cada tablero, ya con sus factores de demanda: aquí no lleva otro — 220-40.">No continua</span></th>
                                             }
                                             else
                                             {
@@ -469,14 +467,6 @@
                                                         <select class="unidad" data-col="ap-unidad" aria-label="Circuito @c.Espacio, equipo · Unidad" value="@c.CapturaMotor" @onchange="e => CambiarUnidad(c, e.Value?.ToString())" title="HP: los caballos de placa, con su corriente de tabla. A: la corriente de placa de un motor que no trae HP; se le asignan los HP de la tabla, interpolando — 430-6(a)(1).">
                                                             <option value="@nameof(CapturaDeMotor.Hp)">HP</option>
                                                             <option value="@nameof(CapturaDeMotor.Amperes)">A</option>
-                                                        </select>
-                                                    }
-                                                    else if (c.Categoria == CategoriaDeCarga.Tablero)
-                                                    {
-                                                        <select class="unidad" data-col="ap-unidad" aria-label="Circuito @c.Espacio, equipo · Unidad" value="@c.Unidad" @onchange="e => CambiarUnidad(c, e.Value?.ToString())">
-                                                            <option value="@UnidadConsumo.VoltAmperes">VA</option>
-                                                            <option value="@UnidadConsumo.Watts">W</option>
-                                                            <option value="@UnidadConsumo.Amperes">A</option>
                                                         </select>
                                                     }
                                                     else
@@ -558,20 +548,6 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
                                                         <span class="nota-min">Nominal · Selección — 440-6(a)</span>
                                                     </td>
                                                 }
-                                                else
-                                                {
-                                                    @* Otro tablero: una línea con dos cantidades, ya con sus factores de demanda — 220-40. *@
-                                                    <td class="tablero">
-                                                        <input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="VA" data-col="ap-carga" aria-label="Circuito @c.Espacio, tablero · Continua" value="@Carga(c.Continua)" @onchange="e => { c.Continua = LeerCarga(e, c.Continua); Recalcular(); }"
-                                                               title="Capturar la carga continua calculada del otro tablero, en VA, ya con sus factores de demanda: aquí no lleva otro — 220-40." />
-                                                    </td>
-                                                    <td class="tablero">
-                                                        <input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="VA" aria-label="Circuito @c.Espacio, tablero · No continua" value="@Carga(c.NoContinua)" @onchange="e => { c.NoContinua = LeerCarga(e, c.NoContinua); Recalcular(); }"
-                                                               title="Capturar la carga no continua calculada del otro tablero, en VA, ya con sus factores de demanda: aquí no lleva otro — 220-40." />
-                                                    </td>
-                                                }
-                                                @if (c.Categoria != CategoriaDeCarga.Tablero)
-                                                {
                                                 <td>
                                                     @if (c.EsAireAcondicionado && c.PlacaAire == PlacaDeAireAcondicionado.CorrienteNominal)
                                                     {
@@ -583,7 +559,6 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
                                                         <span class="clase-motor">@(c.EsMotor ? "motor" : "equipo")</span>
                                                     }
                                                 </td>
-                                                }
                                                 <td><input data-requerido class="va fp" type="text" inputmode="decimal" autocomplete="off" data-numero min="@FactorMinimo" max="1" step="0.05" data-col="ap-fp" aria-label="Circuito @c.Espacio, equipo · F.P." value="@Factor(c.FactorPotencia)" @onchange="e => { c.FactorPotencia = LeerFactor(e, c.FactorPotencia); Recalcular(); }" /></td>
                                                 <td class="num">@c.CargaInstaladaVA.ToString("#,0.##")</td>
                                                 <td><button class="quitar" title="Quitar el equipo" aria-label="Quitar el equipo del circuito @c.Espacio" @onclick="() => QuitarRenglon(c)"><Icono Nombre="quitar" Tamano="14" /></button></td>
@@ -600,7 +575,7 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
                                                         {
                                                             <option value="">—</option>
                                                         }
-                                                        @foreach (var t in CategoriasDeCarga.Todas.Where(t => t != CategoriaDeCarga.Tablero || c.Cargas.Count == 1)) { <option value="@t">@t.Nombre()</option> }
+                                                        @foreach (var t in CategoriasDeCarga.Todas) { <option value="@t">@t.Nombre()</option> }
                                                     </select>
                                                 </td>
                                                 <td class="subtipo">
@@ -616,7 +591,7 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
                                                        title="Abrir su rama en la guía de cargas, en otra pestaña." aria-label="Guía: @(aparato.Subtipo?.Nombre() ?? tipoDeLinea.Nombre())">?</a>
                                                 </td>
                                                 <td><input data-requerido data-col="ap-cant" aria-label="Circuito @c.Espacio, carga @n · Cantidad" class="va corto" type="text" inputmode="decimal" autocomplete="off" data-numero min="1" step="1" @bind="aparato.Cantidad" @bind:culture="CultureInfo.InvariantCulture" @bind:after="() => TrasEditarLinea(c)"
-                                                           disabled="@(aparato.Subtipo?.VaSolo() == true)" title="@(aparato.Subtipo?.VaSolo() == true ? "Va solo en su circuito: uno." : null)" /></td>
+                                                           disabled="@(aparato.Subtipo?.VaSolo() == true || aparato.EsTablero)" title="@(aparato.Subtipo?.VaSolo() == true ? "Va solo en su circuito: uno." : aparato.EsTablero ? "Cada tablero en su línea, con su carga." : null)" /></td>
                                                 <td>
                                                     @* La unidad según cómo se captura: la fija el subtipo (I-123). *@
                                                     <select class="unidad" data-col="ap-unidad" aria-label="Circuito @c.Espacio, carga @n · Unidad" value="@UnidadDeMiembro(aparato)" @onchange="e => CambiarUnidadDeMiembro(aparato, e.Value?.ToString())">
@@ -670,6 +645,18 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
                                                                title="@(aparato.Clase == ClaseDeAparato.AireDeHabitacion ? "Capturar la corriente total de carga nominal de la placa del acondicionador de habitación. Solo no pasa del 80 % del circuito; con otras cargas, del 50 % — 440-62."
                                                                    : aparato.MotorEnAmperes is { } m ? $"{m.Hp:0.##} HP — {MotoresEnHp.Interpolacion(m, c.Polos)}, 430-6(a)(1)." : "Capturar la corriente de placa de un motor que no trae HP; se le asignan los HP de la tabla, interpolando — 430-6(a)(1).")" /></td>
                                                 }
+                                                else if (aparato.EsTablero)
+                                                {
+                                                    @* Otro tablero: la única línea con dos cantidades, ya con sus factores de demanda — 220-40. *@
+                                                    <td class="tablero">
+                                                        <input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="0" data-col="ap-carga" aria-label="Circuito @c.Espacio, carga @n · Continua" value="@Carga(aparato.CargaUnitaria)" @onchange="e => { aparato.CargaUnitaria = LeerCarga(e, aparato.CargaUnitaria); Recalcular(); }"
+                                                               title="Capturar la carga continua calculada del tablero, ya con sus factores de demanda: aquí no lleva otro — 220-40." />
+                                                    </td>
+                                                    <td class="tablero">
+                                                        <input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="0" data-col="ap-continua" aria-label="Circuito @c.Espacio, carga @n · No continua" value="@Carga(aparato.NoContinua)" @onchange="e => { aparato.NoContinua = LeerCarga(e, aparato.NoContinua); Recalcular(); }"
+                                                               title="Capturar la carga no continua calculada del tablero, ya con sus factores de demanda: aquí no lleva otro — 220-40." />
+                                                    </td>
+                                                }
                                                 else
                                                 {
                                                     <td>
@@ -684,6 +671,8 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
                                                         }
                                                     </td>
                                                 }
+                                                @if (!aparato.EsTablero)
+                                                {
                                                 <td>
                                                     @if (aparato.Clase == ClaseDeAparato.AireDeHabitacion)
                                                     {
@@ -703,6 +692,7 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
                                                             : "Aparato con motor: al 100 %; solo el mayor va al 125 % — 220-18(a).")">@(aparato.Clase == ClaseDeAparato.Motocompresor ? "motocompresor" : ReferenceEquals(c.MotorAl125, aparato) ? "motor mayor · 125 %" : "motor")</span>
                                                     }
                                                 </td>
+                                                }
                                                 <td><input data-requerido class="va fp" type="text" inputmode="decimal" autocomplete="off" data-numero min="@FactorMinimo" max="1" step="0.05" data-col="ap-fp" aria-label="Circuito @c.Espacio, carga @n · F.P." value="@Factor(aparato.FactorPotencia)" @onchange="e => { aparato.FactorPotencia = LeerFactor(e, aparato.FactorPotencia); Recalcular(); }" /></td>
                                                 <td class="num" title="@(aparato.EsMaquina && aparato.CorrienteUnitariaA > 0m ? $"{aparato.Cantidad} × {aparato.CorrienteUnitariaA:N2} A = {aparato.Cantidad * aparato.CorrienteUnitariaA:N2} A, por la tensión del circuito." : aparato.ReferenciaMinimo is { } rm ? $"Con el mínimo de {rm}." : null)">@aparato.TotalVA.ToString("#,0.##")</td>
                                                 <td><button class="quitar" title="Quitar la carga" aria-label="Quitar la carga @n del circuito @c.Espacio" @onclick="() => QuitarAparato(c, aparato, n)"><Icono Nombre="quitar" Tamano="14" /></button></td>
@@ -713,7 +703,7 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
                                         <tr>
                                             <td class="izq">
                                                 <button class="agregar" data-agregar="@c.Espacio" @onclick="() => AgregarCarga(c)" disabled="@(VaSolo(c) is not null)"
-                                                        title="@(VaSolo(c) is { } solo ? $"{solo} va solo en su circuito: no admite otra carga." : c.SubtipoDelRenglon is not null ? "Agregar otra carga: el equipo pasa a ser la primera línea, y el circuito se calcula como grupo — 430-53, 440-22(b)." : "Agregar una salida o una carga al circuito.")"><Icono Nombre="agregar" Tamano="14" />Agregar carga</button>
+                                                        title="@(VaSolo(c) is { } solo ? $"{solo} va solo en su circuito: no admite otra carga." : SoloTableros(c) ? "Agregar otro tablero al mismo alimentador: se suman sus cargas — 215-2(a)(1). Cada tablero, protegido a no más de su capacidad — 408-36." : c.SubtipoDelRenglon is not null ? "Agregar otra carga: el equipo pasa a ser la primera línea, y el circuito se calcula como grupo — 430-53, 440-22(b)." : "Agregar una salida o una carga al circuito.")"><Icono Nombre="agregar" Tamano="14" />@(SoloTableros(c) ? "Agregar tablero" : "Agregar carga")</button>
                                             </td>
                                             <td colspan="9" class="num">
                                                 @if (grupo && c.EsAireAcondicionado && c.Cargas.Any(a => a.Clase == ClaseDeAparato.Motocompresor))
@@ -737,7 +727,6 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
                                         </tr>
                                     </tfoot>
                                 </table>
-                                }
                             </td>
                         </tr>
                     }
@@ -1776,6 +1765,8 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
         var nueva = c.AgregarCarga();
         // Sin tipo elegido, la línea empieza en «—»: el tipo se escoge en ella, una sola vez.
         nueva.Subtipo = c.TipoElegido ? SubtiposDeCarga.PorOmision(c.Categoria) : null;
+        if (nueva.EsTablero)
+            nueva.Descripcion = $"Tablero {c.Cargas.Count}";
         Recalcular();
         _enfocar = DescripcionDeAparato(c.Espacio, c.Cargas.Count);
     }
@@ -1823,6 +1814,8 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
     {
         if (!Enum.TryParse<SubtipoDeCarga>(valor, out var subtipo))
             return;
+        if (subtipo == SubtipoDeCarga.TableroAlimentado && string.IsNullOrWhiteSpace(a.Descripcion))
+            a.Descripcion = $"Tablero {c.Cargas.IndexOf(a) + 1}";
         if (subtipo.SoloEnElRenglon())
         {
             if (!c.PasarARenglon(subtipo))
@@ -1880,9 +1873,6 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
                 c.Categoria = CategoriaDeCarga.AireAcondicionado;
                 c.PlacaAire = PlacaDeAireAcondicionado.Habitacion;
                 break;
-            case SubtipoDeCarga.TableroAlimentado:
-                c.Categoria = CategoriaDeCarga.Tablero;
-                break;
             default:
                 // Deja de ser un equipo del renglón: su línea, vacía, con el nuevo subtipo.
                 c.Continua = 0m;
@@ -1911,6 +1901,9 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
         Recalcular();
         _enfocar = AgregarDe(c.Espacio);
     }
+
+    /// <summary>Un alimentador a tableros: todas sus líneas son tableros (David, 2026-09-30).</summary>
+    private static bool SoloTableros(CircuitoDelCuadro c) => c.Cargas.Count > 0 && c.Cargas.All(a => a.EsTablero);
 
     /// <summary>
     /// El nombre del equipo o del subtipo que va solo en su circuito — un variador, un A/A con ampacidad de
@@ -2072,7 +2065,7 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
     /// </summary>
     private static string? DetalleDeClase(CircuitoDelCuadro c) =>
         c.ClaseDelCircuito is not { } clase ? null
-        : clase == ClaseDeCircuito.Alimentador ? "sin F.D. (220-40)"
+        : clase == ClaseDeCircuito.Alimentador ? (c.Cargas.Count(x => x.EsTablero) is > 1 and var tableros ? $"{tableros} tableros · sin F.D. (220-40)" : "sin F.D. (220-40)")
         : c.EsGrupo ? TextoDelGrupo(c)
         : c.Salidas is { } n && clase != ClaseDeCircuito.Individual ? $"{n} {(n == 1 ? "salida" : "salidas")}"
         : c.EsCargaTotal ? "carga total"

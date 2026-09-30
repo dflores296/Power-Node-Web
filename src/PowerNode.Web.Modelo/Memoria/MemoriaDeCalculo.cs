@@ -498,17 +498,40 @@ public static class MemoriaDeCalculo
     private static IReadOnlyList<RenglonMemoria> Desglose(CircuitoDelCuadro circuito) =>
     [
         .. Clase(circuito),
-        .. !circuito.TieneDesglose ? [] : circuito.Cargas.Select((a, i) => new RenglonMemoria(
+        .. !circuito.TieneDesglose && circuito.Categoria != CategoriaDeCarga.Tablero ? [] : circuito.Cargas.Select((a, i) => new RenglonMemoria(
             // El tipo y el subtipo de cada salida o carga — I-123: de ellos salen su F.D. y su mínimo.
-            $"{i + 1}. {circuito.TipoDe(a).Nombre()}{(a.Subtipo is { } st ? $" · {st.Nombre()}" : "")}: " +
+            $"{i + 1}. {circuito.TipoDe(a).Nombre()}{(a.Subtipo is { } st && !a.EsTablero ? $" · {st.Nombre()}" : "")}: " +
             $"{(string.IsNullOrWhiteSpace(a.Descripcion) ? "—" : a.Descripcion.Trim())}",
             // Una máquina de un grupo (I-115): su corriente por unidad, que es con la que calcula.
-            a.EsMaquina
+            a.EsTablero
+                ? $"continua {a.CargaUnitaria:N0} {Simbolo(a.Unidad)} · no continua {a.NoContinua:N0} {Simbolo(a.Unidad)} = {a.TotalVA:N0} VA, " +
+                  $"ya con sus factores de demanda; sin otro aquí — 220-40 · F.P. {a.FactorPotencia:N2}"
+            : a.EsMaquina
                 ? $"{a.Cantidad} × {(a.Clase == ClaseDeAparato.Motor && a.MotorEnAmperes is null ? $"{MotoresEnHp.Texto(a.Hp ?? 0m)} HP · " : "")}" +
                   $"{a.CorrienteUnitariaA:N2} A = {a.TotalVA:N0} VA · F.P. {a.FactorPotencia:N2}"
                 : $"{a.Cantidad} × {a.CargaUnitaria:N0} {Simbolo(a.Unidad)}{(a.ReferenciaMinimo is { } rm ? $", con el mínimo de {rm}," : "")} = {a.TotalVA:N0} VA · " +
                   $"{(a.Continua ? a.ReferenciaContinua is { } rc ? $"continua — {rc}" : "continua" : "no continua")} · F.P. {a.FactorPotencia:N2}")),
+        .. Tableros(circuito),
     ];
+
+    /// <summary>
+    /// Un alimentador a otros tableros (David, 2026-09-30): cada tablero protegido a no más de su capacidad
+    /// — 408-36; con varios, las derivaciones del alimentador a cada uno — 240-21(b).
+    /// </summary>
+    private static IEnumerable<RenglonMemoria> Tableros(CircuitoDelCuadro circuito)
+    {
+        var tableros = circuito.Cargas.Count(a => a.EsTablero);
+        if (circuito.Categoria != CategoriaDeCarga.Tablero || tableros == 0 || circuito.Resultado is not { } r)
+            yield break;
+        yield return new RenglonMemoria("Protección de cada tablero",
+            $"No mayor que la capacidad del tablero — 408-36. La de este alimentador, {r.ProteccionA:N0} A, basta para " +
+            $"{(tableros == 1 ? "el tablero si es" : "cada tablero que sea")} de {r.ProteccionA:N0} A o más; si no, lleva su interruptor principal.");
+        if (tableros > 1)
+            yield return new RenglonMemoria("Derivaciones a cada tablero",
+                "Del alimentador a cada tablero, derivaciones según 240-21(b): hasta 3 m, con ampacidad no menor que la " +
+                "carga del tablero ni que la capacidad del dispositivo en que terminan; hasta 7.5 m, con ampacidad no menor " +
+                $"que un tercio de esta protección ({r.ProteccionA / 3m:N1} A) y terminando en un solo interruptor o juego de fusibles.");
+    }
 
     /// <summary>
     /// La clase del circuito, con su definición del Art. 100, y si lleva cargas combinadas — I-123. En otro
@@ -524,7 +547,9 @@ public static class MemoriaDeCalculo
             ClaseDeCircuito.Individual => "Circuito derivado individual: alimenta a un solo equipo de utilización — Art. 100",
             ClaseDeCircuito.UsoGeneral => "Circuito derivado de uso general: dos o más salidas para alumbrado y aparatos — Art. 100",
             ClaseDeCircuito.ParaAparatos => "Circuito derivado para aparatos: salidas para aparatos, sin alumbrado conectado permanentemente — Art. 100",
-            _ => "Alimentador a otro tablero: la carga calculada de ese tablero, sin otro factor de demanda — Art. 100, 215-2(a)(1), 220-40",
+            _ => circuito.Cargas.Count(a => a.EsTablero) > 1
+                ? "Alimentador a otros tableros: la suma de sus cargas calculadas, sin otro factor de demanda — Art. 100, 215-2(a)(1), 220-40"
+                : "Alimentador a otro tablero: la carga calculada de ese tablero, sin otro factor de demanda — Art. 100, 215-2(a)(1), 220-40",
         });
         if (circuito.TieneCargasCombinadas)
             yield return new RenglonMemoria("Cargas combinadas",
