@@ -480,4 +480,24 @@ public class Auditoria20260929Tests
         var comun = Contactos(Nuevo(), 1, SubtipoDeCarga.ContactoUsoGeneral, 4);
         Assert.DoesNotContain(comun.ReglasDeClase, x => x.Referencia.StartsWith("210-6"));
     }
+
+    // ---- Riesgo 1 · Avisos en el renglón --------------------------------------------------------
+
+    [Fact]
+    public void R1_LosAvisosDelCircuitoSeVenEnSuRenglon()
+    {
+        // 24 salidas de alumbrado continuo: 25 A con alumbrado común — 210-23(b). Antes solo en la memoria y al pie.
+        var cuadro = Nuevo();
+        var c = Espacio(cuadro, 1);
+        c.Categoria = CategoriaDeCarga.Alumbrado;
+        var a = c.AgregarCarga();
+        a.Subtipo = SubtipoDeCarga.Luminarias;
+        a.Cantidad = 24;
+        a.CargaUnitaria = 100m;
+        a.Continua = true;
+        cuadro.Recalcular();
+
+        Assert.Contains(cuadro.AvisosDe(c), x => x.Contains("210-23(b)"));
+        Assert.Empty(cuadro.AvisosDe(Espacio(cuadro, 3)));
+    }
 }

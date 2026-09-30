@@ -271,6 +271,11 @@
                                         title="Las salidas y cargas del circuito: se capturan aquí, cada una con su tipo; el renglón muestra la suma. Con el teclado: Ctrl+Enter."
                                         @onclick="() => AlternarDesglose(c)"><Icono Nombre="@(Abierto(c) ? "desglose-abierto" : "desglose")" Tamano="14" /></button>
                                 <input class="desc" data-col="desc" aria-label="Circuito @c.Espacio · Descripción" @bind="c.Descripcion" @bind:event="oninput" @bind:after="DibujarAlPausar" placeholder="—" />
+                                @* Lo que hay que revisar, en el renglón y no solo al pie (auditoría del 2026-09-29, riesgo 1). *@
+                                @if (Cuadro.AvisosDe(c) is { Count: > 0 } avisosDelRenglon)
+                                {
+                                    <span class="aviso-renglon" role="img" aria-label="Avisos del circuito @c.Espacio: @string.Join(" ", avisosDelRenglon)" title="@string.Join("\n\n", avisosDelRenglon)"><Icono Nombre="aviso" Tamano="14" /></span>
+                                }
                             </div>
                         </td>
                         @* LA CLASE DEL CIRCUITO, NO EL TIPO DE CARGA (captura-en-el-desplegable.md, David 2026-09-30): sale
@@ -1080,8 +1085,9 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
                 </div>
                 <div class="cable">
                     <span class="muestras grande"><i class="color-tierra"></i></span>
-                    <span class="rotulo"><span class="ayuda" title="Consultar el conductor de puesta a tierra de equipos — Tabla 250-122. Verde, o verde con franjas amarillas — 250-119.">Puesta a tierra</span></span>
-                    <span class="calibre">@a.CalibreTierra.DesignacionConUnidad<small>@a.CalibreTierra.AreaMm2.ToString("N2") mm²</small></span>
+                    <span class="rotulo"><span class="ayuda" title="Consultar el conductor de puesta a tierra de equipos — Tabla 250-122. Verde, o verde con franjas amarillas — 250-119. En paralelo, uno en cada canalización — 250-122(f).">Puesta a tierra</span></span>
+                    @* En paralelo, uno por canalización: «3 × 300 kcmil», no «300 kcmil» (auditoría del 2026-09-29, riesgo 4). *@
+                    <span class="calibre">@ConHilos(a.CalibreTierra, a.NumeroConductoresParalelo)<small>@a.CalibreTierra.AreaMm2.ToString("N2") mm²@(a.NumeroConductoresParalelo > 1 ? " · uno por canalización" : "")</small></span>
                 </div>
             </div>
 
@@ -1098,7 +1104,13 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
                         <td class="num">@g.Fase, la más cargada</td>
                     </tr>
                 }
-                <tr><td class="izq"><span class="ayuda" title="Consultar la corriente con la que se dimensionan la protección y el conductor: los VA demandados sumados directamente, entre la tensión. La caída de tensión usa la suma fasorial, que puede ser un poco menor.">Corriente de diseño</span></td><td class="num">@a.CorrienteDisenoA.ToString("N2") A</td></tr>
+                @* «Corriente de carga», sin el 125 %; la capacidad mínima, con él, en su renglón: «corriente de diseño» se leía
+                   como la que dimensiona (auditoría del 2026-09-29, riesgo 5). *@
+                <tr><td class="izq"><span class="ayuda" title="Consultar la corriente de la carga de la fase que gobierna: los VA demandados sumados directamente, entre la tensión, sin el 125 % de la continua. La caída de tensión usa la suma fasorial, que puede ser un poco menor.">Corriente de carga</span></td><td class="num">@a.CorrienteDisenoA.ToString("N2") A</td></tr>
+                @if (a.Detalle is { } detalleAlimentador)
+                {
+                    <tr><td class="izq"><span class="ayuda" title="Consultar la capacidad mínima con la que se eligen la protección y el conductor: 125 % de la continua + la no continua (con motores y A/C, 125 % del mayor + los demás) — 215-2(a)(1), 215-3.">Capacidad mínima</span></td><td class="num">@detalleAlimentador.CapacidadMinimaA.ToString("N2") A</td></tr>
+                }
                 <tr>
                     <td class="izq"><span class="ayuda" title="Consultar el factor de potencia de las cargas de la fase que gobierna, con su factor de demanda y el mínimo de 220-52: el de la corriente con la que se calcula la caída de tensión del alimentador.">Factor de potencia</span></td>
                     <td class="num">@Cuadro.Alimentador.FactorPotencia.ToString("N2")</td>

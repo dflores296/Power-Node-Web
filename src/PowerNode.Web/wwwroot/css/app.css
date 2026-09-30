@@ -967,6 +967,8 @@ polygon.riel-a { fill: var(--barra-a); } polygon.riel-b { fill: var(--barra-b); 
 
 /* Desglose de aparatos del circuito — I-35 */
 .cuadro .desc-linea { display: flex; align-items: center; gap: 4px; }
+/* Lo que hay que revisar del circuito, junto a su descripción; el texto, al pasar el cursor (P3, riesgo 1). */
+.cuadro .aviso-renglon { flex: none; display: inline-flex; color: var(--aviso-borde); cursor: help; }
 .cuadro button.desglosar { display: inline-flex; align-items: center; border: 0; background: none; cursor: pointer; color: var(--tenue); padding: 0; }
 .cuadro .en-va.izq { text-align: left; }
 .cuadro tr.fila-desglose td { background: var(--fondo-suave); padding: 8px 12px 12px; text-align: left; }

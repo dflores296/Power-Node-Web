@@ -1303,6 +1303,18 @@ public sealed class CuadroDeCarga
                (conOtras ? "Llévalo a un circuito propio: A/A y refrig., unidad «De hab.»." : "Captúralo como A/A y refrig., unidad «De hab.»: el circuito sale del tamaño que lo deja en 80 %.");
     }
 
+    /// <summary>
+    /// Lo que hay que revisar de un circuito, para el indicador de su renglón: las reglas de su clase que no
+    /// se cumplen (210-23, Tabla 210-21(b)(3), 422-11(e)), la caída combinada de más de 5 % y 440-62. Antes
+    /// solo estaban en la tarjeta «Avisos» al pie y en la memoria (auditoría del 2026-09-29, P3, riesgo 1).
+    /// </summary>
+    public IReadOnlyList<string> AvisosDe(CircuitoDelCuadro c) =>
+    [
+        .. c.ReglasDeClase.Where(x => x.Aviso).Select(x => $"{x.Texto.TrimEnd('.')} — {x.Referencia}."),
+        .. c.AvisoCaidaCombinada is { } caida ? [caida] : Array.Empty<string>(),
+        .. c.AvisoAireDeHabitacion is { } habitacion ? [habitacion] : Array.Empty<string>(),
+    ];
+
     /// <summary>Los avisos de los circuitos que no son de caída: por ahora, 440-62 (I-117).</summary>
     public IEnumerable<string> AvisosDeCircuitos =>
         _circuitos.Where(c => c.AvisoAireDeHabitacion is not null).Select(c => c.AvisoAireDeHabitacion!)
