@@ -9,6 +9,12 @@
 //             Safari no tienen ese diálogo: el archivo se descarga.
 //   Abrir     el selector de archivos del sistema.
 //   Cerrar    con cambios sin guardar, el navegador pregunta antes de cerrar o recargar la pestaña.
+//   Copia     lo que no está en un archivo se copia en sessionStorage, que es de esta pestaña y
+//             sobrevive a recargarla: la alternativa que dejó escrita la decisión (auditoría del
+//             2026-09-29, P1-3). No es localStorage: varias pestañas se pisarían.
+//   Confirmar dentro de la página, con <dialog>. Antes era window.confirm: detiene la página hasta que
+//             se contesta, y quien no ve el diálogo nativo —una herramienta de prueba— la ve congelada
+//             (P1-3: los cuatro «congelamientos» de la auditoría eran esta pregunta sin contestar).
 (() => {
     const tipos = [{ description: 'Tablero de Power Node', accept: { 'application/json': ['.json'] } }];
     let sinGuardar = false;
@@ -65,10 +71,62 @@
         e.returnValue = ''; // los navegadores ponen su propio mensaje
     });
 
+    /**
+     * true si se aceptó. El mensaje respeta sus saltos de línea; el botón de aceptar dice lo que hace
+     * («Reducir el gabinete»), y el foco empieza en Cancelar: aceptar borra o recorta circuitos.
+     */
+    function confirmar(mensaje, aceptar, cancelar) {
+        return new Promise(resolve => {
+            const dialogo = document.createElement('dialog');
+            dialogo.className = 'confirmacion';
+            const texto = document.createElement('p');
+            texto.className = 'confirmacion-texto';
+            texto.id = 'confirmacion-texto';
+            texto.textContent = mensaje;
+            dialogo.setAttribute('aria-describedby', texto.id);
+            const botones = document.createElement('div');
+            botones.className = 'confirmacion-botones';
+            const no = boton(cancelar || 'Cancelar', 'boton', () => dialogo.close('no'));
+            const si = boton(aceptar || 'Aceptar', 'boton primario', () => dialogo.close('si'));
+            botones.append(no, si);
+            dialogo.append(texto, botones);
+            // Esc cierra con returnValue vacío: es Cancelar.
+            dialogo.addEventListener('close', () => { dialogo.remove(); resolve(dialogo.returnValue === 'si'); });
+            document.body.appendChild(dialogo);
+            dialogo.showModal();
+            no.focus();
+        });
+    }
+
+    function boton(rotulo, clase, alPulsar) {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = clase;
+        b.textContent = rotulo;
+        b.addEventListener('click', alPulsar);
+        return b;
+    }
+
+    // La copia de esta pestaña. sessionStorage puede no existir o negarse (modo privado, sin espacio):
+    // entonces no hay copia y la aplicación sigue igual.
+    const CLAVE_COPIA = 'powerNode.copiaDelTablero';
+    const copia = {
+        escribir: texto => {
+            try {
+                if (texto == null) sessionStorage.removeItem(CLAVE_COPIA);
+                else sessionStorage.setItem(CLAVE_COPIA, texto);
+            } catch { /* sin copia */ }
+        },
+        leer: () => {
+            try { return sessionStorage.getItem(CLAVE_COPIA); } catch { return null; }
+        },
+    };
+
     (window.powerNode ??= {}).archivo = {
         guardar,
         abrir,
         marcarSinGuardar: valor => { sinGuardar = valor; },
-        confirmar: mensaje => window.confirm(mensaje),
+        confirmar,
+        copia,
     };
 })();

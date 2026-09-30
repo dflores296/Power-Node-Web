@@ -250,4 +250,62 @@ public class Auditoria20260929Tests
         var hoja = MemoriaDeCalculo.DeCircuito(cuadro, c);
         Assert.Contains(MemoriaDeCalculo.Secciones(hoja), b => b.Notas.Any(n => n.StartsWith("La Tabla 9 no trae R ni X para 900")));
     }
+
+    // ---- P1-3 · «Congelamiento» al reducir espacios o fases ---------------------------------------
+
+    /// <summary>
+    /// Los cuatro casos de la auditoría. No había ciclo: en el navegador, cada uno abría una pregunta
+    /// con <c>window.confirm</c>, que detiene la página hasta que se contesta —vista desde una
+    /// herramienta que no ve el diálogo nativo, una pestaña congelada—; contestada, el cambio tardaba
+    /// 84 ms. La pregunta es ahora un diálogo dentro de la página (<c>archivo.js</c>). Aquí: que cada
+    /// caso sí pregunta, y que aplicar el cambio termina con el tablero consistente.
+    /// </summary>
+    [Theory]
+    [InlineData(24, 7, 3, 6)]    // (a) 3 polos en 7-9-11, Espacios 24 → 6
+    [InlineData(24, 13, 3, 12)]  // (b) 3 polos en 13-15-17, Espacios 24 → 12
+    [InlineData(24, 15, 1, 12)]  // (c) 1 polo en el 15, Espacios 24 → 12
+    public void P1_3_ReducirLosEspaciosPreguntaYTermina(int espacios, int espacio, int polos, int nuevos)
+    {
+        var cuadro = Nuevo(espacios: espacios);
+        var c = Espacio(cuadro, espacio);
+        c.Categoria = CategoriaDeCarga.Alumbrado;
+        c.NoContinua = 900m;
+        if (polos > 1)
+            Assert.Null(cuadro.CambiarPolos(c, polos));
+        cuadro.Recalcular();
+
+        var aviso = cuadro.AvisoAlCambiar(nuevos, cuadro.Datos.MaximoPolos);
+        Assert.NotNull(aviso);
+        Assert.Contains($"circuito {espacio}", aviso);
+
+        cuadro.Datos.NumeroEspacios = nuevos;
+        cuadro.Recalcular();
+
+        Assert.Equal(nuevos, cuadro.Circuitos.Count);
+        Assert.DoesNotContain(cuadro.Circuitos, x => x.TieneCarga);
+        Assert.Null(cuadro.AvisoAlCambiar(nuevos, cuadro.Datos.MaximoPolos));
+    }
+
+    [Fact]
+    public void P1_3_BajarLasFasesConUnBipolarPreguntaYTermina()
+    {
+        // (d) Un circuito de 2 polos y Fases 3 → 1: pasa a 1 polo, y se dice antes.
+        var cuadro = Nuevo();
+        var c = Espacio(cuadro, 1);
+        c.Categoria = CategoriaDeCarga.Equipo;
+        c.NoContinua = 2000m;
+        Assert.Null(cuadro.CambiarPolos(c, 2));
+        cuadro.Recalcular();
+
+        var (etiqueta, espacios, maximoPolos) = cuadro.Datos.AlCambiar(1);
+        var aviso = cuadro.AvisoAlCambiar(espacios, maximoPolos, etiqueta);
+        Assert.NotNull(aviso);
+        Assert.Contains("pasa de 2 a 1 polo", aviso);
+
+        cuadro.Datos.Fases = 1;
+        cuadro.Recalcular();
+
+        Assert.Equal(1, c.Polos);
+        Assert.NotNull(c.Resultado);
+    }
 }

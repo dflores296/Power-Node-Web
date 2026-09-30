@@ -118,6 +118,7 @@
     {
         if (!firstRender)
             return;
+        await RecuperarCopia();
         try
         {
             _estrellas = await JS.InvokeAsync<int?>("powerNode.github.estrellas");
@@ -166,7 +167,8 @@
             return;
         if (Proyecto.SinGuardar &&
             !await JS.InvokeAsync<bool>("powerNode.archivo.confirmar",
-                $"El tablero de esta pestaña tiene cambios sin guardar. ¿Abrir «{archivo.Nombre}» en su lugar y perderlos?\n\nPara tener los dos, cancela, guarda este y abre el otro en una pestaña nueva."))
+                $"El tablero de esta pestaña tiene cambios sin guardar. ¿Abrir «{archivo.Nombre}» en su lugar y perderlos?\n\nPara tener los dos, cancela, guarda este y abre el otro en una pestaña nueva.",
+                "Abrir y perder los cambios", "Cancelar"))
             return;
 
         var apertura = Proyecto.Abrir(archivo.Texto);
@@ -179,6 +181,36 @@
         Avisar(apertura.Avisos.Count == 0
             ? $"Abierto: «{archivo.Nombre}»."
             : $"Abierto: «{archivo.Nombre}». {string.Join(" ", apertura.Avisos)}", error: false, largo: apertura.Avisos.Count > 0);
+    }
+
+    /// <summary>
+    /// Al cargar la pestaña, lo que quedó sin guardar en ella (P1-3): una recarga, o una pestaña que se
+    /// cerró de golpe y se reabrió, no pierde el tablero. Si la copia no se puede leer, se descarta.
+    /// </summary>
+    private async Task RecuperarCopia()
+    {
+        string? texto;
+        try
+        {
+            texto = await JS.InvokeAsync<string?>("powerNode.archivo.copia.leer");
+        }
+        catch (JSException)
+        {
+            return;
+        }
+        if (string.IsNullOrWhiteSpace(texto))
+            return;
+
+        var apertura = Proyecto.Recuperar(texto);
+        if (apertura.Error is not null)
+        {
+            await JS.InvokeVoidAsync("powerNode.archivo.copia.escribir", (string?)null);
+            return;
+        }
+        await JS.InvokeVoidAsync("powerNode.archivo.marcarSinGuardar", true);
+        Avisar("Se recuperó el tablero de esta pestaña: tenía cambios que no estaban en un archivo. Guárdalo para no perderlo; " +
+               "para empezar uno nuevo, abre otra pestaña.", largo: true);
+        StateHasChanged();
     }
 
     private string? _nota;

@@ -196,6 +196,15 @@ html { scroll-padding-top: calc(var(--alto-barra) + 8px); -webkit-text-size-adju
 .nota-archivo .cerrar { border: 0; background: none; cursor: pointer; color: var(--tenue); font-size: 17px; line-height: 1; padding: 0 2px; }
 .nota-archivo .cerrar:hover { color: var(--tinta); }
 
+/* La confirmación dentro de la página (P1-3): antes window.confirm, que detenía la página. */
+dialog.confirmacion { max-width: min(520px, calc(100vw - 32px)); padding: 16px 18px 14px; font-size: 13px;
+                      background: var(--papel); color: var(--tinta); border: 1px solid var(--linea);
+                      border-left: 3px solid var(--aviso-borde); border-radius: var(--radio-sm);
+                      box-shadow: 0 10px 30px var(--sombra); }
+dialog.confirmacion::backdrop { background: rgb(0 0 0 / .35); }
+.confirmacion-texto { margin: 0 0 14px; white-space: pre-line; line-height: 1.45; }
+.confirmacion-botones { display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
+
 /* LA BARRA SE COMPACTA POR ESCALONES (I-85). Entre la de escritorio y la del celular no había nada: de
    761 a 1120 px no cabía y la página entera se desplazaba de lado; a 768 px «Guardar» salía cortado y el
    tema y GitHub quedaban fuera. */
@@ -1193,6 +1202,8 @@ body.con-ayuda { padding-bottom: calc(var(--alto-ayuda, 64px) + 8px); }
     .barra-superior { border-bottom: 2px solid var(--trazo-fuerte); }
     .nota-archivo { border-width: 1.5px 1.5px 1.5px 3px; border-color: var(--trazo-fuerte); border-left-color: var(--acento);
                     box-shadow: 3px 3px 0 var(--trazo-fuerte); }
+    dialog.confirmacion { border-width: 1.5px 1.5px 1.5px 3px; border-color: var(--trazo-fuerte);
+                          border-left-color: var(--aviso-borde); box-shadow: 3px 3px 0 var(--trazo-fuerte); }
 
     h2 { color: var(--tinta); font-weight: 700; }
 }

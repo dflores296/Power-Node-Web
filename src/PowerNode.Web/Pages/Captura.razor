@@ -1233,7 +1233,7 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
     {
         if (!int.TryParse(e.Value?.ToString(), out var espacios) || espacios == Datos.NumeroEspacios)
             return;
-        if (!await SePuedeCambiar(Cuadro.AvisoAlCambiar(espacios, Datos.MaximoPolos), "¿Reducir el gabinete de todos modos?"))
+        if (!await SePuedeCambiar(Cuadro.AvisoAlCambiar(espacios, Datos.MaximoPolos), "¿Reducir el gabinete de todos modos?", $"Reducir a {espacios} espacios"))
         {
             await Restablecer("#campo-espacios", Datos.NumeroEspacios.ToString(CultureInfo.InvariantCulture));
             return;
@@ -1247,7 +1247,7 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
         if (!int.TryParse(e.Value?.ToString(), out var fases) || fases == Datos.Fases)
             return;
         var (etiqueta, espacios, maximoPolos) = Datos.AlCambiar(fases);
-        if (!await SePuedeCambiar(Cuadro.AvisoAlCambiar(espacios, maximoPolos, etiqueta), $"¿Cambiar a {etiqueta} de todos modos?"))
+        if (!await SePuedeCambiar(Cuadro.AvisoAlCambiar(espacios, maximoPolos, etiqueta), $"¿Cambiar a {etiqueta} de todos modos?", $"Cambiar a {etiqueta}"))
         {
             await Restablecer("#campo-fases", Datos.Fases.ToString(CultureInfo.InvariantCulture));
             return;
@@ -1261,7 +1261,7 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
         if (!int.TryParse(e.Value?.ToString(), out var hilos) || hilos == Datos.Hilos)
             return;
         var (etiqueta, espacios, maximoPolos) = Datos.AlCambiar(Datos.Fases, hilos);
-        if (!await SePuedeCambiar(Cuadro.AvisoAlCambiar(espacios, maximoPolos, etiqueta), $"¿Cambiar a {etiqueta} de todos modos?"))
+        if (!await SePuedeCambiar(Cuadro.AvisoAlCambiar(espacios, maximoPolos, etiqueta), $"¿Cambiar a {etiqueta} de todos modos?", $"Cambiar a {etiqueta}"))
         {
             await Restablecer("#campo-hilos", Datos.Hilos.ToString(CultureInfo.InvariantCulture));
             return;
@@ -1270,9 +1270,12 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
         Recalcular();
     }
 
-    /// <summary>Sin nada que se pierda o se recorte, sí; si no, lo que conteste el ingeniero.</summary>
-    private async Task<bool> SePuedeCambiar(string? aviso, string pregunta) =>
-        aviso is null || await JS.InvokeAsync<bool>("powerNode.archivo.confirmar", $"{aviso}\n\n{pregunta}");
+    /// <summary>
+    /// Sin nada que se pierda o se recorte, sí; si no, lo que conteste el ingeniero. La pregunta va
+    /// dentro de la página, no en un <c>window.confirm</c> que la detiene (P1-3).
+    /// </summary>
+    private async Task<bool> SePuedeCambiar(string? aviso, string pregunta, string aceptar) =>
+        aviso is null || await JS.InvokeAsync<bool>("powerNode.archivo.confirmar", $"{aviso}\n\n{pregunta}", aceptar, "Cancelar");
 
     private void CambiarEspacioDelPrincipal(ChangeEventArgs e)
     {
@@ -1368,10 +1371,19 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
         _ = Task.Delay(PausaSinGuardarMs, pausa.Token).ContinueWith(t =>
         {
             if (!t.IsCanceled)
-                _ = InvokeAsync(() => Marcar(Proyecto.SinGuardar));
+                _ = InvokeAsync(Revisar);
         }, TaskScheduler.Default);
 
         Task Marcar(bool valor) => JS.InvokeVoidAsync("powerNode.archivo.marcarSinGuardar", valor).AsTask();
+
+        // Con la misma huella, la copia de la pestaña (P1-3): lo que no está en un archivo sobrevive a
+        // recargarla. Sin cambios, la copia se borra: no hay nada que recuperar.
+        async Task Revisar()
+        {
+            var (sinGuardar, huella) = Proyecto.Estado();
+            await Marcar(sinGuardar);
+            await JS.InvokeVoidAsync("powerNode.archivo.copia.escribir", sinGuardar ? huella : null);
+        }
     }
 
     // Al abrir un archivo, el tablero es otro: se dibuja de nuevo, sin desgloses abiertos del anterior.

@@ -40,6 +40,16 @@ public sealed class ProyectoActual
     public bool SinGuardar => ArchivoDelCuadro.Huella(Cuadro) != _huellaGuardada;
 
     /// <summary>
+    /// <see cref="SinGuardar"/> y la huella con que se decidió, en una sola serialización: la huella es
+    /// el archivo completo sin la fecha, y es lo que se copia en la pestaña (P1-3).
+    /// </summary>
+    public (bool SinGuardar, string Huella) Estado()
+    {
+        var huella = ArchivoDelCuadro.Huella(Cuadro);
+        return (huella != _huellaGuardada, huella);
+    }
+
+    /// <summary>
     /// El nombre de la pestaña: «Tablero cocina — Power Node» (David, 2026-09-25). Con varias pestañas
     /// abiertas, es lo que dice cuál es cuál. Sin nombre, la clave; sin clave, «Tablero sin nombre».
     /// </summary>
@@ -66,7 +76,15 @@ public sealed class ProyectoActual
     /// Abre un archivo. Si se pudo leer, el tablero de la pestaña pasa a ser el del archivo; si no, se
     /// queda el que estaba y <see cref="Apertura.Error"/> dice por qué.
     /// </summary>
-    public Apertura Abrir(string texto)
+    public Apertura Abrir(string texto) => Cargar(texto, guardado: true);
+
+    /// <summary>
+    /// Recupera la copia de la pestaña (P1-3): se abre como un archivo, pero sigue <b>sin guardar</b>
+    /// —no está en ningún archivo—, así que al cerrar la pestaña el navegador pregunta.
+    /// </summary>
+    public Apertura Recuperar(string texto) => Cargar(texto, guardado: false);
+
+    private Apertura Cargar(string texto, bool guardado)
     {
         var apertura = ArchivoDelCuadro.Abrir(texto, _motor);
         if (apertura.Cuadro is { } cuadro)
@@ -74,7 +92,8 @@ public sealed class ProyectoActual
             cuadro.ExigirTipo = true;
             cuadro.Recalcular();
             Cuadro = cuadro;
-            _huellaGuardada = ArchivoDelCuadro.Huella(cuadro);
+            if (guardado)
+                _huellaGuardada = ArchivoDelCuadro.Huella(cuadro);
             Cambio?.Invoke();
         }
         return apertura;
