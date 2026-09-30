@@ -18,8 +18,9 @@ propuesta y «una línea con dos cantidades, arranca»).
 - «No simultáneo con» abajo y solo donde aplica — I-131, `afc8998`.
 - Variadores: varios en un circuito como grupo y varios motores por variador (David: «haz la 1 y la 2») — I-132, `5291d19`.
 - Sin la casilla «Motores» del variador: la sobrecarga de cada motor queda fuera del alcance — I-132, `a0cdaa8`.
+- El bote del equipo del renglón ya lo quita — I-133, `041cf90`.
 
-Pruebas: 389 en `PowerNode.Web.Tests`, 24 en `PowerNode.Normativa.Tests`.
+Pruebas: 390 en `PowerNode.Web.Tests`, 24 en `PowerNode.Normativa.Tests`.
 
 ## 2026-09-29
 
