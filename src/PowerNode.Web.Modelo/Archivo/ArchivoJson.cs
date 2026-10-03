@@ -107,6 +107,10 @@ public sealed class CircuitoJson
     public bool? ArranqueAl225 { get; set; }
     // Formato 11 — P1-1: el motor no arranca con la Tabla 430-52 (430-52(c)(1) Excepción 2).
     public bool? NoArrancaConLaTabla { get; set; }
+    // Formato 12 — M-20: cómo se escoge la protección del motor y, si es manual, cuál. Sin el campo, un
+    // motor de formato 11 o anterior abre en el máximo (lo de antes); uno de formato 12, en automático.
+    public CriterioDeProteccion? CriterioProteccion { get; set; }
+    public decimal? ProteccionElegida { get; set; }
     public PlacaDeAireAcondicionado? PlacaAire { get; set; }
     public decimal? AmpacidadMinima { get; set; }
     public decimal? ProteccionMaxima { get; set; }
@@ -142,6 +146,8 @@ public sealed class CircuitoJson
         CorrienteSeleccion = c.CorrienteSeleccionA,
         ArranqueAl225 = c.ArranqueAl225 ? true : null,
         NoArrancaConLaTabla = c.NoArrancaConLaTabla ? true : null,
+        CriterioProteccion = c.CriterioProteccion == CriterioDeProteccion.Automatico ? null : c.CriterioProteccion,
+        ProteccionElegida = c.CriterioProteccion == CriterioDeProteccion.Manual ? c.ProteccionElegidaA : null,
         PlacaAire = c.PlacaAire == PlacaDeAireAcondicionado.AmpacidadYProteccion ? null : c.PlacaAire,
         AmpacidadMinima = c.AmpacidadMinimaA == 0m ? null : c.AmpacidadMinimaA,
         ProteccionMaxima = c.ProteccionMaximaA == 0m ? null : c.ProteccionMaximaA,
@@ -174,7 +180,7 @@ public sealed class CircuitoJson
         }
     }
 
-    internal void Aplicar(CircuitoDelCuadro c, DatosDelTablero datos, List<string> avisos)
+    internal void Aplicar(CircuitoDelCuadro c, DatosDelTablero datos, List<string> avisos, int version = ArchivoDelCuadro.Version)
     {
         c.Descripcion = Descripcion ?? c.Descripcion;
         var categoria = CategoriasDeCarga.DelArchivo(Categoria, out var eraMotorOAire);
@@ -228,6 +234,17 @@ public sealed class CircuitoJson
 
         if (eraMotorOAire)
             DeMotorOAire(c, datos, avisos);
+
+        // M-20. UN MOTOR GUARDADO ANTES DEL FORMATO 12 ABRE CON EL MÁXIMO: la memoria de un tablero
+        // entregado no debe cambiar al abrirlo (mismo criterio que factores-de-demanda-del-articulo-220).
+        c.CriterioProteccion = CriterioProteccion
+            ?? (version < 12 && c.EsMotor ? CriterioDeProteccion.Maximo430_52 : CriterioDeProteccion.Automatico);
+        c.ProteccionElegidaA = c.CriterioProteccion == CriterioDeProteccion.Manual && ProteccionElegida is > 0m ? ProteccionElegida : null;
+        if (c.CriterioProteccion == CriterioDeProteccion.Manual && c.ProteccionElegidaA is null)
+        {
+            avisos.Add($"El circuito {Espacio} trae la protección del motor en «manual» sin el valor; se abrió con el máximo de 430-52.");
+            c.CriterioProteccion = CriterioDeProteccion.Maximo430_52;
+        }
     }
 
     /// <summary>

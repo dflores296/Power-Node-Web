@@ -11,6 +11,10 @@ namespace PowerNode.DesignSuite.Calculo.Casos;
 /// pipeline (temperatura de terminales, factores de corrección, ampacidad, caída de tensión, tierra)
 /// es el mismo que cualquier otro caso.
 ///
+/// <b>Power Node Web, M-20:</b> ese valor es un techo. La protección se escoge dentro de un rango —del
+/// menor de la serie que lleva el 125 % de la FLC al techo— con un criterio: el máximo (lo de antes),
+/// prioridad al conductor (240-4) o manual. Ver <see cref="RangoDeProteccionMotor"/>.
+///
 /// <b>Fuera de v1:</b> 430-52(c)(1) Excepción 2 -- cuando ni la Tabla 430-52 ni su redondeo al
 /// estándar superior alcanzan para que el motor arranque sin disparar, se permite subir hasta la
 /// corriente de rotor bloqueado (430-251/430-7(b), ya importadas pero no conectadas aquí todavía).
@@ -86,16 +90,33 @@ public class CalculadoraCircuitoDerivadoMotor(
         // proyectista (P1-1 de la misma auditoría). Aquí, la del interruptor de tiempo inverso, 2(3).
         var excepcion2 = d.NoArrancaConLaTabla && d.TipoDispositivoProteccion == TipoDispositivoProteccionMotor.InterruptorTiempoInverso;
         var proteccion = ProteccionDeLaTabla430_52(proteccionEstandar, techoProteccion, excepcion2 ? flc : null);
-        var breaker = proteccion.SeleccionadaA;
         citas.Add(new Cita("430-52", $"Techo de protección: {porcentaje}% x {flc:0.##} A = {proteccion.Explicacion()}"));
         if (proteccion.ExplicacionExcepcion2() is { } porExcepcion2)
             citas.Add(new Cita("430-52(c)(1) Excepción 2", porExcepcion2));
 
+        // 3.5. EL RANGO — Power Node Web, M-20. 430-52(c)(1) pide un valor «que no exceda» el de la
+        // tabla: es un techo, no el valor obligatorio. Va del menor valor de la serie que lleva el 125 %
+        // de la FLC (o la capacidad de 430-22(e)) al mayor que no excede el techo; nunca arriba de él.
+        // Hasta M-20 la protección era siempre el techo: con una bomba de 1/2 HP, 25 A sobre 14 AWG.
+        var (minimo, valores) = RangoDeLaSerie(proteccionEstandar, proteccion, capacidadMinConductor);
+        var maximo = proteccion.SeleccionadaA;
+        var criterio = d.CriterioProteccion;
+        var breaker = criterio == CriterioProteccionMotor.Manual && d.ProteccionElegidaA is { } pedida
+            ? MasCercano(valores, pedida)
+            : maximo;
+        var indiceDelRango = citas.Count;
+
         // 4. Temperatura de terminales -- 110-14(c)(1). Con equipo marcado 75 °C la columna depende
         // también del aislamiento, igual que en el circuito no-motor (M-06).
+        //
+        // CON PRIORIDAD AL CONDUCTOR, LA COLUMNA ES LA DEL PISO DEL RANGO, y la protección se queda en la
+        // misma regla de 110-14(c)(1) (paso 8 de M-20): con 60 °C, no pasa de 100 A. Recalcular con la
+        // columna de la protección no termina: 30 HP a 220 V oscila entre 1 AWG con 110 A y 3 AWG con
+        // 100 A. Con el tope, la columna de la protección es siempre la del piso.
         var tempTerminales = TemperaturaTerminales.Para(
-            breaker, d.TerminalesMarcadas75C, aislamiento.TemperaturaMaxima(d.TipoAislamiento, d.Lugar));
-        citas.Add(new Cita("110-14(c)(1)", TemperaturaTerminales.Explicacion(breaker, d.TerminalesMarcadas75C, tempTerminales)));
+            criterio == CriterioProteccionMotor.Conductor ? minimo : breaker,
+            d.TerminalesMarcadas75C, aislamiento.TemperaturaMaxima(d.TipoAislamiento, d.Lugar));
+        var indiceDeTerminales = citas.Count;
 
         // 4.5. Aislamiento -- 110-14(c): debe alcanzar o superar la temperatura que exige la terminal.
         var tempAislamiento = aislamiento.TemperaturaMaxima(d.TipoAislamiento, d.Lugar)
@@ -134,7 +155,10 @@ public class CalculadoraCircuitoDerivadoMotor(
         // FLC de tabla (no un In "de diseño" distinto) y la tensión REAL del tablero
         // (bloque 8: auto-resuelve el caso obligado, sugiere el caso conveniente — ver SeleccionConductor).
         var tensionEfectiva = numeroFases == 1 ? d.TensionFaseNeutroV : d.TensionFaseFaseV;
-        var seleccion = SeleccionConductor.Seleccionar(
+        //
+        // Sin protección, como siempre: el conductor de un motor va por 430-22 y la protección por 430-52
+        // (240-4(g)). Con una protección, además queda protegido por ella según 240-4 — M-20.
+        SeleccionConductor.Resultado Seleccionar(decimal? protegidoPorA) => SeleccionConductor.Seleccionar(
             catalogo, ampacidad, impedancia,
             capacidadMinConductorA: capacidadMinConductor,
             corrienteParaCaidaA: flc,
@@ -151,9 +175,60 @@ public class CalculadoraCircuitoDerivadoMotor(
             tensionEfectivaV: tensionEfectiva,
             caidaTensionMaxPct: d.CaidaTensionMaxPct,
             pisoPracticoCalibreMm2: d.PisoPracticoCalibreMm2,
+            proteccionEstandar: protegidoPorA is null ? null : proteccionEstandar,
+            proteccionA: protegidoPorA,
+            // Un motor es un circuito de una sola carga: califica para 240-4(b)(1).
+            permiteExcepcion2404b: true,
             metodoInstalacion: d.MetodoInstalacion,
             maxNParaleloAutoResuelto: d.MaxConductoresParaleloAutomatico);
+
+        var seleccion = Seleccionar(null);
+
+        // PRIORIDAD AL CONDUCTOR — M-20, pasos 5 a 7: el mayor valor del rango que protege al calibre
+        // base (el de la ampacidad, antes de subir por caída) según 240-4, 240-4(b) y 240-4(d). Subir el
+        // calibre por caída no sube la protección: el conductor más grueso sigue protegido. Si ninguno
+        // del rango lo protege (los factores lo dejaron abajo del piso), el piso, y el calibre sube hasta
+        // quedar protegido por él.
+        var topadoEn100 = false;
+        var subioElCalibre = false;
+        (Calibre Calibre, decimal AmpacidadA)? protegido = null;
+        if (criterio == CriterioProteccionMotor.Conductor)
+        {
+            var calibreBase = seleccion.CalibreBase;
+            var ampacidadBase = (SeleccionConductor.AmpacidadUtilizable(ampacidad, calibreBase, d.MaterialConductor,
+                tempAislamiento, tempTerminales, factorTemp, factorAgrup, d.MetodoInstalacion) ?? 0m) * seleccion.NumeroConductoresParalelo;
+            var tope = tempTerminales == TemperaturaAislamiento.T60 ? 100m : decimal.MaxValue;
+            var protegen = valores.Where(v => Protege(proteccionEstandar, v, ampacidadBase, calibreBase, d.MaterialConductor)).ToList();
+            topadoEn100 = protegen.Any(v => v > tope);
+            protegen.RemoveAll(v => v > tope);
+            subioElCalibre = protegen.Count == 0;
+            breaker = subioElCalibre ? minimo : protegen.Max();
+            seleccion = Seleccionar(breaker);
+            // El que se protegió es el base (si subió por caída, el más grueso sigue protegido).
+            protegido = (seleccion.CalibreBase, (SeleccionConductor.AmpacidadUtilizable(ampacidad, seleccion.CalibreBase, d.MaterialConductor,
+                tempAislamiento, tempTerminales, factorTemp, factorAgrup, d.MetodoInstalacion) ?? 0m) * seleccion.NumeroConductoresParalelo);
+        }
         citas.AddRange(seleccion.Citas);
+
+        citas.Insert(indiceDeTerminales, new Cita("110-14(c)(1)", TemperaturaTerminales.Explicacion(breaker, d.TerminalesMarcadas75C, tempTerminales)));
+
+        var protegeAlConductor = Protege(proteccionEstandar, breaker, seleccion.AmpacidadUtilizableTotalA, seleccion.CalibreFase, d.MaterialConductor);
+        var rango = new RangoDeProteccionMotor(
+            Tabla430_52: proteccion,
+            CapacidadMinimaA: capacidadMinConductor,
+            MinimoA: minimo,
+            MaximoA: maximo,
+            Valores: valores,
+            Criterio: criterio,
+            ProteccionA: breaker,
+            ProtegeAlConductor: protegeAlConductor,
+            PorExcepcion240_4b: protegeAlConductor && breaker > seleccion.AmpacidadUtilizableTotalA,
+            TopadoEn100A: topadoEn100,
+            SubioElCalibre: subioElCalibre,
+            PedidaA: criterio == CriterioProteccionMotor.Manual && d.ProteccionElegidaA is { } p2 && p2 != breaker ? p2 : null,
+            CalibreProtegido: protegido?.Calibre,
+            AmpacidadProtegidaA: protegido?.AmpacidadA);
+        citas.InsertRange(indiceDelRango, CitasDelRango(rango, seleccion.CalibreFase, seleccion.AmpacidadUtilizableTotalA, d.Servicio is not null));
 
         var calibreFinal = seleccion.CalibreFase;
         var caidaPct = seleccion.CaidaTensionPct;
@@ -199,6 +274,7 @@ public class CalculadoraCircuitoDerivadoMotor(
             TablaAmpacidadId: d.MetodoInstalacion == MetodoInstalacion.AlAireLibre ? "310-15(b)(17)" : "310-15(b)(16)",
             Citas: citas,
             NumeroConductoresParalelo: nParalelo,
+            RangoMotor: rango,
             // El desglose, igual que en el circuito no-motor y en el alimentador. FALTABA: un
             // circuito de Fuerza salía con Detalle nulo, y la memoria de cálculo lo trata como
             // "elemento sin cálculo" — o sea que un tablero de motores emitía hojas a medias, que es
@@ -263,6 +339,91 @@ public class CalculadoraCircuitoDerivadoMotor(
     }
 
     /// <summary>
+    /// <b>El rango de 430-52(c)(1) en la serie que se instala</b> — Power Node Web, M-20.
+    /// <list type="bullet">
+    /// <item>Máximo: el de hoy, <see cref="ProteccionDeMotor.SeleccionadaA"/> (con la Excepción 2 si se declaró).</item>
+    /// <item>Mínimo: el menor valor de la serie que lleva la capacidad mínima del conductor (125 % de la
+    /// FLC, o 430-22(e)). Es criterio, no norma: abajo de él el interruptor dispararía antes que el
+    /// relevador de 430-32. <b>Nunca arriba del máximo</b>: en riel DIN, un motor de 1/4 HP a 127 V tiene
+    /// 15 A de máximo (de la lista de 240-6(a), fuera de la serie) y la serie empieza en 16 A.</item>
+    /// <item>Con la Excepción 2 declarada, el motor no arranca con lo de la tabla: el rango empieza arriba
+    /// de ella. Si no hay un tamaño mayor, el rango es solo el de la tabla.</item>
+    /// </list>
+    /// Arriba de la serie (riel DIN pasa de 125 A), los valores de la NOM, como en <see cref="ProteccionDeLaTabla430_52"/>.
+    /// </summary>
+    internal static (decimal Minimo, IReadOnlyList<decimal> Valores) RangoDeLaSerie(
+        ITablaProteccionEstandar tabla, ProteccionDeMotor proteccion, decimal capacidadMinimaA)
+    {
+        var maximo = proteccion.SeleccionadaA;
+        var serie = tabla.ValoresEstandar.Count == 0
+            ? tabla.ValoresDeLaNorma
+            : [.. tabla.ValoresEstandar, .. tabla.ValoresDeLaNorma.Where(v => v > tabla.ValoresEstandar[^1])];
+        var minimo = proteccion.UsaExcepcion2
+            ? serie.Where(v => v > proteccion.ProteccionA && v <= maximo).DefaultIfEmpty(maximo).Min()
+            : proteccion.TechoExcepcion2A is not null
+                ? maximo
+                : Math.Min(tabla.SiguienteEstandar(capacidadMinimaA), maximo);
+        return (minimo, [.. serie.Where(v => v >= minimo && v <= maximo).Append(minimo).Append(maximo).Distinct().Order()]);
+    }
+
+    /// <summary>El valor del rango más cercano a <paramref name="pedidaA"/>; entre dos igual de cerca, el menor.</summary>
+    internal static decimal MasCercano(IReadOnlyList<decimal> valores, decimal pedidaA) =>
+        valores.OrderBy(v => Math.Abs(v - pedidaA)).ThenBy(v => v).First();
+
+    /// <summary>
+    /// <b>El conductor queda protegido por la protección</b> según 240-4: su ampacidad la cubre; o no
+    /// es valor normalizado de 240-6(a) y la protección es la inmediata superior, hasta 800 A — 240-4(b);
+    /// y sin pasar el tope de los conductores chicos — 240-4(d). La lista de 240-6(a), no la serie.
+    /// </summary>
+    internal static bool Protege(ITablaProteccionEstandar tabla, decimal proteccionA, decimal ampacidadA, Calibre calibre, MaterialConductor material) =>
+        (proteccionA <= ampacidadA
+         || (proteccionA <= 800m && !tabla.ValoresDeLaNorma.Contains(ampacidadA) && proteccionA == tabla.SiguienteDeLaNorma(ampacidadA)))
+        && (SeleccionConductor.TopeProteccion2404d(calibre, material) is not { } tope || proteccionA <= tope);
+
+    /// <summary>Las citas del rango, del criterio, de la protección del conductor y del arranque — M-20.</summary>
+    private static IEnumerable<Cita> CitasDelRango(RangoDeProteccionMotor r, Calibre calibre, decimal ampacidadA, bool servicioNoContinuo)
+    {
+        var piso = servicioNoContinuo ? $"{r.CapacidadMinimaA:0.##} A de 430-22(e)" : $"125 % de la FLC = {r.CapacidadMinimaA:0.##} A";
+        yield return new Cita("430-52(c)(1)", r.MinimoA == r.MaximoA && r.Valores.Count == 1
+            ? $"Rango permitido: solo {r.MaximoA:0.##} A" + (r.Tabla430_52.TechoExcepcion2A is not null
+                ? " (Excepción 2: el motor no arranca con menos)"
+                : $" (ningún valor de la serie entre el {piso} y el máximo)")
+            : $"Rango permitido: {r.MinimoA:0.##} A a {r.MaximoA:0.##} A — " + (r.Tabla430_52.UsaExcepcion2
+                ? "con la Excepción 2, arriba de lo que da la tabla"
+                : $"del menor de la serie que lleva el {piso} al mayor que no excede el máximo") +
+              ". La norma pide que la protección «no exceda» el valor de la Tabla 430-52: cualquiera del rango cumple");
+
+        yield return r.Criterio switch
+        {
+            CriterioProteccionMotor.Conductor => new Cita("240-4",
+                r.SubioElCalibre
+                    ? $"Criterio «prioridad al conductor»: ningún valor del rango protegía al calibre por ampacidad; {r.ProteccionA:0.##} A, el mínimo, y el calibre sube hasta quedar protegido"
+                    : $"Criterio «prioridad al conductor»: {r.ProteccionA:0.##} A, el mayor valor del rango que protege a {r.CalibreProtegido ?? calibre} " +
+                      $"({r.AmpacidadProtegidaA ?? ampacidadA:0.##} A), el calibre por ampacidad" +
+                      (r.CalibreProtegido is { } cp && cp.Designacion != calibre.Designacion ? $"; {calibre} por caída de tensión sigue protegido" : "") +
+                      (r.TopadoEn100A ? "; sin pasar de 100 A: la terminal se queda en 60 °C — 110-14(c)(1)a." : "")),
+            CriterioProteccionMotor.Manual => new Cita("430-52(c)(1)",
+                $"Criterio «manual»: {r.ProteccionA:0.##} A, la que escogió el proyectista dentro del rango" +
+                (r.PedidaA is { } pedida ? $" (pidió {pedida:0.##} A, fuera del rango o de la serie: la más cercana)" : "")),
+            _ => new Cita("430-52(c)(1)", $"Criterio «máximo 430-52»: {r.ProteccionA:0.##} A, el mayor del rango"),
+        };
+
+        yield return r.ProtegeAlConductor
+            ? new Cita(r.PorExcepcion240_4b ? "240-4(b)" : "240-4",
+                $"El interruptor de {r.ProteccionA:0.##} A protege a {calibre} ({ampacidadA:0.##} A) según su ampacidad" +
+                (r.PorExcepcion240_4b ? ": un escalón arriba de una ampacidad que no es valor normalizado" : ""))
+            : new Cita("240-4(g)",
+                $"{r.ProteccionA:0.##} A pasa la ampacidad de {calibre} ({ampacidadA:0.##} A): lo permite el Art. 430 (240-4(g)) porque " +
+                "la sobrecarga del motor y del conductor la da el relevador del arrancador o el protector térmico del motor — 430-32, 430-31");
+
+        if (r.ProteccionA < r.MaximoA)
+            yield return new Cita("430-52(b)",
+                $"La protección debe soportar la corriente de arranque del motor: verificar con la curva del interruptor que {r.ProteccionA:0.##} A " +
+                $"no dispara al arrancar. Si dispara, se puede subir hasta {r.MaximoA:0.##} A" +
+                (r.Tabla430_52.TechoExcepcion2A is null ? " o declarar la Excepción 2." : "."));
+    }
+
+    /// <summary>
     /// FLC de tabla (430-6(a)), compartida con la agregación de varios motores en un alimentador
     /// (430-24, en CascadaCalculoService) para no repetir el mensaje de error en dos lugares.
     /// </summary>
@@ -271,6 +432,52 @@ public class CalculadoraCircuitoDerivadoMotor(
             ?? throw new InvalidOperationException(
                 $"Las Tablas 430-247/248/249/250 no traen una fila para {hp} Hp / {tensionNominalMotorV} V / {tipoAlimentacion} -- " +
                 "verifica que la tensión de placa del motor sea una de las clases estándar de la tabla (115, 127, 200, 208, 230, 460, 575, 2300...).");
+}
+
+/// <summary>
+/// <b>El rango de la protección del derivado de un motor y lo que se escogió en él</b> — Power Node Web,
+/// M-20, decisión <c>proteccion-de-motores-por-rango.md</c>. Ver
+/// <see cref="CalculadoraCircuitoDerivadoMotor.RangoDeLaSerie"/>.
+/// </summary>
+/// <param name="Tabla430_52">El techo de la tabla, sus Excepciones y el mayor de la serie que no lo excede.</param>
+/// <param name="CapacidadMinimaA">La del conductor: 125 % de la FLC, o 430-22(e). De ella sale el mínimo.</param>
+/// <param name="MinimoA">El menor valor del rango.</param>
+/// <param name="MaximoA">El mayor valor del rango: lo que daba el motor antes de M-20.</param>
+/// <param name="Valores">Los de la serie entre los dos, de menor a mayor: lo que se puede escoger.</param>
+/// <param name="ProteccionA">La que quedó.</param>
+/// <param name="ProtegeAlConductor">El conductor que se instala queda protegido por ella según 240-4.</param>
+/// <param name="PorExcepcion240_4b">Protegido, pero un escalón arriba de su ampacidad — 240-4(b).</param>
+/// <param name="TopadoEn100A">Prioridad al conductor: un valor mayor de 100 A lo protegía, pero la terminal es de 60 °C.</param>
+/// <param name="SubioElCalibre">Prioridad al conductor: ninguno lo protegía; quedó el mínimo y el calibre subió.</param>
+/// <param name="PedidaA">Manual: la que se pidió, si no estaba en el rango.</param>
+/// <param name="CalibreProtegido">Prioridad al conductor: el calibre por ampacidad, el que la protección cubre. Si
+/// la caída de tensión lo subió, el instalado es más grueso y sigue protegido.</param>
+/// <param name="AmpacidadProtegidaA">La ampacidad utilizable de <paramref name="CalibreProtegido"/>.</param>
+public sealed record RangoDeProteccionMotor(
+    ProteccionDeMotor Tabla430_52,
+    decimal CapacidadMinimaA,
+    decimal MinimoA,
+    decimal MaximoA,
+    IReadOnlyList<decimal> Valores,
+    CriterioProteccionMotor Criterio,
+    decimal ProteccionA,
+    bool ProtegeAlConductor,
+    bool PorExcepcion240_4b,
+    bool TopadoEn100A = false,
+    bool SubioElCalibre = false,
+    decimal? PedidaA = null,
+    Calibre? CalibreProtegido = null,
+    decimal? AmpacidadProtegidaA = null)
+{
+    /// <summary>La que quedó es el máximo del rango.</summary>
+    public bool EsElMaximo => ProteccionA == MaximoA;
+
+    /// <summary>
+    /// <b>Lo que entra a 430-62(a) y 430-63(1)</b>: «el valor máximo permitido … de acuerdo con 430-52»,
+    /// no la protección escogida (M-20, pregunta 6). El de la lista de 240-6(a) con la Excepción 1 —en
+    /// riel DIN, 35 A aunque se instalen 32—, o el de la Excepción 2 si se aplicó.
+    /// </summary>
+    public decimal MaximoPermitidoA => Tabla430_52.ProteccionExcepcion2A ?? Tabla430_52.MaximoA;
 }
 
 /// <summary>

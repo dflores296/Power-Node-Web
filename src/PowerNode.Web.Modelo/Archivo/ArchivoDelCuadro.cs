@@ -43,9 +43,10 @@ public static class ArchivoDelCuadro
     /// desplegable, con su protección máxima; la 8 lo perdería. 10: el nombre del equipo del renglón,
     /// aparte del del espacio; la 9 lo perdería. 11: el lugar seco, húmedo o mojado (auditoría del
     /// 2026-09-29, P1-2), y el motor que no arranca con la Tabla 430-52 (P1-1); la 10 leería todo como
-    /// seco y perdería la Excepción 2.
+    /// seco y perdería la Excepción 2. 12: el criterio de la protección del motor y su valor fijo (M-20); la
+    /// 11 abriría todo en el máximo. Un motor de la 11 o anterior abre en el máximo: lo de antes.
     /// </summary>
-    public const int Version = 11;
+    public const int Version = 12;
 
     /// <summary>El archivo, listo para escribirse.</summary>
     public static string Guardar(CuadroDeCarga cuadro, DateTimeOffset cuando) =>
@@ -109,6 +110,20 @@ public static class ArchivoDelCuadro
             return Apertura.Fallo($"El archivo está dañado: {e.Message}");
         }
         cuadro.Recalcular();
+
+        // M-20: UN VALOR FIJO QUE YA NO ESTÁ EN EL RANGO (editado a mano, u otra serie) abre con el más
+        // cercano que sí, y se dice — como el F.P. fuera de rango (I-80).
+        var corregidos = false;
+        foreach (var c in cuadro.Circuitos.Where(c => c.CriterioProteccion == CriterioDeProteccion.Manual))
+            if (c.Resultado?.RangoMotor is { PedidaA: { } pedida } rango)
+            {
+                avisos.Add($"El circuito {c.Espacio} trae {pedida:0.##} A de protección, fuera del rango de 430-52(c)(1) " +
+                           $"({rango.MinimoA:0.##} a {rango.MaximoA:0.##} A en «{cuadro.Datos.SerieInterruptores.Nombre()}»); se abrió con {rango.ProteccionA:0.##} A.");
+                c.ProteccionElegidaA = rango.ProteccionA;
+                corregidos = true;
+            }
+        if (corregidos)
+            cuadro.Recalcular();
         return new Apertura(cuadro, null, avisos);
     }
 
@@ -317,7 +332,7 @@ public static class ArchivoDelCuadro
                 avisos.Add($"El circuito {c.Espacio} no cabe en un tablero de {d.NumeroEspacios} espacios; se omitió.");
                 continue;
             }
-            c.Aplicar(cuadro.Circuitos[espacio - 1], d, avisos);
+            c.Aplicar(cuadro.Circuitos[espacio - 1], d, avisos, archivo.Version ?? Version);
         }
     }
 

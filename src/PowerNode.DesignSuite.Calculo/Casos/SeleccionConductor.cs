@@ -456,7 +456,7 @@ public static class SeleccionConductor
     /// costal, 240-4(d)(1)/(2), fuera del alcance curado de este motor), ese calibre simplemente no
     /// es válido para esa terminal -- null, no "sin tope".
     /// </summary>
-    private static decimal? AmpacidadUtilizable(
+    internal static decimal? AmpacidadUtilizable(
         ITablaAmpacidad ampacidad, Calibre calibre, MaterialConductor material,
         TemperaturaAislamiento tempAislamiento, TemperaturaAislamiento tempTerminales,
         decimal factorTemp, decimal factorAgrup, MetodoInstalacion metodo)
@@ -521,7 +521,7 @@ public static class SeleccionConductor
     /// modeladas aquí porque prácticamente nunca aparecen en un circuito de fuerza/alumbrado/
     /// contactos real).
     /// </summary>
-    private static decimal? TopeProteccion2404d(Calibre calibre, MaterialConductor material)
+    internal static decimal? TopeProteccion2404d(Calibre calibre, MaterialConductor material)
     {
         if (material != MaterialConductor.Cobre) return null;
         return calibre.Designacion switch

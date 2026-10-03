@@ -125,6 +125,25 @@ public sealed class CircuitoDelCuadro
     /// </summary>
     public bool NoArrancaConLaTabla { get; set; }
 
+    /// <summary>
+    /// <b>Cómo se escoge la protección del motor dentro de su rango</b> — M-20: automático (por omisión),
+    /// prioridad al conductor, máximo 430-52 o un valor fijo. Solo cuenta en un motor solo
+    /// (<see cref="EsMotorSolo"/>). Un archivo de formato 11 o anterior abre en el máximo: lo de antes.
+    /// </summary>
+    public CriterioDeProteccion CriterioProteccion { get; set; } = CriterioDeProteccion.Automatico;
+
+    /// <summary>Con <see cref="CriterioDeProteccion.Manual"/>: el valor que escogió el proyectista, en A — M-20.</summary>
+    public decimal? ProteccionElegidaA { get; set; }
+
+    /// <summary>
+    /// La protección de este motor se puede escoger: es un motor solo y ya tiene su rango calculado — M-20.
+    /// Es lo que activa el selector de la celda «Protec. (A)».
+    /// </summary>
+    public bool ProteccionEscogible => EsMotorSolo && Resultado?.RangoMotor is not null;
+
+    /// <summary>Lo que se le dio al motor de cálculo en el último recálculo, si es un motor solo — M-20.</summary>
+    public PowerNode.DesignSuite.Calculo.Casos.DatosEntradaCircuitoDerivadoMotor? EntradaDelMotor { get; internal set; }
+
     /// <summary>A/C: qué trae la placa. Ver <see cref="PlacaDeAireAcondicionado"/>.</summary>
     public PlacaDeAireAcondicionado PlacaAire { get; set; } = PlacaDeAireAcondicionado.AmpacidadYProteccion;
 
@@ -797,6 +816,8 @@ public sealed class CircuitoDelCuadro
         NoContinua = 0m;
         Servicio = null;
         NoArrancaConLaTabla = false;
+        CriterioProteccion = CriterioDeProteccion.Automatico;
+        ProteccionElegidaA = null;
         CapturaMotor = CapturaDeMotor.Hp;
         PlacaAire = PlacaDeAireAcondicionado.AmpacidadYProteccion;
         Cargas.Clear();
@@ -808,6 +829,7 @@ public sealed class CircuitoDelCuadro
     internal void Limpiar()
     {
         Resultado = null;
+        EntradaDelMotor = null;
         Error = null;
         CaidaCombinadaPct = null;
         CaidaAlimentadorPct = null;

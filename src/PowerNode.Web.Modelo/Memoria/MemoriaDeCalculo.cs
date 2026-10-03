@@ -114,33 +114,66 @@ public static class MemoriaDeCalculo
                $"{flc:N2} A — {cuadro.FuenteDeFlc(c)}",
                $"{MotoresEnHp.Texto(hp ?? 0m)} HP · {tipo} · FLC {flc:N2} A — {cuadro.FuenteDeFlc(c)}, 430-6(a)");
 
+        // M-20: la protección se escoge dentro de un rango. Con el máximo, los renglones de siempre
+        // («Protección seleccionada — 430-52(c)(1)…»); con menos, ese renglón dice «Máximo del rango» y la
+        // seleccionada va aparte, con su 240-4.
+        var p = r.RangoMotor?.Tabla430_52 ?? cuadro.ProteccionDelMotor(c);
+        var rango = r.RangoMotor;
+        var debajoDelMaximo = rango is { EsElMaximo: false };
+        var rotulo = debajoDelMaximo ? "Máximo del rango" : "Protección seleccionada";
+        var maximo = p.SeleccionadaA;
+        var renglones = new List<RenglonMemoria>
+        {
+            new(rotuloFlc, origen),
+            // Servicio no continuo (I-120): el conductor va por la Tabla 430-22(e), sobre la placa.
+            r.Citas.FirstOrDefault(x => x.Referencia == "430-22(e)") is { } servicio
+                ? new("Capacidad mínima del conductor — 430-22(e)", servicio.Descripcion["Servicio no continuo: capacidad mínima del conductor ".Length..])
+                : new("Capacidad mínima del conductor — 430-22", $"125 % × {flc:N2} A = {1.25m * flc:N2} A"),
+            new("Protección máxima — Tabla 430-52", $"{porcentaje:0} % × {flc:N2} A = {flc * porcentaje / 100m:N2} A (interruptor automático de tiempo inverso)"),
+            // La Excepción 1 solo cuando hubo redondeo hacia arriba — auditoría del 2026-09-29, P1-1.
+            p.UsaExcepcion2
+                ? new($"{rotulo} — 430-52(c)(1) Excepción 2(3)",
+                    $"{maximo:N0} A — el motor no arranca con {p.ProteccionA:N0} A (declarado): hasta {p.PorcentajeExcepcion2:0} % × {flc:N2} A = " +
+                    $"{p.TechoExcepcion2A:N2} A, el mayor tamaño que no lo excede")
+                : p.UsaExcepcion1
+                ? new($"{rotulo} — 430-52(c)(1) Excepción 1", $"{maximo:N0} A, el valor inmediato superior: {p.TechoA:N2} A no es valor normalizado de 240-6(a)")
+                : new($"{rotulo} — 430-52(c)(1)", $"{maximo:N0} A — " + DesgloseDeSeleccion.LineaDeLaProteccion(p, cuadro.Datos.SerieInterruptores)),
+        };
+        if (rango is not null)
+        {
+            var piso = r.Citas.Any(x => x.Referencia == "430-22(e)") ? "la capacidad de 430-22(e)" : $"125 % × {flc:N2} A";
+            renglones.Add(new("Rango permitido — 430-52(c)(1)", rango.Valores.Count == 1
+                ? $"Solo {rango.MaximoA:N0} A"
+                : $"{rango.MinimoA:N0} A (≥ {piso} = {rango.CapacidadMinimaA:N2} A) a {rango.MaximoA:N0} A: la protección «no debe exceder» el máximo; cualquiera del rango cumple"));
+            if (cuadro.CriterioDeLaProteccion(c) is { } criterio)
+                renglones.Add(new("Criterio", criterio));
+            if (debajoDelMaximo)
+                renglones.Add(new($"Protección seleccionada — {(rango.PorExcepcion240_4b ? "240-4(b)" : rango.ProtegeAlConductor ? "240-4" : "240-4(g)")}",
+                    $"{r.ProteccionA:N0} A" + (rango.ProtegeAlConductor
+                        ? $" — protege a {r.CalibreFase.DesignacionConUnidad} ({r.Detalle?.AmpacidadConductorA ?? 0m:N2} A)"
+                        : $" — arriba de la ampacidad de {r.CalibreFase.DesignacionConUnidad}: la sobrecarga la da el relevador o el protector térmico — 430-32")));
+        }
+
+        var notas = new List<string>
+        {
+            rango?.ProtegeAlConductor == true
+                ? "La FLC sale de la tabla, no de la placa — 430-6(a). El interruptor del tablero protege el circuito contra " +
+                  "cortocircuito y falla a tierra, y además al conductor según su ampacidad — 240-4."
+                : "La FLC sale de la tabla, no de la placa — 430-6(a). El interruptor del tablero protege el circuito contra " +
+                  "cortocircuito y falla a tierra; puede quedar arriba de la ampacidad del conductor — 240-4(g).",
+            "La protección contra sobrecarga del motor va en el arrancador (relevador de sobrecarga) o en el propio " +
+            "motor — 430-32. No la da el interruptor del tablero.",
+        };
+        if (debajoDelMaximo)
+            notas.Add($"Arranque — 430-52(b): la protección debe soportar la corriente de arranque del motor. Verificar con la curva del " +
+                      $"interruptor que {r.ProteccionA:N0} A no dispara al arrancar; si dispara, subir hasta {rango!.MaximoA:N0} A" +
+                      (p.TechoExcepcion2A is null ? " o declarar la Excepción 2." : "."));
+
         return new EquipoDeLaHoja(
             Rotulo: "Motor",
             Descripcion: descripcion,
-            Proteccion:
-            [
-                new(rotuloFlc, origen),
-                // Servicio no continuo (I-120): el conductor va por la Tabla 430-22(e), sobre la placa.
-                r.Citas.FirstOrDefault(x => x.Referencia == "430-22(e)") is { } servicio
-                    ? new("Capacidad mínima del conductor — 430-22(e)", servicio.Descripcion["Servicio no continuo: capacidad mínima del conductor ".Length..])
-                    : new("Capacidad mínima del conductor — 430-22", $"125 % × {flc:N2} A = {1.25m * flc:N2} A"),
-                new("Protección máxima — Tabla 430-52", $"{porcentaje:0} % × {flc:N2} A = {flc * porcentaje / 100m:N2} A (interruptor automático de tiempo inverso)"),
-                // La Excepción 1 solo cuando hubo redondeo hacia arriba — auditoría del 2026-09-29, P1-1.
-                cuadro.ProteccionDelMotor(c) is var p && p.UsaExcepcion2
-                    ? new("Protección seleccionada — 430-52(c)(1) Excepción 2(3)",
-                        $"{r.ProteccionA:N0} A — el motor no arranca con {p.ProteccionA:N0} A (declarado): hasta {p.PorcentajeExcepcion2:0} % × {flc:N2} A = " +
-                        $"{p.TechoExcepcion2A:N2} A, el mayor tamaño que no lo excede")
-                    : p.UsaExcepcion1
-                    ? new("Protección seleccionada — 430-52(c)(1) Excepción 1", $"{r.ProteccionA:N0} A, el valor inmediato superior: {p.TechoA:N2} A no es valor normalizado de 240-6(a)")
-                    : new("Protección seleccionada — 430-52(c)(1)", $"{r.ProteccionA:N0} A — " + DesgloseDeSeleccion.LineaDeLaProteccion(p, cuadro.Datos.SerieInterruptores)),
-            ],
-            Notas:
-            [
-                "La FLC sale de la tabla, no de la placa — 430-6(a). El interruptor del tablero protege el circuito contra " +
-                "cortocircuito y falla a tierra; puede quedar arriba de la ampacidad del conductor — 240-4(g).",
-                "La protección contra sobrecarga del motor va en el arrancador (relevador de sobrecarga) o en el propio " +
-                "motor — 430-32. No la da el interruptor del tablero.",
-            ],
+            Proteccion: renglones,
+            Notas: notas,
             Corriente: "FLC");
     }
 

@@ -266,3 +266,20 @@ public enum TipoDispositivoProteccionMotor
     InterruptorDisparoInstantaneo,
     InterruptorTiempoInverso
 }
+
+/// <summary>
+/// <b>Cómo se escoge la protección del derivado de un motor dentro de su rango</b> — Power Node Web,
+/// M-20 (2026-10-03). 430-52(c)(1) pide un valor «que no exceda» el de la Tabla 430-52: es un techo, no
+/// el valor obligatorio. El rango va del menor valor de la serie ≥ 125 % de la FLC al techo.
+/// </summary>
+public enum CriterioProteccionMotor
+{
+    /// <summary>El mayor valor de la serie que no excede el techo de 430-52 — lo que hacía el motor antes de M-20.</summary>
+    Maximo430_52,
+
+    /// <summary>El mayor valor del rango que protege al conductor según su ampacidad — 240-4, 240-4(b), 240-4(d).</summary>
+    Conductor,
+
+    /// <summary>El que escoge el proyectista, dentro del rango.</summary>
+    Manual,
+}

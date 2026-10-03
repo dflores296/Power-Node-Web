@@ -207,7 +207,7 @@
                 <th rowspan="2" data-col="canal"><span class="ayuda" title="Seleccionar la canalización del circuito de la lista de la tarjeta «Canalizaciones». Al capturar la carga, cada circuito nace en la suya (T1, T2…); para agrupar, elegir la de otro circuito, o «+ Nueva». Los circuitos de una misma canalización se agrupan y el programa cuenta sus portadores — 310-15(b)(3)(a). Si el circuito pasa por varias, la del tramo más desfavorable — 310-15(a)(2). Debajo: el tamaño que resultó.">Canal.</span></th>
                 <th rowspan="2" class="col-res" data-col="polos masn"><span class="ayuda" title="Seleccionar los polos del interruptor. Un multipolar ocupa los espacios N, N+2 y N+4 del mismo lado.">P</span></th>
                 <th rowspan="2" class="col-res"><span class="ayuda" title="Consultar la corriente de diseño de la carga capturada — 210-19(a)(1)."><span class="simbolo">In (A)</span></span></th>
-                <th rowspan="2" class="col-res dos-lineas"><span class="ayuda" title="Consultar la protección: primer tamaño normalizado mayor o igual a la capacidad mínima — 240-6(a), 210-20(a). Pasar el cursor sobre el valor para consultar el desglose.">Protec.<br /><span class="simbolo">(A)</span></span></th>
+                <th rowspan="2" class="col-res dos-lineas" data-col="prot"><span class="ayuda" title="Consultar la protección: primer tamaño normalizado mayor o igual a la capacidad mínima — 240-6(a), 210-20(a). Pasar el cursor sobre el valor para consultar el desglose.&#10;&#10;En un motor se puede escoger, dentro del rango de 430-52(c)(1): «auto» (hasta 1 HP, el mayor que protege al conductor; arriba, el máximo), «cond.» (el mayor que protege al conductor — 240-4), «máx.» (el máximo de la Tabla 430-52) o un valor fijo.">Protec.<br /><span class="simbolo">(A)</span></span></th>
                 <th rowspan="2" class="col-res"><span class="ayuda" title="Consultar el conductor de fase: designación AWG/kcmil y, debajo, su sección (mm²) — Tabla 8. Si lleva conductores en paralelo, «2 ×» antes del calibre. Pasar el cursor sobre el calibre para consultar el desglose.&#10;&#10;Colores de fase: la NOM no los fija — 210-5(c)(2) —; se usan negro, rojo y azul, la práctica común.">Fase</span></th>
                 <th rowspan="2" class="col-res"><span class="ayuda" title="Consultar el conductor de neutro. Blanco o gris claro — 200-6.">Neutro</span></th>
                 <th rowspan="2" class="col-res"><span class="ayuda" title="Consultar el conductor de puesta a tierra de equipos — Tabla 250-122 y 250-122(b). Verde, o verde con franjas amarillas — 250-119.">Tierra</span></th>
@@ -353,7 +353,29 @@
                         </td>
                         <td rowspan="@c.Polos" class="num">@c.Resultado?.CorrienteDisenoA.ToString("N2")</td>
                         @{ var desglose = Cuadro.Desglose(c); }
-                        <td rowspan="@c.Polos" class="num">@Ayuda(c.Resultado?.ProteccionA.ToString("N0"), desglose?.Proteccion)</td>
+                        <td rowspan="@c.Polos" class="num">
+                            @* M-20: en un motor solo la protección se escoge dentro del rango de 430-52(c)(1) — opción B de
+                               David (2026-10-03): en la celda, solo donde se puede, y diciendo por qué. *@
+                            @if (c.ProteccionEscogible && c.Resultado!.RangoMotor is { } rango)
+                            {
+                                <select class="proteccion" data-col="prot" aria-label="Circuito @c.Espacio · Protección del motor (A)"
+                                        title="@AyudaDeLaProteccion(desglose)" value="@ValorDeLaProteccion(c)"
+                                        @onchange="e => CambiarProteccion(c, e.Value?.ToString())">
+                                    <optgroup label="Criterio">
+                                        <option value="auto">@RotuloDeCriterio(c, CriterioDeProteccion.Automatico, "auto")</option>
+                                        <option value="cond">@RotuloDeCriterio(c, CriterioDeProteccion.Conductor, "cond.")</option>
+                                        <option value="max">@RotuloDeCriterio(c, CriterioDeProteccion.Maximo430_52, "máx.")</option>
+                                    </optgroup>
+                                    <optgroup label="Valor fijo">
+                                        @foreach (var v in rango.Valores) { <option value="@v.ToString(CultureInfo.InvariantCulture)">@v.ToString("N0")</option> }
+                                    </optgroup>
+                                </select>
+                            }
+                            else
+                            {
+                                @Ayuda(c.Resultado?.ProteccionA.ToString("N0"), desglose?.Proteccion)
+                            }
+                        </td>
                         @Conductor(c.Resultado?.CalibreFase, c.Resultado?.NumeroConductoresParalelo ?? 0, c.Polos, desglose?.Conductor)
                         @Conductor(c.Resultado?.CalibreNeutro, c.Resultado is null ? 0 : 1, c.Polos, sinConductor: c.Resultado is not null && !c.LlevaNeutro)
                         @Conductor(c.Resultado?.CalibreTierra, c.Resultado is null ? 0 : 1, c.Polos)
@@ -1819,6 +1841,42 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
     /// en una compartida, lo saca a un tubo para él, que da el recálculo con el número libre más chico.
     /// Solo en su tubo no se ofrece: ya va en uno para él.
     /// </summary>
+    /// <summary>
+    /// <b>La protección de un motor, escogida en su celda</b> — M-20: un criterio (automático, prioridad al
+    /// conductor, máximo 430-52) o un valor fijo del rango.
+    /// </summary>
+    private void CambiarProteccion(CircuitoDelCuadro circuito, string? valor)
+    {
+        (circuito.CriterioProteccion, circuito.ProteccionElegidaA) = valor switch
+        {
+            "cond" => (CriterioDeProteccion.Conductor, (decimal?)null),
+            "max" => (CriterioDeProteccion.Maximo430_52, null),
+            _ when decimal.TryParse(valor, NumberStyles.Number, CultureInfo.InvariantCulture, out var amperes) =>
+                (CriterioDeProteccion.Manual, amperes),
+            _ => (CriterioDeProteccion.Automatico, null),
+        };
+        Recalcular();
+    }
+
+    /// <summary>La opción del selector que corresponde a lo que tiene el circuito.</summary>
+    private static string ValorDeLaProteccion(CircuitoDelCuadro c) => c.CriterioProteccion switch
+    {
+        CriterioDeProteccion.Conductor => "cond",
+        CriterioDeProteccion.Maximo430_52 => "max",
+        CriterioDeProteccion.Manual => (c.Resultado?.ProteccionA ?? c.ProteccionElegidaA ?? 0m).ToString(CultureInfo.InvariantCulture),
+        _ => "auto",
+    };
+
+    /// <summary>«15 auto», «25 máx.»: lo que da cada criterio, para que se vea antes de escogerlo.</summary>
+    private string RotuloDeCriterio(CircuitoDelCuadro c, CriterioDeProteccion criterio, string corto) =>
+        Cuadro.ProteccionConCriterio(c, criterio) is { } amperes ? $"{amperes:N0} {corto}" : corto;
+
+    /// <summary>Por qué se puede escoger (David: «hay que explicar por qué»), y el desglose del valor.</summary>
+    private static string AyudaDeLaProteccion(DesgloseDeSeleccion? desglose) =>
+        desglose is null
+            ? CriteriosDeProteccion.PorQueSePuedeEscoger
+            : $"{CriteriosDeProteccion.PorQueSePuedeEscoger}\n\n{DesgloseDeSeleccion.ComoTexto(desglose.Proteccion)}";
+
     private void CambiarCanalizacion(CircuitoDelCuadro circuito, string? valor)
     {
         circuito.Canalizacion = valor switch

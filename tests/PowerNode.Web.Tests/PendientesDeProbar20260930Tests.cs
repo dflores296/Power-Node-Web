@@ -182,6 +182,9 @@ public class PendientesDeProbar20260930Tests
         var cuadro = Nuevo(1, 3, 240m);
         var a120 = MotorEnLinea(cuadro, 1, 1m, 1);
         var a240 = MotorEnLinea(cuadro, 3, 1m, 2);
+        // El máximo de la tabla; desde M-20, 1 HP nace en automático (prioridad al conductor).
+        a120.CriterioProteccion = a240.CriterioProteccion = CriterioDeProteccion.Maximo430_52;
+        cuadro.Recalcular();
 
         Assert.Equal(16m, a120.Resultado!.CorrienteDisenoA);
         Assert.Equal(40m, a120.Resultado.ProteccionA);
@@ -381,9 +384,11 @@ public class PendientesDeProbar20260930Tests
         Assert.Equal(25m, secadora.Resultado!.ProteccionA);
         Assert.Equal(30m, calentador.Resultado!.ProteccionA);
         Assert.Equal(20m, lavadora.Resultado!.ProteccionA);
-        // Tabla 430-248, ½ HP a 127 V: 8.9 A; 250 % = 22.25 → 25 A.
+        // Tabla 430-248, ½ HP a 127 V: 8.9 A; 250 % = 22.25 → 25 A de máximo. Desde M-20 la bomba nace en
+        // automático: 1 HP o menos, prioridad al conductor — 15 A sobre 14 AWG, el caso de David.
         Assert.Equal(8.9m, bomba.Resultado!.CorrienteDisenoA);
-        Assert.Equal(25m, bomba.Resultado.ProteccionA);
+        Assert.Equal(15m, bomba.Resultado.ProteccionA);
+        Assert.Equal(25m, bomba.Resultado.RangoMotor!.MaximoA);
 
         // 220-52: 780 + 780 + 1000 VA. 220-12: 33 × 120 = 3960 VA contra 1500 + 2160 + 360 capturados.
         Assert.Equal(2560m, cuadro.Resumen.Minimo220_52VA);

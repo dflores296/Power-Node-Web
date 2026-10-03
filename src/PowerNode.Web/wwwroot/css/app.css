@@ -1195,6 +1195,8 @@ polygon.riel-a { fill: var(--barra-a); } polygon.riel-b { fill: var(--barra-b); 
 .cuadro td.canal { white-space: nowrap; }
 /* Crece con el nombre del tubo («Canalización cocina»), sin cortarlo. */
 .cuadro select.canal { field-sizing: content; min-width: 72px; max-width: 220px; }
+/* M-20: la protección de un motor se escoge en su celda — «15 auto», «25 máx.» o un valor fijo. */
+.cuadro select.proteccion { field-sizing: content; min-width: 60px; max-width: 120px; text-align: right; font-variant-numeric: tabular-nums; }
 .cuadro td.canal .en-va { text-align: center; }
 .cuadro .mas-n { display: flex; align-items: center; justify-content: center; gap: 3px;
                  font-size: 10px; color: var(--tenue); margin-top: 3px; cursor: pointer; }

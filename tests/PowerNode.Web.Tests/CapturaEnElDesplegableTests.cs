@@ -92,7 +92,8 @@ public class CapturaEnElDesplegableTests
         Assert.Equal("", c.Descripcion);
         Assert.Equal(SubtipoDeCarga.MotorUsoGeneral, c.SubtipoDelRenglon);
         Assert.Equal(ClaseDeCircuito.Individual, c.ClaseDelCircuito);
-        Assert.Equal(25m, c.Resultado!.ProteccionA); // 8.9 A × 250 % → 25 A — 430-52
+        // 8.9 A × 250 % → 25 A de máximo (430-52); automático (M-20), 1/2 HP: 15 A, prioridad al conductor.
+        Assert.Equal(15m, c.Resultado!.ProteccionA);
     }
 
     [Fact]

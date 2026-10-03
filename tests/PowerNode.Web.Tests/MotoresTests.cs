@@ -92,8 +92,12 @@ public class MotoresTests
         var cuadro = Nuevo();
         var c = ConMotor(cuadro, 1, 1m, 1);
 
-        // Tabla 430-248, columna de 127 V (propia de la NOM): 14 A. 250 % = 35 A → 35 A.
+        // Tabla 430-248, columna de 127 V (propia de la NOM): 14 A. Automático (M-20): 1 HP, prioridad al
+        // conductor — 20 A, lo que protege a 12 AWG. Con el máximo, 250 % = 35 A → 35 A.
         Assert.Equal(14m, c.FlcA);
+        Assert.Equal(20m, c.Resultado!.ProteccionA);
+        c.CriterioProteccion = CriterioDeProteccion.Maximo430_52;
+        cuadro.Recalcular();
         Assert.Equal(35m, c.Resultado!.ProteccionA);
         // 125 % × 14 = 17.5 A → 12 AWG (20 A a 60 °C).
         Assert.Equal("12", c.Resultado.CalibreFase.Designacion);
@@ -106,8 +110,12 @@ public class MotoresTests
         var cuadro = Nuevo();
         var c = ConMotor(cuadro, 1, 1m, 2);
 
-        // Tabla 430-248, columna de 230 V: 8 A. 250 % = 20 A → 20 A. 125 % = 10 A → 14 AWG.
+        // Tabla 430-248, columna de 230 V: 8 A. 125 % = 10 A → 14 AWG. Automático (M-20): 15 A, lo que
+        // protege a 14 AWG. Con el máximo, 250 % = 20 A → 20 A.
         Assert.Equal(8m, c.FlcA);
+        Assert.Equal(15m, c.Resultado!.ProteccionA);
+        c.CriterioProteccion = CriterioDeProteccion.Maximo430_52;
+        cuadro.Recalcular();
         Assert.Equal(20m, c.Resultado!.ProteccionA);
         Assert.Equal("14", c.Resultado.CalibreFase.Designacion);
 

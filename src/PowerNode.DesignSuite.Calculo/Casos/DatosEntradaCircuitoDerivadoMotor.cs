@@ -66,7 +66,19 @@ public sealed record DatosEntradaCircuitoDerivadoMotor(
     /// lo declara el proyectista, y entonces se aplica la Excepción 2 de 430-52(c)(1). Nunca sola
     /// (Power Node Web, auditoría del 2026-09-29, P1-1).
     /// </summary>
-    bool NoArrancaConLaTabla = false)
+    bool NoArrancaConLaTabla = false,
+
+    /// <summary>
+    /// <b>Cómo se escoge la protección dentro del rango</b> de 430-52(c)(1) — Power Node Web, M-20. Por
+    /// omisión, el máximo: lo que hacía el motor antes, para que un cálculo viejo dé lo mismo.
+    /// </summary>
+    CriterioProteccionMotor CriterioProteccion = CriterioProteccionMotor.Maximo430_52,
+
+    /// <summary>
+    /// Con <see cref="CriterioProteccionMotor.Manual"/>: la que escogió el proyectista. Si no está en el
+    /// rango, se usa la más cercana que sí (Power Node Web, M-20).
+    /// </summary>
+    decimal? ProteccionElegidaA = null)
 {
     /// <summary>1 (monofásico o CD), 2 o 3 -- deriva de TipoAlimentacion, no se captura aparte.</summary>
     public int NumeroFases => TipoAlimentacion switch

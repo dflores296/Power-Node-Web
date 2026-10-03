@@ -37,6 +37,9 @@ public class Auditoria20260929Tests
         var c = Espacio(cuadro, espacio);
         c.Categoria = CategoriaDeCarga.Motor;
         c.Hp = hp;
+        // P1-1 prueba el máximo de la Tabla 430-52. Desde M-20, un motor de 1 HP o menos nace en
+        // automático (prioridad al conductor): aquí se fija el máximo.
+        c.CriterioProteccion = CriterioDeProteccion.Maximo430_52;
         if (polos > 1)
             Assert.Null(cuadro.CambiarPolos(c, polos));
         cuadro.Recalcular();
@@ -100,14 +103,15 @@ public class Auditoria20260929Tests
     public void P1_1_ElTechoDe430_62HeredaLaProteccionCorregida()
     {
         // El techo del alimentador por 430-62(a) parte de la protección del derivado del motor mayor:
-        // con el motor de 10 HP en riel DIN, 63 A y no 80.
+        // con el motor de 10 HP en riel DIN, no 80. Desde M-20 (pregunta 6, David, 2026-10-03), «el valor
+        // máximo permitido … de acuerdo con 430-52»: 70 A de la lista de 240-6(a), aunque se instalen 63.
         var cuadro = Nuevo();
         cuadro.Datos.SerieInterruptores = SerieDeInterruptores.RielDinIec;
         ConMotor(cuadro, 1, 10m, 3);
 
         var techo = MemoriaDeCalculo.DelAlimentador(cuadro)!.Techo430_62A;
         Assert.NotNull(techo);
-        Assert.Equal(63m, techo!.Value);
+        Assert.Equal(70m, techo!.Value);
     }
 
     [Fact]
@@ -186,6 +190,7 @@ public class Auditoria20260929Tests
         var motor = c.AgregarCarga();
         motor.Subtipo = SubtipoDeCarga.MotorUsoGeneral;
         motor.Hp = 1m;
+        c.CriterioProteccion = CriterioDeProteccion.Maximo430_52; // el máximo, no el automático de M-20
         cuadro.Recalcular();
 
         Assert.True(c.EsGrupo);

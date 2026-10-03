@@ -134,7 +134,11 @@ public class RegresionAuditoria20260929Tests
     {
         // Tabla 430-248: 14 A. 125 % = 17.5 A → 12 AWG; 250 % = 35 A → 35 A. La tierra de 35 A (10 AWG)
         // no pasa del calibre de fase: 12 AWG — 250-122(a).
-        var c = ConMotor(Nuevo(), 1, 1m, 1);
+        var cuadro = Nuevo();
+        var c = ConMotor(cuadro, 1, 1m, 1);
+        // El máximo de la tabla, como lo calculó la auditoría; desde M-20, 1 HP nace en automático.
+        c.CriterioProteccion = CriterioDeProteccion.Maximo430_52;
+        cuadro.Recalcular();
 
         var r = c.Resultado!;
         Assert.Equal(14m, c.FlcA);
