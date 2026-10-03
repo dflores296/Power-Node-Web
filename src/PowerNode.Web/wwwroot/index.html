@@ -8,6 +8,10 @@
     <meta name="description" content="Calculadora de cuadros de carga según la NOM-001-SEDE-2012. Protección, conductores y caída de tensión, con la cita del artículo de cada resultado. Corre completa en el navegador." />
     <base href="/" />
     <link rel="stylesheet" href="css/app.css" />
+    <!-- La letra de la piel Linear (2026-10-03), pedida desde ya: sin esto llega hasta que el CSS se lee y
+         la pantalla de carga se pinta primero con la del sistema. Sin ?v=, como los iconos: si cambia,
+         cambia de nombre (tools/fuente_inter.py). -->
+    <link rel="preload" href="fuentes/inter-4.1.woff2" as="font" type="font/woff2" crossorigin />
 
     <!--
       LOS ICONOS, EN ESTE ORDEN Y CON ESTOS CUATRO ARCHIVOS. No es redundancia: cada uno cubre un

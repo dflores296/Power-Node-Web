@@ -1,3 +1,14 @@
+/* LA LETRA DE LA PIEL LINEAR (David, 2026-10-03): Inter, dentro de la aplicación y recortada a lo que
+   se escribe en ella (tools/fuente_inter.py, ~76 KB, licencia OFL en fuentes/OFL.txt). Solo la pide la
+   pantalla: impreso sigue con la pila del sistema, así que el documento no cambia. */
+@font-face {
+    font-family: "Inter";
+    src: url("../fuentes/inter-4.1.woff2") format("woff2");
+    font-weight: 300 700;
+    font-style: normal;
+    font-display: swap;
+}
+
 :root {
     /* Los tres primeros son los de la marca, tomados de Recursos/Marca del repo de escritorio:
        no son aproximaciones. El resto se derivó alrededor de ellos. */
@@ -35,11 +46,6 @@
     --foco: rgb(11 110 153 / .12); /* halo del campo con el foco */
     --estrella: #bf8700;        /* la ★ del botón de GitHub, la de GitHub */
     --icono-relleno: .16;       /* la opacidad del relleno de los iconos duotono */
-    /* EL RELIEVE (David, 2026-09-25 — I-64), la propuesta B del canvas «relieve y contraste»: */
-    --relieve-borde: #9aa9b8;   /* el borde de tarjetas y campos */
-    --relieve-sombra: #c3ceda;  /* la sombra sólida, desplazada, de las tarjetas */
-    --trazo-fuerte: #1d2a36;    /* borde y sombra de los botones; la línea bajo la barra */
-    --acento-hondo: #06384e;    /* la sombra del botón primario */
     color-scheme: light;
 
     /* Escala de redondeo. Nace del logo: sus líneas rematan en semicírculo
@@ -52,48 +58,111 @@
     --radio-lg: 18px;   /* el panel de la memoria */
 }
 
-/* TEMA OSCURO (David, 2026-09-25 — I-57). js/tema.js resuelve la elección del botón del encabezado
-   (automático, claro u oscuro) y la escribe en <html data-tema>. Solo en pantalla: impreso, el papel
-   sale siempre en claro. Los colores de fase (A negro, B rojo, C azul, neutro blanco, tierra verde)
-   son los de la NOM y no cambian. */
+/* ------------------------------------------------------------------------------------------------
+   LA PIEL LINEAR, SUS COLORES (David, 2026-10-03). Referencia: el DESIGN.md de Linear que entregó
+   David («midnight precision instrument») y la skill ui-ux-pro-max para el contraste (4.5:1 en texto).
+   Los valores de :root de arriba se quedan como estaban: son los del IMPRESO, que no cambia. La
+   pantalla los reemplaza aquí, en claro, y abajo en oscuro.
+
+   - Superficies escalonadas (lienzo → tarjeta → encabezado) y líneas de 1 px; nada de sombras para
+     separar (reemplaza al relieve de I-64).
+   - Grises con jerarquía: --tinta-fuerte para títulos, --tinta para datos, --tenue para rótulos.
+   - LIMA (#e4f222) solo en el botón primario y en la página activa: --accion. El azul de la marca
+     (--acento) sigue en el logo y en lo informativo (enlaces, el principal, lo fijado, la clase).
+   - Los colores de fase (A negro, B rojo, C azul, neutro blanco, tierra verde) son de la NOM y no
+     cambian.
+   ------------------------------------------------------------------------------------------------ */
 @media screen {
+    :root {
+        --tinta: #1b1c1f;
+        --tinta-fuerte: #08090a;
+        --tenue: #62666d;           /* el «Ash» de Linear: 5.8:1 sobre papel */
+        --fondo: #f5f6f7;
+        --papel: #fff;
+        --linea: #dfe1e5;
+        --linea-suave: #ebedf0;
+        --linea-fuerte: #c9cdd3;    /* borde de botones y campos al pasar el cursor */
+        --encabezado: #f3f4f6;
+        --punteado: #a0a4ab;
+        --hover: #f7f8f9;
+        --vacio: #a0a4ab;
+        --codigo: #f1f2f4;
+        --fondo-suave: #fafbfb;
+        --acento-suave: #edf5f9;
+        --acento-borde: #c5dce8;
+
+        --campo-fondo: #fff;
+        --campo-borde: #d6d9de;
+        --foco-borde: #3d4047;      /* el campo con el foco se oscurece, como en Linear se aclara */
+        --foco: rgb(15 16 17 / .08);
+        --foco-anillo: #0f1011;
+        --boton-hover: #f0f1f3;
+        --boton-activo: #e7e9ec;
+        --segmento-activo: #fff;
+        --barra-fondo: rgb(245 246 247 / .86);
+        --brillo-tarjeta: none;
+        --sombra-flotante: 0 8px 24px rgb(15 16 17 / .10), 0 1px 2px rgb(15 16 17 / .06);
+
+        --accion: #e4f222;          /* el «Acid Lime» de Linear */
+        --accion-hover: #ecf65a;
+        --accion-borde: #b9c40f;    /* sobre papel blanco el lima solo no tiene orilla */
+        --sobre-accion: #08090a;    /* 16:1 sobre el lima */
+
+        --radio-xs: 4px;            /* chips y citas */
+        --radio-sm: 6px;            /* campos y botones */
+        --radio-md: 12px;           /* tarjetas y la tabla */
+        --radio-lg: 12px;           /* «12 es el radio más grande» */
+    }
+
     :root[data-tema="oscuro"] {
-        --tinta: #e8ecef;
+        --tinta: #d0d6e0;           /* «Mist» */
+        --tinta-fuerte: #f7f8f8;
         --acento: #4aa3d1;
-        --tenue: #9aa6b2;
+        --tenue: #8a8f98;           /* «Fog»: 5.9:1 sobre la tarjeta */
 
-        --linea: #3b4653;
-        --fondo: #161b21;           /* más claro que la sombra negra: si no, el relieve no se ve (I-65) */
-        --papel: #1f262d;
-        --alerta: #f2877e;
+        --fondo: #08090a;           /* «Void» */
+        --papel: #0f1011;           /* «Carbon» */
+        --encabezado: #161718;      /* «Obsidian» */
+        --linea: #23252a;           /* «Graphite» */
+        --linea-suave: #1b1d20;
+        --linea-fuerte: #383b3f;    /* «Smoke» */
+        --alerta: #eb5757;          /* «Coral Red»: 5.5:1 sobre la tarjeta */
 
-        --encabezado: #29313a;
-        --linea-suave: #323b45;
-        --punteado: #5a6570;
-        --hover: #262e36;
-        --vacio: #4e5864;
-        --codigo: #29313a;
-        --fondo-suave: #1a2026;
-        --acento-suave: #0f2a38;
-        --acento-borde: #1f5470;
-        --sobre-acento: #0b1116;
+        --punteado: #4d5157;
+        --hover: #141516;
+        --vacio: #62666d;           /* «Ash» */
+        --codigo: #1a1b1d;
+        --fondo-suave: #0b0c0d;
+        --acento-suave: #0f1d25;
+        --acento-borde: #1d4458;
+        --sobre-acento: #08090a;
         --aviso-texto: #e7c77a;
-        --aviso-fondo: #2a2414;
+        --aviso-fondo: #1c170b;
         --aviso-borde: #b8892e;
-        --alerta-fondo: #3a1a18;
+        --alerta-fondo: #241112;
         --cita: #d9a77a;
-        --fase-borde: #6b7682;
+        --fase-borde: #62666d;
         --barra-a: #aab4bf;
         --barra-b: #e5534b;
         --barra-c: #4c8dff;
-        --sombra: rgba(0, 0, 0, .4);
-        --foco: rgb(74 163 209 / .22);
+        --sombra: rgba(0, 0, 0, .5);
         --estrella: #e3b341;
-        --icono-relleno: .26;
-        --relieve-borde: #05070a;   /* como gitdiagram en oscuro: borde y sombra negros */
-        --relieve-sombra: #000000;
-        --trazo-fuerte: #05070a;
-        --acento-hondo: #000000;
+        --icono-relleno: .24;
+
+        --campo-fondo: #131415;     /* rgba(255,255,255,.02) sobre la tarjeta */
+        --campo-borde: #26282c;     /* rgba(255,255,255,.08) */
+        --foco-borde: #d0d6e0;
+        --foco: rgb(208 214 224 / .10);
+        --foco-anillo: #d0d6e0;
+        --boton-hover: #1a1b1d;
+        --boton-activo: #222326;
+        --segmento-activo: #23252a;
+        --barra-fondo: rgb(8 9 10 / .82);
+        --brillo-tarjeta: inset 0 1px 0 rgb(255 255 255 / .03);
+        --sombra-flotante: 0 4px 32px rgb(8 9 10 / .6), 0 0 0 1px rgb(0 0 0 / .6);
+
+        --accion-hover: #ecf65a;
+        --accion-borde: #e4f222;
         color-scheme: dark;
     }
 }
@@ -1197,44 +1266,8 @@ body.con-ayuda { padding-bottom: calc(var(--alto-ayuda, 64px) + 8px); }
 @media (max-width: 700px) { #barra-ayuda .teclas { display: none; } }
 @media print { #barra-ayuda { display: none !important; } body.con-ayuda { padding-bottom: 0; } }
 
-/* ------------------------------------------------------------------------------------------------
-   EL RELIEVE (David, 2026-09-25 — I-64). La propuesta B del canvas «Power Node — relieve y
-   contraste», entre lo plano de antes y lo exagerado de gitdiagram: tarjetas con borde marcado y una
-   sombra sólida desplazada; botones con la suya, que se hunden al presionarlos; títulos en tinta, no
-   en gris. Solo en pantalla: el papel impreso sigue plano.
-   ------------------------------------------------------------------------------------------------ */
-@media screen {
-    .ficha .grupo, .tarjeta, .memoria, .documento, .cuadro {
-        border: 1.5px solid var(--relieve-borde);
-        box-shadow: 4px 4px 0 var(--relieve-sombra);
-    }
-    /* La sombra del cuadro no se corta en su contenedor con desplazamiento. */
-    .cuadro-completo { padding: 0 4px 4px 0; }
-    .cuadro table.desglose { border: 1.5px solid var(--relieve-borde); }
-
-    select, input { border-width: 1.5px; border-color: var(--relieve-borde); }
-
-    .boton { border: 1.5px solid var(--trazo-fuerte); font-weight: 600;
-             box-shadow: 2px 2px 0 var(--trazo-fuerte); transition: transform .06s, box-shadow .06s; }
-    .boton:hover { border-color: var(--trazo-fuerte); }
-    .boton:active { transform: translate(2px, 2px); box-shadow: none; }
-    .boton.primario { border-color: var(--acento-hondo); box-shadow: 2px 2px 0 var(--acento-hondo); }
-    .boton.primario:active { box-shadow: none; }
-
-    .tema-opciones { border: 1.5px solid var(--trazo-fuerte); box-shadow: 2px 2px 0 var(--trazo-fuerte); }
-    .paginas a.active { box-shadow: inset 0 0 0 1.5px var(--acento); }
-    .barra-superior { border-bottom: 2px solid var(--trazo-fuerte); }
-    .nota-archivo { border-width: 1.5px 1.5px 1.5px 3px; border-color: var(--trazo-fuerte); border-left-color: var(--acento);
-                    box-shadow: 3px 3px 0 var(--trazo-fuerte); }
-    dialog.confirmacion { border-width: 1.5px 1.5px 1.5px 3px; border-color: var(--trazo-fuerte);
-                          border-left-color: var(--aviso-borde); box-shadow: 3px 3px 0 var(--trazo-fuerte); }
-
-    h2 { color: var(--tinta); font-weight: 700; }
-}
-@media screen {
-    :root[data-tema="oscuro"] select, :root[data-tema="oscuro"] input:not([type="checkbox"]) { background: #181e24; }
-    :root[data-tema="oscuro"] .cuadro input.desc:not(:focus), :root[data-tema="oscuro"] .cuadro input.va:not(:focus) { background: transparent; }
-}
+/* EL RELIEVE de I-64 (borde de 1.5 px y sombra sólida desplazada) se fue el 2026-10-03: lo reemplaza
+   LA PIEL LINEAR, al final de esta hoja. */
 @media print {
     * { box-shadow: none !important; }
 }
@@ -1345,3 +1378,107 @@ body.arrastrando-principal .zona-zocalo .al-arrastrar { display: inline; }
 /* El texto de ejemplo («0», «—», «MCA») se va al entrar al campo: se quedaba y parecía un valor
    escrito (David, 2026-09-29). */
 .cuadro input:focus::placeholder, .ficha input:focus::placeholder { color: transparent; }
+
+/* ------------------------------------------------------------------------------------------------
+   LA PIEL LINEAR (David, 2026-10-03). Reemplaza al relieve de I-64; los colores, arriba, junto a :root.
+   Referencias: el DESIGN.md de Linear que entregó David y la skill ui-ux-pro-max (contraste 4.5:1,
+   foco visible, movimiento reducido). Solo cambia cómo se ve: ninguna regla de aquí mueve, esconde ni
+   cambia de tamaño algo de la captura, y todo es de pantalla — impreso no cambia nada.
+
+   - Inter con sus variantes cv01 y ss03 (el cero cruzado no: ver body), un poco apretada (-0.01em),
+     pesos de 400 a 590: Linear no usa negritas de 700.
+   - Tarjetas, cuadro y campos con línea de 1 px y sin sombra; en oscuro, un brillo de 1 px arriba.
+   - Botones fantasma (sin relleno, línea gris); el primario, lima. La página activa, en lima.
+   - La barra superior, translúcida sobre el lienzo.
+   - Lo que flota (avisos, confirmación, ayuda del teclado) sí lleva sombra: está encima de algo.
+   ------------------------------------------------------------------------------------------------ */
+@media screen {
+    /* Sin el cero cruzado de Linear ("zero"): «1/0 AWG» salía «1/Ø», y Ø es el diámetro del conductor. */
+    body { font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+           font-feature-settings: "cv01", "ss03"; letter-spacing: -0.01em;
+           -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+    /* Los campos no heredan solos la separación ni las variantes de la letra. */
+    input, select, button, textarea { font-feature-settings: inherit; letter-spacing: inherit; }
+    code { font-feature-settings: normal; letter-spacing: 0; }
+
+    h1 { font-weight: 590; letter-spacing: -0.012em; color: var(--tinta-fuerte); }
+    /* Los títulos de tarjeta, en minúsculas y en tinta: en Linear los rótulos en mayúsculas quedan
+       para lo chico (encabezados de tabla, subtítulos). */
+    h2 { font-size: 14px; font-weight: 590; color: var(--tinta-fuerte); text-transform: none; letter-spacing: -0.011em; }
+    b, strong { font-weight: 590; }
+
+    /* Superficies: línea de 1 px, sin sombra. */
+    .ficha .grupo, .tarjeta, .memoria, .documento, .cuadro, .cuadro table.desglose {
+        border: 1px solid var(--linea); box-shadow: var(--brillo-tarjeta);
+    }
+
+    /* Campos: el relleno apenas distinto de la tarjeta, la línea un poco más clara que la de la tarjeta,
+       y al enfocarse la línea se marca (Linear: «border brightens»). Las celdas de la cuadrícula siguen
+       invisibles hasta enfocarse, también al pasar el cursor: input.desc e input.va (0,1,1) les ganan a
+       estas reglas, por eso el :not() va dentro de :where() — con él a la vista, (0,2,1), les ganaba. */
+    select, input:where(:not([type="checkbox"]):not([type="radio"])) {
+        border: 1px solid var(--campo-borde); background-color: var(--campo-fondo); color: var(--tinta);
+        border-radius: var(--radio-sm); transition: border-color .12s, box-shadow .12s;
+    }
+    :where(select, input:not([type="checkbox"]):not([type="radio"])):hover { border-color: var(--linea-fuerte); }
+    :where(select, input:not([type="checkbox"]):not([type="radio"])):focus,
+    input.desc:focus, input.va:focus { border-color: var(--foco-borde); box-shadow: 0 0 0 3px var(--foco); }
+    input[type="checkbox"], input[type="radio"] { accent-color: var(--tinta-fuerte); }
+
+    /* Botones fantasma; el primario, lima: el único es «Imprimir / PDF», en el documento y la guía. */
+    .boton { border: 1px solid var(--linea-fuerte); background: transparent; color: var(--tinta);
+             border-radius: var(--radio-sm); font-weight: 510;
+             transition: background-color .12s, border-color .12s, color .12s; }
+    .boton:hover { background: var(--boton-hover); border-color: var(--linea-fuerte); color: var(--tinta-fuerte); }
+    .boton:active { background: var(--boton-activo); }
+    .boton.activo { border-color: var(--tinta); color: var(--tinta-fuerte); font-weight: 590; }
+    .boton.primario { background: var(--accion); border-color: var(--accion-borde); color: var(--sobre-accion);
+                      font-weight: 590; box-shadow: inset 0 -1px 0 rgb(0 0 0 / .12); }
+    .boton.primario:hover { background: var(--accion-hover); border-color: var(--accion-borde);
+                            color: var(--sobre-accion); filter: none; }
+    .boton.primario:active { background: var(--accion); box-shadow: none; }
+    @media (prefers-reduced-motion: reduce) {
+        .boton, select, input { transition: none; }
+    }
+
+    /* La barra superior, translúcida sobre el lienzo, con su línea de 1 px. */
+    .barra-superior { background: var(--barra-fondo); border-bottom: 1px solid var(--linea);
+                      -webkit-backdrop-filter: saturate(1.2) blur(12px); backdrop-filter: saturate(1.2) blur(12px); }
+    .marca-texto { font-weight: 590; letter-spacing: -0.012em; color: var(--tinta-fuerte); }
+    .paginas a { font-weight: 510; }
+    .paginas a:hover { color: var(--tinta-fuerte); background: var(--boton-hover); }
+    .paginas a.active { color: var(--sobre-accion); background: var(--accion); font-weight: 590;
+                        box-shadow: inset 0 0 0 1px var(--accion-borde); }
+    .tema-opciones { border: 1px solid var(--linea); background: var(--encabezado); }
+    .tema-opciones button { border-radius: 4px; font-weight: 510; }
+    .tema-opciones button.activo { background: var(--segmento-activo); color: var(--tinta-fuerte); font-weight: 590;
+                                   box-shadow: 0 0 0 1px var(--linea-fuerte); }
+    .github { font-weight: 510; }
+    .github:hover { background: var(--boton-hover); color: var(--tinta-fuerte); }
+
+    /* Lo que flota sí lleva sombra: está encima de la página. */
+    .nota-archivo { border-width: 1px 1px 1px 3px; border-color: var(--linea-fuerte); border-left-color: var(--acento);
+                    box-shadow: var(--sombra-flotante); }
+    .nota-archivo.error { border-left-color: var(--alerta); }
+    dialog.confirmacion { border-width: 1px 1px 1px 3px; border-color: var(--linea-fuerte);
+                          border-left-color: var(--aviso-borde); border-radius: var(--radio-md); box-shadow: var(--sombra-flotante); }
+    .aviso-flotante { border-color: var(--linea-fuerte); box-shadow: var(--sombra-flotante); }
+    .aviso-flotante.bien { border-color: var(--acento); }
+    .aviso-flotante.mal { border-color: var(--alerta); }
+    #barra-ayuda { background: var(--barra-fondo); box-shadow: none;
+                   -webkit-backdrop-filter: saturate(1.2) blur(12px); backdrop-filter: saturate(1.2) blur(12px); }
+    .arrastre-fantasma { box-shadow: var(--sombra-flotante); }
+
+    /* El foco del teclado, en gris como todo lo demás (antes, del azul del acento). */
+    :where(input, select, button, a):focus-visible { outline-color: var(--foco-anillo); }
+
+    /* Pesos: nada arriba de 590. */
+    .fase-rect, .num-fase, .etq, .a-la-guia,
+    .multifilar .cabeza, .multifilar .amp, .multifilar-1 .amp, .multifilar .nota-abajo .t,
+    .directorio-lista .num, .directorio-lista .amp,
+    .arranque-nombre, .guia h2, .mapa-raiz, .rama-nombre { font-weight: 590; }
+    .multifilar .directorio.principal .nom, .multifilar .directorio.principal .amp,
+    .multifilar-1 .principal .nom, .multifilar-1 .principal .amp,
+    .directorio-lista li.principal .nom, .directorio-lista li.principal .amp { font-weight: 590; }
+    .guia h2 { letter-spacing: -0.011em; }
+}
