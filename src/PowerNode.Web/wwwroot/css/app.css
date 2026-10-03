@@ -457,21 +457,20 @@ input.desc:focus, input.va:focus {
 
 /* EL CONDUCTOR VISTO DE FRENTE (I-181), Layout/CorteDeConductor.razor: antes de «Fase», «Neutro» y «Puesta
    a tierra» en el alimentador, en lugar de las cajitas de color. Sólido: el forro con el color de la NOM y los
-   7 hilos en cobre o en aluminio. La fase A es negra: en oscuro lleva borde (--fase-borde); el neutro, blanco,
-   lo lleva en claro. Las fases, en un haz, montadas una sobre otra. */
+   7 hilos en cobre o en aluminio, con su brillo (degradados en el componente). La fase A es negra: en oscuro
+   lleva borde (--fase-borde); el neutro, blanco, lo lleva en claro. Las fases, lado a lado: montadas, el aro
+   que las separaba les comía la orilla (David). */
 .corte { display: block; flex: none; overflow: visible; }
-.corte .aro { fill: var(--papel); }
 .corte .forro { stroke-width: 1; }
 .corte .forro-a { fill: #1b1f23; stroke: var(--fase-borde); }
 .corte .forro-b { fill: #c62828; stroke: #c62828; }
 .corte .forro-c { fill: #1565c0; stroke: #1565c0; }
 .corte .forro-neutro { fill: #fff; stroke: var(--punteado); }
 .corte .forro-tierra { fill: #2e7d32; stroke: #2e7d32; }
-.corte .hueco { fill: rgb(0 0 0 / .4); }
-.corte .hilo { fill: #d0864f; stroke: #7d4220; stroke-width: .6; }
-.corte.aluminio .hilo { fill: #c9ced4; stroke: #6f777f; }
-.haz { display: flex; }
-.haz .corte + .corte { margin-left: -8px; }
+.corte .hueco { fill: rgb(0 0 0 / .45); }
+.corte .hilo { stroke: #6e3816; stroke-width: .5; }
+.corte.aluminio .hilo { stroke: #5f666e; }
+.haz { display: flex; gap: 4px; }
 
 /* Un conductor en una sola celda: el calibre y, debajo, la sección. */
 .cuadro td.conductor { white-space: nowrap; }
@@ -747,8 +746,8 @@ table.opciones-paralelo .pastilla { font-size: 9px; font-weight: 600; color: var
 .alimentador .seleccion .polos { font-size: 16px; font-weight: 500; color: var(--tenue); }
 .alimentador .cables { display: flex; flex-direction: column; margin-bottom: 16px;
                        border: 1px solid var(--linea); border-radius: var(--radio-sm); }
-/* 64 px: el haz de tres fases de 26 px, montadas 8 px (I-181). Eran 34 para las cajitas. */
-.alimentador .cable { display: grid; grid-template-columns: 64px 1fr auto; align-items: center;
+/* 86 px: las tres fases de 26 px, lado a lado con 4 px entre ellas (I-181). Eran 34 para las cajitas. */
+.alimentador .cable { display: grid; grid-template-columns: 86px 1fr auto; align-items: center;
                       gap: 10px; padding: 9px 14px; }
 .alimentador .cable + .cable { border-top: 1px solid var(--linea-suave); }
 .alimentador .cable .calibre { text-align: right; font-weight: 600; font-size: 14px; }

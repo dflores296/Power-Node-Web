@@ -7,28 +7,44 @@
     Dice lo que el cálculo usa: los hilos en cobre o en aluminio según el material, y la tierra sin forro
     cuando la canalización la lleva desnuda.
 
-    El forro, delgado como el de un THHN, y los hilos grandes: a 26 px, con el forro de antes (4 de 24) y
-    hilos chicos, el cobre se veía como una mancha. El aro del color de la tarjeta separa a las fases cuando
-    van juntas en el haz.
+    Con volumen (David: «se ven planos… ¿no le puedes poner brillo?»): cada hilo con su degradado radial,
+    la luz arriba a la izquierda —cobre o aluminio pulido—, y el forro con un reflejo y la orilla en sombra.
+    Los degradados llevan un id por icono: con uno solo para todos, el navegador toma el primero de la
+    página, y si ese está oculto algunos no pintan nada.
 *@
 <svg class="corte @(Aluminio ? "aluminio" : null)" viewBox="0 0 24 24" width="@Tamano" height="@Tamano" aria-hidden="true" focusable="false">
-    @if (Desnudo)
+    <defs>
+        <radialGradient id="@($"corte-hilo-{_n}")" cx=".36" cy=".32" r=".72">
+            @if (Aluminio)
+            {
+                <stop offset="0" stop-color="#ffffff" />
+                <stop offset=".4" stop-color="#cfd4da" />
+                <stop offset="1" stop-color="#7f8790" />
+            }
+            else
+            {
+                <stop offset="0" stop-color="#ffd9b3" />
+                <stop offset=".4" stop-color="#d98a50" />
+                <stop offset="1" stop-color="#8e4a1f" />
+            }
+        </radialGradient>
+        <radialGradient id="@($"corte-brillo-{_n}")" cx=".32" cy=".26" r=".85">
+            <stop offset="0" stop-color="#fff" stop-opacity=".5" />
+            <stop offset=".45" stop-color="#fff" stop-opacity="0" />
+            <stop offset=".8" stop-color="#000" stop-opacity="0" />
+            <stop offset="1" stop-color="#000" stop-opacity=".35" />
+        </radialGradient>
+    </defs>
+    @if (!Desnudo)
     {
-        <circle class="aro" cx="12" cy="12" r="8.9" />
-    }
-    else
-    {
-        <circle class="aro" cx="12" cy="12" r="12" />
         <circle class="forro forro-@Forro" cx="12" cy="12" r="11" />
+        <circle cx="12" cy="12" r="11" fill="@($"url(#corte-brillo-{_n})")" />
         <circle class="hueco" cx="12" cy="12" r="8.2" />
     }
-    <circle class="hilo" cx="12" cy="12" r="2.6" />
-    <circle class="hilo" cx="16.46" cy="14.58" r="2.6" />
-    <circle class="hilo" cx="12" cy="17.15" r="2.6" />
-    <circle class="hilo" cx="7.54" cy="14.58" r="2.6" />
-    <circle class="hilo" cx="7.54" cy="9.43" r="2.6" />
-    <circle class="hilo" cx="12" cy="6.85" r="2.6" />
-    <circle class="hilo" cx="16.46" cy="9.43" r="2.6" />
+    @foreach (var (x, y) in Hilos)
+    {
+        <circle class="hilo" cx="@x" cy="@y" r="2.6" fill="@($"url(#corte-hilo-{_n})")" />
+    }
 </svg>
 
 @code {
@@ -43,4 +59,11 @@
 
     /// <summary>En px.</summary>
     [Parameter] public int Tamano { get; set; } = 26;
+
+    // Los 7 hilos: uno al centro y seis alrededor, tocándose (radio 2.6 a 5.15 del centro).
+    private static readonly (string X, string Y)[] Hilos =
+        [("12", "12"), ("16.46", "14.58"), ("12", "17.15"), ("7.54", "14.58"), ("7.54", "9.43"), ("12", "6.85"), ("16.46", "9.43")];
+
+    private static int _siguiente;
+    private readonly int _n = System.Threading.Interlocked.Increment(ref _siguiente);
 }
