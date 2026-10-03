@@ -187,6 +187,7 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-159 · Al cancelar «Reducir espacios», el menú seguía en el valor rechazado | P3 | **Cerrado** (no se reprodujo; refuerzo) | `4fad887` |
 | I-160 · Interruptor de 1 polo arriba del máximo de la familia | P3 | **Cerrado** (aviso) | `b259e88` |
 | I-161 · Neutro del alimentador igual a la fase, sin la reducción de 220-61 | P3 | **Cerrado** (opción) | `b259e88` |
+| I-162 · Conductores por fase del alimentador sin poder fijarlos ni comparar | P3 | **Cerrado** (opción) | `224d97b` |
 | M-14 · Sin el mínimo de alumbrado general por superficie (220-12) en el alimentador; en vivienda, contactos de uso general sumados aparte (220-14(j)) | P1 | **Cerrado** | `71abc56` |
 | M-15 · Motor: la Excepción 1 de 430-52(c)(1) redondeaba dentro de la serie (35 → 40 A en riel DIN) y se citaba sin redondeo; sin Excepción 2 | P1 | **Cerrado** | `8b4d893`, `60a4f91` |
 | M-16 · «Húmedo o mojado» en una opción: XHHW mojado a 90 °C (conductor de menos); RHH y XHH aceptados en mojado | P1 | **Cerrado** | `a3fded5` |
@@ -729,6 +730,23 @@ neutro reducido. Deshabilitada, con el motivo, en 1F-2H, 2F-3H de estrella (220-
 lineal» (220-61(c)(2)). No se aplica la reducción de 220-61(b)(1) (estufas de vivienda al 70 %). Prueba:
 `I161_…` (4); en el navegador (3 × 14 000 VA en la fase A: 330.66 A → 291.46 A, neutro 350 kcmil con fase de
 400 kcmil).
+
+**I-162** (opcional de la auditoría; propuesta aprobada por David el 2026-10-03) — Hecho: el alimentador
+tomaba el N más chico que cumple y no dejaba correr, por ejemplo, 3 × 400 kcmil en vez de 2 × 900 kcmil.
+Corrección (`224d97b`): selector «Conductores por fase» en la tarjeta del alimentador, debajo de los cables:
+«Automático · N» (por omisión) o de 1 a 6, guardado en el archivo. Fijado, el motor va de N a N, exacto
+(`MaxConductoresParaleloAutomatico` = N, sin cambio en el motor); el selector va en el acento, con ↺ y la línea
+«Fijado: 3 por fase. El automático da 2 × 900 kcmil.»; la cita 310-10(h)(1) de la memoria lo dice. «Comparar
+opciones que cumplen (k)», cerrado por omisión: cada N con fase, tierra, ampacidad del juego, caída,
+canalización y cobre ((fases + neutro + tierra) × N), la del automático marcada y «Usar» en las demás. Se
+ofrece con 2 o más opciones, con un conductor de 250 kcmil o más, o con N fijado. Las opciones se calculan en
+una copia de la canalización (`CanalizacionDelTablero.Copia`), con los juegos en un tubo y el neutro de 220-61.
+Un N que no cumple deja el alimentador sin resultado y dice por qué y cuáles sí: «Con 4 conductores por fase,
+cada uno sale de 2 AWG, y 310-10(h)(1) pide 1/0 AWG o mayor en paralelo. Cumplen 1, 2 o 3 por fase.», con las
+opciones abiertas. De paso, la barra de ayuda espera a que se suelte el botón del ratón para quitarse: abajo
+de la página todo bajaba de golpe y el clic en «Comparar opciones» se soltaba en otra cosa. Decisión:
+[`../decisiones/conductores-por-fase-del-alimentador.md`](../decisiones/conductores-por-fase-del-alimentador.md).
+Prueba: `I162_…` (9), con los casos de 708.57 A (cumplen 2 a 6) y 415.5 A (cumplen 1 a 3); en el navegador.
 
 ### «Pendiente de probar» de la auditoría, 2026-09-30
 

@@ -13,8 +13,10 @@ en la app; tres hallazgos nuevos y dos observaciones — `4fad887`:
 - N-3: no se reprodujo con Playwright; `restablecer` refuerza el regreso del menú — I-159.
 - Observaciones, aceptadas por David: aviso de 1 polo arriba de 70 A en centro de carga — I-160; casilla
   para reducir el neutro del alimentador por 220-61 — I-161, `b259e88`.
+- Opcional de la auditoría, con la propuesta aprobada por David: «Conductores por fase» en el alimentador,
+  automático o fijado de 1 a 6, con la tabla para comparar las opciones que cumplen — I-162, `224d97b`.
 
-Pruebas: 500 en `PowerNode.Web.Tests` (16 nuevas en `Auditoria20261002Tests`), 52 en `PowerNode.Normativa.Tests`.
+Pruebas: 509 en `PowerNode.Web.Tests` (25 nuevas en `Auditoria20261002Tests`), 52 en `PowerNode.Normativa.Tests`.
 
 ## 2026-09-30 (tercera parte)
 
