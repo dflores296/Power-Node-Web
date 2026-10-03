@@ -202,6 +202,7 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-174 · 250-24(c)(2): el 12.5 % con el área total de las fases en paralelo, lectura literal (R4-4) | P3 | **Cerrado** (lectura literal, David, 2026-10-03) | `d74c16a` |
 | I-175 · Caída con 1.98 % en la tarjeta y 1.9 % en la memoria (R4-5) | P3 | **Cerrado** | `d74c16a` |
 | I-176 · La interfaz con la piel de Linear: Inter, líneas finas y lima en la acción (pedido de David) | P3 | **Cerrado** | `3261de1` |
+| I-177 · En el gabinete, la conexión punteada de un espacio libre atravesaba su número | P3 | **Cerrado** | `9f3716e` |
 | M-14 · Sin el mínimo de alumbrado general por superficie (220-12) en el alimentador; en vivienda, contactos de uso general sumados aparte (220-14(j)) | P1 | **Cerrado** | `71abc56` |
 | M-15 · Motor: la Excepción 1 de 430-52(c)(1) redondeaba dentro de la serie (35 → 40 A en riel DIN) y se citaba sin redondeo; sin Excepción 2 | P1 | **Cerrado** | `8b4d893`, `60a4f91` |
 | M-16 · «Húmedo o mojado» en una opción: XHHW mojado a 90 °C (conductor de menos); RHH y XHH aceptados en mojado | P1 | **Cerrado** | `a3fded5` |
@@ -885,6 +886,12 @@ de la cuadrícula salían con caja (especificidad de `:not()`). Prueba: Playwrig
 por pixel (cuadro, memoria y guía, claro y oscuro); ningún selector ni campo cortado y sin desplazamiento
 lateral a 360, 768, 1280, 1600 y 1920 px; captura, documento y guía vistos en los dos temas; celular a
 360 px; sin errores en la consola.
+
+**I-177** — Hecho (David lo vio publicado, 2026-10-03): en el gabinete, la conexión punteada de un espacio
+libre se veía a través del rótulo con su número. `.etq.libre` llevaba `opacity: .45`, que volvía
+translúcido el rótulo entero, fondo incluido. Corrección: fondo opaco; el número y el contorno, mezclados
+al 45 % con el papel (`color-mix`), lo mismo que daba la opacidad. Prueba: navegador, claro y oscuro — la
+línea llega a la orilla del rótulo, como en un espacio ocupado.
 
 ### «Pendiente de probar» de la auditoría, 2026-09-30
 

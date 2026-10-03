@@ -13,6 +13,8 @@ sin tocar funcionalidad) — `3261de1` y el commit de docs, I-176:
   salía «1/Ø».
 - El impreso, idéntico pixel por pixel; sin cortes ni desplazamiento lateral de 360 a 1920 px.
 - Ramas: las tres `claude/*` ya estaban completas en `main`; se le dijo a David cuáles borrar.
+- Visto por David ya publicado: el número de un espacio libre lo atravesaba su conexión punteada — I-177,
+  `9f3716e`.
 - Pendiente: regenerar `docs/portada.png` (sigue con el diseño anterior).
 
 Pruebas: 519 en `PowerNode.Web.Tests`, 52 en `PowerNode.Normativa.Tests`.
