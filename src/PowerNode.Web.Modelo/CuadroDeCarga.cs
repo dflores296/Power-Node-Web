@@ -2902,7 +2902,7 @@ public sealed class CuadroDeCarga
     /// su FLC); el mínimo de 220-12, parejo. Lo que pasa de 200 A, al 70 % — 220-61(b)(2), salvo lo de los
     /// circuitos de 2 polos con neutro en 3F-4H, que no se reduce — (c)(1). El calibre: la menor ampacidad
     /// utilizable que lleva esa corriente por conductor (mismos factores y columna que la fase); no menor
-    /// que la tierra de equipos (215-2(a)(2)), ni que el conductor del electrodo en un equipo de acometida
+    /// que la tierra de equipos (215-2(a)(2); en paralelo, con el área del juego), ni que el conductor del electrodo en un equipo de acometida
     /// (250-24(c)(1)), ni de 1/0 AWG en paralelo (310-10(h)(1)); nunca mayor que la fase.
     /// </summary>
     private (ResultadoAlimentador, NeutroDe220_61?) ReducirNeutro(ResultadoAlimentador r, CanalizacionDelTablero canal)
@@ -2942,11 +2942,15 @@ public sealed class CuadroDeCarga
             return tAisl == tTerm ? corregida
                 : _motor.Ampacidad.Ampacidad(cal, Datos.MaterialConductor, tTerm, metodo) is decimal tope ? Math.Min(corregida, tope) : null;
         }
-        var pisos = new List<Calibre> { r.CalibreTierra };
+        // 215-2(a)(2): no menor que la tierra de 250-122, «excepto que no se debe aplicar 250-122(f) cuando
+        // los conductores puestos a tierra estén instalados en paralelo»: en paralelo cumple el juego, con
+        // el área de los N (David, 2026-10-03, I-165). El conductor del electrodo se queda por conductor.
+        var pisos = new List<Calibre>();
         if (TierraDeAcometidaDe(r) is { } acometida)
             pisos.Add(acometida.ConductorElectrodo);
         var calibre = _motor.Calibres.Listar().OrderBy(c => c.AreaMm2).FirstOrDefault(c =>
             Util(c) is decimal u && u * n >= corriente
+            && c.AreaMm2 * n >= r.CalibreTierra.AreaMm2
             && pisos.All(p => c.AreaMm2 >= p.AreaMm2)
             && (n == 1 || c.PermiteParalelo)) ?? r.CalibreFase;
         if (calibre.AreaMm2 >= r.CalibreFase.AreaMm2)
@@ -2970,8 +2974,9 @@ public sealed class CuadroDeCarga
             $"Neutro a su carga de desbalance: la mayor entre el neutro y una fase es la de la fase {fase}, {desbalance:N2} A" +
             (con70 ? $"; lo que pasa de 200 A, al 70 % — 220-61(b)(2): {corriente:N2} A" : "") +
             (fija[fase] > 0m ? $" (los circuitos de 2 polos con neutro, {fija[fase]:N2} A, sin reducir — 220-61(c)(1))" : "") +
-            $" -> neutro {calibre}{porConductor}, no menor que el conductor de puesta a tierra de equipos de 250-122 — 215-2(a)(2)" +
-            (pisos.Count > 1 ? " ni que el conductor del electrodo — 250-24(c)(1)" : "") +
+            $" -> neutro {calibre}{porConductor}, no menor que el conductor de puesta a tierra de equipos de 250-122 ({r.CalibreTierra})" +
+            (n > 1 ? $", con el área de los {n} en paralelo ({n} × {calibre.AreaMm2:0.##} = {n * calibre.AreaMm2:0.##} mm² contra {r.CalibreTierra.AreaMm2:0.##} mm²; 250-122(f) no se aplica) — 215-2(a)(2); cada uno de 1/0 AWG o mayor — 310-10(h)(1)" : " — 215-2(a)(2)") +
+            (pisos.Count > 0 ? " ni que el conductor del electrodo — 250-24(c)(1)" : "") +
             (porCaida ? $"; sube a {calibre} para que la caída de tensión, que lleva la del neutro, no pase de {Datos.CaidaMaxAlimentadorPct:0.##} %" : "") +
             (igual ? "; queda igual que la fase." : "."));
         var citas = new List<Cita>(r.Citas) { cita };

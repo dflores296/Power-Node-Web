@@ -609,7 +609,36 @@ public class Auditoria20261002Tests
         cuadro.Recalcular();
 
         var cita = Assert.Single(cuadro.Alimentador.Resultado!.Citas, x => x.Referencia == "220-61");
-        Assert.Contains("250-122 — 215-2(a)(2)", cita.Descripcion);
+        Assert.Contains("de 250-122 (", cita.Descripcion);
+        Assert.Contains("— 215-2(a)(2)", cita.Descripcion);
         Assert.DoesNotContain("criterio del proyectista", cita.Descripcion);
+    }
+
+    /// <summary>
+    /// En paralelo, el piso de 250-122 lo cumple el juego de neutros: 215-2(a)(2) excluye 250-122(f) (David,
+    /// 2026-10-03). 708.57 A sin cargas de 1 polo: 2 × 900 kcmil con tierra de 2/0 (67.43 mm²). El neutro
+    /// sale de 1/0 (2 × 53.49 = 106.98 mm² ≥ 67.43), no de 2/0; nunca menor que 1/0 en paralelo.
+    /// </summary>
+    [Fact]
+    public void I165_EnParaleloElNeutroCumpleConElAreaDelJuego()
+    {
+        var cuadro = De708A();
+        cuadro.Datos.NeutroReducido220_61 = true;
+        cuadro.Recalcular();
+
+        var r = cuadro.Alimentador.Resultado!;
+        Assert.Equal(2, r.NumeroConductoresParalelo);
+        Assert.Equal("2/0", r.CalibreTierra.Designacion);
+        Assert.Equal("1/0", r.CalibreNeutro.Designacion);
+        Assert.True(r.CalibreNeutro.AreaMm2 < r.CalibreTierra.AreaMm2);
+        Assert.True(2 * r.CalibreNeutro.AreaMm2 >= r.CalibreTierra.AreaMm2);
+        var cita = Assert.Single(r.Citas, x => x.Referencia == "220-61");
+        Assert.Contains("con el área de los 2 en paralelo", cita.Descripcion);
+        Assert.Contains("250-122(f) no se aplica", cita.Descripcion);
+
+        // Con 6 por fase el área ya cumple con cualquiera, pero el piso de 1/0 en paralelo se queda.
+        cuadro.Datos.ConductoresPorFaseAlimentador = 6;
+        cuadro.Recalcular();
+        Assert.Equal("1/0", cuadro.Alimentador.Resultado!.CalibreNeutro.Designacion);
     }
 }
