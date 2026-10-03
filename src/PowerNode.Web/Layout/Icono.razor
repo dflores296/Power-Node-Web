@@ -241,13 +241,13 @@
             break;
         @* Condiciones de cálculo *@
         case "conductor":
-            @* El cable que sube y dobla, con el aislamiento cortado y dos hilos desnudos que se abren (David,
-               2026-10-03 — I-180): el de antes, una cápsula con una varilla, parecía la llave del SIM. El doblez
-               (radio 5) es mayor que el medio ancho del cable (2.75): así el contorno no se tuerce. Abajo va
-               abierto: el cable sigue. *@
-            <path class="relleno" d="M2.75 22V15A7.75 7.75 0 0 1 10.5 7.25H14.5V12.75H10.5A2.25 2.25 0 0 0 8.25 15V22z" />
-            <path class="trazo" d="M2.75 22V15A7.75 7.75 0 0 1 10.5 7.25H14.5V12.75H10.5A2.25 2.25 0 0 0 8.25 15V22" />
-            <path class="trazo" d="M14.5 9h3.5l3.5-1.5M14.5 11h3.5l3.5 1.5" />
+            @* El cable con el aislamiento cortado —la elipse es la cara del corte— y el cobre saliendo, lleno
+               (David, 2026-10-03 — I-180): de seis propuestas eligió esta, la F. La primera, una cápsula con una
+               varilla delgada, parecía la llave del SIM; aquí el corte y el cobre grueso dicen que es un cable. *@
+            <path class="relleno" d="M4.5 8.5H13v7H4.5a3.5 3.5 0 0 1 0-7z" />
+            <path class="trazo" d="M13 8.5H4.5a3.5 3.5 0 0 0 0 7H13" />
+            <ellipse class="trazo" cx="13" cy="12" rx="1.6" ry="3.5" />
+            <rect class="relleno lleno" x="13" y="10.6" width="8.5" height="2.8" rx="1.2" />
             break;
         case "aislamiento":
             @* El corte de un conductor: el aislamiento alrededor del cobre. *@
