@@ -1086,8 +1086,8 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
                 <div class="cable">
                     <span class="muestras grande"><i class="color-tierra"></i></span>
                     <span class="rotulo"><span class="ayuda" title="Consultar el conductor de puesta a tierra de equipos — Tabla 250-122. Verde, o verde con franjas amarillas — 250-119. En paralelo, uno en cada canalización; si van todos en la misma, basta uno — 250-122(f).">Puesta a tierra</span></span>
-                    @* En paralelo, uno por canalización: «3 × 300 kcmil», no «300 kcmil» (auditoría del 2026-09-29, riesgo 4). *@
-                    <span class="calibre">@ConHilos(a.CalibreTierra, a.NumeroConductoresParalelo)<small>@a.CalibreTierra.AreaMm2.ToString("N2") mm²@(a.NumeroConductoresParalelo > 1 ? " · uno por canalización" : "")</small></span>
+                    @* En paralelo, uno por canalización: «3 × 300 kcmil», no «300 kcmil» (auditoría del 2026-09-29, riesgo 4); con «Paralelos en un tubo», uno solo (R4-2). *@
+                    <span class="calibre">@ConHilos(a.CalibreTierra, Cuadro.TierrasDelAlimentador)<small>@a.CalibreTierra.AreaMm2.ToString("N2") mm²@(a.NumeroConductoresParalelo > 1 ? (Cuadro.TierrasDelAlimentador == 1 ? " · uno para todos los juegos en un tubo" : " · uno por canalización") : "")</small></span>
                 </div>
             </div>
 
@@ -1259,7 +1259,7 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
             </label>
             @if (fijado is int f && enUso is not null)
             {
-                <p class="derivado">Fijado: <strong>@f por fase</strong>. @(deAuto is null ? "El automático no encuentra cómo." : $"El automático da {ConHilos(deAuto.Fase, deAuto.PorFase)}.")</p>
+                <p class="derivado">Fijado: <strong>@f por fase</strong>. @(deAuto is null ? "El automático no encuentra cómo." : $"El automático da {ConHilos(deAuto.Fase, deAuto.PorFase)}.")@(Cuadro.FijadoConPisoDeParalelo ? " Con este número cada conductor bastaba menor que 1/0 AWG: va de 1/0, el mínimo en paralelo — 310-10(h)(1)." : "")</p>
             }
             @if (opciones.Count > 0 && (Cuadro.ConvieneCompararParalelos || enUso is null))
             {
@@ -1273,7 +1273,7 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
                                     <th title="Ampacidad del juego: la de un conductor, corregida, por el número en paralelo.">Ampacidad</th>
                                     <th title="Caída de tensión de la peor fase — Tabla 9.">e %</th>
                                     <th>Canalización</th>
-                                    <th title="Área de cobre de todos los conductores: (fases + neutro + tierra) × conductores por fase — Tabla 8. Para comparar cuánto cobre lleva cada opción.">Cobre mm²</th>
+                                    <th title="Área de cobre de todos los conductores: (fases + neutro) × conductores por fase, más las tierras — Tabla 8. Para comparar cuánto cobre lleva cada opción.">Cobre mm²</th>
                                     <th></th>
                                 </tr>
                             </thead>
@@ -1282,7 +1282,7 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
                                 {
                                     var elegida = o.PorFase == enUso;
                                     <tr @key="o.PorFase" class="@(elegida ? "elegida" : null)">
-                                        <td class="izq">@o.PorFase@if (o.EsAutomatico) {<span class="pastilla">automático</span>}</td>
+                                        <td class="izq">@o.PorFase@if (o.EsAutomatico) {<span class="pastilla">automático</span>}@if (o.PorPisoDeParalelo) {<span class="pastilla" title="Solo cumple con 1/0 AWG, el mínimo en paralelo — 310-10(h)(1): sobredimensionado por ese mínimo.">mín. 1/0</span>}</td>
                                         <td>@o.Fase.DesignacionConUnidad</td>
                                         @if (Cuadro.SistemaConNeutro)
                                         {

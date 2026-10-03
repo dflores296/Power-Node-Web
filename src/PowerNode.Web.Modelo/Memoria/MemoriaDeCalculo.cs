@@ -501,7 +501,8 @@ public static class MemoriaDeCalculo
             TierraDeAcometida: cuadro.TierraDeAcometida,
             ImpedanciaNeutro: cuadro.NeutroReducido?.Impedancia,
             CalibreImpedanciaNeutro: cuadro.NeutroReducido is { CalibreDeLaImpedancia: { } zc, Calibre: { } nc } && zc.Designacion != nc.Designacion
-                ? zc.Designacion : null);
+                ? zc.Designacion : null,
+            Tierras: cuadro.TierrasDelAlimentador);
     }
 
     /// <summary>«Estufa: 1 × 3,000 W = 3,000 VA · no continua · F.P. 1.00». Un renglón por aparato — I-35.</summary>
@@ -821,7 +822,7 @@ public static class MemoriaDeCalculo
 
         // ---- 9
         bloques.Add(Seccion("9. CONDUCTOR DE PUESTA A TIERRA SELECCIONADO", [
-            ("Calibre", CalibreDe(hoja.ConductorTierra, 1)),
+            ("Calibre", CalibreDe(hoja.ConductorTierra, hoja.Tierras)),
             // Equipo de acometida (P3-3): del mayor conductor de acometida, que es el del alimentador.
             .. hoja.TierraDeAcometida is { } ta
                 ? new (string, string?)[]

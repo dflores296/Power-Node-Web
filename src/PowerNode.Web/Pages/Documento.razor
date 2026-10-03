@@ -245,7 +245,7 @@
                             <td class="num">@Captura.ConHilos(a.CalibreFase, a.NumeroConductoresParalelo)</td>
                             <td class="num">@(Cuadro.SistemaConNeutro ? Captura.ConHilos(a.CalibreNeutro, a.NumeroConductoresParalelo) : "—")</td>
                             @* En paralelo, una por canalización — 250-122(f) (riesgo 4). *@
-                            <td class="num">@Captura.ConHilos(a.CalibreTierra, a.NumeroConductoresParalelo)</td>
+                            <td class="num">@Captura.ConHilos(a.CalibreTierra, Cuadro.TierrasDelAlimentador)</td>
                             @* La corriente de la fase más cargada, que es con la que se dimensiona — M-02. *@
                             <td class="num">@a.CorrienteDisenoA.ToString("N2")@(Cuadro.Alimentador.Gobierna is { } g && Datos.Barras.Count > 1 ? $" (fase {g.Fase})" : "")</td>
                             <td class="num">@Datos.LongitudAlimentadorM.ToString("N0")</td>

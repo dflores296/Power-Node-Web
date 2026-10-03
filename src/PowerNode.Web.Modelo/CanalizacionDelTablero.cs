@@ -107,6 +107,13 @@ public sealed class CanalizacionDelTablero(string id, bool automatica = false)
     /// <summary>El factor que resultó: 1.00 si no aplica.</summary>
     public decimal? FactorAgrupamiento { get; internal set; }
 
+    /// <summary>
+    /// Es tubo (o niple) y ningún tamaño de la Tabla 4 admite los conductores — R4-1. Con un tamaño fijado
+    /// que no alcanza, o en ducto, el aviso de ocupación ya lo dice; esto es cuando no hay tamaño que elegir.
+    /// </summary>
+    public bool NingunTamanoAlcanza =>
+        Ocupacion is { Tamano: null, Excede: true } && Tipo is TipoCanalizacion.TuboConduit or TipoCanalizacion.Niple;
+
     /// <summary>«PVC 40», «Ducto metálico».</summary>
     public string Rotulo => Tipo switch
     {

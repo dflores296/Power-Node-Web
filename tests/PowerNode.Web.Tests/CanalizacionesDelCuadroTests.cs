@@ -360,7 +360,16 @@ public class CanalizacionesDelCuadroTests
         Assert.Equal(a.NumeroConductoresParalelo, canal.CanalizacionesIguales);
         Assert.Equal(3, canal.Conteo!.Portadores);
 
+        // Todos en un tubo: a 400 m los calibres son grandes y ningún EMT de la Tabla 4 los admite — R4-1.
+        // En un ducto que alcanza, el conteo es de todos los juegos.
         canal.JuegosEnUnTubo = true;
+        cuadro.Recalcular();
+        Assert.Null(cuadro.Alimentador.Resultado);
+        Assert.Contains("Ningún EMT de la Tabla 4 alcanza", cuadro.Alimentador.Error);
+
+        canal.Tipo = PowerNode.DesignSuite.Calculo.Canalizaciones.TipoCanalizacion.DuctoMetalico;
+        canal.AnchoMm = 300m;
+        canal.AltoMm = 150m;
         cuadro.Recalcular();
         var b = cuadro.Alimentador.Resultado!;
         Assert.Equal(1, canal.CanalizacionesIguales);
@@ -412,5 +421,25 @@ public class CanalizacionesDelCuadroTests
             if (enTabla5) Assert.NotNull(ocupacion.Tamano);
             else Assert.NotEmpty(ocupacion.Faltantes);
         }
+    }
+
+    /// <summary>
+    /// R4-1 (ronda 4) en los derivados: doce circuitos de 150 A en una sola canalización EMT no caben en
+    /// ningún tubo de la Tabla 4. El aviso del motor queda en «Avisos» y, ahora, también en el renglón de
+    /// cada circuito, para que no se vean resueltos.
+    /// </summary>
+    [Fact]
+    public void R4_1_UnaCanalizacionDeDerivadosEnLaQueNingunTuboAlcanzaAvisaEnElRenglon()
+    {
+        var cuadro = Nuevo();
+        var t1 = cuadro.Datos.NuevaCanalizacion();
+        for (var espacio = 1; espacio <= 12; espacio++)
+            Carga(cuadro, espacio, 150m, t1.Id);
+        cuadro.Recalcular();
+
+        Assert.True(t1.NingunTamanoAlcanza);
+        Assert.Contains(cuadro.AvisosDeCanalizaciones, x => x.Contains("Ningún EMT de la Tabla 4 alcanza"));
+        var c = cuadro.Circuitos.Single(x => x.Espacio == 1);
+        Assert.Contains(cuadro.AvisosDe(c), x => x.StartsWith("Ningún tubo de la Tabla 4 admite los conductores de su canalización"));
     }
 }

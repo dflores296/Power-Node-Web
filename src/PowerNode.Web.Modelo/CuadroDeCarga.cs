@@ -1341,6 +1341,10 @@ public sealed class CuadroDeCarga
         .. c.ReglasDeClase.Where(x => x.Aviso).Select(x => $"{x.Texto.TrimEnd('.')} — {x.Referencia}."),
         .. c.AvisoCaidaCombinada is { } caida ? [caida] : Array.Empty<string>(),
         .. c.AvisoAireDeHabitacion is { } habitacion ? [habitacion] : Array.Empty<string>(),
+        // R4-1: su canalización no cabe en ningún tubo de la Tabla 4.
+        .. c.CanalizacionEfectiva is { NingunTamanoAlcanza: true } k
+            ? [$"Ningún tubo de la Tabla 4 admite los conductores de su canalización ({NombreDe(k)}) — Capítulo 10, Tabla 1. Reparte los circuitos en más canalizaciones o cambia a ducto o charola."]
+            : Array.Empty<string>(),
     ];
 
     /// <summary>Los avisos de los circuitos que no son de caída: por ahora, 440-62 (I-117).</summary>
@@ -1590,8 +1594,9 @@ public sealed class CuadroDeCarga
             conductores.Add(Conductor(x.Nombre, PapelConductor.Fase, x.Fase, x.Polos * juegosPorCanalizacion));
             if (x.LlevaNeutro && !(neutroCompartido && x.Polos == 1))
                 conductores.Add(Conductor(x.Nombre, PapelConductor.Neutro, x.Neutro, juegosPorCanalizacion));
+            // Los juegos en paralelo en la misma canalización llevan una sola tierra — 250-122(f), R4-2.
             if (!canal.TierraComun)
-                conductores.Add(Conductor(x.Nombre, PapelConductor.Tierra, x.Tierra, juegosPorCanalizacion, canal.TierraDesnuda));
+                conductores.Add(Conductor(x.Nombre, PapelConductor.Tierra, x.Tierra, 1, canal.TierraDesnuda));
         }
         if (neutroCompartido)
         {
@@ -2665,6 +2670,7 @@ public sealed class CuadroDeCarga
         NeutroReducido = null;
         OpcionesDeParalelo = [];
         ConductoresPorFaseAutomatico = null;
+        FijadoConPisoDeParalelo = false;
 
         if (Resumen.InstaladaVA <= 0m)
         {
@@ -2696,7 +2702,8 @@ public sealed class CuadroDeCarga
         // de la fase más cargada y reescribía la cita 220-40: ya no.
         //
         // N: el automático empieza en 1 y sube hasta el tope; fijado, va de N a N, exacto — I-162.
-        ResultadoAlimentador Calcular(CanalizacionDelTablero canal, int n, int tope) => _motor.Alimentador(Datos.SerieInterruptores).Calcular(new DatosEntradaAlimentador(
+        // R4-3: con N fijado de 2 o más, 1/0 AWG de piso (310-10(h)(1)) en vez de rechazar el N.
+        ResultadoAlimentador Calcular(CanalizacionDelTablero canal, int n, int tope, bool pisoDeParalelo = false) => _motor.Alimentador(Datos.SerieInterruptores).Calcular(new DatosEntradaAlimentador(
                 // Ya con el factor de demanda de cada tipo (R-17): por eso el motor va con F.D. 1 abajo.
                 CargaContinuaVA: Resumen.ContinuaDemandadaVA + (Resumen.Superficie?.ContinuaDemandadaVA ?? 0m),
                 CargaNoContinuaVA: Resumen.NoContinuaDemandadaVA + Resumen.Minimo220_52DemandadoVA + (Resumen.Superficie?.NoContinuaDemandadaVA ?? 0m),
@@ -2713,7 +2720,7 @@ public sealed class CuadroDeCarga
                 // Solo para la caída balanceada de un alimentador sin neutro (3F-3H).
                 FactorPotencia: fpAlimentador,
                 CaidaTensionMaxPct: Datos.CaidaMaxAlimentadorPct,
-                PisoPracticoCalibreMm2: null,
+                PisoPracticoCalibreMm2: pisoDeParalelo && n > 1 ? PisoDeParaleloMm2 : null,
                 FactorDemandaContinua: 1m,
                 FactorDemandaNoContinua: 1m,
                 TipoAislamiento: Datos.TipoAislamiento,
@@ -2729,14 +2736,16 @@ public sealed class CuadroDeCarga
 
         // El alimentador completo con N automático (null) o fijado, sobre una canalización: conteo,
         // motor, neutro de 220-61 y tamaño. Deja la canalización con lo que resultó.
-        (ResultadoAlimentador, NeutroDe220_61?) Resolver(CanalizacionDelTablero canal, int? fijo)
+        (ResultadoAlimentador, NeutroDe220_61?) Resolver(CanalizacionDelTablero canal, int? fijo, bool pisoDeParalelo = false)
         {
             ResultadoAlimentador resultado;
             if (fijo is int k)
             {
                 // Con N fijado el número de juegos ya se sabe: no hay vueltas.
                 Contar(canal, [new CircuitoEnCanalizacion("alimentador", polos, conNeutro, [.. Datos.Barras], canal.JuegosEnUnTubo ? k : 1)]);
-                resultado = Calcular(canal, k, k);
+                resultado = Calcular(canal, k, k, pisoDeParalelo);
+                if (pisoDeParalelo)
+                    resultado = ConPisoDeParaleloCitado(resultado, k);
             }
             else
             {
@@ -2770,6 +2779,19 @@ public sealed class CuadroDeCarga
             Dimensionar(canal,
                 [new ConductoresDelCircuito("alimentador", polos, conNeutro, resultado.CalibreFase, resultado.CalibreNeutro, resultado.CalibreTierra)],
                 canal.JuegosEnUnTubo ? n : 1);
+
+            // R4-1: si ningún tubo de la Tabla 4 admite los conductores, el alimentador no está resuelto.
+            if (canal.NingunTamanoAlcanza)
+                throw new InvalidOperationException(NingunTuboAlcanza(canal, n));
+
+            // R4-2: los N juegos en una sola canalización llevan una sola tierra — 250-122(f).
+            if (n > 1 && canal.JuegosEnUnTubo)
+                resultado = resultado with
+                {
+                    Citas = [.. resultado.Citas.Select(c => c.Referencia == "250-122(f)"
+                        ? new Cita("250-122(f)", $"Fases en paralelo, todas en la misma canalización: basta un conductor de tierra ({resultado.CalibreTierra}).")
+                        : c)],
+                };
             return (resultado, neutro);
         }
 
@@ -2785,7 +2807,8 @@ public sealed class CuadroDeCarga
                 var (r, _) = Resolver(copia, k);
                 opciones.Add(new OpcionDeParalelo(k, r.CalibreFase, r.CalibreNeutro, r.CalibreTierra,
                     r.Detalle?.AmpacidadConductorA ?? 0m, r.CaidaTensionPct, $"{copia.Rotulo} · {copia.TamanoRotulo}",
-                    k * (polos * r.CalibreFase.AreaMm2 + (conNeutro ? r.CalibreNeutro.AreaMm2 : 0m) + r.CalibreTierra.AreaMm2)));
+                    k * (polos * r.CalibreFase.AreaMm2 + (conNeutro ? r.CalibreNeutro.AreaMm2 : 0m))
+                        + (copia.JuegosEnUnTubo ? 1 : k) * r.CalibreTierra.AreaMm2));
             }
             catch (Exception ex)
             {
@@ -2801,9 +2824,16 @@ public sealed class CuadroDeCarga
             {
                 try { ConductoresPorFaseAutomatico = Resolver(canal.Copia(), null).Item1.NumeroConductoresParalelo; }
                 catch (Exception) { /* el automático tampoco cumple: se dice en la cita y en el selector */ }
-                if (porQueNo.TryGetValue(k, out var ex))
+                var conPiso = porQueNo.TryGetValue(k, out var ex) && ex is ConductoresParaleloNoPermitidoException;
+                if (ex is not null && !conPiso)
                     throw new InvalidOperationException(PorQueNoCumple(k, ex, opciones));
-                (resultado, NeutroReducido) = Resolver(canal, k);
+                (resultado, NeutroReducido) = Resolver(canal, k, conPiso);
+                FijadoConPisoDeParalelo = conPiso;
+                if (conPiso)
+                    opciones.Add(new OpcionDeParalelo(k, resultado.CalibreFase, resultado.CalibreNeutro, resultado.CalibreTierra,
+                        resultado.Detalle?.AmpacidadConductorA ?? 0m, resultado.CaidaTensionPct, $"{canal.Rotulo} · {canal.TamanoRotulo}",
+                        k * (polos * resultado.CalibreFase.AreaMm2 + (conNeutro ? resultado.CalibreNeutro.AreaMm2 : 0m))
+                            + (canal.JuegosEnUnTubo ? 1 : k) * resultado.CalibreTierra.AreaMm2, PorPisoDeParalelo: true));
                 var auto = ConductoresPorFaseAutomatico is int a
                     ? (a == k ? "; el automático da lo mismo." : $"; el automático daba {a}.")
                     : "; el automático no encuentra cómo.";
@@ -2821,7 +2851,7 @@ public sealed class CuadroDeCarga
                 ConductoresPorFaseAutomatico = resultado.NumeroConductoresParalelo;
             }
 
-            OpcionesDeParalelo = [.. opciones.Select(o => o with { EsAutomatico = o.PorFase == ConductoresPorFaseAutomatico })];
+            OpcionesDeParalelo = [.. opciones.OrderBy(o => o.PorFase).Select(o => o with { EsAutomatico = o.PorFase == ConductoresPorFaseAutomatico })];
 
             // La fase que gobierna la decide el motor; la de aquí es la misma regla, para mostrarla.
             if (resultado.FaseQueGobierna is { } fase)
@@ -2841,6 +2871,51 @@ public sealed class CuadroDeCarga
     /// Vacía sin carga. Una sola con 1 por fase cuando no hay más que comparar.
     /// </summary>
     public IReadOnlyList<OpcionDeParalelo> OpcionesDeParalelo { get; private set; } = [];
+
+    /// <summary>
+    /// Cuántos conductores de tierra lleva el alimentador: uno por canalización en paralelo, o uno solo si
+    /// los juegos van todos en la misma — 250-122(f), R4-2.
+    /// </summary>
+    public int TierrasDelAlimentador => Alimentador.Resultado is { NumeroConductoresParalelo: var n }
+        ? (n > 1 && Datos.CanalizacionAlimentador.JuegosEnUnTubo ? 1 : n)
+        : 1;
+
+    /// <summary>
+    /// 250-24(c)(2), en su letra: cada neutro de acometida en paralelo con el área total de las fases en
+    /// paralelo «en las canalizaciones», no solo las de su tubo (lectura del NEC) — R4-4, decisión
+    /// <c>neutro-del-alimentador-por-220-61.md</c>.
+    /// </summary>
+    private const string CadaUnoEnParalelo =
+        ", cada uno en paralelo, con el área total de las fases en paralelo, como lo dice la NOM — 250-24(c)(2)";
+
+    /// <summary>1/0 AWG: el menor conductor que se permite en paralelo — 310-10(h)(1), Tabla 8.</summary>
+    private const decimal PisoDeParaleloMm2 = 53.49m;
+
+    /// <summary>
+    /// El N fijado salía con conductores menores de 1/0 AWG y se calculó con 1/0 de piso — R4-3. Cumple
+    /// 310-10(h)(1), sobredimensionado por ese mínimo.
+    /// </summary>
+    public bool FijadoConPisoDeParalelo { get; private set; }
+
+    /// <summary>La cita «Piso práctico» del motor, dicha como lo que es: el mínimo de 310-10(h)(1) — R4-3.</summary>
+    private static ResultadoAlimentador ConPisoDeParaleloCitado(ResultadoAlimentador r, int k) => r with
+    {
+        Citas = [.. r.Citas.Select(c => c.Referencia == "Piso práctico"
+            ? new Cita("310-10(h)(1)", $"Con {k} conductores por fase, por ampacidad, 240-4 y caída bastaba un calibre menor que 1/0 AWG; " +
+                $"en paralelo el mínimo es 1/0 AWG, así que cada uno es de {r.CalibreFase} (sobredimensionado por ese mínimo).")
+            : c)],
+    };
+
+    /// <summary>R4-1: el error cuando ningún tubo admite los conductores del alimentador, con qué hacer.</summary>
+    private static string NingunTuboAlcanza(CanalizacionDelTablero canal, int n)
+    {
+        var motivo = canal.Ocupacion!.Avisos.FirstOrDefault(a => a.StartsWith("Ningún"))?.Replace(" Reparte los conductores en más de una canalización.", "")
+            ?? $"Ningún {canal.Rotulo} de la Tabla 4 admite estos conductores.";
+        var que = canal.JuegosEnUnTubo && n > 1
+            ? "Quita «Paralelos en un tubo» (un juego por canalización), cambia a ducto o charola, o baja los conductores por fase."
+            : "Cambia a ducto o charola, o sube los conductores por fase para repartirlos en más canalizaciones.";
+        return $"{motivo.TrimEnd('.')} — Capítulo 10, Tabla 1. {que}";
+    }
 
     /// <summary>El N que da el automático, aunque el proyectista haya fijado otro. Null si no encuentra ninguno.</summary>
     public int? ConductoresPorFaseAutomatico { get; private set; }
@@ -2985,8 +3060,8 @@ public sealed class CuadroDeCarga
             (n > 1 ? $", con el área de los {n} en paralelo ({n} × {calibre.AreaMm2:0.##} = {n * calibre.AreaMm2:0.##} mm² contra {r.CalibreTierra.AreaMm2:0.##} mm²; 250-122(f) no se aplica) — 215-2(a)(2); cada uno de 1/0 AWG o mayor — 310-10(h)(1)" : " — 215-2(a)(2)") +
             (acometida is null ? ""
                 : acometida.PuentePorPorcentaje
-                    ? $" ni que el 12.5 % del área de las fases de la acometida ({acometida.AreaAcometidaMm2:0.##} mm² → {acometida.PuenteDeUnion}) — 250-24(c)(1)" + (n > 1 ? ", cada uno en paralelo — 250-24(c)(2)" : "")
-                    : $" ni que la Tabla 250-66 ({acometida.ConductorElectrodo}) — 250-24(c)(1)" + (n > 1 ? ", cada uno en paralelo — 250-24(c)(2)" : "")) +
+                    ? $" ni que el 12.5 % del área de las fases de la acometida ({acometida.AreaAcometidaMm2:0.##} mm² → {acometida.PuenteDeUnion}) — 250-24(c)(1)" + (n > 1 ? CadaUnoEnParalelo : "")
+                    : $" ni que la Tabla 250-66 ({acometida.ConductorElectrodo}) — 250-24(c)(1)" + (n > 1 ? CadaUnoEnParalelo : "")) +
             (porCaida ? $"; sube a {calibre} para que la caída de tensión, que lleva la del neutro, no pase de {Datos.CaidaMaxAlimentadorPct:0.##} %" : "") +
             (igual ? "; queda igual que la fase." : "."));
         var citas = new List<Cita>(r.Citas) { cita };
@@ -2994,8 +3069,8 @@ public sealed class CuadroDeCarga
         {
             var peor = porFase.Aggregate((m, f) => f.CaidaPct > m.CaidaPct ? f : m);
             citas.Add(new Cita("Tabla 9",
-                $"Caída por fase con el neutro de {calibre}: " + string.Join("; ", porFase.Select(f => $"{f.Fase} {f.CaidaPct:0.##}%")) +
-                $" -- manda la fase {peor.Fase} (con el neutro igual a la fase, {antes.Max(f => f.CaidaPct):0.##}%)."));
+                $"Caída por fase con el neutro de {calibre}: " + string.Join("; ", porFase.Select(f => $"{f.Fase} {f.CaidaPct:0.00}%")) +
+                $" -- manda la fase {peor.Fase} (con el neutro igual a la fase, {antes.Max(f => f.CaidaPct):0.00}%)."));
             r = r with
             {
                 CaidaPorFase = porFase,

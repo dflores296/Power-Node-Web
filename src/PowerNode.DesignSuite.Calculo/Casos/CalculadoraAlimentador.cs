@@ -219,7 +219,7 @@ public class CalculadoraAlimentador(
             var peor = caidaPorFase.Aggregate((max, c) => c.CaidaPct > max.CaidaPct ? c : max);
             citas.Add(new Cita("Tabla 9",
                 $"Caída por fase con el neutro (I_N = {corrienteNeutro.Value.Magnitud:0.##} A, suma fasorial): " +
-                string.Join("; ", caidaPorFase.Select(c => $"{c.Fase} {c.CaidaPct:0.##}%")) + $" -- manda la fase {peor.Fase}."));
+                string.Join("; ", caidaPorFase.Select(c => $"{c.Fase} {c.CaidaPct:0.00}%")) + $" -- manda la fase {peor.Fase}."));
         }
 
         var calibreFinal = seleccion.CalibreFase;

@@ -309,13 +309,13 @@ public static class SeleccionConductor
             citas.Add(new Cita("Tabla 9", baseEsHueco
                 ? $"La Tabla 9 no trae R ni X para {calibreBase}" +
                   (baseAcotadoCon is null ? "" : $"; con las de {baseAcotadoCon} (el menor más cercano con datos, que dan más caída) la caída excedía {caidaTensionMaxPct}%") +
-                  $" -> sube a {calibreCandidato} ({caidaPct:0.##}%{(acotadoCon is null ? "" : " o menos")})"
-                : $"Caída de tensión con {calibreBase} excedía {caidaTensionMaxPct}% -> sube a {calibreCandidato} ({caidaPct:0.##}%{(acotadoCon is null ? "" : " o menos")})"));
+                  $" -> sube a {calibreCandidato} ({caidaPct:0.00}%{(acotadoCon is null ? "" : " o menos")})"
+                : $"Caída de tensión con {calibreBase} excedía {caidaTensionMaxPct}% -> sube a {calibreCandidato} ({caidaPct:0.00}%{(acotadoCon is null ? "" : " o menos")})"));
         else if (acotadoCon is not null)
             citas.Add(new Cita("Tabla 9", $"La Tabla 9 no trae R ni X para {calibreCandidato}: la caída se acota con las de {acotadoCon}, " +
-                $"el calibre menor más cercano con datos, que dan más caída que la real: {caidaPct:0.##}% o menos (límite {caidaTensionMaxPct}%)"));
+                $"el calibre menor más cercano con datos, que dan más caída que la real: {caidaPct:0.00}% o menos (límite {caidaTensionMaxPct}%)"));
         else
-            citas.Add(new Cita("Tabla 9", $"Caída de tensión con {calibreCandidato}: {caidaPct:0.##}% (límite {caidaTensionMaxPct}%)"));
+            citas.Add(new Cita("Tabla 9", $"Caída de tensión con {calibreCandidato}: {caidaPct:0.00}% (límite {caidaTensionMaxPct}%)"));
 
         // Piso práctico configurado (si aplica).
         var calibreFinal = calibreCandidato;

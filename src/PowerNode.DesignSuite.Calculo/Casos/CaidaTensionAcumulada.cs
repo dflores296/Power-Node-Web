@@ -58,18 +58,18 @@ public static class CaidaTensionAcumulada
         if (ruta.Count == 0)
             return new Resultado(0m, false, null, citas);
 
-        var desglose = string.Join(" + ", ruta.Select(t => $"{t.Descripcion} {t.CaidaPct:0.##}%"));
+        var desglose = string.Join(" + ", ruta.Select(t => $"{t.Descripcion} {t.CaidaPct:0.00}%"));
 
         // La cita es de la NOTA, y se nombra como nota -- no como exigencia. El motor nunca dice
         // "210-19 exige" para la caída de tensión, y esto no es la excepción.
         citas.Add(new Cita("210-19(a)(1) NOTA 4",
-            $"Caída acumulada por la rama: {desglose} = {acumulada:0.##}% (referencia informativa: {limiteCombinadoPct:0.##}%)"));
+            $"Caída acumulada por la rama: {desglose} = {acumulada:0.00}% (referencia informativa: {limiteCombinadoPct:0.##}%)"));
 
         if (acumulada <= limiteCombinadoPct)
             return new Resultado(acumulada, false, null, citas);
 
         var aviso =
-            $"Caída de tensión acumulada {acumulada:0.##}%, por encima del {limiteCombinadoPct:0.##}% combinado que recomienda la " +
+            $"Caída de tensión acumulada {acumulada:0.00}%, por encima del {limiteCombinadoPct:0.##}% combinado que recomienda la " +
             $"NOTA 4 de 210-19(a)(1). Ruta: {desglose}. Es una nota informativa de la norma, no un requisito: cada tramo por " +
             $"separado sí cumple su límite.";
 

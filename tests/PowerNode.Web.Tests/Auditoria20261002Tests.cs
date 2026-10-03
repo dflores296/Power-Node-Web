@@ -430,7 +430,8 @@ public class Auditoria20261002Tests
 
     /// <summary>
     /// 415.5 A, protección de 450 A: cumplen 1 × 600 kcmil, 2 × 4/0 y 3 × 1/0. Con 4 cada conductor saldría
-    /// de 2 AWG, menor que 1/0 — 310-10(h)(1).
+    /// de 2 AWG, menor que 1/0: fijado, ya no se rechaza — va de 1/0, el mínimo en paralelo (310-10(h)(1)), y
+    /// se dice que está sobredimensionado por ese mínimo — R4-3.
     /// </summary>
     [Fact]
     public void I162_Con415AFijadoEn4NoLlegaA1_0()
@@ -444,10 +445,23 @@ public class Auditoria20261002Tests
         cuadro.Datos.ConductoresPorFaseAlimentador = 4;
         cuadro.Recalcular();
 
-        Assert.Null(cuadro.Alimentador.Resultado);
-        Assert.Equal(
-            "Con 4 conductores por fase, cada uno sale de 2 AWG, y 310-10(h)(1) pide 1/0 AWG o mayor en paralelo. Cumplen 1, 2 o 3 por fase.",
-            cuadro.Alimentador.Error);
+        Assert.Null(cuadro.Alimentador.Error);
+        var r = cuadro.Alimentador.Resultado!;
+        Assert.Equal(4, r.NumeroConductoresParalelo);
+        Assert.Equal("1/0", r.CalibreFase.Designacion);
+        Assert.True(cuadro.FijadoConPisoDeParalelo);
+        var cita = Assert.Single(r.Citas, x => x.Referencia == "310-10(h)(1)" && x.Descripcion.Contains("sobredimensionado"));
+        Assert.Contains("el mínimo es 1/0 AWG", cita.Descripcion);
+        Assert.DoesNotContain(r.Citas, x => x.Referencia == "Piso práctico");
+        // La opción de 4 entra a la tabla marcada; las demás siguen como estaban.
+        Assert.Equal([1, 2, 3, 4], cuadro.OpcionesDeParalelo.Select(x => x.PorFase));
+        Assert.True(Assert.Single(cuadro.OpcionesDeParalelo, x => x.PorFase == 4).PorPisoDeParalelo);
+
+        // De regreso al automático, la tabla vuelve a 1, 2 y 3.
+        cuadro.Datos.ConductoresPorFaseAlimentador = null;
+        cuadro.Recalcular();
+        Assert.False(cuadro.FijadoConPisoDeParalelo);
+        Assert.Equal([1, 2, 3], cuadro.OpcionesDeParalelo.Select(x => x.PorFase));
     }
 
     /// <summary>Un alimentador chico: una sola opción de un calibre delgado, nada que comparar.</summary>
@@ -477,22 +491,39 @@ public class Auditoria20261002Tests
         Assert.Null(cuadro.Datos.ConductoresPorFaseAlimentador);
     }
 
-    /// <summary>Con los juegos en un tubo, el N fijado cuenta todos los conductores en una canalización.</summary>
+    /// <summary>
+    /// Con los juegos en un tubo, el N fijado cuenta todos los conductores en una canalización. En EMT no cabe
+    /// en ningún tamaño de la Tabla 4 (R4-1): error con qué hacer. En un ducto de 300 × 150 mm sí, con una sola
+    /// tierra para los tres juegos — 250-122(f), R4-2.
+    /// </summary>
     [Fact]
     public void I162_FijadoConLosJuegosEnUnTubo()
     {
         var cuadro = De708A();
-        cuadro.Datos.CanalizacionAlimentador.JuegosEnUnTubo = true;
+        var canal = cuadro.Datos.CanalizacionAlimentador;
+        canal.JuegosEnUnTubo = true;
         cuadro.Datos.ConductoresPorFaseAlimentador = 3;
+        cuadro.Recalcular();
+
+        Assert.Null(cuadro.Alimentador.Resultado);
+        Assert.Contains("Ningún EMT de la Tabla 4 alcanza", cuadro.Alimentador.Error);
+        Assert.Contains("Quita «Paralelos en un tubo»", cuadro.Alimentador.Error);
+
+        canal.Tipo = PowerNode.DesignSuite.Calculo.Canalizaciones.TipoCanalizacion.DuctoMetalico;
+        canal.AnchoMm = 300m;
+        canal.AltoMm = 150m;
         cuadro.Recalcular();
 
         Assert.Null(cuadro.Alimentador.Error);
         var r = cuadro.Alimentador.Resultado!;
         Assert.Equal(3, r.NumeroConductoresParalelo);
-        Assert.True(r.Detalle!.FactorAgrupamiento < 1m);
-        Assert.Equal(1, cuadro.Datos.CanalizacionAlimentador.CanalizacionesIguales);
+        Assert.False(canal.Ajuste!.Aplica); // en ducto, con 9 portadores, la Tabla 310-15(b)(3)(a) no se aplica
+        Assert.Equal(1, canal.CanalizacionesIguales);
         // 3 juegos × 3 fases; el neutro de un 3F-4H lineal no cuenta — 310-15(b)(5)(1).
-        Assert.Equal(9, cuadro.Datos.CanalizacionAlimentador.Conteo!.Portadores);
+        Assert.Equal(9, canal.Conteo!.Portadores);
+        Assert.Equal(1, cuadro.TierrasDelAlimentador);
+        Assert.Equal(1, canal.Ocupacion!.Renglones.Where(x => x.Conductor.Papel == PowerNode.DesignSuite.Calculo.Canalizaciones.PapelConductor.Tierra).Sum(x => x.Conductor.Cantidad));
+        Assert.Contains(r.Citas, x => x.Referencia == "250-122(f)" && x.Descripcion.Contains("basta un conductor de tierra"));
     }
 
     [Fact]
@@ -681,5 +712,33 @@ public class Auditoria20261002Tests
         Assert.False(t.PuentePorPorcentaje);
         Assert.True(r.CalibreNeutro.AreaMm2 >= t.ConductorElectrodo.AreaMm2);
         Assert.Contains("Tabla 250-66", Assert.Single(r.Citas, x => x.Referencia == "220-61").Descripcion);
+    }
+
+    // ---- Ronda 4, 2026-10-03 -------------------------------------------------------------------------
+
+    /// <summary>
+    /// R4-5: las caídas de las citas van con dos decimales fijos, como la tarjeta («1.90 %», no «1.9 %»). El
+    /// límite capturado («excedía 2%», «límite 2%») se queda como se capturó.
+    /// Caso de la fila 18 de la prueba en modo usuario: 100 m, 3 por fase, neutro reducido.
+    /// </summary>
+    [Fact]
+    public void R4_5_LasCaidasDeLasCitasVanConDosDecimales()
+    {
+        var cuadro = Nuevo();
+        cuadro.Datos.LongitudAlimentadorM = 100m;
+        Carga(cuadro, 1, CategoriaDeCarga.Equipo, SubtipoDeCarga.OtraCargaEspecifica, 3, 1, 150000m, continua: true);
+        Carga(cuadro, 2, CategoriaDeCarga.Equipo, SubtipoDeCarga.OtraCargaEspecifica, 1, 1, 3000m, continua: false);
+        Carga(cuadro, 8, CategoriaDeCarga.Equipo, SubtipoDeCarga.OtraCargaEspecifica, 1, 1, 3000m, continua: false);
+        cuadro.Datos.NeutroReducido220_61 = true;
+        cuadro.Datos.ConductoresPorFaseAlimentador = 3;
+        cuadro.Recalcular();
+
+        var r = cuadro.Alimentador.Resultado!;
+        var caidas = r.Citas.Where(x => x.Referencia == "Tabla 9")
+            .SelectMany(x => System.Text.RegularExpressions.Regex.Matches(x.Descripcion, @"(?<!excedía |límite )(\d+(?:\.\d+)?)%").Select(m => m.Groups[1].Value))
+            .ToList();
+        Assert.NotEmpty(caidas);
+        Assert.All(caidas, v => Assert.Matches(@"^\d+\.\d\d$", v));
+        Assert.Contains($"{r.CaidaTensionPct:0.00}%", string.Join(" ", r.Citas.Select(x => x.Descripcion)));
     }
 }
