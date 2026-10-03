@@ -788,8 +788,13 @@ paralelo»: en paralelo, el piso de 250-122 lo cumple el juego. Antes la app ped
 menor que la tierra de la tabla. Corrección (`1105651`): se compara N × el área de un neutro contra la tierra
 de 250-122; cada uno sigue de 1/0 AWG o mayor (310-10(h)(1)) y no menor que el conductor del electrodo en un
 equipo de acometida (250-24(c)(1), por conductor, sin cambio). Con 708.57 A: 2 × 1/0 (106.98 mm²) contra la
-tierra de 2/0 (67.43 mm²), en vez de 2 × 2/0. La lectura sale de la cita del auditor y del equivalente del
-NEC (215.2(A)(2)); el texto del DOF no se pudo consultar desde la sesión. Prueba: `I165_…`.
+tierra de 2/0 (67.43 mm²), en vez de 2 × 2/0. Verificado contra el texto de
+`dflores296/NOM-001-SEDE-2012` (`data/corpus.json`, `961fd59`): 215-2(a)(2) dice tal cual la excepción;
+250-122(f) es la que pide, en paralelo, un conductor en cada canalización «de acuerdo con 250-122»; 310-10(h)(1)
+fija el 1/0 AWG para el neutro en paralelo; 250-24(c)(2) dimensiona cada neutro de acometida con el área
+total de las fases, no menor que 1/0. La norma no dice «área combinada» con esas palabras para el neutro: es
+lo que queda al quitar 250-122(f), igual que el «área combinada» que 250-122(a) admite para conductores
+seccionados. Prueba: `I165_…`.
 
 ### «Pendiente de probar» de la auditoría, 2026-09-30
 
