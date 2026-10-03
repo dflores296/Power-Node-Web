@@ -205,7 +205,7 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-177 · En el gabinete, la conexión punteada de un espacio libre atravesaba su número | P3 | **Cerrado** | `9f3716e` |
 | I-178 · Los campos de la ficha, sin icono (pedido de David) | P3 | **Cerrado** | `4f3b49a` |
 | I-179 · La barra de ayuda decía «!» en vez del nombre de algunos campos | P3 | **Cerrado** | `4f3b49a`, `c053993` |
-| I-180 · El icono de «Conductor» parecía la llave del SIM | P3 | **Cerrado** | `544e083` |
+| I-180 · El icono de «Conductor» parecía la llave del SIM | P3 | **Cerrado** | `544e083`, `d1f023f` |
 | M-14 · Sin el mínimo de alumbrado general por superficie (220-12) en el alimentador; en vivienda, contactos de uso general sumados aparte (220-14(j)) | P1 | **Cerrado** | `71abc56` |
 | M-15 · Motor: la Excepción 1 de 430-52(c)(1) redondeaba dentro de la serie (35 → 40 A en riel DIN) y se citaba sin redondeo; sin Excepción 2 | P1 | **Cerrado** | `8b4d893`, `60a4f91` |
 | M-16 · «Húmedo o mojado» en una opción: XHHW mojado a 90 °C (conductor de menos); RHH y XHH aceptados en mojado | P1 | **Cerrado** | `a3fded5` |
@@ -916,8 +916,8 @@ de la etiqueta, y Blazor deja a veces un comentario `<!--!-->` antes del rótulo
 SIM»): el icono de «Conductor» de I-178 era una cápsula con una varilla. De seis propuestas en una hoja de
 contacto (recto con los hilos abiertos —parecía zanahoria—, cable en S —pluma—, el símbolo de conductores
 de los planos —«#»—, de frente con 7 hilos —flor—, recto con el corte del aislamiento, y el cable que dobla),
-quedó el cable que sube y dobla, con el aislamiento cortado y dos hilos desnudos que se abren. Prueba:
-navegador, claro y oscuro, a 14 px.
+primero quedó el cable que dobla (`544e083`) y luego David eligió la F (`d1f023f`): recto, con la cara del
+corte del aislamiento y el cobre saliendo, lleno. Prueba: navegador, claro y oscuro, a 14 px.
 
 ### «Pendiente de probar» de la auditoría, 2026-09-30
 

@@ -9,8 +9,8 @@ Registro de acciones por sesión, con hallazgo y commit.
 - I-178: un icono por campo de Identificación, Sistema, Gabinete y Condiciones de cálculo; 30 nuevos en
   `Icono.razor`, del juego duotono, revisados en una hoja de contacto antes de entrar.
 - I-179: la barra de ayuda decía «!» en tres campos (un comentario de Blazor antes del rótulo).
-- I-180: «Conductor» redibujado — parecía la llave del SIM; ahora, un cable doblado con los hilos pelados
-  (`544e083`).
+- I-180: «Conductor» redibujado — parecía la llave del SIM. De seis propuestas, David eligió la F: el cable
+  con el corte del aislamiento y el cobre saliendo (`544e083`, `d1f023f`).
 
 Pruebas: 519 en `PowerNode.Web.Tests`, 52 en `PowerNode.Normativa.Tests`.
 
