@@ -51,6 +51,9 @@ Ejecutar en el navegador (Blazor WebAssembly), sin servidor, publicado en GitHub
   Ctrl+Enter abre el desglose, Alt+1…5 cambian de sección; barra de ayuda al pie con la ayuda del campo.
 - Guardar y abrir el tablero en un archivo (`.powernode.json`); la pestaña lleva el nombre del tablero;
   varios tableros a la vez, uno por pestaña — I-05.
+- Piel Linear (David, 2026-10-03 — I-176): Inter dentro de la app, superficies con línea de 1 px, lima
+  en «Imprimir / PDF» y en la página activa; impreso sin cambios — [`../conocimiento/marca.md`](../conocimiento/marca.md).
+  Falta regenerar `docs/portada.png`.
 - Barra superior fija (patrón de la NOM y de msa-toolkit): Captura · Cuadro de carga · Memoria de
   cálculo, tema Sistema | Claro | Oscuro (`wwwroot/js/tema.js`) e Imprimir en el documento; impreso,
   siempre en claro.

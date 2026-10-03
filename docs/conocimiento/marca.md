@@ -33,6 +33,9 @@ propagar el cambio allá; desde aquí no se tocó ese repo.
 
 ## La escala de redondeo sale del logo
 
+> **Reemplazada en pantalla · David · 2026-10-03** por la de Linear: 4, 6 y 12 px (ver «La piel
+> Linear»). La tabla de abajo sigue siendo la del impreso.
+
 No es un valor por capricho: los remates del logo son semicírculos de la mitad del grosor del trazo,
 y la interfaz aplica el mismo criterio — **radio proporcional al tamaño del elemento**. Antes había
 valores sueltos de 3, 4 y 5 px que no respondían a nada.
@@ -136,6 +139,9 @@ papel y una línea abajo; 64 px de alto (56 hasta I-59).
 
 ## Tipografía e iconos
 
+> **La letra, reemplazada · David · 2026-10-03:** Inter, dentro de la aplicación (ver «La piel
+> Linear»); Segoe UI queda para el impreso. Los iconos duotono se quedan.
+
 > **CONFIRMADA · David · 2026-09-25** (I-62). En el canvas «Power Node — tipografía e iconos» se
 > compararon la actual contra IBM Plex, Barlow, Atkinson Hyperlegible y Chivo, y tres estilos de
 > iconos (trazo redondo, duotono, técnico). David eligió **Segoe UI** y **duotono**.
@@ -158,6 +164,9 @@ papel y una línea abajo; 64 px de alto (56 hasta I-59).
 
 ## El relieve
 
+> **Reemplazado · David · 2026-10-03** por las líneas finas de «La piel Linear». Se queda aquí como
+> historia: el bloque ya no está en `app.css`.
+
 > **CONFIRMADA · David · 2026-09-25** (I-64): «lo siento muy plano». De tres puntos intermedios entre la
 > app plana y gitdiagram (sombra suave, relieve marcado, superficies tintadas) eligió **B, relieve
 > marcado**.
@@ -174,6 +183,51 @@ papel y una línea abajo; 64 px de alto (56 hasta I-59).
   #1f262d, bordes y sombras negros, campos un tono más hundidos. Antes la sombra casi negra caía sobre
   un fondo casi negro y el relieve no se veía.
 
+## La piel Linear
+
+> **CONFIRMADA · David · 2026-10-03** (I-176). Pidió llevar la interfaz al `DESIGN.md` de Linear que
+> entregó en la sesión («midnight precision instrument»), con la skill
+> [ui-ux-pro-max](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill) como referencia y **sin tocar
+> funcionalidad**. De cuatro preguntas eligió: **los dos temas** (no solo el oscuro), **lima** para el
+> botón primario y la página activa, **líneas finas** en vez del relieve de I-64 e **Inter dentro de la
+> aplicación** en vez de Segoe UI (I-62).
+
+Todo es de pantalla. **El impreso no cambia**: los valores de `:root` se quedan como estaban y son los
+del papel; la piel los reemplaza en `@media screen`. Se comprobó pixel por pixel con Playwright (cuadro,
+memoria y guía, en claro y en oscuro).
+
+- **Colores** (junto a `:root` en `app.css`). Oscuro, los de Linear: lienzo `#08090a` (Void), tarjeta
+  `#0f1011` (Carbon), encabezados `#161718` (Obsidian), líneas `#23252a` (Graphite); texto `#d0d6e0`
+  (Mist), rótulos `#8a8f98` (Fog), vacío `#62666d` (Ash). Claro, la misma lógica sobre papel: lienzo
+  `#f5f6f7`, tarjeta blanca, líneas `#dfe1e5`, rótulos `#62666d` (5.8:1). Tokens nuevos: `--tinta-fuerte`
+  (títulos), `--linea-fuerte`, `--campo-*`, `--foco-*`, `--boton-*`, `--barra-fondo`, `--sombra-flotante`.
+- **Lima** `#e4f222`, texto `#08090a` encima (16:1): `--accion`. Solo en `.boton.primario` («Imprimir /
+  PDF») y en la página activa de la barra. En claro lleva orilla `#b9c40f`: el lima sobre blanco no tiene
+  borde. **El azul de la marca se queda** en el logo y en lo informativo (enlaces, el principal, lo
+  fijado, la clase del circuito, el relleno de los iconos). Las fases no cambian: son de la NOM.
+- **Inter 4.1**, `wwwroot/fuentes/inter-4.1.woff2` (76 KB, OFL en `fuentes/OFL.txt`), recortada a lo
+  que escribe la aplicación con `tools/fuente_inter.py`: tamaño óptico fijo en 14, pesos de 300 a 700.
+  Variantes `cv01` y `ss03`, como Linear. **Sin el cero cruzado (`zero`)**, aunque Linear lo usa:
+  «1/0 AWG» salía «1/Ø», y la aplicación escribe Ø para el diámetro del conductor. Separación -0.01em;
+  pesos de 400 a 590 (Linear no usa 700). Se pide con `preload` en `index.html`.
+- **Superficies**: tarjetas, cuadro, desglose y campos con línea de 1 px, sin sombra; en oscuro, un brillo
+  de 1 px arriba (`--brillo-tarjeta`). Radios 4 (chips), 6 (campos y botones) y 12 (tarjetas): «12 es el
+  más grande». Lo que flota (avisos, confirmación, ayuda del teclado, el fantasma del arrastre) sí lleva
+  sombra.
+- **Botones fantasma**: sin relleno, línea gris, peso 510. La barra superior y la de ayuda, translúcidas
+  (`backdrop-filter`). Los títulos de tarjeta, en minúsculas y en tinta; las mayúsculas quedan para
+  encabezados de tabla y subtítulos.
+- **El foco** del teclado, gris (tinta en claro, Mist en oscuro), ya no del azul. El campo enfocado
+  marca su línea, como en Linear.
+
+**Dos trampas que costaron tiempo:**
+
+- `input:not([type="checkbox"])` vale (0,2,1) y le ganaba a `input.desc` e `input.va` (0,1,1): las
+  celdas de la cuadrícula, que nacen invisibles, salían con caja. El `:not()` va dentro de `:where()`.
+- En el Chromium sin pantalla del contenedor, Inter a 11 px salía con huecos («Aco metida»): es el
+  *hinting* de FreeType, que redondea los avances; pasa igual con la Inter original. Las capturas de
+  Playwright se toman con `--font-render-hinting=none`, que es como dibujan Windows y macOS.
+
 ## Qué archivo es cuál
 
 | Archivo | Para qué |
@@ -187,6 +241,7 @@ papel y una línea abajo; 64 px de alto (56 hasta I-59).
 | `marca/powernode-carta.ico` | El `.ico` que declara `index.html`: PNG de 16, 32 y 48 adentro |
 | `marca/powernode-carta-16.png`, `-32.png`, `-48.png` | Los tamaños chicos, del trazo grueso |
 | `marca/powernode-carta-180.png`, `-192.png`, `-512.png` | iOS (180) y tamaños grandes, del trazo normal |
+| `fuentes/inter-4.1.woff2`, `fuentes/OFL.txt` | La letra de la pantalla y su licencia. Se genera con `tools/fuente_inter.py`; si cambia, cambia de nombre (como los iconos, I-07) |
 | `favicon.ico`, `favicon.png` (raíz) | Ver I-07: los que el navegador pide solo. El `.ico` es copia de `powernode-carta.ico`; `favicon.png` va sobre blanco |
 
 **Por qué «carta» en el nombre de los iconos de la pestaña:** el navegador guarda el favicon por URL.

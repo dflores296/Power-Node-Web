@@ -4,6 +4,19 @@ Registro de acciones por sesión, con hallazgo y commit.
 
 ## 2026-10-03
 
+**La piel Linear** (pedido de David: el `DESIGN.md` de Linear y la skill ui-ux-pro-max como referencia,
+sin tocar funcionalidad) — `3261de1` y el commit de docs, I-176:
+
+- David eligió: los dos temas, lima para la acción y la página activa, líneas finas en vez del relieve
+  (I-64) e Inter dentro de la app en vez de Segoe UI (I-62). Las cuatro, en `marca.md`.
+- Inter 4.1 recortada con `tools/fuente_inter.py` (76 KB, OFL). Sin el cero cruzado de Linear: «1/0 AWG»
+  salía «1/Ø».
+- El impreso, idéntico pixel por pixel; sin cortes ni desplazamiento lateral de 360 a 1920 px.
+- Ramas: las tres `claude/*` ya estaban completas en `main`; se le dijo a David cuáles borrar.
+- Pendiente: regenerar `docs/portada.png` (sigue con el diseño anterior).
+
+Pruebas: 519 en `PowerNode.Web.Tests`, 52 en `PowerNode.Normativa.Tests`.
+
 **Verificación NOM, ronda 4** (caja negra contra `ef49373`): lo probado, correcto; cinco observaciones —
 `d74c16a` y el commit de docs:
 
