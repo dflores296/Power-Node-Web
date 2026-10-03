@@ -186,7 +186,10 @@ papel y una línea abajo; 64 px de alto (56 hasta I-59).
   si el conductor lo es, y la tierra va **sin forro** si la canalización del alimentador la lleva desnuda. El
   forro delgado, como un THHN: grueso, a 22 px, el cobre se veía como una mancha. **Con brillo** (David: «se ven
   planos»): cada hilo con su degradado radial, la luz arriba a la izquierda —cobre pulido o aluminio plateado—,
-  y el forro con un reflejo y la orilla en sombra; los degradados llevan un id por icono.
+  y el forro con un reflejo y la orilla en sombra; los degradados llevan un id por icono. **La misma orilla para los
+  cinco** (David: el neutro «se ve raro comparado con sus compañeros»): ni el neutro con línea gris en claro ni
+  la fase A con borde en oscuro; todos `--corte-orilla`, tenue, y el neutro en `#eef0f3` para que se le vea el
+  reflejo.
 
 ## El relieve
 

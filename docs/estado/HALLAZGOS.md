@@ -206,7 +206,7 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-178 · Los campos de la ficha, sin icono (pedido de David) | P3 | **Cerrado** | `4f3b49a` |
 | I-179 · La barra de ayuda decía «!» en vez del nombre de algunos campos | P3 | **Cerrado** | `4f3b49a`, `c053993` |
 | I-180 · El icono de «Conductor» parecía la llave del SIM | P3 | **Cerrado** | `544e083`, `d1f023f` |
-| I-181 · En el alimentador, cajitas de color en lugar de un icono del conductor (pedido de David) | P3 | **Cerrado** | `c572985`, `22589e0` |
+| I-181 · En el alimentador, cajitas de color en lugar de un icono del conductor (pedido de David) | P3 | **Cerrado** | `c572985`, `22589e0`, `30f6332` |
 | M-14 · Sin el mínimo de alumbrado general por superficie (220-12) en el alimentador; en vivienda, contactos de uso general sumados aparte (220-14(j)) | P1 | **Cerrado** | `71abc56` |
 | M-15 · Motor: la Excepción 1 de 430-52(c)(1) redondeaba dentro de la serie (35 → 40 A en riel DIN) y se citaba sin redondeo; sin Excepción 2 | P1 | **Cerrado** | `8b4d893`, `60a4f91` |
 | M-16 · «Húmedo o mojado» en una opción: XHHW mojado a 90 °C (conductor de menos); RHH y XHH aceptados en mojado | P1 | **Cerrado** | `a3fded5` |
@@ -924,7 +924,8 @@ corte del aislamiento y el cobre saliendo, lleno. Prueba: navegador, claro y osc
 de Fase, Neutro y Puesta a tierra del alimentador): `Layout/CorteDeConductor.razor`, el conductor de frente con el
 forro de su color y 7 hilos; las fases en un haz. Hilos de aluminio con conductor de aluminio; tierra sin forro
 si la canalización del alimentador la lleva desnuda. Fuera `.muestras` y `.color-*`. Después (David: «¿por qué
-encimados?», «se ven planos»): las fases lado a lado y cada hilo con su brillo, el forro con reflejo — `22589e0`. Prueba: hoja de contacto a
+encimados?», «se ven planos»): las fases lado a lado y cada hilo con su brillo, el forro con reflejo — `22589e0`. Y la misma orilla para
+los cinco: el neutro, con su línea gris, «se ve raro comparado con sus compañeros» — `30f6332`. Prueba: hoja de contacto a
 88 y 26 px (a 22 px y con forro grueso el cobre se empastaba); navegador, claro y oscuro, con cobre y con
 aluminio y tierra desnuda.
 
