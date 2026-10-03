@@ -20,6 +20,17 @@ sobre 14 AWG; en campo, 15 A) — propuesta M-20, sin implementar; solo document
 
 Pruebas: sin cambio — 519 en `PowerNode.Web.Tests`, 52 en `PowerNode.Normativa.Tests`.
 
+Después, a pedido de David («revisa la norma y dame opciones para cada pregunta»), contra el corpus de
+`dflores296/NOM-001-SEDE-2012`:
+
+- Cada pregunta con opciones, lo que dice la NOM y una recomendación, en la decisión.
+- 430-62(a) dice «[con base en el valor máximo permitido … de acuerdo con 430-52]»: el techo del principal
+  va con Pmáx, no con la protección elegida, como decía la propuesta. Corregido; pregunta 6, nueva.
+- 430-52(b) obliga a que la protección soporte el arranque, y 430-31 pone la protección del cable contra
+  sobrecarga en el dispositivo de 430-32. La recomendación de la pregunta 1 pasa a C: prioridad al
+  conductor hasta 1 HP (el corte de 430-32), máximo 430-52 arriba.
+- 110-14(c)(1)a.(4) (motor de diseño B–E) y la casilla de terminales 75 °C dan otra salida a la pregunta 5.
+
 **El conductor visto de frente** (pedido de David) — `c572985`, I-181: en el alimentador, en lugar de las cajitas de
 color; forro de la NOM y 7 hilos, de aluminio si el conductor lo es, y la tierra sin forro si va desnuda.
 Luego, a pedido de David, las fases lado a lado y con brillo, cobre o aluminio — `22589e0`.

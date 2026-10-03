@@ -942,7 +942,9 @@ tres criterios (prioridad al conductor, máximo 430-52, manual), formato 12 y, a
 — [`../decisiones/proteccion-de-motores-por-rango.md`](../decisiones/proteccion-de-motores-por-rango.md).
 Verificada contra el motor en `e0eb887`; al verificarla salieron dos correcciones al algoritmo (Pmín
 podía pasar de Pmáx en riel DIN; la iteración de terminales no terminaba con 30 HP a 220 V), ya en el
-documento. Cambia P-5: por decidir (cinco preguntas).
+documento. Revisada después contra el texto de la NOM: 430-62(a) usa el «valor máximo permitido» de
+430-52, no la protección elegida (corregido; pregunta 6), y 430-52(b) obliga a soportar el arranque.
+Cambia P-5: por decidir (seis preguntas, cada una con opciones y recomendación).
 
 ### «Pendiente de probar» de la auditoría, 2026-09-30
 

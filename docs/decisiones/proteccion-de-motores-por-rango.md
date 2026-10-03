@@ -3,7 +3,9 @@
 **PROPUESTA · Claude · 2026-10-03** — hallazgo **M-20**, de la auditoría NOM del 2026-10-02/03. No
 implementada. Cambia P-5 de [`../conocimiento/requisitos.md`](../conocimiento/requisitos.md):
 **decisión de David**. Verificada contra el motor en `e0eb887`; dos correcciones al algoritmo (pasos 2,
-7 y 8) — ver [Verificación](#verificación-contra-el-código-claude--2026-10-03).
+7 y 8) — ver [Verificación](#verificación-contra-el-código-claude--2026-10-03). Revisada contra el texto
+de la NOM a pedido de David: 430-62(a) corregido y opciones para cada pregunta — ver
+[Preguntas](#preguntas-para-david-con-opciones).
 
 ## El problema
 
@@ -29,24 +31,33 @@ tiene tres problemas:
    240-4(g): la norma lo permite porque supone que la sobrecarga la cuida otro dispositivo (430-32).
    Una bomba de cisterna arranca sola, con flotador o presostato. Si no trae protector térmico
    integrado ni relevador, con 25 A nada protege al motor ni al cable contra sobrecarga.
+   *Matiz (revisión del texto, 2026-10-03):* 430-31 dice que el dispositivo contra sobrecarga de la
+   Parte C (430-32) protege «a los motores, aparatos de control y **conductores** de los circuitos
+   derivados de motores». Con 430-32 cumplido, 25 A sobre 14 AWG cumple y el cable sí queda protegido;
+   el problema es la instalación que no lo trae, que ya no cumple 430-32(b).
 3. **Arrastra todo lo que depende de esa protección.** Con el máximo sale más grande:
    - la tierra, que se entra a la Tabla 250-122 con la protección del derivado (250-122(d)(1));
-   - el techo del principal por 430-62(a);
+   - el techo del principal por 430-62(a), según cómo se lea (pregunta 6);
    - el aviso de «principal menor que el derivado» (A-4).
 
 ## Lo que dice la NOM
 
 | Sección | Texto (resumido) | Consecuencia |
 |---|---|---|
+| 430-52(b) | La protección «debe ser capaz de soportar la corriente de arranque del motor» | **Obligación**, en todo motor. Es el único piso literal, y la app no lo puede verificar (no tiene la curva del interruptor) |
 | 430-52(c)(1) | La protección debe tener un valor «que **no exceda**» el de la Tabla 430-52 | Es un **techo**, no un valor obligatorio |
 | 430-52(c)(1) Exc. 1 | Si el techo no es normalizado, «se **permitirá**» el inmediato superior | Permiso para subir, no obligación |
 | 430-52(c)(1) Exc. 2 | Si el motor no arranca, se permite subir (hasta 400 %, o 300 % arriba de 100 A, con interruptor de tiempo inverso) | Ya está: la casilla «No arranca con la Tabla 430-52» |
 | 430-22 | Conductor al 125 % de la FLC | **Piso** práctico para la protección: abajo de eso puede dispararse en operación normal |
 | 240-4 | El conductor se protege según su ampacidad | La regla general, que el motor puede seguir si el proyectista quiere |
 | 240-4(g) | Los conductores de motor se pueden proteger arriba de su ampacidad según el Art. 430 | **Permiso**, no exigencia |
-| 430-32 | El motor lleva protección contra sobrecarga propia (relevador o protector térmico) | Siempre; el interruptor del tablero no la da a 115–125 % de la FLC |
-| 430-62(a) | La protección del alimentador no excede la **mayor protección de derivado** + las FLC de los demás | Usa la protección **elegida**, no el techo |
-| 250-122(d)(1) | Tierra del derivado de motor por la protección del derivado | Usa la protección **elegida** |
+| 430-32 | El motor lleva protección contra sobrecarga propia (relevador o protector térmico) | (a) arriba de 1 HP, siempre; (b) de 1 HP o menos con arranque automático, también. El interruptor del tablero no la da |
+| 430-31 | La sobrecarga de la Parte C protege motores, controles **y conductores** del derivado | Con 430-32 cumplido, el conductor está protegido aunque P pase su ampacidad |
+| 430-55 | Se permite que un solo dispositivo dé cortocircuito y sobrecarga si su valor cumple 430-32 | El interruptor sería la sobrecarga solo a ≤ 115–125 % de la corriente de **placa** (140 % con 430-32(c)); con los tamaños normalizados casi nunca cabe, y la app no captura la placa de un motor en HP |
+| 110-14(c)(1)a.(4) | Motor de diseño B, C, D o E: se permiten conductores de 75 °C aunque el circuito sea de 100 A o menos | La terminal del motor deja de forzar 60 °C; la del interruptor sigue pidiendo su marca (a.(3), la casilla que ya existe) |
+| 430-62(a) | El alimentador no excede la mayor protección de derivado + las FLC de los demás, «[con base en el **valor máximo permitido** para el tipo específico de uno de los dispositivos protectores de acuerdo con 430-52…]» | Leído literal, entra **Pmáx**, no la protección elegida — corrige la versión anterior de esta tabla; pregunta 6 |
+| 430-63(1) | Alimentador con motor y otra carga: para un solo motor, «el valor nominal **permitido** en 430-52» | Igual que 430-62(a): Pmáx |
+| 250-122(d)(1) | Tierra «con base en el valor nominal del dispositivo de protección … del circuito derivado» | Usa la protección **elegida**. Contrasta con (d)(2), que cuando quiere el máximo lo dice: «valor nominal máximo permitido» |
 
 **Conclusión normativa:** la protección del derivado de un motor es un **rango**:
 
@@ -146,9 +157,12 @@ Arranque                          Verificar con la curva del interruptor que el 
 
 - **250-122(d)(1)**: tierra con P. El 100 HP a 480 V (columna de 460 V) pasa de 2 AWG (con 350 A) a
   6 AWG (con 175 A).
-- **430-62(a) y 430-63**: «la mayor protección de derivado» es P (`AgregadoMotores` /
-  `CuadroDeCarga`, `MayorProteccionDerivadoA`). El techo del principal baja.
-- **A-4**: el aviso de principal menor que el derivado compara contra P.
+- **430-62(a) y 430-63**: según la pregunta 6. Leído literal, entra Pmáx y el techo del principal no
+  cambia con el criterio (`AgregadoMotores` / `CuadroDeCarga`, `MayorProteccionDerivadoA`; hoy recibe
+  la protección instalada, que con el máximo casi siempre es lo mismo — salvo en riel DIN: 32 A
+  instalados contra 35 A de máximo).
+- **A-4**: el aviso de principal menor que el derivado compara contra P: son los dos interruptores que
+  se instalan.
 - **Gabinete y documento**: el interruptor dibujado e impreso es P.
 
 ### 7. Archivo — formato 12
@@ -228,7 +242,8 @@ Casos de borde:
 | `M20_ElPisoNoPasaDelTecho` | Riel DIN, 1/4 HP a 127 V → 15 A, no 16 |
 | `M20_ManualSoloOfreceValoresDeLaSerieDentroDelRango` | NEMA sin 16/32/63; riel DIN |
 | `M20_ManualArribaDeLaAmpacidadCita240_4gY430_32` | La nota de sobrecarga |
-| `M20_LaTierraYEl430_62aUsanLaProteccionElegida` | 250-122(d)(1) y techo del principal |
+| `M20_LaTierraUsaLaProteccionElegida` | 250-122(d)(1) con P |
+| `M20_El430_62aUsa…` | El techo del principal, con Pmáx o con P según la pregunta 6 |
 | `M20_UnArchivoDeFormato11AbreConElMaximo` | Compatibilidad: mismos números |
 | `M20_ConLaExcepcion2ElRangoLlegaA400` | La casilla actual sigue funcionando en los tres criterios |
 
@@ -239,7 +254,7 @@ Casos de borde:
   > P-5. Calcular el rango de la protección del derivado de un motor: del menor valor de la serie ≥
   > 125 % de la FLC al techo de la Tabla 430-52 (Excepción 1; Excepción 2 si se declara). Escoger
   > dentro del rango por el criterio del circuito: prioridad al conductor (240-4), máximo 430-52 o
-  > manual. Tierra y 430-62(a) con la protección elegida.
+  > manual. Tierra con la protección elegida; 430-62(a) según la pregunta 6.
 
 - **`HALLAZGOS.md`**: M-20 con prioridad P2.
 - **`POR-VERIFICAR.md`**: el supuesto «Pmín = 125 % de la FLC es criterio práctico, no de la NOM»,
@@ -277,16 +292,88 @@ Corrida con `CalculadoraCircuitoDerivadoMotor` en `e0eb887` (cobre, THHN, seco, 
   3. Detalles: 100 HP «a 460 V» → a 480 V (columna de 460 V), como en la tabla de ejemplos; el texto
      de la memoria que se reemplaza es el de la Excepción 1, no «igual al máximo»; el aviso al abrir
      un archivo sigue el patrón de I-80, no el de I-144 (que es de la casilla).
-- **Sin cambio:** el resto de la propuesta, incluidas las preguntas 1 a 4.
+- **Revisión del texto de la NOM** (a pedido de David, el mismo día): 430-62(a) y 430-63 dicen «valor
+  máximo permitido» y «valor permitido en 430-52», no la protección elegida: la tabla de la NOM decía lo
+  contrario y se corrigió (pregunta 6, nueva). Se agregaron 430-52(b) (soportar el arranque es
+  obligación), 430-31 (la sobrecarga de 430-32 también protege al conductor), 430-55 y
+  110-14(c)(1)a.(4). Con eso, la recomendación de la pregunta 1 pasa de A a C.
 
-## Preguntas para David
+## Preguntas para David, con opciones
 
-1. ¿Qué criterio llevan los circuitos **nuevos**: prioridad al conductor (recomendación de esta
-   propuesta) o máximo 430-52 (como hoy)?
-2. ¿Pmín al 125 % de la FLC te parece bien, o prefieres otro piso (100 %, o ninguno con solo aviso)?
-3. ¿El selector de valor manual va en el desplegable o directamente en la celda «Protec. (A)» del
-   renglón?
-4. ¿Hacemos de una vez la fase 2 (A/C, grupos, variador) o esperamos a usar la de motores?
-5. Cerca de 100 A, ¿prioridad al conductor se queda en la columna de 60 °C (30 HP a 220 V: 1 AWG con
-   100 A; recomendación, por simple y porque da la P menor) o busca el calibre menor que quede
-   protegido a 75 °C (2 AWG, 115 A, con 110 A)? Hoy sale 3 AWG con 200 A.
+Revisadas contra el texto de la NOM (`dflores296/NOM-001-SEDE-2012`, corpus del DOF) el 2026-10-03.
+Cada pregunta trae sus opciones, lo que dice la norma y una recomendación; decide David.
+
+### 1. ¿Qué criterio llevan los circuitos nuevos?
+
+| Opción | Lo que dice la NOM | A favor | En contra |
+|---|---|---|---|
+| **A. Prioridad al conductor**, todos | 240-4 es la regla general; 430-52(c)(1) lo permite («no exceda») | La práctica de campo (bomba: 15 A). Tierra más chica. El cable queda protegido aunque falte 430-32 | 430-52(b) obliga a que soporte el arranque y la app no lo verifica. Un motor grande arrancando a tensión plena puede disparar: 100 HP con 175 A (141 % de la FLC) |
+| **B. Máximo 430-52**, como hoy | Los porcentajes de la Tabla 430-52 son los que dan por bueno el arranque de 430-52(b); 430-31 pone la sobrecarga del cable en el dispositivo de 430-32 | Sin riesgo de arranque. Los mismos números que el escritorio y que los archivos guardados | El caso de la bomba sigue: 25 A se lee como mínimo. Tierra más grande. Depende de que se instale 430-32 |
+| **C. Por tamaño, con el corte que ya trae la NOM**: prioridad al conductor hasta 1 HP, máximo 430-52 arriba | 430-32 parte en 1 HP: (a) arriba, (b) y (d) de 1 HP o menos. 430-32(d)(2)(a) Exc. ya acepta un motor de 1 HP o menos (arranque manual, no fijo) en un circuito de 120 V de hasta 20 A | Arregla el caso común (bombas, ventiladores, extractores) sin el riesgo de arranque de los grandes | El corte es un criterio: una bomba de 1.5 HP sale con el máximo. Dos reglas que explicar en la memoria |
+
+En las tres, el proyectista puede cambiar el criterio del circuito, y cuando P < Pmáx la memoria pide
+verificar 430-52(b) con la curva del interruptor.
+
+**Recomendación: C.** Cambia la de la versión anterior (A): al revisar el texto, 430-52(b) es
+obligación y no solo un aviso, y 430-31 confirma que la NOM cuenta con 430-32 para proteger el cable.
+Donde el arranque pesa (motores grandes), conviene el máximo. Donde no pesa y el problema se ve en campo
+(motores de 1 HP o menos), conviene prioridad al conductor.
+
+### 2. ¿Qué piso lleva el rango (Pmín)?
+
+| Opción | Lo que dice la NOM | A favor | En contra |
+|---|---|---|---|
+| **A. 125 % de la FLC** | No hay piso literal fuera de 430-52(b). Se apoya en 430-22 (conductor al 125 %), 430-32(a)(1) (relevador a ≤ 115–125 % de la placa) y, por analogía, en 210-20(a) (carga continua al 125 %) | El relevador dispara antes que el interruptor: los dos se coordinan. Coincide con el calibre | Es criterio, no norma; va a `POR-VERIFICAR.md` |
+| **B. 100 % de la FLC** | Ninguna sección | Más valores en el selector manual | El interruptor carga al motor a su plena corriente todo el tiempo; una sobrecarga moderada o un arranque largo lo dispara antes que al relevador (se pierde la coordinación) |
+| **C. Sin piso; aviso abajo del 125 %** | — | Libertad total en manual | Deja escoger 15 A para un 10 HP (28 A): el aviso tendría que salir casi siempre |
+| **D. A, más un aviso de arranque** con la letra de código | Tabla 430-7(b) (ya en `tablas-nom.json`) da los kVA de rotor bloqueado por HP | Es lo único que se acerca a 430-52(b) | Sin la curva del interruptor (sin catálogo, por decisión) solo puede avisar, no decidir; pide capturar la letra de código |
+
+El piso solo pesa en el selector manual y en el recorte del paso 7: prioridad al conductor escoge el
+mayor valor que protege al calibre, que casi siempre está arriba del piso.
+
+**Recomendación: A**, y D como fase posterior.
+
+### 3. ¿Dónde va el selector de valor manual?
+
+| Opción | A favor | En contra |
+|---|---|---|
+| **A. En el desplegable del motor**, junto a «No arranca con la Tabla 430-52» | Sigue [`captura-en-el-desplegable.md`](captura-en-el-desplegable.md): el desplegable captura y el renglón resume. Junta todo lo de la protección del motor | Un clic más para llegar |
+| **B. En la celda «Protec. (A)» del renglón** | Más rápido; se ve donde está el resultado | La celda es de resultado (`col-res`), con el desglose en su tooltip. Rompe la regla del renglón |
+| **C. A, con un atajo**: clic en la celda abre el desplegable en el selector | La rapidez de B sin romper la regla | Un detalle más de interfaz que probar |
+
+**Recomendación: A** (C, si en uso se siente lento).
+
+### 4. ¿Hacemos ya la fase 2 (A/C, grupos de motores, variador)?
+
+| Opción | A favor | En contra |
+|---|---|---|
+| **A. Esperar** a usar la de motores | Se corrige el patrón con un solo caso antes de copiarlo cuatro veces | Más adelante, otro formato de archivo (13) |
+| **B. Todo junto** | Un solo cambio de formato (12) y un solo selector | Cuatro reglas con texto distinto. 440-22(a) trae su propia excepción («no se exigirá menor a 15 A»); 430-53(c)(4) permite subir por 240-4(b); la MOCP de placa (440-4(b)) y el variador (110-3(b)) son del fabricante. Más que probar de una vez |
+| **C. Motores, y A/C por corriente nominal** | 440-22(a) tiene la misma estructura que 430-52: «debe ser capaz de conducir la corriente de arranque», techo de 175 % (225 % si no arranca). Es el gemelo más cercano | Deja grupos, placa y variador para después |
+
+**Recomendación: A.** El formato extra no cuesta mucho: ya va en 11.
+
+### 5. Cerca de 100 A, ¿qué columna de terminales?
+
+Caso: 30 HP, 220 V, FLC 80 A, 125 % = 100 A. Hoy: 3 AWG con 200 A, tierra 6 AWG.
+
+| Opción | Lo que dice la NOM | Resultado | A favor | En contra |
+|---|---|---|---|---|
+| **A. Quedarse en 60 °C**: P ≤ 100 A (paso 8) | 110-14(c)(1)a.: 100 A o menos, ampacidad a 60 °C | **1 AWG con 100 A**, tierra 8 AWG | Simple, sin iterar, P menor | Más cobre que hoy |
+| **B. El calibre menor que quede protegido**, en 60 °C o en 75 °C | a. hasta 100 A; b. arriba de 100 A, 75 °C | **2 AWG con 110 A**, tierra 6 AWG | Menos cobre que A | Hay que calcular las dos columnas y comparar; P mayor |
+| **C. A, con la salida a 75 °C que ya existe** | a.(3): «Terminales marcadas 75 °C» (la casilla del tablero). a.(4): motor de diseño B, C, D o E, para la terminal del motor | **3 AWG con 100 A**, tierra 8 AWG | Lo menos de cobre y la P menor, si las terminales lo permiten. La mayoría de los motores de uso general son de diseño B | La terminal del interruptor también debe estar marcada 75 °C; a.(4) sola no basta. Si se agrega, es una casilla más por motor (diseño B–E) |
+
+**Recomendación: A, y recordar en la memoria la salida de C**: con la casilla de terminales 75 °C, el
+30 HP baja a 3 AWG con 100 A. La casilla de diseño B–E del motor puede esperar.
+
+### 6. (Nueva, de la revisión del texto) ¿Con qué protección se calcula el techo del principal, 430-62(a) y 430-63?
+
+| Opción | Lo que dice la NOM | A favor | En contra |
+|---|---|---|---|
+| **A. Pmáx de 430-52**, como lo dice el corchete | 430-62(a): «[con base en el valor máximo permitido … de acuerdo con 430-52]»; 430-63(1): «el valor nominal permitido en 430-52». 250-122(d)(1), en cambio, dice «el valor nominal del dispositivo»: la norma distingue los dos | Lectura literal. El techo del principal no cambia al escoger otro criterio en un derivado | Con P chica, el principal puede quedar mucho arriba del derivado (cumple, pero se ve raro); hay que explicarlo en la memoria |
+| **B. P elegida** (lo que decía la versión anterior) | Contra el corchete | Techo más bajo, del lado conservador | Avisaría «excede 430-62(a)» en un principal que la NOM permite |
+
+En las dos, el aviso A-4 (principal menor que el derivado) compara contra P: son los interruptores que
+se instalan. Hoy la app usa la protección instalada; con A, en riel DIN cambiaría de 32 A a 35 A.
+
+**Recomendación: A.**
