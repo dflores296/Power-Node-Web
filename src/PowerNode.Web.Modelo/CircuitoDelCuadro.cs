@@ -332,6 +332,27 @@ public sealed class CircuitoDelCuadro
     /// <summary>Contactos de vivienda para aparatos pequeños o lavadora — 210-11(c)(1), (2).</summary>
     private bool UsoParaAparatos => UsoEfectivo is UsoDeContactos.AparatosPequenos or UsoDeContactos.Lavadora;
 
+    /// <summary>
+    /// <b>El nombre de lo que alimenta</b>, para cuando el espacio no lleva descripción — I-191 (auditoría de
+    /// motores del 2026-10-03: la columna Descripción decía «—» con la lavadora capturada): el del equipo del
+    /// renglón, o los de sus líneas que no son genéricos («Lavadora»; «Banda, Ventilador»). <c>null</c> sin nombre.
+    /// </summary>
+    public string? NombreDeSusCargas
+    {
+        get
+        {
+            if (Cargas.Count == 0 || (!TieneDesglose && Categoria != CategoriaDeCarga.Tablero))
+                return string.IsNullOrWhiteSpace(DescripcionDelEquipo) ? null : DescripcionDelEquipo.Trim();
+            var nombres = Cargas.Select(a => a.Descripcion.Trim()).Where(n => !SubtiposDeCarga.EsNombreGenerico(n)).Distinct().ToList();
+            return nombres.Count switch
+            {
+                0 => null,
+                <= 2 => string.Join(", ", nombres),
+                _ => $"{nombres[0]}, {nombres[1]} y {nombres.Count - 2} más",
+            };
+        }
+    }
+
     /// <summary>Las salidas y cargas del desglose, por su cantidad. <c>null</c> sin desglose: es carga total.</summary>
     public int? Salidas => TieneDesglose ? Cargas.Sum(a => Math.Max(1, a.Cantidad)) : null;
 
@@ -841,6 +862,22 @@ public sealed class CircuitoDelCuadro
         DescripcionDelEquipo = string.Empty;
         categoria = CategoriaDeCarga.Alumbrado;
         TipoElegido = false;
+    }
+
+    /// <summary>
+    /// <b>Quita una línea del desplegable</b> — su bote. Un solo equipo que queda regresa al renglón
+    /// (<see cref="LineaARenglon"/>). Sin líneas, el circuito queda vacío, como uno nuevo (<see cref="QuitarEquipo"/>):
+    /// la continua y la no continua del renglón eran la suma de sus líneas, y se quedaban como una «carga
+    /// total» sin desglose, con las reglas de otra clase (la lavadora de 20 A, en 15 A) — I-185.
+    /// </summary>
+    public void QuitarCarga(CargaDelCircuito carga)
+    {
+        // Las líneas que un motor del renglón conserva sin contar no son su carga: quitar la última no lo vacía.
+        var sumabaSusLineas = TieneDesglose || Categoria == CategoriaDeCarga.Tablero;
+        if (!Cargas.Remove(carga) || LineaARenglon())
+            return;
+        if (Cargas.Count == 0 && sumabaSusLineas)
+            QuitarEquipo();
     }
 
     internal void Limpiar()

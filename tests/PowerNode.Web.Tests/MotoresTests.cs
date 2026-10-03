@@ -269,8 +269,9 @@ public class MotoresTests
     {
         var cuadro = Nuevo();
         Assert.Equal("Monofásico 127 V · Tabla 430-248", cuadro.AlimentacionDelMotor(1));
-        Assert.Equal("Monofásico 220 V · Tabla 430-248", cuadro.AlimentacionDelMotor(2));
-        Assert.Equal("Trifásico 220 V · Tabla 430-250", cuadro.AlimentacionDelMotor(3));
+        // I-196: la columna con que se lee, si la tabla no tiene la de esa tensión.
+        Assert.Equal("Monofásico 220 V · Tabla 430-248, columna de 230 V", cuadro.AlimentacionDelMotor(2));
+        Assert.Equal("Trifásico 220 V · Tabla 430-250, columna de 230 V", cuadro.AlimentacionDelMotor(3));
         Assert.Contains(15m, cuadro.HpDisponibles(3));
         Assert.DoesNotContain(15m, cuadro.HpDisponibles(1));
         Assert.Equal(15.2m, cuadro.FlcDe(5m, 3));

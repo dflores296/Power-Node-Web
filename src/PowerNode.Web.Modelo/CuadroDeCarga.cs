@@ -552,12 +552,21 @@ public sealed class CuadroDeCarga
     public IReadOnlyList<decimal> HpDisponibles(int polos) =>
         MotoresEnHp.Disponibles(_motor.FlcMotor, polos, MotoresEnHp.Tension(polos, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV));
 
-    /// <summary>«Monofásico 127 V · Tabla 430-248»: la alimentación de un motor con estos polos y la tabla de su FLC — I-114.</summary>
+    /// <summary>
+    /// «Monofásico 127 V · Tabla 430-248»: la alimentación de un motor con estos polos y la tabla de su FLC — I-114.
+    /// Si la tabla no tiene la columna de esa tensión, la que se lee: «Trifásico 600 V · Tabla 430-250, columna de
+    /// 575 V» (I-196).
+    /// </summary>
     public string AlimentacionDelMotor(int polos)
     {
-        var tension = MotoresEnHp.Tension(polos, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV);
-        return $"{MotoresEnHp.AlimentacionTexto(polos, tension)} · Tabla {MotoresEnHp.Tabla(polos)}";
+        var tension = TensionDelMotorV(polos);
+        var columna = PowerNode.DesignSuite.Normativa.TablaFlcMotorJson.TensionDeColumna(MotoresEnHp.Alimentacion(polos), tension);
+        return $"{MotoresEnHp.AlimentacionTexto(polos, tension)} · Tabla {MotoresEnHp.Tabla(polos)}" +
+               (columna is { } col && col != (int)tension ? $", columna de {col} V" : "");
     }
+
+    /// <summary>La tensión de un motor con estos polos, en volts enteros: F-N en 1 polo, F-F en 2 y 3 — I-190.</summary>
+    public decimal TensionDelMotorV(int polos) => MotoresEnHp.Tension(polos, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV);
 
     /// <summary>La FLC de tabla de un motor de <paramref name="hp"/> en este circuito; 0 si la tabla no lo trae. La enseña el selector.</summary>
     public decimal FlcDe(CircuitoDelCuadro c, decimal hp) => FlcDe(hp, c.Polos);
@@ -3440,7 +3449,7 @@ public sealed class CuadroDeCarga
         if (resultado.ProteccionExcedeTecho430_62 && resultado.TechoProteccion430_62A is { } maximo)
             avisos.Add(
                 $"El interruptor principal ({resultado.ProteccionA:N0} A) excede el máximo de 430-62(a) y 430-63 ({maximo:N2} A): " +
-                "la mayor protección de motor más las demás cargas. Revisa los motores o elige un tamaño que no pase del máximo.");
+                "la máxima que permite 430-52 al mayor derivado de motor (no la instalada) más las demás cargas. Revisa los motores o elige un tamaño que no pase del máximo.");
 
         // Los dos criterios de diseño que NO son de la norma (vienen del Excel). Se REPORTAN, no se
         // aplican: el número que se imprime sale del motor, y el criterio lo decide quien firma. Los

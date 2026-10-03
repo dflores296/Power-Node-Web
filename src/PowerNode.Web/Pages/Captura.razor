@@ -17,25 +17,27 @@
 
 <section class="ficha" id="sec-ficha">
     <div class="pila">
+    @* Cada rótulo con su campo, también por for/id (I-195): la auditoría de motores (2026-10-03) los encontró sin nombre accesible
+       con el rótulo solo envolviéndolos. *@
     <div class="grupo">
         <h2>Identificación</h2>
-        <label><span class="rotulo"><Icono Nombre="tablero" Tamano="14" />Tablero</span> <input @bind="Datos.Tablero" @bind:event="oninput" @bind:after="DibujarAlPausar" /></label>
-        <label><span class="rotulo"><Icono Nombre="clave" Tamano="14" />Clave</span> <input @bind="Datos.Clave" @bind:event="oninput" @bind:after="DibujarAlPausar" /></label>
-        <label><span class="rotulo"><Icono Nombre="ubicacion" Tamano="14" />Ubicación</span> <input @bind="Datos.Ubicacion" @bind:event="oninput" @bind:after="DibujarAlPausar" /></label>
-        <label><span class="rotulo"><Icono Nombre="proyecto" Tamano="14" />Proyecto</span> <input @bind="Datos.Proyecto" @bind:event="oninput" @bind:after="DibujarAlPausar" /></label>
-        <label><span class="rotulo"><Icono Nombre="cliente" Tamano="14" />Cliente</span> <input @bind="Datos.Cliente" @bind:event="oninput" @bind:after="DibujarAlPausar" /></label>
+        <label for="campo-tablero"><span class="rotulo"><Icono Nombre="tablero" Tamano="14" />Tablero</span> <input id="campo-tablero" @bind="Datos.Tablero" @bind:event="oninput" @bind:after="DibujarAlPausar" /></label>
+        <label for="campo-clave"><span class="rotulo"><Icono Nombre="clave" Tamano="14" />Clave</span> <input id="campo-clave" @bind="Datos.Clave" @bind:event="oninput" @bind:after="DibujarAlPausar" /></label>
+        <label for="campo-ubicacion"><span class="rotulo"><Icono Nombre="ubicacion" Tamano="14" />Ubicación</span> <input id="campo-ubicacion" @bind="Datos.Ubicacion" @bind:event="oninput" @bind:after="DibujarAlPausar" /></label>
+        <label for="campo-proyecto"><span class="rotulo"><Icono Nombre="proyecto" Tamano="14" />Proyecto</span> <input id="campo-proyecto" @bind="Datos.Proyecto" @bind:event="oninput" @bind:after="DibujarAlPausar" /></label>
+        <label for="campo-cliente"><span class="rotulo"><Icono Nombre="cliente" Tamano="14" />Cliente</span> <input id="campo-cliente" @bind="Datos.Cliente" @bind:event="oninput" @bind:after="DibujarAlPausar" /></label>
     </div>
 
     <div class="grupo">
         <h2>Sistema</h2>
         @* En 1F-2H no hay dos fases: la tensión es de fase a neutro (I-53). *@
-        <label><span class="rotulo"><Icono Nombre="tension" Tamano="14" /><span class="ayuda" title="@(EsUnaFaseDosHilos ? "Capturar la tensión de fase a neutro: 127 V (o 120 V) — 110-4." : "Capturar la tensión entre fases. 1F-3H: 240 V (120/240). 2F-3H y 3F-4H: 220 V (220Y/127) o 208 V (208Y/120). 3F-3H: 220, 240, 480 V… — 110-4.")">@(EsUnaFaseDosHilos ? "Tensión F-N (V)" : "Tensión F-F (V)")</span></span>
-            <input data-requerido type="text" inputmode="decimal" autocomplete="off" data-numero min="@Numero(DatosDelTablero.TensionMinimaV)" step="1" value="@Numero(Datos.TensionFaseFaseV)" @onchange="e => { Datos.TensionFaseFaseV = Leer(e, Datos.TensionFaseFaseV, DatosDelTablero.TensionMinimaV); Recalcular(); }" /></label>
-        <label><span class="rotulo"><Icono Nombre="fases" Tamano="14" /><span class="ayuda" title="Seleccionar los conductores energizados. 1: una fase y neutro (1F-2H) o monofásico con derivación central, 120/240 V (1F-3H). 2: dos fases de un sistema en estrella, 220/127 V (2F-3H, el «bifásico»). 3: trifásico.">Fases</span></span>
+        <label for="campo-tension"><span class="rotulo"><Icono Nombre="tension" Tamano="14" /><span class="ayuda" title="@(EsUnaFaseDosHilos ? "Capturar la tensión de fase a neutro: 127 V (o 120 V) — 110-4." : "Capturar la tensión entre fases. 1F-3H: 240 V (120/240). 2F-3H y 3F-4H: 220 V (220Y/127) o 208 V (208Y/120). 3F-3H: 220, 240, 480 V… — 110-4.")">@(EsUnaFaseDosHilos ? "Tensión F-N (V)" : "Tensión F-F (V)")</span></span>
+            <input id="campo-tension" data-requerido type="text" inputmode="decimal" autocomplete="off" data-numero min="@Numero(DatosDelTablero.TensionMinimaV)" step="1" value="@Numero(Datos.TensionFaseFaseV)" @onchange="e => { Datos.TensionFaseFaseV = Leer(e, Datos.TensionFaseFaseV, DatosDelTablero.TensionMinimaV); Recalcular(); }" /></label>
+        <label for="campo-fases"><span class="rotulo"><Icono Nombre="fases" Tamano="14" /><span class="ayuda" title="Seleccionar los conductores energizados. 1: una fase y neutro (1F-2H) o monofásico con derivación central, 120/240 V (1F-3H). 2: dos fases de un sistema en estrella, 220/127 V (2F-3H, el «bifásico»). 3: trifásico.">Fases</span></span>
             <select id="campo-fases" value="@Datos.Fases" @onchange="CambiarFases">@foreach (var f in new[] { 1, 2, 3 }) { <option value="@f">@f</option> }</select></label>
-        <label><span class="rotulo"><Icono Nombre="hilos" Tamano="14" /><span class="ayuda" title="Hilos = fases + neutro. La tierra no se cuenta: fase, neutro y tierra es 1F-2H. 1F-3H es otro sistema: dos vivos en oposición y neutro, 120/240 V.">Hilos</span></span>
+        <label for="campo-hilos"><span class="rotulo"><Icono Nombre="hilos" Tamano="14" /><span class="ayuda" title="Hilos = fases + neutro. La tierra no se cuenta: fase, neutro y tierra es 1F-2H. 1F-3H es otro sistema: dos vivos en oposición y neutro, 120/240 V.">Hilos</span></span>
             <select id="campo-hilos" value="@Datos.Hilos" @onchange="CambiarHilos">@foreach (var h in Datos.HilosValidos) { <option value="@h">@h</option> }</select></label>
-        <label><span class="rotulo"><Icono Nombre="frecuencia" Tamano="14" />Frecuencia (Hz)</span> <input data-requerido type="text" inputmode="decimal" autocomplete="off" data-numero min="@DatosDelTablero.FrecuenciaMinimaHz" step="10" @bind="Datos.FrecuenciaHz" @bind:culture="CultureInfo.InvariantCulture" /></label>
+        <label for="campo-frecuencia"><span class="rotulo"><Icono Nombre="frecuencia" Tamano="14" />Frecuencia (Hz)</span> <input id="campo-frecuencia" data-requerido type="text" inputmode="decimal" autocomplete="off" data-numero min="@DatosDelTablero.FrecuenciaMinimaHz" step="10" @bind="Datos.FrecuenciaHz" @bind:culture="CultureInfo.InvariantCulture" /></label>
         <p class="derivado">
             @Datos.EtiquetaSistema ·
             @* Sin neutro (3F-3H) no hay tensión de fase a neutro que enseñar — P2-1. *@
@@ -105,6 +107,10 @@
                     <option value="@serie">@serie.Nombre()</option>
                 }
             </select></label>
+        @if (Datos.AvisoSerie is { } avisoSerie)
+        {
+            <p class="aviso"><Icono Nombre="aviso" Clase="aviso-icono" /><span>@avisoSerie</span></p>
+        }
         <label><span class="rotulo"><Icono Nombre="inmueble" Tamano="14" /><span class="ayuda" title="Seleccionar el inmueble. Decide dos cosas: el mínimo del principal si el tablero es equipo de acometida — 230-79 (vivienda unifamiliar: según la carga; vivienda popular hasta 60 m²: 30 A; los demás: 60 A) — y qué justificaciones del factor de demanda aplican — Tabla 220-42, vivienda o no vivienda.">Inmueble</span></span>
             <select @bind="Datos.Inmueble" @bind:after="Recalcular">
                 @foreach (var inmueble in Enum.GetValues<TipoDeInmueble>()) { <option value="@inmueble">@inmueble.Nombre()</option> }
@@ -270,7 +276,8 @@
                                 <button class="desglosar" tabindex="-1" aria-label="Desglose del circuito @c.Espacio" aria-expanded="@(Abierto(c) ? "true" : "false")"
                                         title="Las salidas y cargas del circuito: se capturan aquí, cada una con su tipo; el renglón muestra la suma. Con el teclado: Ctrl+Enter."
                                         @onclick="() => AlternarDesglose(c)"><Icono Nombre="@(Abierto(c) ? "desglose-abierto" : "desglose")" Tamano="14" /></button>
-                                <input class="desc" data-col="desc" aria-label="Circuito @c.Espacio · Descripción" @bind="c.Descripcion" @bind:event="oninput" @bind:after="DibujarAlPausar" placeholder="—" />
+                                @* Vacía, enseña el nombre de su carga en gris (I-191): es la que sale en el cuadro y la memoria. *@
+                                <input class="desc" data-col="desc" aria-label="Circuito @c.Espacio · Descripción" @bind="c.Descripcion" @bind:event="oninput" @bind:after="DibujarAlPausar" placeholder="@(c.TieneCarga ? c.NombreDeSusCargas ?? "—" : "—")" />
                                 @* Lo que hay que revisar, en el renglón y no solo al pie (auditoría del 2026-09-29, riesgo 1). *@
                                 @if (Cuadro.AvisosDe(c) is { Count: > 0 } avisosDelRenglon)
                                 {
@@ -358,13 +365,17 @@
                         <td rowspan="@c.Polos" class="num">
                             @* M-20, I-182: en un motor solo, un equipo de A/C y un variador la protección se escoge dentro de su
                                rango. La lista trae solo los valores permitidos (David, 2026-10-03): llega con el calculado, y otro
-                               valor queda fijado, en el color de acento como el tubo; escoger el calculado lo regresa. *@
+                               valor queda fijado, en el color de acento como el tubo; escoger el calculado lo regresa.
+                               @key en cada opción (I-184, como I-45): al pasar el rango de «350» a «175 … 350» (la Excepción 2
+                               desmarcada), Blazor reutilizaba la opción seleccionada por posición y le cambiaba el valor a 175;
+                               el valor del selector no cambiaba (350), así que no lo volvía a poner: la celda decía 175 A con
+                               el cálculo en 350 A. *@
                             @if (c.ProteccionEscogible && c.Resultado!.Rango is { } rango)
                             {
                                 <select class="proteccion @(CuadroDeCarga.ProteccionFijada(c) ? "fijado" : null)" data-col="prot" aria-label="Circuito @c.Espacio · Protección (A)"
                                         title="@AyudaDeLaProteccion(c, desglose)" value="@c.Resultado.ProteccionA.ToString(CultureInfo.InvariantCulture)"
                                         @onchange="e => CambiarProteccion(c, e.Value?.ToString())">
-                                    @foreach (var v in rango.Valores) { <option value="@v.ToString(CultureInfo.InvariantCulture)">@v.ToString("N0")</option> }
+                                    @foreach (var v in rango.Valores) { <option @key="v" value="@v.ToString(CultureInfo.InvariantCulture)">@v.ToString("N0")</option> }
                                 </select>
                             }
                             else
@@ -475,7 +486,8 @@ var polos = p;
 var disponibles = Cuadro.HpDisponibles(polos);
 if (disponibles.Count == 0) { continue; }
 <optgroup @key="@($"g{polos}")" label="@Cuadro.AlimentacionDelMotor(polos) · @polos @(polos == 1 ? "polo" : "polos")">
-@foreach (var hp in disponibles) { <option @key="@ValorHpConPolos(polos, hp)" value="@ValorHpConPolos(polos, hp)">@MotoresEnHp.Texto(hp) HP — @Cuadro.FlcDe(hp, polos).ToString("N2") A</option> }
+@* Con su tensión (I-190): «1/2 HP — 8.90 A» salía en el grupo de 127 V y en el de 220 V; solo el rótulo del grupo las distinguía. *@
+@foreach (var hp in disponibles) { <option @key="@ValorHpConPolos(polos, hp)" value="@ValorHpConPolos(polos, hp)">@MotoresEnHp.Texto(hp) HP · @Cuadro.TensionDelMotorV(polos).ToString("0") V — @Cuadro.FlcDe(hp, polos).ToString("N2") A</option> }
 </optgroup>
 }
 @if (c.Hp is > 0m and { } fuera && !Cuadro.HpDisponibles(c).Contains(fuera))
@@ -2298,8 +2310,9 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
     /// <summary>Quita el aparato <paramref name="n"/> y deja el foco en el que queda en su lugar, o en «+ Agregar aparato».</summary>
     private void QuitarAparato(CircuitoDelCuadro c, CargaDelCircuito a, int n)
     {
-        c.Cargas.Remove(a);
-        c.LineaARenglon(); // un solo motor, motocompresor, variador o A/A de habitación regresa al renglón
+        // Un solo motor, motocompresor, variador o A/A de habitación regresa al renglón; sin líneas, el
+        // circuito queda vacío (I-185).
+        c.QuitarCarga(a);
         Recalcular();
         _enfocar = c.Cargas.Count == 0 ? AgregarDe(c.Espacio) : DescripcionDeAparato(c.Espacio, Math.Min(n, c.Cargas.Count));
     }

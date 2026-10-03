@@ -50,6 +50,12 @@
            iconos, igual que Imprimir (I-60). *@
         @if (!ParaImprimir)
         {
+            @* Empezar de cero sin abrir otra pestaña, que vuelve a descargar la aplicación (I-186). *@
+            <button class="boton con-icono" type="button" @onclick="Nuevo"
+                    title="Empezar un tablero nuevo, en blanco, en esta pestaña. Si hay cambios sin guardar, pregunta antes.">
+                <Icono Nombre="nuevo" Clase="boton-icono" />
+                <span class="boton-texto">Nuevo</span>
+            </button>
             <button class="boton con-icono" type="button" @onclick="Abrir"
                     title="Abrir un tablero guardado (.powernode.json). Para tener varios a la vez, uno por pestaña.">
                 <Icono Nombre="abrir" Clase="boton-icono" />
@@ -160,6 +166,24 @@
         Avisar($"Guardado: «{escrito}».");
     }
 
+    /// <summary>
+    /// <b>Un tablero nuevo en esta pestaña</b> — I-186 (auditoría de motores del 2026-10-03): la única forma de
+    /// empezar de cero era otra pestaña, que tarda en cargar. Con cambios sin guardar, pregunta, como Abrir.
+    /// </summary>
+    private async Task Nuevo()
+    {
+        if (Proyecto.SinGuardar &&
+            !await JS.InvokeAsync<bool>("powerNode.archivo.confirmar",
+                "El tablero de esta pestaña tiene cambios sin guardar. ¿Empezar uno nuevo y perderlos?\n\nPara conservarlos, cancela y guárdalo primero.",
+                "Empezar uno nuevo", "Cancelar"))
+            return;
+
+        Proyecto.Nuevo();
+        await JS.InvokeVoidAsync("powerNode.archivo.marcarSinGuardar", false);
+        await JS.InvokeVoidAsync("powerNode.archivo.copia.escribir", (string?)null);
+        Avisar("Tablero nuevo, en blanco.");
+    }
+
     private async Task Abrir()
     {
         var archivo = await JS.InvokeAsync<ArchivoLeido?>("powerNode.archivo.abrir");
@@ -208,8 +232,11 @@
             return;
         }
         await JS.InvokeVoidAsync("powerNode.archivo.marcarSinGuardar", true);
-        Avisar("Se recuperó el tablero de esta pestaña: tenía cambios que no estaban en un archivo. Guárdalo para no perderlo; " +
-               "para empezar uno nuevo, abre otra pestaña.", largo: true);
+        // I-193: el navegador avisó «cambios sin guardar» al recargar, y aquí están. Se dice por qué: la copia
+        // es de la pestaña, y al cerrarla sí se pierde.
+        Avisar("Se recuperó el tablero de esta pestaña: la pestaña guarda una copia de lo que no está en un archivo, y al recargar " +
+               "la recupera. El aviso del navegador al recargar o cerrar es por esa copia: al cerrar la pestaña, se pierde. " +
+               "Guárdalo para no perderlo; para empezar de cero, «Nuevo».", largo: true);
         StateHasChanged();
     }
 

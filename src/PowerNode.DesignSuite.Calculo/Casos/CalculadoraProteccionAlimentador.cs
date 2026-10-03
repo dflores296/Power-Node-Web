@@ -111,7 +111,7 @@ public static class CalculadoraProteccionAlimentador
             techo = techoMotores + noMotorA;
 
             citas.Add(new Cita("430-62(a)",
-                $"Techo de la protección: {cargaMotores.MayorProteccionDerivadoA:0.##} A (la mayor protección de derivado del grupo) + " +
+                $"Techo de la protección: {cargaMotores.MayorProteccionDerivadoA:0.##} A (la máxima que permiten 430-52 o 440-22(a) al mayor derivado del grupo, no la instalada) + " +
                 $"{cargaMotores.SumaFlcTotalA - cargaMotores.FlcDelMayorProteccionA:0.##} A (suma de los FLC de los demás motores) = {techoMotores:0.##} A"));
 
             if (noMotorA > 0m)

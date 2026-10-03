@@ -123,7 +123,8 @@ public sealed record ProteccionQueRegreso(int Espacio, decimal FijadaA, decimal 
     /// </summary>
     public static string Aviso(IReadOnlyList<ProteccionQueRegreso> regresaron) => regresaron switch
     {
-        [var una] => $"Circuito {una.Espacio}: cambió el rango de la protección ({una.MinimoA:N0} a {una.MaximoA:N0} A); " +
+        // Un rango de un solo valor (la Excepción 2 del 100 HP a 440 V) decía «(350 a 350 A)» — I-184.
+        [var una] => $"Circuito {una.Espacio}: cambió el rango de la protección ({(una.MinimoA == una.MaximoA ? $"solo {una.MaximoA:N0}" : $"{una.MinimoA:N0} a {una.MaximoA:N0}")} A); " +
                      $"la fijada, {una.FijadaA:N0} A, regresó al calculado" + (una.CalculadaA is { } calc ? $", {calc:N0} A." : "."),
         _ => $"Circuitos {Lista(regresaron.Select(x => x.Espacio).ToList())}: cambió el rango de la protección; " +
              "las fijadas regresaron al calculado.",

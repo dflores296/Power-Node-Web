@@ -307,6 +307,20 @@ public sealed class DatosDelTablero
         }
     }
 
+    /// <summary>La tensión más alta de un centro de carga (NEMA) y de sus interruptores: 120/240 V — I-192.</summary>
+    public const decimal TensionMaximaCentroDeCargaV = 240m;
+
+    /// <summary>
+    /// <b>Un centro de carga a más de 240 V</b> — I-192 (auditoría de motores del 2026-10-03): a 440 V con
+    /// «Centro de carga (NEMA)» no se decía nada. Sus interruptores son de 120/240 V; el tablero y los
+    /// interruptores tienen que ser para la tensión del sistema — 110-3(b). <c>null</c> si no aplica.
+    /// </summary>
+    public string? AvisoSerie =>
+        SerieInterruptores == SerieDeInterruptores.CentroDeCargaNema && TensionFaseFaseV > TensionMaximaCentroDeCargaV
+            ? $"Un centro de carga (NEMA) y sus interruptores son para {TensionMaximaCentroDeCargaV:0} V como máximo: a {TensionFaseFaseV:0.##} V, " +
+              "el tablero y los interruptores tienen que ser de esa tensión (un tablero de 480 V, tipo NF) — 110-3(b). Escoger «NOM completa» en Interruptores."
+            : null;
+
     /// <summary>
     /// Los hilos que admite cada número de fases: 1F-2H o 1F-3H; 2F de estrella solo con neutro,
     /// 3 hilos; 3F-3H (delta) o 3F-4H (estrella).

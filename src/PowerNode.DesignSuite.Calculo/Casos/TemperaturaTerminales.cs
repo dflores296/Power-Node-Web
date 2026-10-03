@@ -54,10 +54,16 @@ public static class TemperaturaTerminales
         return aislamiento == TemperaturaAislamiento.T60 ? TemperaturaAislamiento.T60 : TemperaturaAislamiento.T75;
     }
 
-    /// <summary>La cita de 110-14(c)(1) que dice de dónde salió la temperatura de la terminal.</summary>
+    /// <summary>
+    /// La cita de 110-14(c)(1) que dice de dónde salió la temperatura de la terminal, con el inciso: a. (100 A o
+    /// menos) o b. (más de 100 A). Sin el inciso, un motor con protección de 175 A decía «terminales a 75°C» sin
+    /// decir por qué, y con 100 A o menos salía en 60°C con otro calibre (Power Node Web, M-21).
+    /// </summary>
     public static string Explicacion(decimal proteccionA, bool equipoMarcado75C, TemperaturaAislamiento terminal) =>
-        proteccionA > 100m || !equipoMarcado75C
-            ? $"Protección {proteccionA} A -> terminales a {(int)terminal}°C"
+        proteccionA > 100m
+            ? $"Protección {proteccionA} A: circuito de más de 100 A -> terminales a {(int)terminal}°C (110-14(c)(1)b.)"
+        : !equipoMarcado75C
+            ? $"Protección {proteccionA} A: circuito de 100 A o menos -> terminales a {(int)terminal}°C (110-14(c)(1)a.)"
             : terminal == TemperaturaAislamiento.T75
                 ? $"Protección {proteccionA} A, equipo aprobado e identificado para 75°C -> terminales a 75°C (110-14(c)(1)a.(3))"
                 : $"Protección {proteccionA} A, equipo marcado 75°C pero conductor de 60°C -> se usa la columna de 60°C (110-14(c)(1)a.(1))";

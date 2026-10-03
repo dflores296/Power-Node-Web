@@ -55,7 +55,7 @@ public static class MemoriaDeCalculo
             equipo = equipo with { Proteccion = [.. equipo.Proteccion, desconexion] };
 
         return new HojaDeMemoria(
-            Sujeto: $"Circuito {circuito.Espacio} — {nombre}  ·  fase {circuito.Fases}",
+            Sujeto: $"Circuito {circuito.Espacio} — {nombre}  ·  {FasesTexto(circuito.Fases)}",
             Articulo: circuito.Categoria == CategoriaDeCarga.Tablero ? "215" : circuito.EsMotor ? "430" : circuito.EsAireAcondicionado ? "440" : "210",
             FrecuenciaHz: datos.FrecuenciaHz,
             CargaContinuaVa: circuito.ContinuaVA,
@@ -593,15 +593,29 @@ public static class MemoriaDeCalculo
             $"{(string.IsNullOrWhiteSpace(a.Descripcion) ? "—" : a.Descripcion.Trim())}",
             // Una máquina de un grupo (I-115): su corriente por unidad, que es con la que calcula.
             a.EsTablero
-                ? $"continua {a.CargaUnitaria:N0} {Simbolo(a.Unidad)} · no continua {a.NoContinua:N0} {Simbolo(a.Unidad)} = {a.TotalVA:N0} VA, " +
+                ? $"continua {Cantidad(a.CargaUnitaria, a.Unidad)} · no continua {Cantidad(a.NoContinua, a.Unidad)} = {a.TotalVA:N0} VA, " +
                   $"ya con sus factores de demanda; sin otro aquí — 220-40 · F.P. {a.FactorPotencia:N2}"
             : a.EsMaquina
                 ? $"{a.Cantidad} × {(a.Clase == ClaseDeAparato.Motor && a.MotorEnAmperes is null ? $"{MotoresEnHp.Texto(a.Hp ?? 0m)} HP · " : "")}" +
                   $"{a.CorrienteUnitariaA:N2} A = {a.TotalVA:N0} VA · F.P. {a.FactorPotencia:N2}"
-                : $"{a.Cantidad} × {a.CargaUnitaria:N0} {Simbolo(a.Unidad)}{(a.ReferenciaMinimo is { } rm ? $", con el mínimo de {rm}," : "")} = {a.TotalVA:N0} VA · " +
+                : $"{a.Cantidad} × {Cantidad(a.CargaUnitaria, a.Unidad)}{(a.ReferenciaMinimo is { } rm ? $", con el mínimo de {rm}," : "")} = {a.TotalVA:N0} VA · " +
                   $"{(a.Continua ? a.ReferenciaContinua is { } rc ? $"continua — {rc}" : "continua" : "no continua")} · F.P. {a.FactorPotencia:N2}")),
         .. Tableros(circuito),
     ];
+
+    /// <summary>
+    /// «3.50 A», «1,500 VA», «2,000.5 W»: la carga de placa como se capturó — I-194. Con <c>N0</c> el
+    /// refrigerador de 3.5 A salía «1 × 4 A = 445 VA»: el VA era el de 3.5 A, el texto no.
+    /// </summary>
+    private static string Cantidad(decimal valor, UnidadConsumo unidad) =>
+        unidad == UnidadConsumo.Amperes ? $"{valor:N2} A" : $"{valor:#,0.##} {Simbolo(unidad)}";
+
+    /// <summary>
+    /// «fase A», «fases A-B», «fases A-B-C»: las barras del circuito en orden — I-194. Un bipolar que empieza en
+    /// la barra B de un 2F-3H decía «fase BA».
+    /// </summary>
+    internal static string FasesTexto(string fases) =>
+        fases.Length <= 1 ? $"fase {fases}" : $"fases {string.Join("-", fases.Order())}";
 
     /// <summary>
     /// Un alimentador a otros tableros (David, 2026-09-30): cada tablero protegido a no más de su capacidad
@@ -782,7 +796,7 @@ public static class MemoriaDeCalculo
                 ($"Capacidad mínima — {articuloProteccion}{(motores.MayorFlcA is null ? "" : $", {hoja.ReferenciaDeMotores}")}", d is null ? null : Amperes(d.CapacidadMinimaA)),
                 ("Protección seleccionada — 240-6(a)", Amperes(hoja.ProteccionA, "N0")),
                 ("Protección máxima — 430-62(a), 430-63", hoja.Techo430_62A is { } techo
-                    ? $"{techo:N2} A: la mayor protección de motor o de equipo de A/C, la corriente de los demás y lo que 215-3 pide para la otra carga"
+                    ? $"{techo:N2} A: la máxima que permite 430-52 (o 440-22(a)) al mayor derivado de motor o de A/C —no la instalada—, la corriente de los demás y lo que 215-3 pide para la otra carga"
                     : null),
                 ("Tamaños de interruptor", hoja.SerieDeInterruptores)]));
         }
@@ -940,7 +954,8 @@ public static class MemoriaDeCalculo
     /// distintos no hay un tipo: «Cargas combinadas»; la clase va aparte — captura-en-el-desplegable.md.
     /// </summary>
     public static string Etiqueta(CircuitoDelCuadro circuito) =>
-        !string.IsNullOrWhiteSpace(circuito.DescripcionDelEquipo) && !circuito.TieneDesglose ? circuito.DescripcionDelEquipo.Trim()
+        // El nombre de su equipo o de sus cargas, si lo tienen (I-191); si no, lo que es.
+        circuito.NombreDeSusCargas is { } nombre ? nombre
         : circuito.TieneCargasCombinadas ? "Cargas combinadas"
         : circuito.UsoEfectivo == UsoDeContactos.General
             ? circuito.Categoria.NombreCompleto()

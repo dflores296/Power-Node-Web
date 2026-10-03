@@ -280,9 +280,9 @@ dialog.confirmacion::backdrop { background: rgb(0 0 0 / .35); }
    761 a 1120 px no cabía y la página entera se desplazaba de lado; a 768 px «Guardar» salía cortado y el
    tema y GitHub quedaban fuera. */
 
-/* Hasta 1180 px: las acciones, solo con su icono. El tema con símbolos (◐ ☀ ☾). Los nombres se quedan
-   para el lector de pantalla (I-60). */
-@media (max-width: 1180px) {
+/* Hasta 1320 px: las acciones, solo con su icono. El tema con símbolos (◐ ☀ ☾). Los nombres se quedan
+   para el lector de pantalla (I-60). Era 1180; con «Nuevo» (I-186), de 1181 a 1310 px no cabía. */
+@media (max-width: 1320px) {
     .tema-opciones .tema-simbolo { display: block; }
     .tema-nombre { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
     .tema-opciones button { padding: 4px 9px; }
@@ -300,8 +300,9 @@ dialog.confirmacion::backdrop { background: rgb(0 0 0 / .35); }
 }
 
 /* En el celular no cabe en un renglón: las páginas bajan a un segundo renglón, a lo ancho, y se
-   recorren de lado si no caben. Era 760; con la cuarta página no cabía hasta 790 (I-126). */
-@media (max-width: 800px) {
+   recorren de lado si no caben. Era 760; con la cuarta página no cabía hasta 790 (I-126); con «Nuevo»,
+   hasta 815 (I-186). */
+@media (max-width: 840px) {
     /* Sin el espaciador y con menos hueco, el tema cabe junto a la marca de 40 px (I-59). */
     .barra-superior-interior { flex-wrap: wrap; row-gap: 6px; column-gap: 10px; padding: 8px 14px; }
     .barra-superior .espaciador { display: none; }

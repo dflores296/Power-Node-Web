@@ -25,15 +25,32 @@ public sealed class ProyectoActual
     public ProyectoActual(MotorNom motor)
     {
         _motor = motor;
-        Cuadro = new CuadroDeCarga(motor) { ExigirTipo = true };
-        Cuadro.Recalcular();
+        Cuadro = EnBlanco(motor);
         _huellaGuardada = ArchivoDelCuadro.Huella(Cuadro);
+    }
+
+    private static CuadroDeCarga EnBlanco(MotorNom motor)
+    {
+        var cuadro = new CuadroDeCarga(motor) { ExigirTipo = true };
+        cuadro.Recalcular();
+        return cuadro;
+    }
+
+    /// <summary>
+    /// <b>Un tablero nuevo, en blanco</b> — I-186: el de una pestaña recién abierta, sin cambios que guardar.
+    /// Quien llama pregunta antes si hay cambios sin guardar.
+    /// </summary>
+    public void Nuevo()
+    {
+        Cuadro = EnBlanco(_motor);
+        _huellaGuardada = ArchivoDelCuadro.Huella(Cuadro);
+        Cambio?.Invoke();
     }
 
     /// <summary>Cambia al abrir un archivo: las páginas lo leen siempre de aquí, nunca lo guardan.</summary>
     public CuadroDeCarga Cuadro { get; private set; }
 
-    /// <summary>Se abrió otro tablero: las páginas que lo muestran se vuelven a dibujar.</summary>
+    /// <summary>Se abrió otro tablero, o uno nuevo: las páginas que lo muestran se vuelven a dibujar.</summary>
     public event Action? Cambio;
 
     /// <summary>Hay algo capturado que no está en ningún archivo. Un tablero nuevo, sin tocar, no.</summary>
