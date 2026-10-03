@@ -19,23 +19,23 @@
     <div class="pila">
     <div class="grupo">
         <h2>Identificación</h2>
-        <label>Tablero <input @bind="Datos.Tablero" @bind:event="oninput" @bind:after="DibujarAlPausar" /></label>
-        <label>Clave <input @bind="Datos.Clave" @bind:event="oninput" @bind:after="DibujarAlPausar" /></label>
-        <label>Ubicación <input @bind="Datos.Ubicacion" @bind:event="oninput" @bind:after="DibujarAlPausar" /></label>
-        <label>Proyecto <input @bind="Datos.Proyecto" @bind:event="oninput" @bind:after="DibujarAlPausar" /></label>
-        <label>Cliente <input @bind="Datos.Cliente" @bind:event="oninput" @bind:after="DibujarAlPausar" /></label>
+        <label><span class="rotulo"><Icono Nombre="tablero" Tamano="14" />Tablero</span> <input @bind="Datos.Tablero" @bind:event="oninput" @bind:after="DibujarAlPausar" /></label>
+        <label><span class="rotulo"><Icono Nombre="clave" Tamano="14" />Clave</span> <input @bind="Datos.Clave" @bind:event="oninput" @bind:after="DibujarAlPausar" /></label>
+        <label><span class="rotulo"><Icono Nombre="ubicacion" Tamano="14" />Ubicación</span> <input @bind="Datos.Ubicacion" @bind:event="oninput" @bind:after="DibujarAlPausar" /></label>
+        <label><span class="rotulo"><Icono Nombre="proyecto" Tamano="14" />Proyecto</span> <input @bind="Datos.Proyecto" @bind:event="oninput" @bind:after="DibujarAlPausar" /></label>
+        <label><span class="rotulo"><Icono Nombre="cliente" Tamano="14" />Cliente</span> <input @bind="Datos.Cliente" @bind:event="oninput" @bind:after="DibujarAlPausar" /></label>
     </div>
 
     <div class="grupo">
         <h2>Sistema</h2>
         @* En 1F-2H no hay dos fases: la tensión es de fase a neutro (I-53). *@
-        <label><span class="ayuda" title="@(EsUnaFaseDosHilos ? "Capturar la tensión de fase a neutro: 127 V (o 120 V) — 110-4." : "Capturar la tensión entre fases. 1F-3H: 240 V (120/240). 2F-3H y 3F-4H: 220 V (220Y/127) o 208 V (208Y/120). 3F-3H: 220, 240, 480 V… — 110-4.")">@(EsUnaFaseDosHilos ? "Tensión F-N (V)" : "Tensión F-F (V)")</span>
+        <label><span class="rotulo"><Icono Nombre="tension" Tamano="14" /><span class="ayuda" title="@(EsUnaFaseDosHilos ? "Capturar la tensión de fase a neutro: 127 V (o 120 V) — 110-4." : "Capturar la tensión entre fases. 1F-3H: 240 V (120/240). 2F-3H y 3F-4H: 220 V (220Y/127) o 208 V (208Y/120). 3F-3H: 220, 240, 480 V… — 110-4.")">@(EsUnaFaseDosHilos ? "Tensión F-N (V)" : "Tensión F-F (V)")</span></span>
             <input data-requerido type="text" inputmode="decimal" autocomplete="off" data-numero min="@Numero(DatosDelTablero.TensionMinimaV)" step="1" value="@Numero(Datos.TensionFaseFaseV)" @onchange="e => { Datos.TensionFaseFaseV = Leer(e, Datos.TensionFaseFaseV, DatosDelTablero.TensionMinimaV); Recalcular(); }" /></label>
-        <label><span class="ayuda" title="Seleccionar los conductores energizados. 1: una fase y neutro (1F-2H) o monofásico con derivación central, 120/240 V (1F-3H). 2: dos fases de un sistema en estrella, 220/127 V (2F-3H, el «bifásico»). 3: trifásico.">Fases</span>
+        <label><span class="rotulo"><Icono Nombre="fases" Tamano="14" /><span class="ayuda" title="Seleccionar los conductores energizados. 1: una fase y neutro (1F-2H) o monofásico con derivación central, 120/240 V (1F-3H). 2: dos fases de un sistema en estrella, 220/127 V (2F-3H, el «bifásico»). 3: trifásico.">Fases</span></span>
             <select id="campo-fases" value="@Datos.Fases" @onchange="CambiarFases">@foreach (var f in new[] { 1, 2, 3 }) { <option value="@f">@f</option> }</select></label>
-        <label><span class="ayuda" title="Hilos = fases + neutro. La tierra no se cuenta: fase, neutro y tierra es 1F-2H. 1F-3H es otro sistema: dos vivos en oposición y neutro, 120/240 V.">Hilos</span>
+        <label><span class="rotulo"><Icono Nombre="hilos" Tamano="14" /><span class="ayuda" title="Hilos = fases + neutro. La tierra no se cuenta: fase, neutro y tierra es 1F-2H. 1F-3H es otro sistema: dos vivos en oposición y neutro, 120/240 V.">Hilos</span></span>
             <select id="campo-hilos" value="@Datos.Hilos" @onchange="CambiarHilos">@foreach (var h in Datos.HilosValidos) { <option value="@h">@h</option> }</select></label>
-        <label>Frecuencia (Hz) <input data-requerido type="text" inputmode="decimal" autocomplete="off" data-numero min="@DatosDelTablero.FrecuenciaMinimaHz" step="10" @bind="Datos.FrecuenciaHz" @bind:culture="CultureInfo.InvariantCulture" /></label>
+        <label><span class="rotulo"><Icono Nombre="frecuencia" Tamano="14" />Frecuencia (Hz)</span> <input data-requerido type="text" inputmode="decimal" autocomplete="off" data-numero min="@DatosDelTablero.FrecuenciaMinimaHz" step="10" @bind="Datos.FrecuenciaHz" @bind:culture="CultureInfo.InvariantCulture" /></label>
         <p class="derivado">
             @Datos.EtiquetaSistema ·
             @* Sin neutro (3F-3H) no hay tensión de fase a neutro que enseñar — P2-1. *@
@@ -54,10 +54,10 @@
 
     <div class="grupo">
         <h2>Gabinete</h2>
-        <label>Espacios <select id="campo-espacios" value="@Datos.NumeroEspacios" @onchange="CambiarEspacios">
+        <label><span class="rotulo"><Icono Nombre="espacios" Tamano="14" />Espacios</span> <select id="campo-espacios" value="@Datos.NumeroEspacios" @onchange="CambiarEspacios">
             @foreach (var e in Datos.EspaciosValidos) { <option value="@e">@e</option> }
         </select></label>
-        <label>Acometida <select @bind="Datos.TipoAcometida" @bind:after="Recalcular">
+        <label><span class="rotulo"><Icono Nombre="acometida" Tamano="14" />Acometida</span> <select @bind="Datos.TipoAcometida" @bind:after="Recalcular">
             <option value="@TipoAcometidaTablero.InterruptorPrincipal">Interruptor principal</option>
             <option value="@TipoAcometidaTablero.ZapatasPrincipales">Zapatas principales</option>
         </select></label>
@@ -65,7 +65,7 @@
            hay zócalo: siempre va en un espacio. *@
         @if (Datos.UsaInterruptorPrincipal && Datos.Barras.Count > 1)
         {
-            <label><span class="ayuda" title="Zócalo propio: abajo de las barras, sin ocupar espacios numerados. En espacios: como un derivado, se come tantos espacios como polos; por omisión, los últimos pares.">Montaje del principal</span>
+            <label><span class="rotulo"><Icono Nombre="principal" Tamano="14" /><span class="ayuda" title="Zócalo propio: abajo de las barras, sin ocupar espacios numerados. En espacios: como un derivado, se come tantos espacios como polos; por omisión, los últimos pares.">Montaje del principal</span></span>
                 <select @bind="Datos.MontajePrincipal" @bind:after="Recalcular">
                     <option value="@MontajeDelPrincipal.Zocalo">Zócalo propio</option>
                     <option value="@MontajeDelPrincipal.EnEspacios">En espacios del gabinete</option>
@@ -73,7 +73,7 @@
         }
         @if (Datos.PrincipalEnEspacios)
         {
-            <label><span class="ayuda" title="Los espacios que se come el interruptor principal. Es un valor por omisión: se puede mover a donde quepa sin pisar un circuito.">Espacios del principal</span>
+            <label><span class="rotulo"><Icono Nombre="espacios-principal" Tamano="14" /><span class="ayuda" title="Los espacios que se come el interruptor principal. Es un valor por omisión: se puede mover a donde quepa sin pisar un circuito.">Espacios del principal</span></span>
                 <select value="@Cuadro.EspacioInicialDelPrincipal" @onchange="CambiarEspacioDelPrincipal">
                     @foreach (var e in Datos.EspaciosValidosDelPrincipal)
                     {
@@ -85,38 +85,38 @@
         {
             <p class="aviso"><Icono Nombre="aviso" Clase="aviso-icono" /><span>@avisoPrincipal</span></p>
         }
-        <label>Montaje <select @bind="Datos.Montaje">
+        <label><span class="rotulo"><Icono Nombre="montaje" Tamano="14" />Montaje</span> <select @bind="Datos.Montaje">
             <option value="Sobreponer">Sobreponer</option>
             <option value="Empotrar">Empotrar</option>
         </select></label>
-        <label>Barras <select @bind="Datos.MaterialBarras">
+        <label><span class="rotulo"><Icono Nombre="barras" Tamano="14" />Barras</span> <select @bind="Datos.MaterialBarras">
             <option value="@MaterialConductor.Cobre">Cobre</option>
             <option value="@MaterialConductor.Aluminio">Aluminio</option>
         </select></label>
-        <label>Gabinete NEMA <select @bind="Datos.GabineteNema">
+        <label><span class="rotulo"><Icono Nombre="gabinete" Tamano="14" />Gabinete NEMA</span> <select @bind="Datos.GabineteNema">
             @foreach (var n in new[] { "1", "3R", "4X", "12" }) { <option value="@n">@n</option> }
         </select></label>
-        <label>Capacidad de barra (A) <input type="text" inputmode="decimal" autocomplete="off" data-numero min="0" step="1" placeholder="—"
+        <label><span class="rotulo"><Icono Nombre="capacidad" Tamano="14" />Capacidad de barra (A)</span> <input type="text" inputmode="decimal" autocomplete="off" data-numero min="0" step="1" placeholder="—"
                                              @bind="Datos.CapacidadBarraA" @bind:culture="CultureInfo.InvariantCulture" @bind:after="Recalcular" /></label>
-        <label><span class="ayuda" title="Seleccionar la familia de interruptores. Centro de carga (NEMA): 240-6(a) sin 16, 32 ni 63 A. Riel DIN (IEC): 16, 20, 25, 32, 40, 50, 63, 80, 100 y 125 A. NOM completa: 240-6(a) sin exclusiones.">Interruptores</span>
+        <label><span class="rotulo"><Icono Nombre="interruptores" Tamano="14" /><span class="ayuda" title="Seleccionar la familia de interruptores. Centro de carga (NEMA): 240-6(a) sin 16, 32 ni 63 A. Riel DIN (IEC): 16, 20, 25, 32, 40, 50, 63, 80, 100 y 125 A. NOM completa: 240-6(a) sin exclusiones.">Interruptores</span></span>
             <select @bind="Datos.SerieInterruptores" @bind:after="Recalcular">
                 @foreach (var serie in new[] { SerieDeInterruptores.CentroDeCargaNema, SerieDeInterruptores.RielDinIec, SerieDeInterruptores.NomCompleta })
                 {
                     <option value="@serie">@serie.Nombre()</option>
                 }
             </select></label>
-        <label><span class="ayuda" title="Seleccionar el inmueble. Decide dos cosas: el mínimo del principal si el tablero es equipo de acometida — 230-79 (vivienda unifamiliar: según la carga; vivienda popular hasta 60 m²: 30 A; los demás: 60 A) — y qué justificaciones del factor de demanda aplican — Tabla 220-42, vivienda o no vivienda.">Inmueble</span>
+        <label><span class="rotulo"><Icono Nombre="inmueble" Tamano="14" /><span class="ayuda" title="Seleccionar el inmueble. Decide dos cosas: el mínimo del principal si el tablero es equipo de acometida — 230-79 (vivienda unifamiliar: según la carga; vivienda popular hasta 60 m²: 30 A; los demás: 60 A) — y qué justificaciones del factor de demanda aplican — Tabla 220-42, vivienda o no vivienda.">Inmueble</span></span>
             <select @bind="Datos.Inmueble" @bind:after="Recalcular">
                 @foreach (var inmueble in Enum.GetValues<TipoDeInmueble>()) { <option value="@inmueble">@inmueble.Nombre()</option> }
             </select></label>
         @* M-14: el mínimo de alumbrado general por superficie — 220-12, Tabla 220-12. *@
-        <label><span class="ayuda" title="Capturar el área que sirve el tablero, en m². El alimentador no baja de la carga de alumbrado general de la Tabla 220-12 por esa área — 220-12, 210-11(b); en vivienda, los contactos de uso general van dentro (220-14(j)); en bancos y oficinas, los contactos no bajan de 11 VA/m² (220-14(k)). Vacío: no se revisa.">Área servida (m²)</span>
+        <label><span class="rotulo"><Icono Nombre="area" Tamano="14" /><span class="ayuda" title="Capturar el área que sirve el tablero, en m². El alimentador no baja de la carga de alumbrado general de la Tabla 220-12 por esa área — 220-12, 210-11(b); en vivienda, los contactos de uso general van dentro (220-14(j)); en bancos y oficinas, los contactos no bajan de 11 VA/m² (220-14(k)). Vacío: no se revisa.">Área servida (m²)</span></span>
             <input type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="—" aria-label="Área servida (m²)"
                    value="@(Datos.AreaServidaM2 > 0m ? Datos.AreaServidaM2.ToString("0.##", CultureInfo.InvariantCulture) : "")" @onchange="CambiarArea" /></label>
         @* Solo con área: sin ella no se revisa el mínimo y el uso no cuenta (David, 2026-09-30). *@
         @if (Datos.AreaServidaM2 > 0m)
         {
-            <label><span class="ayuda" title="El renglón de la Tabla 220-12 del local: su carga unitaria en VA/m². Por omisión, el del inmueble.">Uso — Tabla 220-12</span>
+            <label><span class="rotulo"><Icono Nombre="uso" Tamano="14" /><span class="ayuda" title="El renglón de la Tabla 220-12 del local: su carga unitaria en VA/m². Por omisión, el del inmueble.">Uso — Tabla 220-12</span></span>
                 <select aria-label="Uso del local — Tabla 220-12" value="@Datos.UsoTabla220_12Efectivo" @onchange="e => { Datos.UsoTabla220_12 = e.Value?.ToString(); Recalcular(); }">
                     @foreach (var fila in Cuadro.FilasTabla220_12)
                     {
@@ -125,43 +125,43 @@
                     }
                 </select></label>
         }
-        <label><span class="ayuda" title="Marcar si el tablero es el medio de desconexión de la acometida (el primero después del medidor). El principal sube al mínimo de 230-79 según el inmueble.">Equipo de acometida</span>
+        <label><span class="rotulo"><Icono Nombre="equipo-acometida" Tamano="14" /><span class="ayuda" title="Marcar si el tablero es el medio de desconexión de la acometida (el primero después del medidor). El principal sube al mínimo de 230-79 según el inmueble.">Equipo de acometida</span></span>
             <input type="checkbox" class="casilla" @bind="Datos.EsEquipoDeAcometida" @bind:after="Recalcular" /></label>
     </div>
 
     <div class="grupo">
         <h2>Condiciones de cálculo</h2>
-        <label>Conductor <select @bind="Datos.MaterialConductor" @bind:after="Recalcular">
+        <label><span class="rotulo"><Icono Nombre="conductor" Tamano="14" />Conductor</span> <select @bind="Datos.MaterialConductor" @bind:after="Recalcular">
             <option value="@MaterialConductor.Cobre">Cobre</option>
             <option value="@MaterialConductor.Aluminio">Aluminio</option>
         </select></label>
-        <label><span class="ayuda" title="Seleccionar el aislamiento — Tabla 310-104(a). Determina la columna de temperatura de la Tabla 310-15(b)(16) para aplicar FT y FA. Ampacidad limitada a la temperatura de la terminal — 110-14(c).">Aislamiento</span>
+        <label><span class="rotulo"><Icono Nombre="aislamiento" Tamano="14" /><span class="ayuda" title="Seleccionar el aislamiento — Tabla 310-104(a). Determina la columna de temperatura de la Tabla 310-15(b)(16) para aplicar FT y FA. Ampacidad limitada a la temperatura de la terminal — 110-14(c).">Aislamiento</span></span>
             <select @bind="Datos.TipoAislamiento" @bind:after="Recalcular">
                 @foreach (var aislamiento in Aislamientos)
                 {
                     <option value="@aislamiento">@aislamiento@(EnTabla5(aislamiento) ? "" : " · diámetro del fabricante")</option>
                 }
             </select></label>
-        <label><span class="ayuda" title="Declarar la temperatura de las terminales del interruptor y del equipo — 110-14(c)(1). Regla general: 60 °C hasta 100 A; 75 °C arriba de 100 A. Marcadas 75 °C: aplicar solo si ambas terminales lo indican — a.(3). Conductor de 60 °C: usar 60 °C — a.(1).">Terminales</span>
+        <label><span class="rotulo"><Icono Nombre="terminales" Tamano="14" /><span class="ayuda" title="Declarar la temperatura de las terminales del interruptor y del equipo — 110-14(c)(1). Regla general: 60 °C hasta 100 A; 75 °C arriba de 100 A. Marcadas 75 °C: aplicar solo si ambas terminales lo indican — a.(3). Conductor de 60 °C: usar 60 °C — a.(1).">Terminales</span></span>
             <select @bind="Terminales" @bind:after="Recalcular">
                 <option value="60">60 °C hasta 100 A (regla general)</option>
                 <option value="75">Marcadas 75 °C</option>
             </select></label>
-        <label><span class="ayuda" title="Seleccionar el lugar de instalación — Art. 100. Determina la temperatura del aislamiento (XHHW: 90 °C seco y húmedo, 75 °C mojado — Tabla 310-104(a)) y si se permite (THHN, RHH y XHH: no en mojado — 310-10(c)). Húmedo: protegido de la intemperie con humedad moderada (bajo aleros, porches techados, algunos sótanos). Mojado: en contacto con la tierra, saturado de agua o a la intemperie; el interior de una canalización subterránea o en lugar mojado también lo es — 300-5(b), 300-9.">Lugar</span>
+        <label><span class="rotulo"><Icono Nombre="lugar" Tamano="14" /><span class="ayuda" title="Seleccionar el lugar de instalación — Art. 100. Determina la temperatura del aislamiento (XHHW: 90 °C seco y húmedo, 75 °C mojado — Tabla 310-104(a)) y si se permite (THHN, RHH y XHH: no en mojado — 310-10(c)). Húmedo: protegido de la intemperie con humedad moderada (bajo aleros, porches techados, algunos sótanos). Mojado: en contacto con la tierra, saturado de agua o a la intemperie; el interior de una canalización subterránea o en lugar mojado también lo es — 300-5(b), 300-9.">Lugar</span></span>
             <select @bind="Datos.Lugar" @bind:after="Recalcular">
                 <option value="@LugarDeInstalacion.Seco">Seco</option>
                 <option value="@LugarDeInstalacion.Humedo">Húmedo</option>
                 <option value="@LugarDeInstalacion.Mojado">Mojado</option>
             </select></label>
-        <label>T. ambiente (°C) <input data-requerido type="text" inputmode="decimal" autocomplete="off" data-numero min="10" max="80" step="1" value="@Numero(Datos.TemperaturaAmbienteC)" @onchange="e => { Datos.TemperaturaAmbienteC = Leer(e, Datos.TemperaturaAmbienteC, 10m, 80m); Recalcular(); }" /></label>
+        <label><span class="rotulo"><Icono Nombre="temperatura" Tamano="14" />T. ambiente (°C)</span> <input data-requerido type="text" inputmode="decimal" autocomplete="off" data-numero min="10" max="80" step="1" value="@Numero(Datos.TemperaturaAmbienteC)" @onchange="e => { Datos.TemperaturaAmbienteC = Leer(e, Datos.TemperaturaAmbienteC, 10m, 80m); Recalcular(); }" /></label>
         @* Solo en 3F-4H: el neutro de un circuito de 3 fases cuenta por armónicas — 310-15(b)(5)(3); en los demás sistemas no cambia nada. *@
         @if (Datos.Fases == 3 && Datos.Hilos == 4)
         {
-            <label><span class="ayuda" title="Marcar si la mayor parte de la carga es no lineal (electrónica, iluminación LED, equipo de cómputo): en 3F-4H el neutro lleva armónicas y cuenta como portador — 310-15(b)(5)(3).">Carga no lineal</span>
+            <label><span class="rotulo"><Icono Nombre="no-lineal" Tamano="14" /><span class="ayuda" title="Marcar si la mayor parte de la carga es no lineal (electrónica, iluminación LED, equipo de cómputo): en 3F-4H el neutro lleva armónicas y cuenta como portador — 310-15(b)(5)(3).">Carga no lineal</span></span>
                 <input type="checkbox" class="casilla" @bind="Datos.CargaNoLineal" @bind:after="Recalcular" /></label>
         }
-        <label><span class="ayuda" title="Capturar el límite de caída del circuito derivado. Recomendado: 3 % — 210-19(a)(1), NOTA 4.">e% máx. derivado</span> <input data-requerido type="text" inputmode="decimal" autocomplete="off" data-numero min="0.5" max="10" step="0.5" value="@Numero(Datos.CaidaMaxDerivadoPct)" @onchange="e => { Datos.CaidaMaxDerivadoPct = Leer(e, Datos.CaidaMaxDerivadoPct, 0.5m, 10m); Recalcular(); }" /></label>
-        <label><span class="ayuda" title="Capturar el límite de caída del alimentador. Valor inicial: 2 %, para que con el 3 % del derivado sumen el 5 % combinado — 215-2(a)(4), NOTA 2; 210-19(a)(1), NOTA 4.">e% máx. alimentador</span> <input data-requerido type="text" inputmode="decimal" autocomplete="off" data-numero min="0.5" max="10" step="0.5" value="@Numero(Datos.CaidaMaxAlimentadorPct)" @onchange="e => { Datos.CaidaMaxAlimentadorPct = Leer(e, Datos.CaidaMaxAlimentadorPct, 0.5m, 10m); Recalcular(); }" /></label>
+        <label><span class="rotulo"><Icono Nombre="caida-derivado" Tamano="14" /><span class="ayuda" title="Capturar el límite de caída del circuito derivado. Recomendado: 3 % — 210-19(a)(1), NOTA 4.">e% máx. derivado</span></span> <input data-requerido type="text" inputmode="decimal" autocomplete="off" data-numero min="0.5" max="10" step="0.5" value="@Numero(Datos.CaidaMaxDerivadoPct)" @onchange="e => { Datos.CaidaMaxDerivadoPct = Leer(e, Datos.CaidaMaxDerivadoPct, 0.5m, 10m); Recalcular(); }" /></label>
+        <label><span class="rotulo"><Icono Nombre="caida-alimentador" Tamano="14" /><span class="ayuda" title="Capturar el límite de caída del alimentador. Valor inicial: 2 %, para que con el 3 % del derivado sumen el 5 % combinado — 215-2(a)(4), NOTA 2; 210-19(a)(1), NOTA 4.">e% máx. alimentador</span></span> <input data-requerido type="text" inputmode="decimal" autocomplete="off" data-numero min="0.5" max="10" step="0.5" value="@Numero(Datos.CaidaMaxAlimentadorPct)" @onchange="e => { Datos.CaidaMaxAlimentadorPct = Leer(e, Datos.CaidaMaxAlimentadorPct, 0.5m, 10m); Recalcular(); }" /></label>
         @if (Datos.AvisoLimitesDeCaida is { } avisoLimites)
         {
             <p class="aviso"><Icono Nombre="aviso" Clase="aviso-icono" /><span>@avisoLimites</span></p>
@@ -179,7 +179,7 @@
             {
                 var clave = DatosDelTablero.ClaveDiametro(Datos.TipoAislamiento, designacion);
                 var calibre = Calibre.UnidadDe(designacion);
-                <label><span class="ayuda" title="Capturar el diámetro exterior del conductor @Datos.TipoAislamiento de @calibre, del catálogo del fabricante — Capítulo 10, Nota 5. Vacío: sin dato; si la Tabla 5 lo trae, regresa a ella.">Ø @calibre (mm)</span>
+                <label><span class="rotulo"><Icono Nombre="diametro" Tamano="14" /><span class="ayuda" title="Capturar el diámetro exterior del conductor @Datos.TipoAislamiento de @calibre, del catálogo del fabricante — Capítulo 10, Nota 5. Vacío: sin dato; si la Tabla 5 lo trae, regresa a ella.">Ø @calibre (mm)</span></span>
                     <input type="text" inputmode="decimal" autocomplete="off" data-numero min="0" step="0.01" placeholder="—" aria-label="Diámetro exterior del fabricante · @calibre (mm)"
                            value="@(Datos.DiametrosFabricante.TryGetValue(clave, out var d) ? Numero(d) : "")"
                            @onchange="e => CambiarDiametro(clave, e.Value?.ToString())" /></label>

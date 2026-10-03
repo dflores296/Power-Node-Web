@@ -594,6 +594,11 @@ select.tipo { width: 108px; padding: 2px 2px 2px 5px; border-radius: var(--radio
                       align-items: center; gap: 12px; min-height: 32px;
                       font-size: 11px; color: var(--tenue); margin-top: 8px; }
 .ficha .grupo label > .ayuda { justify-self: start; }
+/* El rótulo con su icono (David, 2026-10-03 — I-178): un icono por campo, a 14 px, del color del rótulo.
+   En un span, no suelto en la etiqueta: la etiqueta es una rejilla de dos columnas (rótulo | campo), y un
+   tercer hijo la rompía. */
+.ficha .grupo label > .rotulo { display: inline-flex; align-items: center; gap: 7px; justify-self: start; min-width: 0; }
+.ficha .grupo label > .rotulo > .icono { color: var(--tenue); }
 .ficha .grupo input, .ficha .grupo select { width: 100%; }
 .ficha .grupo input.casilla { width: auto; justify-self: start; }
 /* De 641 a 960 px (dos tarjetas por renglón) tampoco caben «Centro de carga (NEMA)» ni «60 °C hasta
