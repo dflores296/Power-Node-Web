@@ -156,6 +156,7 @@ public static class ArchivoDelCuadro
                 MaterialConductor = d.MaterialConductor, TipoAislamiento = d.TipoAislamiento, Lugar = d.Lugar,
                 TerminalesMarcadas75C = d.TerminalesMarcadas75C, TemperaturaAmbienteC = d.TemperaturaAmbienteC,
                 CargaNoLineal = d.CargaNoLineal, NeutroReducido220_61 = d.NeutroReducido220_61,
+                ConductoresPorFaseAlimentador = d.ConductoresPorFaseAlimentador,
                 DiametrosFabricante = d.DiametrosFabricante.Count == 0 ? null : new Dictionary<string, decimal>(d.DiametrosFabricante),
                 TuboAlNacer = d.TuboAlNacer,
                 CaidaMaxDerivadoPct = d.CaidaMaxDerivadoPct, CaidaMaxAlimentadorPct = d.CaidaMaxAlimentadorPct,
@@ -280,6 +281,7 @@ public static class ArchivoDelCuadro
             d.TemperaturaAmbienteC = a.TemperaturaAmbienteC ?? d.TemperaturaAmbienteC;
             d.CargaNoLineal = a.CargaNoLineal ?? d.CargaNoLineal;
             d.NeutroReducido220_61 = a.NeutroReducido220_61 ?? d.NeutroReducido220_61;
+            d.ConductoresPorFaseAlimentador = a.ConductoresPorFaseAlimentador;
             foreach (var (clave, mm) in a.DiametrosFabricante ?? [])
                 d.DiametrosFabricante[clave] = mm;
             d.TuboAlNacer = a.TuboAlNacer ?? d.TuboAlNacer;

@@ -1091,6 +1091,9 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
                 </div>
             </div>
 
+            @* I-162: cuántos conductores por fase, debajo de los cables que cambia. *@
+            @ConductoresPorFase(a.NumeroConductoresParalelo)
+
             @* I-161: el neutro a su carga de desbalance, junto al neutro que cambia. Sin marcar, igual que la fase. *@
             @if (Cuadro.SistemaConNeutro)
             {
@@ -1157,6 +1160,11 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
             </label>
             @if (Cuadro.Alimentador.Error is { } error)
             {
+                @* I-162: con un N fijado que no cumple, el selector se queda para regresarlo, y las opciones abiertas. *@
+                @if (Datos.ConductoresPorFaseAlimentador is not null || Cuadro.OpcionesDeParalelo.Count > 0)
+                {
+                    @ConductoresPorFase(null)
+                }
                 <p class="aviso error"><Icono Nombre="aviso" Clase="aviso-icono" /><span>@error</span></p>
             }
             else
@@ -1212,6 +1220,91 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
     private DatosDelTablero Datos => Cuadro.Datos;
 
     private void Recalcular() => Cuadro.Recalcular();
+
+    // ---- Conductores por fase del alimentador (I-162) ---------------------------------------------
+
+    private void FijarConductoresPorFase(int? n)
+    {
+        Datos.ConductoresPorFaseAlimentador = n;
+        Recalcular();
+    }
+
+    /// <summary>
+    /// El selector «Conductores por fase», la línea de lo fijado y la tabla para comparar. <paramref name="enUso"/>:
+    /// el N del resultado; null cuando el N fijado no cumple.
+    /// </summary>
+    private RenderFragment ConductoresPorFase(int? enUso) => __builder =>
+    {
+        var fijado = Datos.ConductoresPorFaseAlimentador;
+        var auto = Cuadro.ConductoresPorFaseAutomatico;
+        var opciones = Cuadro.OpcionesDeParalelo;
+        var deAuto = opciones.FirstOrDefault(o => o.EsAutomatico);
+        <div class="conductores-por-fase">
+            <label class="suelto opcion-paralelo">
+                <span class="ayuda" title="Consultar cuántos conductores van en paralelo por fase — 310-10(h)(1). Automático: el número más chico que cumple la ampacidad, 240-4 y la caída de tensión. Elegir un número para fijarlo; por ejemplo, 3 × 400 kcmil en vez de 2 × 900 kcmil. En paralelo: 1/0 AWG o mayor y todos iguales — 310-10(h)(2); cada canalización con su juego completo y su tierra — 250-122(f).">Conductores por fase</span>
+                <span class="fila-n">
+                    <select id="campo-conductores-por-fase" class="@(fijado is null ? null : "fijado")" value="@(fijado?.ToString() ?? "")"
+                            @onchange="e => FijarConductoresPorFase(int.TryParse(e.Value?.ToString(), out var n) ? n : null)">
+                        <option value="">Automático@(auto is int na ? $" · {na}" : "")</option>
+                        @for (var k = 1; k <= DatosDelTablero.MaximoConductoresPorFase; k++)
+                        {
+                            <option value="@k">@k</option>
+                        }
+                    </select>
+                    @if (fijado is not null)
+                    {
+                        <button class="quitar" aria-label="Regresar al automático" title="Regresar al automático: @(auto?.ToString() ?? "no encuentra cómo")" @onclick="() => FijarConductoresPorFase(null)"><Icono Nombre="deshacer" Tamano="14" /></button>
+                    }
+                </span>
+            </label>
+            @if (fijado is int f && enUso is not null)
+            {
+                <p class="derivado">Fijado: <strong>@f por fase</strong>. @(deAuto is null ? "El automático no encuentra cómo." : $"El automático da {ConHilos(deAuto.Fase, deAuto.PorFase)}.")</p>
+            }
+            @if (opciones.Count > 0 && (Cuadro.ConvieneCompararParalelos || enUso is null))
+            {
+                <details class="opciones-paralelo" open="@(enUso is null)">
+                    <summary>Comparar opciones que cumplen (@opciones.Count)</summary>
+                    <div class="desplazable">
+                        <table class="opciones-paralelo">
+                            <thead>
+                                <tr>
+                                    <th class="izq">Por fase</th><th>Fase</th><th>Tierra</th>
+                                    <th title="Ampacidad del juego: la de un conductor, corregida, por el número en paralelo.">Ampacidad</th>
+                                    <th title="Caída de tensión de la peor fase — Tabla 9.">e %</th>
+                                    <th>Canalización</th>
+                                    <th title="Área de cobre de todos los conductores: (fases + neutro + tierra) × conductores por fase — Tabla 8. Para comparar cuánto cobre lleva cada opción.">Cobre mm²</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var o in opciones)
+                                {
+                                    var elegida = o.PorFase == enUso;
+                                    <tr @key="o.PorFase" class="@(elegida ? "elegida" : null)">
+                                        <td class="izq">@o.PorFase@if (o.EsAutomatico) {<span class="pastilla">automático</span>}</td>
+                                        <td>@o.Fase.DesignacionConUnidad</td>
+                                        <td>@o.Tierra.DesignacionConUnidad</td>
+                                        <td>@o.AmpacidadA.ToString("N0") A</td>
+                                        <td>@o.CaidaPct.ToString("N2")</td>
+                                        <td>@o.Canalizacion</td>
+                                        <td>@o.CobreMm2.ToString("N0")</td>
+                                        <td>
+                                            @if (!elegida)
+                                            {
+                                                var n = o.EsAutomatico ? (int?)null : o.PorFase;
+                                                <button class="boton usar" title="@(o.EsAutomatico ? "Regresar al automático" : $"Fijar {o.PorFase} por fase")" @onclick="() => FijarConductoresPorFase(n)">Usar</button>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </details>
+            }
+        </div>
+    };
 
     // ---- Mover circuitos y optimizar el acomodo (I-69) -------------------------------------------
 

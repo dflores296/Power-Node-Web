@@ -142,6 +142,17 @@ public sealed class CanalizacionDelTablero(string id, bool automatica = false)
     /// <summary>La columna de la Tabla 9 con la que se lee la reactancia.</summary>
     public MaterialCanalizacion MaterialParaTabla9 => TiposDeCanalizacion.MaterialParaTabla9(Tipo, Tubo, MetalAluminio);
 
+    /// <summary>
+    /// Una copia con lo que se captura, sin resultados: para calcular otra opción sin tocar esta — I-162.
+    /// </summary>
+    internal CanalizacionDelTablero Copia() => new(Id, Automatica)
+    {
+        Nombre = Nombre, Tipo = Tipo, Tubo = Tubo, MetalAluminio = MetalAluminio, AnchoMm = AnchoMm, AltoMm = AltoMm,
+        AreaInteriorMm2 = AreaInteriorMm2, MaxConductoresFabricante = MaxConductoresFabricante,
+        NeutroCompartido = NeutroCompartido, TierraComun = TierraComun, TierraDesnuda = TierraDesnuda,
+        AlturaSobreTechoMm = AlturaSobreTechoMm, TamanoFijado = TamanoFijado, JuegosEnUnTubo = JuegosEnUnTubo,
+    };
+
     internal void Limpiar()
     {
         Circuitos = [];

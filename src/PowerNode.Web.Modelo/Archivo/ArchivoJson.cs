@@ -75,6 +75,8 @@ public sealed class DatosJson
     public decimal? TemperaturaAmbienteC { get; set; }
     public bool? CargaNoLineal { get; set; }
     public bool? NeutroReducido220_61 { get; set; }
+    /// <summary>Null = automático — I-162.</summary>
+    public int? ConductoresPorFaseAlimentador { get; set; }
     public Dictionary<string, decimal>? DiametrosFabricante { get; set; }
     public TipoTuboConduit? TuboAlNacer { get; set; }
 

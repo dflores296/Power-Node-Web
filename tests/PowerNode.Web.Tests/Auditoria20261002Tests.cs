@@ -327,4 +327,189 @@ public class Auditoria20261002Tests
             PowerNode.Web.Modelo.Archivo.ArchivoDelCuadro.Guardar(cuadro, DateTimeOffset.Now), Motor);
         Assert.True(abierto.Cuadro!.Datos.NeutroReducido220_61);
     }
+
+    // ---- I-162 · Conductores por fase del alimentador, fijados por el proyectista ------------------
+
+    private static CuadroDeCarga De708A()
+    {
+        var cuadro = Nuevo();
+        foreach (var espacio in new[] { 1, 2, 7 })
+            Carga(cuadro, espacio, CategoriaDeCarga.Equipo, SubtipoDeCarga.OtraCargaEspecifica, 3, 1, 90000m, continua: true);
+        return cuadro;
+    }
+
+    private static CuadroDeCarga De415A()
+    {
+        var cuadro = Nuevo();
+        Carga(cuadro, 1, CategoriaDeCarga.Equipo, SubtipoDeCarga.OtraCargaEspecifica, 3, 1, 158325m, continua: false);
+        return cuadro;
+    }
+
+    /// <summary>
+    /// 708.57 A, protección de 1000 A: cumplen 2 a 6 por fase. Cada opción con su fase, tierra (2/0 por
+    /// 1000 A, una por canalización), ampacidad del juego ≥ 1000 A (240-4, sin 240-4(b) arriba de 800 A),
+    /// caída, canalizaciones y cobre = (3 fases + neutro + tierra) × N.
+    /// </summary>
+    [Fact]
+    public void I162_Con708ACumplenDe2a6()
+    {
+        var cuadro = De708A();
+
+        Assert.Null(cuadro.Datos.ConductoresPorFaseAlimentador);
+        Assert.Equal(2, cuadro.ConductoresPorFaseAutomatico);
+        Assert.True(cuadro.ConvieneCompararParalelos);
+        var o = cuadro.OpcionesDeParalelo;
+        Assert.Equal([2, 3, 4, 5, 6], o.Select(x => x.PorFase));
+        Assert.Equal(["900", "400", "250", "3/0", "2/0"], o.Select(x => x.Fase.Designacion));
+        Assert.All(o, x => Assert.Equal("2/0", x.Tierra.Designacion));
+        Assert.All(o, x => Assert.True(x.AmpacidadA >= 1000m));
+        Assert.Equal([1040m, 1005m, 1020m, 1000m, 1050m], o.Select(x => x.AmpacidadA));
+        Assert.Equal(2, Assert.Single(o, x => x.EsAutomatico).PorFase);
+        var tres = o.Single(x => x.PorFase == 3);
+        Assert.Equal(3 * (4 * tres.Fase.AreaMm2 + tres.Tierra.AreaMm2), tres.CobreMm2);
+        Assert.StartsWith("EMT · 3 × ", tres.Canalizacion);
+        // La del tablero se queda con la del automático: las opciones no la tocan.
+        Assert.Equal(2, cuadro.Datos.CanalizacionAlimentador.CanalizacionesIguales);
+    }
+
+    /// <summary>Fijado en 3: 3 × 400 kcmil, tres canalizaciones, y la cita dice que lo fijó el proyectista.</summary>
+    [Fact]
+    public void I162_FijadoEn3SeCalculaConTres()
+    {
+        var cuadro = De708A();
+        cuadro.Datos.ConductoresPorFaseAlimentador = 3;
+        cuadro.Recalcular();
+
+        Assert.Null(cuadro.Alimentador.Error);
+        var r = cuadro.Alimentador.Resultado!;
+        Assert.Equal(3, r.NumeroConductoresParalelo);
+        Assert.Equal("400", r.CalibreFase.Designacion);
+        Assert.Equal("2/0", r.CalibreTierra.Designacion);
+        Assert.Equal(3, cuadro.Datos.CanalizacionAlimentador.CanalizacionesIguales);
+        Assert.Equal(2, cuadro.ConductoresPorFaseAutomatico);
+        var cita = Assert.Single(r.Citas, x => x.Referencia == "310-10(h)(1)" && x.Descripcion.Contains("fijado por el proyectista"));
+        Assert.Contains("3 conductores por fase", cita.Descripcion);
+        Assert.Contains("el automático daba 2", cita.Descripcion);
+        // Sin la cita de que subió solo: no subió, se fijó.
+        Assert.DoesNotContain(r.Citas, x => x.Descripcion.Contains("se sube automáticamente"));
+        Assert.Equal(2, Assert.Single(cuadro.OpcionesDeParalelo, x => x.EsAutomatico).PorFase);
+    }
+
+    /// <summary>De regreso al automático (null): 2 × 900 kcmil otra vez.</summary>
+    [Fact]
+    public void I162_DeRegresoAlAutomatico()
+    {
+        var cuadro = De708A();
+        cuadro.Datos.ConductoresPorFaseAlimentador = 4;
+        cuadro.Recalcular();
+        Assert.Equal("250", cuadro.Alimentador.Resultado!.CalibreFase.Designacion);
+
+        cuadro.Datos.ConductoresPorFaseAlimentador = null;
+        cuadro.Recalcular();
+        Assert.Equal(2, cuadro.Alimentador.Resultado!.NumeroConductoresParalelo);
+        Assert.Equal("900", cuadro.Alimentador.Resultado.CalibreFase.Designacion);
+        Assert.DoesNotContain(cuadro.Alimentador.Resultado.Citas, x => x.Descripcion.Contains("fijado por el proyectista"));
+    }
+
+    /// <summary>708.57 A con 1 por fase no alcanza: error con la ampacidad, y cuáles cumplen.</summary>
+    [Fact]
+    public void I162_FijadoEnUnoSinAmpacidadDiceCualesCumplen()
+    {
+        var cuadro = De708A();
+        cuadro.Datos.ConductoresPorFaseAlimentador = 1;
+        cuadro.Recalcular();
+
+        Assert.Null(cuadro.Alimentador.Resultado);
+        Assert.Equal(
+            "Con 1 conductor por fase, ni el calibre más grande del catálogo alcanza la ampacidad o queda protegido — 240-4. "
+            + "Cumplen 2, 3, 4, 5 o 6 por fase.",
+            cuadro.Alimentador.Error);
+        Assert.Equal(5, cuadro.OpcionesDeParalelo.Count);
+        Assert.Equal(2, cuadro.ConductoresPorFaseAutomatico);
+    }
+
+    /// <summary>
+    /// 415.5 A, protección de 450 A: cumplen 1 × 600 kcmil, 2 × 4/0 y 3 × 1/0. Con 4 cada conductor saldría
+    /// de 2 AWG, menor que 1/0 — 310-10(h)(1).
+    /// </summary>
+    [Fact]
+    public void I162_Con415AFijadoEn4NoLlegaA1_0()
+    {
+        var cuadro = De415A();
+        Assert.Equal([1, 2, 3], cuadro.OpcionesDeParalelo.Select(x => x.PorFase));
+        Assert.Equal(["600", "4/0", "1/0"], cuadro.OpcionesDeParalelo.Select(x => x.Fase.Designacion));
+        Assert.Equal(1, Assert.Single(cuadro.OpcionesDeParalelo, x => x.EsAutomatico).PorFase);
+        Assert.True(cuadro.ConvieneCompararParalelos);
+
+        cuadro.Datos.ConductoresPorFaseAlimentador = 4;
+        cuadro.Recalcular();
+
+        Assert.Null(cuadro.Alimentador.Resultado);
+        Assert.Equal(
+            "Con 4 conductores por fase, cada uno sale de 2 AWG, y 310-10(h)(1) pide 1/0 AWG o mayor en paralelo. Cumplen 1, 2 o 3 por fase.",
+            cuadro.Alimentador.Error);
+    }
+
+    /// <summary>Un alimentador chico: una sola opción de un calibre delgado, nada que comparar.</summary>
+    [Fact]
+    public void I162_UnAlimentadorChicoNoOfreceComparar()
+    {
+        var cuadro = Nuevo();
+        Carga(cuadro, 1, CategoriaDeCarga.Equipo, SubtipoDeCarga.OtraCargaEspecifica, 1, 1, 3000m, continua: false);
+
+        var opcion = Assert.Single(cuadro.OpcionesDeParalelo);
+        Assert.Equal(1, opcion.PorFase);
+        Assert.True(opcion.EsAutomatico);
+        Assert.False(cuadro.ConvieneCompararParalelos);
+    }
+
+    /// <summary>Sin carga no hay opciones; y un N fuera de 1 a 6 regresa al automático.</summary>
+    [Fact]
+    public void I162_SinCargaNoHayOpcionesYElRangoEsDe1a6()
+    {
+        var cuadro = Nuevo();
+        Assert.Empty(cuadro.OpcionesDeParalelo);
+        Assert.Null(cuadro.ConductoresPorFaseAutomatico);
+
+        cuadro.Datos.ConductoresPorFaseAlimentador = 7;
+        Assert.Null(cuadro.Datos.ConductoresPorFaseAlimentador);
+        cuadro.Datos.ConductoresPorFaseAlimentador = 0;
+        Assert.Null(cuadro.Datos.ConductoresPorFaseAlimentador);
+    }
+
+    /// <summary>Con los juegos en un tubo, el N fijado cuenta todos los conductores en una canalización.</summary>
+    [Fact]
+    public void I162_FijadoConLosJuegosEnUnTubo()
+    {
+        var cuadro = De708A();
+        cuadro.Datos.CanalizacionAlimentador.JuegosEnUnTubo = true;
+        cuadro.Datos.ConductoresPorFaseAlimentador = 3;
+        cuadro.Recalcular();
+
+        Assert.Null(cuadro.Alimentador.Error);
+        var r = cuadro.Alimentador.Resultado!;
+        Assert.Equal(3, r.NumeroConductoresParalelo);
+        Assert.True(r.Detalle!.FactorAgrupamiento < 1m);
+        Assert.Equal(1, cuadro.Datos.CanalizacionAlimentador.CanalizacionesIguales);
+        // 3 juegos × 3 fases; el neutro de un 3F-4H lineal no cuenta — 310-15(b)(5)(1).
+        Assert.Equal(9, cuadro.Datos.CanalizacionAlimentador.Conteo!.Portadores);
+    }
+
+    [Fact]
+    public void I162_ElNFijadoSeGuardaEnElArchivo()
+    {
+        var cuadro = De708A();
+        cuadro.Datos.ConductoresPorFaseAlimentador = 3;
+        cuadro.Recalcular();
+
+        var abierto = PowerNode.Web.Modelo.Archivo.ArchivoDelCuadro.Abrir(
+            PowerNode.Web.Modelo.Archivo.ArchivoDelCuadro.Guardar(cuadro, DateTimeOffset.Now), Motor);
+        Assert.Equal(3, abierto.Cuadro!.Datos.ConductoresPorFaseAlimentador);
+        Assert.Equal("400", abierto.Cuadro.Alimentador.Resultado!.CalibreFase.Designacion);
+
+        cuadro.Datos.ConductoresPorFaseAlimentador = null;
+        var automatico = PowerNode.Web.Modelo.Archivo.ArchivoDelCuadro.Abrir(
+            PowerNode.Web.Modelo.Archivo.ArchivoDelCuadro.Guardar(cuadro, DateTimeOffset.Now), Motor);
+        Assert.Null(automatico.Cuadro!.Datos.ConductoresPorFaseAlimentador);
+    }
 }

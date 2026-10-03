@@ -505,6 +505,22 @@ public sealed class DatosDelTablero
     public bool NeutroReducido220_61 { get; set; }
 
     /// <summary>
+    /// <b>Conductores por fase del alimentador, fijados por el proyectista</b> — 310-10(h)(1), I-162. Null =
+    /// automático: el N más chico que cumple. Fijado, se calcula con ese N exacto, o se dice por qué no
+    /// cumple y cuáles sí. De 1 a <see cref="MaximoConductoresPorFase"/>.
+    /// </summary>
+    public int? ConductoresPorFaseAlimentador
+    {
+        get => conductoresPorFase;
+        set => conductoresPorFase = value is >= 1 and <= MaximoConductoresPorFase ? value : null;
+    }
+
+    private int? conductoresPorFase;
+
+    /// <summary>El tope del automático (criterio del programa, no de la norma): también el del selector.</summary>
+    public const int MaximoConductoresPorFase = 6;
+
+    /// <summary>
     /// Diámetro exterior del fabricante, en mm, por aislamiento y calibre («THW-LS|12»). Solo para
     /// aislamientos que no están en la Tabla 5 del Capítulo 10 — Nota 5.
     /// </summary>

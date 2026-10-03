@@ -2659,6 +2659,9 @@ public sealed class CuadroDeCarga
     private void CalcularAlimentador()
     {
         var polos = Datos.Barras.Count;
+        NeutroReducido = null;
+        OpcionesDeParalelo = [];
+        ConductoresPorFaseAutomatico = null;
 
         if (Resumen.InstaladaVA <= 0m)
         {
@@ -2688,7 +2691,9 @@ public sealed class CuadroDeCarga
         // fase que gobierna, aplica el factor de demanda (220-40, con la carga real en su cita) y
         // calcula la caída fase por fase con el neutro (R-02). Antes la web le entregaba 3 × los VA
         // de la fase más cargada y reescribía la cita 220-40: ya no.
-        ResultadoAlimentador Calcular() => _motor.Alimentador(Datos.SerieInterruptores).Calcular(new DatosEntradaAlimentador(
+        //
+        // N: el automático empieza en 1 y sube hasta el tope; fijado, va de N a N, exacto — I-162.
+        ResultadoAlimentador Calcular(CanalizacionDelTablero canal, int n, int tope) => _motor.Alimentador(Datos.SerieInterruptores).Calcular(new DatosEntradaAlimentador(
                 // Ya con el factor de demanda de cada tipo (R-17): por eso el motor va con F.D. 1 abajo.
                 CargaContinuaVA: Resumen.ContinuaDemandadaVA + (Resumen.Superficie?.ContinuaDemandadaVA ?? 0m),
                 CargaNoContinuaVA: Resumen.NoContinuaDemandadaVA + Resumen.Minimo220_52DemandadoVA + (Resumen.Superficie?.NoContinuaDemandadaVA ?? 0m),
@@ -2696,7 +2701,7 @@ public sealed class CuadroDeCarga
                 TensionFaseNeutroV: Datos.TensionFaseNeutroV,
                 TensionFaseFaseV: Datos.TensionFaseFaseV,
                 LongitudM: Datos.LongitudAlimentadorM,
-                NumeroConductoresParalelo: 1,
+                NumeroConductoresParalelo: n,
                 // De SU canalización — I-39: el alimentador ya no hereda el agrupamiento de los derivados.
                 NumeroConductoresAgrupados: canal.Ajuste!.ConductoresParaElMotor,
                 TemperaturaAmbienteC: Datos.TemperaturaAmbienteC + canal.SumadorAzoteaC,
@@ -2716,40 +2721,104 @@ public sealed class CuadroDeCarga
                 ConNeutro: SistemaConNeutro,
                 // 230-79: el principal SUBE al mínimo si el tablero es el de la acometida — R-11.
                 ProteccionMinimaA: Datos.Minimo230_79?.Amperes,
-                ReferenciaProteccionMinima: Datos.Minimo230_79?.Referencia));
+                ReferenciaProteccionMinima: Datos.Minimo230_79?.Referencia,
+                MaxConductoresParaleloAutomatico: tope));
 
-        try
+        // El alimentador completo con N automático (null) o fijado, sobre una canalización: conteo,
+        // motor, neutro de 220-61 y tamaño. Deja la canalización con lo que resultó.
+        (ResultadoAlimentador, NeutroDe220_61?) Resolver(CanalizacionDelTablero canal, int? fijo)
         {
-            // CONDUCTORES EN PARALELO. Un juego por canalización, todas iguales (310-10(h)(3)): el
-            // conteo no cambia. Si se declaran todos en una, cada conductor cuenta
-            // (310-15(b)(3)(a)): más portadores pueden pedir más cobre, y más cobre más juegos. Se
-            // repite hasta que el número de juegos deje de cambiar.
-            var juegos = 1;
             ResultadoAlimentador resultado;
-            for (var vuelta = 0; ; vuelta++)
+            if (fijo is int k)
             {
-                Contar(canal, [new CircuitoEnCanalizacion("alimentador", polos, conNeutro, [.. Datos.Barras], juegos)]);
-                resultado = Calcular();
-                var enUno = canal.JuegosEnUnTubo ? resultado.NumeroConductoresParalelo : 1;
-                if (enUno == juegos) break;
-                if (vuelta == 3)
-                    throw new InvalidOperationException(
-                        "Con todos los conductores en paralelo en una sola canalización, el número de juegos no se estabiliza: "
-                        + "declara un juego por canalización.");
-                juegos = enUno;
+                // Con N fijado el número de juegos ya se sabe: no hay vueltas.
+                Contar(canal, [new CircuitoEnCanalizacion("alimentador", polos, conNeutro, [.. Datos.Barras], canal.JuegosEnUnTubo ? k : 1)]);
+                resultado = Calcular(canal, k, k);
+            }
+            else
+            {
+                // CONDUCTORES EN PARALELO. Un juego por canalización, todas iguales (310-10(h)(3)): el
+                // conteo no cambia. Si se declaran todos en una, cada conductor cuenta
+                // (310-15(b)(3)(a)): más portadores pueden pedir más cobre, y más cobre más juegos. Se
+                // repite hasta que el número de juegos deje de cambiar.
+                var juegos = 1;
+                for (var vuelta = 0; ; vuelta++)
+                {
+                    Contar(canal, [new CircuitoEnCanalizacion("alimentador", polos, conNeutro, [.. Datos.Barras], juegos)]);
+                    resultado = Calcular(canal, 1, DatosDelTablero.MaximoConductoresPorFase);
+                    var enUno = canal.JuegosEnUnTubo ? resultado.NumeroConductoresParalelo : 1;
+                    if (enUno == juegos) break;
+                    if (vuelta == 3)
+                        throw new InvalidOperationException(
+                            "Con todos los conductores en paralelo en una sola canalización, el número de juegos no se estabiliza: "
+                            + "declara un juego por canalización.");
+                    juegos = enUno;
+                }
             }
 
             // 220-61: el neutro a su carga de desbalance, si se pidió y se permite — I-161. Antes de
             // dimensionar la canalización, que lleva el neutro que se instala.
-            NeutroReducido = null;
+            NeutroDe220_61? neutro = null;
             if (Datos.NeutroReducido220_61 && PorQueNoSeReduceElNeutro is null)
-                (resultado, NeutroReducido) = ReducirNeutro(resultado);
+                (resultado, neutro) = ReducirNeutro(resultado);
 
             var n = resultado.NumeroConductoresParalelo;
             canal.CanalizacionesIguales = canal.JuegosEnUnTubo ? 1 : n;
             Dimensionar(canal,
                 [new ConductoresDelCircuito("alimentador", polos, conNeutro, resultado.CalibreFase, resultado.CalibreNeutro, resultado.CalibreTierra)],
                 canal.JuegosEnUnTubo ? n : 1);
+            return (resultado, neutro);
+        }
+
+        // LAS OPCIONES: cada N de 1 al tope, fijado, en una copia de la canalización para no tocar la
+        // del tablero — I-162. Las que no cumplen dicen por qué, para el error de un N fijado.
+        var opciones = new List<OpcionDeParalelo>();
+        var porQueNo = new Dictionary<int, Exception>();
+        for (var k = 1; k <= DatosDelTablero.MaximoConductoresPorFase; k++)
+        {
+            var copia = canal.Copia();
+            try
+            {
+                var (r, _) = Resolver(copia, k);
+                opciones.Add(new OpcionDeParalelo(k, r.CalibreFase, r.CalibreNeutro, r.CalibreTierra,
+                    r.Detalle?.AmpacidadConductorA ?? 0m, r.CaidaTensionPct, $"{copia.Rotulo} · {copia.TamanoRotulo}",
+                    k * (polos * r.CalibreFase.AreaMm2 + (conNeutro ? r.CalibreNeutro.AreaMm2 : 0m) + r.CalibreTierra.AreaMm2)));
+            }
+            catch (Exception ex)
+            {
+                porQueNo[k] = ex;
+            }
+        }
+
+        var fijado = Datos.ConductoresPorFaseAlimentador;
+        try
+        {
+            ResultadoAlimentador resultado;
+            if (fijado is int k)
+            {
+                try { ConductoresPorFaseAutomatico = Resolver(canal.Copia(), null).Item1.NumeroConductoresParalelo; }
+                catch (Exception) { /* el automático tampoco cumple: se dice en la cita y en el selector */ }
+                if (porQueNo.TryGetValue(k, out var ex))
+                    throw new InvalidOperationException(PorQueNoCumple(k, ex, opciones));
+                (resultado, NeutroReducido) = Resolver(canal, k);
+                var auto = ConductoresPorFaseAutomatico is int a
+                    ? (a == k ? "; el automático da lo mismo." : $"; el automático daba {a}.")
+                    : "; el automático no encuentra cómo.";
+                resultado = resultado with
+                {
+                    Citas = [.. resultado.Citas, new Cita("310-10(h)(1)",
+                        $"{k} {(k == 1 ? "conductor" : "conductores")} por fase, fijado por el proyectista" + auto
+                        + (k > 1 ? " En paralelo, de 1/0 AWG o mayor y todos iguales — 310-10(h)(2)"
+                            + (canal.JuegosEnUnTubo ? "." : "; cada canalización con su juego completo y su tierra — 250-122(f).") : ""))],
+                };
+            }
+            else
+            {
+                (resultado, NeutroReducido) = Resolver(canal, null);
+                ConductoresPorFaseAutomatico = resultado.NumeroConductoresParalelo;
+            }
+
+            OpcionesDeParalelo = [.. opciones.Select(o => o with { EsAutomatico = o.PorFase == ConductoresPorFaseAutomatico })];
 
             // La fase que gobierna la decide el motor; la de aquí es la misma regla, para mostrarla.
             if (resultado.FaseQueGobierna is { } fase)
@@ -2758,8 +2827,54 @@ public sealed class CuadroDeCarga
         }
         catch (Exception ex)
         {
+            NeutroReducido = null;
+            OpcionesDeParalelo = [.. opciones.Select(o => o with { EsAutomatico = o.PorFase == ConductoresPorFaseAutomatico })];
             Alimentador = new RenglonDelAlimentador(null, ex.Message, [], polos, fases, gobierna, fpAlimentador);
         }
+    }
+
+    /// <summary>
+    /// Las formas de correr el alimentador de 1 al tope de conductores por fase, las que cumplen — I-162.
+    /// Vacía sin carga. Una sola con 1 por fase cuando no hay más que comparar.
+    /// </summary>
+    public IReadOnlyList<OpcionDeParalelo> OpcionesDeParalelo { get; private set; } = [];
+
+    /// <summary>El N que da el automático, aunque el proyectista haya fijado otro. Null si no encuentra ninguno.</summary>
+    public int? ConductoresPorFaseAutomatico { get; private set; }
+
+    /// <summary>
+    /// Se ofrece comparar: hay más de una opción, o una sola de 250 kcmil o más, que en la práctica
+    /// conviene partir, o el N fijado no cumple.
+    /// </summary>
+    public bool ConvieneCompararParalelos =>
+        OpcionesDeParalelo.Count > 1
+        || OpcionesDeParalelo.Any(o => o.PorFase == 1 && o.Fase.AreaMm2 >= 127m) // 250 kcmil, Tabla 8
+        || Datos.ConductoresPorFaseAlimentador is not null;
+
+    /// <summary>Por qué no cumple un N fijado, en palabras del proyectista, y cuáles sí.</summary>
+    private string PorQueNoCumple(int k, Exception ex, IReadOnlyList<OpcionDeParalelo> cumplen)
+    {
+        var con = $"Con {k} {(k == 1 ? "conductor" : "conductores")} por fase";
+        var porque = ex switch
+        {
+            ConductoresParaleloNoPermitidoException e when System.Text.RegularExpressions.Regex.Match(e.Message, @"resultante \((.+?)\) es menor") is { Success: true } m =>
+                $"{con}, cada uno sale de {_motor.Calibres.Listar().FirstOrDefault(c => c.Designacion == m.Groups[1].Value)?.DesignacionConUnidad ?? m.Groups[1].Value}, y 310-10(h)(1) pide 1/0 AWG o mayor en paralelo.",
+            ConductoresParaleloNoPermitidoException =>
+                $"{con}, cada uno sale menor que 1/0 AWG, y 310-10(h)(1) pide 1/0 AWG o mayor en paralelo.",
+            CaidaTensionExcedidaException =>
+                $"{con}, ni el calibre más grande del catálogo baja la caída de tensión a {Datos.CaidaMaxAlimentadorPct:0.##} %.",
+            InvalidOperationException e when e.Message.Contains("ampacidad") =>
+                $"{con}, ni el calibre más grande del catálogo alcanza la ampacidad o queda protegido — 240-4.",
+            _ => $"{con}: {ex.Message}",
+        };
+        var lista = cumplen.Select(o => o.PorFase.ToString()).ToList();
+        var cuales = lista.Count switch
+        {
+            0 => $" Ningún número de 1 a {DatosDelTablero.MaximoConductoresPorFase} cumple.",
+            1 => $" Cumple {lista[0]} por fase.",
+            _ => $" Cumplen {string.Join(", ", lista[..^1])} o {lista[^1]} por fase.",
+        };
+        return porque + cuales;
     }
 
     /// <summary>La reducción del neutro del alimentador por 220-61, si se aplicó. Null sin ella — I-161.</summary>

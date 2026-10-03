@@ -255,6 +255,7 @@
         barra ??= crearBarra();
         barra.querySelector('.campo').textContent = nombre;
         barra.querySelector('.texto').textContent = ayuda;
+        pendiente = false;
         barra.hidden = false;
         document.body.classList.add('con-ayuda');
         reservarAlto();
@@ -266,7 +267,21 @@
             document.body.style.setProperty('--alto-ayuda', `${barra.offsetHeight}px`);
     }
 
+    // Con el botón del ratón abajo, la barra se quita hasta soltarlo — I-162. Al quitarla se quita también
+    // el espacio que le reservaba el pie: abajo de la página todo baja de golpe y el clic se soltaba en otra
+    // cosa («Comparar opciones» no se abría).
+    let pulsando = false;
+    let pendiente = false;
+    document.addEventListener('pointerdown', () => { pulsando = true; }, true);
+    addEventListener('pointerup', () => {
+        pulsando = false;
+        setTimeout(() => { if (pendiente) ocultarAyuda(); });
+    }, true);
+
     function ocultarAyuda() {
+        pendiente = pulsando;
+        if (pulsando)
+            return;
         if (barra)
             barra.hidden = true;
         document.body.classList.remove('con-ayuda');
