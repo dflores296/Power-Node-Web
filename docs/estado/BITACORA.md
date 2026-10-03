@@ -4,6 +4,27 @@ Registro de acciones por sesión, con hallazgo y commit.
 
 ## 2026-10-03
 
+**Auditoría de motores, Art. 430** (David; caja negra contra `d9a1ff8`, 25 circuitos en cinco tableros): el
+cálculo coincidió en todos; 18 hallazgos de interfaz y de criterio — `585a857` y este commit:
+
+- Los dos bugs, reproducidos con Playwright antes de tocarlos. I-184: la celda decía 175 A con el cálculo en
+  350 A (opciones sin `@key`, como I-45). I-185: quitar la única línea dejaba sus VA como «carga total»; ahora el
+  circuito queda vacío (`QuitarCarga`), y la lavadora ya no baja a 15 A.
+- I-186: «Nuevo» en la barra, con confirmación; la barra, con cortes nuevos (1320 y 840 px). I-187 e I-193: los
+  mensajes de la carga y de la copia recuperada.
+- I-190, I-196: la tensión en cada HP y la columna de la tabla en el rótulo (600 V: 575 V). I-191: sin descripción,
+  el nombre de la carga. I-192: aviso de centro de carga arriba de 240 V. I-194: la memoria con 3.50 A y «fases
+  A-B». I-195: `for`/`id`. I-197 y M-21: textos de 430-62(a) y de 110-14(c)(1) (motor de cálculo: solo textos).
+- Por decidir (David), con opciones y recomendación en HALLAZGOS: I-188 (congelamientos: medidos, ~300 ms por
+  cambio aquí, todo se vuelve a dibujar; recomendación, un componente por renglón), I-189 (A/C y variador en
+  1 polo), M-21 (el criterio de la columna de terminales), M-22 (430-62(b) con el conductor mínimo), M-23 (variador
+  con bypass, 430-122(b)).
+- Visto en el navegador: claro, oscuro, 360 a 1920 px; el 100 HP marcando y desmarcando dos veces, con y sin
+  fijada; la lavadora quitada; «Nuevo» con y sin cambios; cuadro y memoria con la lavadora, el refrigerador de
+  3.5 A y un bipolar de 2F-3H.
+
+Pruebas: 598 en `PowerNode.Web.Tests` (17 nuevas, `AuditoriaMotores20261003Tests`), 52 en `PowerNode.Normativa.Tests`.
+
 **I-182 e I-183 implementados** (plan aprobado por David; sin el botón ↺: «¿no puedes simplemente volver a
 seleccionar el antiguo?»; «OL» también en A/C, «de fábrica») — `b2b5f51` (confirmación), `230d16f` y este commit:
 

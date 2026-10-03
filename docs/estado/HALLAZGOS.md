@@ -209,6 +209,20 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-181 · En el alimentador, cajitas de color en lugar de un icono del conductor (pedido de David) | P3 | **Cerrado** | `c572985`, `22589e0`, `30f6332` |
 | I-182 · El selector de la protección (M-20) habla como el programador: «auto», «cond.», «máx.» y dos grupos con los mismos números (pedido de David) | P3 | **Cerrado** | `230d16f` |
 | I-183 · La app da por hecha la protección contra sobrecarga del motor (430-32) y no la dice donde se lee: con el interruptor arriba de la ampacidad, el conductor depende de un dispositivo que el cuadro no menciona | P2 | **Cerrado** | `230d16f` |
+| I-184 · Al desmarcar la Excepción 2 (100 HP a 440 V), la celda «Protec. (A)» decía 175 A con el cálculo en 350 A (AM-1) | P1 | **Cerrado** | `585a857` |
+| I-185 · Quitar la única carga dejaba una «carga total» fantasma con sus VA, su protección y las reglas de otra clase: la lavadora de 20 A, en 15 A (AM-2, AM-3) | P1 | **Cerrado** | `585a857` |
+| I-186 · Sin «Tablero nuevo»: empezar de cero pedía otra pestaña (AM-8) | P2 | **Cerrado** | `585a857` |
+| I-187 · Carga inicial de 40 s a 3 min por pestaña (AM-9) | P3 | **Cerrado** (el mensaje; la descarga sigue en I-152) | `585a857` |
+| I-188 · La página se congeló (> 45 s) al capturar varios campos seguidos (AM-10) | P2 | Propuesta, por decidir (David) | — |
+| I-189 · Minisplit, motocompresor y variador arrancan en 1 polo (127 V) (AM-11) | P3 | Propuesta, por decidir (David) | — |
+| I-190 · La lista de HP repetía «1/2 HP — 8.90 A» y «1/2 HP — 4.90 A»; solo el grupo decía la tensión (AM-12) | P3 | **Cerrado** | `585a857` |
+| I-191 · La columna Descripción decía «—» con la carga capturada con nombre (AM-13) | P3 | **Cerrado** | `585a857` |
+| I-192 · 440 V con «Centro de carga (NEMA)», sin aviso (AM-14) | P3 | **Cerrado** (aviso) | `585a857` |
+| I-193 · Al recargar, el navegador avisa «cambios sin guardar» y luego el tablero se recupera, sin decir por qué (AM-15) | P3 | **Cerrado** | `585a857` |
+| I-194 · La memoria redondeaba la carga de placa a entero (3.5 A → «4 A») y escribía la fase «BA» (AM-16) | P3 | **Cerrado** | `585a857` |
+| I-195 · Identificación y Sistema sin nombre accesible para el lector de pantalla (AM-17) | P3 | **Cerrado** | `585a857` |
+| I-196 · A 600 V el rótulo decía «Tabla 430-250» y se leía la columna de 575 V sin decirlo (AM-18) | P3 | **Cerrado** | `585a857` |
+| I-197 · La memoria de 430-62(a) decía «la mayor protección de derivado» y usa la máxima permitida, no la instalada (AM-6) | P3 | **Cerrado** | `585a857` |
 | M-14 · Sin el mínimo de alumbrado general por superficie (220-12) en el alimentador; en vivienda, contactos de uso general sumados aparte (220-14(j)) | P1 | **Cerrado** | `71abc56` |
 | M-15 · Motor: la Excepción 1 de 430-52(c)(1) redondeaba dentro de la serie (35 → 40 A en riel DIN) y se citaba sin redondeo; sin Excepción 2 | P1 | **Cerrado** | `8b4d893`, `60a4f91` |
 | M-16 · «Húmedo o mojado» en una opción: XHHW mojado a 90 °C (conductor de menos); RHH y XHH aceptados en mojado | P1 | **Cerrado** | `a3fded5` |
@@ -216,6 +230,9 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | M-18 · Equipo de acometida sin conductor del electrodo (Tabla 250-66) ni puente de unión principal (250-28(d)(1)) | P3 | **Cerrado** | `a600dc9` |
 | M-19 · El alimentador no subía a conductores en paralelo cuando la ampacidad no alcanzaba: «No hay calibre en el catálogo…» | P2 | **Cerrado** | `4fad887` |
 | M-20 · Motor: la protección del derivado es siempre el máximo de la Tabla 430-52, presentado como la seleccionada; no se puede escoger dentro del rango (bomba de 1/2 HP: 25 A sobre 14 AWG) | P2 | **Cerrado** (con la fase 2: A/C y variador) | `3b1b689`, `7bf7bf2` |
+| M-21 · La columna de terminales sale de la protección escogida, no del conductor: 25 HP a 220 V, 4 AWG con 175 A y 3 AWG con 100 A; la cita no decía el inciso (AM-4) | P3 | **Cerrado** (la cita); el criterio, por decidir (David) | `585a857` |
+| M-22 · 430-62(b) acepta un principal arriba del techo de 430-62(a) con el conductor mínimo (caso A: techo 69.21 A, principal 70 A con 4 AWG) (AM-5) | P3 | Propuesta, por decidir (David) | — |
+| M-23 · El variador no captura los HP del motor ni el bypass — 430-122(b) (AM-7) | P3 | Propuesta, por decidir (David) | — |
 | R-01 · Caída del alimentador fija en 5 %, sin verificar la combinada — 215-2(a)(4) NOTA 2 | P1 | **Cerrado** | `2a973ea` |
 | R-02 · Caída del alimentador sin la caída del neutro | P2 | **Cerrado** | `d6cd1c6` |
 | R-03 · La publicación no corre `PowerNode.Web.Tests` | P1 | **Cerrado** | `986c9d7` |
@@ -989,6 +1006,116 @@ equipo (430-32(a), 430-32(b), 430-33 sin «OL», 430-124(a) y 430-126, 440-52, 4
 el renglón y en el documento, con leyenda; desglose y memoria con el texto por equipo; la cita de 240-4(g) se apoya
 en la sobrecarga que exige 430-32 (en el variador, por 430-120); guía con el alcance de motores. Pruebas:
 `ProteccionFijadaYSobrecargaTests` (`I183_…`); en el navegador, motor, A/C, variador e intermitente (sin «OL»).
+
+### Auditoría de motores, Art. 430, 2026-10-03
+
+David, caja negra contra `d9a1ff8`: 25 circuitos en cinco tableros (residencial, tortillería, minisúper, taller a
+220 V y planta a 440 V; uno pasado a 600 V), comparados con el cálculo a mano. **El cálculo coincidió en todos.**
+Los 18 hallazgos (AM-1 a AM-18, por su número en la auditoría) son de interfaz, salvo cuatro de criterio. Pruebas:
+`AuditoriaMotores20261003Tests` (17); en el navegador, claro, oscuro y 390 px.
+
+**I-184** (AM-1) — Hecho: 100 HP a 440 V, 350 A; marcar «No arranca con la Tabla 430-52» deja solo 350 A
+(300 % × 124 A = 372 A → 350 A), desmarcarla y la celda dice 175 A (141 % de la FLC). Reproducido con
+Playwright: el selector decía 175 A y el cálculo seguía en 350 A (el desglose, el documento y la memoria, 350 A).
+Las opciones iban sin `@key`: de «350» a «175 … 350», Blazor reutilizó la opción seleccionada y le cambió el
+valor a 175; el valor del selector no cambió, y no lo volvió a poner. Es I-45 en otro selector. Corrección
+(`585a857`): `@key` por valor. Una fijada que la Excepción 2 borra regresa a la calculada, 350 A, con el
+aviso de I-182, que con un rango de un valor decía «(350 a 350 A)» y ahora «(solo 350 A)». Los demás selectores
+de lista variable ya tenían llave o cambian de valor con la lista (fases, hilos y espacios, revisados en el
+navegador). Pruebas: `I184_…` (2).
+
+**I-185** (AM-2, AM-3) — Hecho: con una sola carga (la lavadora, 1500 VA, 20 A por 210-11(c)(2)), el bote la
+quitaba pero el renglón seguía como «Uso general · carga total» con 1500 VA y 15 A. `SumarDesglose` escribe la
+continua y la no continua del renglón con la suma de las líneas; sin líneas, se quedaban como carga total, ya sin
+el uso de la lavadora. Corrección (`585a857`): `CircuitoDelCuadro.QuitarCarga` — un solo equipo que queda regresa
+al renglón, como antes; sin líneas, el circuito queda vacío, como uno nuevo (`QuitarEquipo`): la descripción, los
+polos, la longitud y la canalización se quedan. También un alimentador al quitar su único tablero (el recálculo lo
+volvía a armar). Las líneas que un motor del renglón conserva sin contar (I-113) no lo vacían. Pruebas: `I185_…` (4).
+
+**I-186** (AM-8) — «Nuevo» en la barra, junto a Abrir: un tablero en blanco en la misma pestaña; con cambios sin
+guardar, pregunta como Abrir («Empezar uno nuevo» / Cancelar). Borra la copia de la pestaña. La barra cambió de
+cortes para el tercer botón: sin texto hasta 1320 px (era 1180), en dos renglones hasta 840 px (era 800). Visto
+de 360 a 1920 px, sin desplazamiento lateral.
+
+**I-187** (AM-9) — La pantalla de carga ya decía cuánto falta (I-148). Lo que cambia: «La primera carga puede
+tardar … para otro tablero, «Nuevo» en la barra lo empieza sin volver a cargar». Bajar la descarga (9.9 MB sin
+comprimir) sigue en I-152, por decidir. Medido aquí: 2.2 s en Release y 3.5–4.5 s en Debug.
+
+**I-188** (AM-10) — Medido con un tablero de 42 espacios y 26 circuitos (Release, esta máquina): cada cambio tarda
+~300 ms — ~50 ms el recálculo, ~95 ms el dibujo de Blazor y el resto el navegador (6600 nodos). Diez cambios
+seguidos, ~4 s. La auditoría tardó de 40 s a 3 min en cargar, contra 2.2 s aquí: con ese mismo factor, cada cambio
+son de 6 a 20 s, y unos cuantos seguidos pasan de 45 s. No hay fuga: 16 cambios seguidos tardan lo mismo. La
+causa es de estructura: cada cambio recalcula todo y vuelve a dibujar la página entera. Propuesta, por decidir:
+
+| Opción | Qué | A favor | En contra |
+|---|---|---|---|
+| **A. Un componente por renglón** que solo se dibuja si cambió su circuito | Lo que más pesa es dibujar 42 renglones para cambiar uno | El dibujo baja a una fracción; no cambia el cálculo | Partir `Captura.razor` (2 455 líneas): hay que probar teclado, arrastre y desglose |
+| **B. Juntar los cambios seguidos**: recalcular y dibujar una vez al terminar la ráfaga | Los eventos que se encolan mientras calcula se atienden antes de dibujar | Pequeño | El teclado (I-55, I-56) supone que el dibujo llega con el evento |
+| **C. Compilar AOT** | Todo corre de 3 a 10 veces más rápido | Sin tocar código | La descarga crece (choca con I-152) y la publicación tarda más |
+
+**Recomendación: A**, en una sesión aparte, medida antes y después con el mismo tablero.
+
+**I-189** (AM-11) — Minisplit, motocompresor y variador nacen en 1 polo (127 V); el minisplit de 1 TR de la
+auditoría dio 12 AWG por caída hasta pasarlo a 2 polos. Propuesta, por decidir: **A.** nacer en 2 polos (220 V)
+en un tablero con F-F de 208 a 240 V, si los espacios están libres (un minisplit de 127 V se baja a 1 polo); **B.**
+pedir la tensión de placa en la línea y que los polos salgan de ella; **C.** dejarlo así y decir «127 V» junto a
+la placa. Recomendación: **B** (la placa trae la tensión; es el dato y no un supuesto), o **A** si se quiere sin
+campo nuevo.
+
+**I-190** (AM-12) — Cada opción con su tensión: «1/2 HP · 127 V — 8.90 A» y «1/2 HP · 220 V — 4.90 A».
+
+**I-191** (AM-13) — Sin descripción del espacio, el circuito se nombra por su carga (`NombreDeSusCargas`): el
+equipo del renglón, o las líneas con nombre propio («Lavadora»; «Banda, Ventilador»; con más de dos, «… y N más»);
+los nombres genéricos («Luminarias 1») no cuentan. En la captura, en gris dentro del campo; en el cuadro, la
+memoria y el directorio del gabinete, como texto (`MemoriaDeCalculo.Etiqueta`). La descripción del espacio, si se
+escribe, manda.
+
+**I-192** (AM-14) — Con «Centro de carga (NEMA)» y más de 240 V entre fases, aviso bajo Interruptores: el centro
+de carga y sus interruptores son de 240 V como máximo; el tablero y los interruptores, para la tensión del
+sistema — 110-3(b); escoger «NOM completa». Solo avisa: no cambia el cálculo.
+
+**I-193** (AM-15) — El aviso del navegador al recargar es suyo y no se puede redactar. El de la copia recuperada
+ahora explica que la pestaña guarda una copia, que al recargar se recupera y que al cerrar se pierde; y remite a
+«Nuevo».
+
+**I-194** (AM-16) — En el desglose de la memoria, la carga de placa con su valor: «1 × 3.50 A = 445 VA» (A con dos
+decimales; VA y W sin ceros de más). El sujeto de cada hoja, «fases A-B»: `Fases` guarda el orden en que el
+interruptor toca las barras («BA» en el espacio 3 de un 2F-3H) y la memoria lo ordena.
+
+**I-195** (AM-17) — `for`/`id` en los nueve campos de Identificación y Sistema. En Chromium ya tenían nombre por
+estar envueltos en su rótulo; la auditoría los encontró sin él.
+
+**I-196** (AM-18) — `AlimentacionDelMotor` dice la columna cuando la tabla no tiene la de esa tensión: «Trifásico
+600 V · Tabla 430-250, columna de 575 V»; a 220 V, «columna de 230 V»; a 440 V, «de 460 V». Cambia el rótulo de
+I-114 (`MotoresTests`).
+
+**I-197** (AM-6) — Desde M-20, el techo de 430-62(a) se calcula con la máxima que permite 430-52 (la pregunta 6),
+pero la cita, la memoria y el aviso decían «la mayor protección de derivado». Ahora: «la máxima que permiten
+430-52 o 440-22(a) al mayor derivado del grupo, no la instalada». Solo texto; en el motor de cálculo, anotado en
+[`../conocimiento/motor-copiado.md`](../conocimiento/motor-copiado.md). Prueba: `I197_…`.
+
+**M-21** (AM-4) — 25 HP a 220 V: FLC 68 A, 125 % = 85 A, rango de 90 a 175 A. Con 175 A (la calculada) el
+circuito es de más de 100 A y va a 75 °C: 4 AWG (85 A) — 110-14(c)(1)b.; fijada en 100 A, a 60 °C: 3 AWG
+(85 A) — 110-14(c)(1)a. Correcto por la letra, pero el conductor sale de la protección que se escoja. La cita
+decía «Protección 175 A -> terminales a 75°C»; ahora dice el inciso (a. o b.) en todos los derivados y el
+alimentador (`585a857`, solo texto). Por decidir: **A.** dejarlo y explicarlo (hecho); **B.** casilla «motor de
+diseño B, C, D o E» por motor, que permite 75 °C hasta 100 A — 110-14(c)(1)a.(4) — pero solo en la terminal del
+motor (la del interruptor sigue en a.(3), la casilla «Terminales marcadas 75 °C» que ya existe); **C.** calcular el
+conductor con la columna de la protección más chica del rango, para que no dependa de la escogida (más cobre).
+Recomendación: **A**, como la pregunta 5 de M-20; la memoria ya dice la salida de 75 °C. Prueba: `M21_…`.
+
+**M-22** (AM-5) — Caso A: alimentador de 60.93 A, 4 AWG (70 A a 60 °C), techo de 430-62(a) 69.21 A, principal
+70 A; la app avisa y lo acepta por 430-62(b), que deja basar la protección en la ampacidad del conductor cuando
+pasa de la que pide 430-24: 70 A pasa de 60.93 A. La auditoría lee 430-62(b) para un conductor sobrado a propósito, no para el
+mínimo. Por decidir: **A.** dejarlo (lectura literal; ya avisa); **B.** ofrecer, en el aviso, el tamaño que sí
+cabe bajo el techo (60 A), sin cambiar el calculado; **C.** aplicar 430-62(b) solo si el conductor pasa del
+mínimo por otra razón (caída, fijado). Recomendación: **B**: el ingeniero ve la opción conservadora y decide.
+
+**M-23** (AM-7) — El variador se calcula con su corriente de entrada (430-122(a)) y su protección máxima (110-3(b)).
+Con bypass, 430-122(b) pide además 125 % de la FLC del motor, y la app no captura los HP del motor ni el bypass.
+Por decidir: **A.** campo opcional de HP del motor y casilla «con bypass» (con bypass, el conductor es el mayor de
+los dos 125 %; formato de archivo 13); **B.** solo una nota en la memoria de que sin bypass no aplica 430-122(b).
+Recomendación: **A**.
 
 ### «Pendiente de probar» de la auditoría, 2026-09-30
 
