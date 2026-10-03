@@ -2,6 +2,20 @@
 
 Registro de acciones por sesión, con hallazgo y commit.
 
+## 2026-10-02
+
+**Auditoría NOM, ronda 2** (caja negra contra `3f53a3f`): las 12 correcciones de la ronda 1 se verificaron
+en la app; tres hallazgos nuevos y dos observaciones — `4fad887`:
+
+- N-1: el alimentador sube a conductores en paralelo cuando la ampacidad no alcanza (2 × 900 kcmil con
+  708.57 A) — M-19.
+- N-2: aviso de 210-3 en un circuito de varias salidas de más de 50 A — I-158.
+- N-3: no se reprodujo con Playwright; `restablecer` refuerza el regreso del menú — I-159.
+- Observaciones: el 1 polo de 225 A en riel DIN ya se avisa; centro de carga y la reducción del neutro
+  por 220-61, propuestas — I-160, I-161.
+
+Pruebas: 491 en `PowerNode.Web.Tests` (7 nuevas en `Auditoria20261002Tests`), 52 en `PowerNode.Normativa.Tests`.
+
 ## 2026-09-30 (tercera parte)
 
 **«Pendiente de probar» de la auditoría NOM del 2026-09-29.** Cada escenario, recalculado a mano con la

@@ -183,11 +183,16 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-155 · Sin el piso de 220-56: el F.D. dejaba el equipo de cocina abajo de los dos equipos más grandes | P2 | **Cerrado** (aviso) | `4caba1f` |
 | I-156 · Circuito de anuncios en 15 A y no continuo, contra 600-5(a) y (b) | P2 | **Cerrado** | `4caba1f` |
 | I-157 · El mínimo de 220-12 contaba anuncios, aparadores y portalámparas de trabajo pesado como alumbrado general | P2 | **Cerrado** | `4caba1f` |
+| I-158 · Circuito de varias salidas de más de 50 A sin aviso de 210-3 | P2 | **Cerrado** (aviso) | `4fad887` |
+| I-159 · Al cancelar «Reducir espacios», el menú seguía en el valor rechazado | P3 | **Cerrado** (no se reprodujo; refuerzo) | `4fad887` |
+| I-160 · Interruptor de 1 polo arriba del máximo de la familia | P3 | Riel DIN ya avisa; centro de carga, propuesta (David) | — |
+| I-161 · Neutro del alimentador igual a la fase, sin la reducción de 220-61 | P3 | Propuesta, por decidir (David) | — |
 | M-14 · Sin el mínimo de alumbrado general por superficie (220-12) en el alimentador; en vivienda, contactos de uso general sumados aparte (220-14(j)) | P1 | **Cerrado** | `71abc56` |
 | M-15 · Motor: la Excepción 1 de 430-52(c)(1) redondeaba dentro de la serie (35 → 40 A en riel DIN) y se citaba sin redondeo; sin Excepción 2 | P1 | **Cerrado** | `8b4d893`, `60a4f91` |
 | M-16 · «Húmedo o mojado» en una opción: XHHW mojado a 90 °C (conductor de menos); RHH y XHH aceptados en mojado | P1 | **Cerrado** | `a3fded5` |
 | M-17 · Un calibre sin R ni X en la Tabla 9 se contaba como si fallara la caída, y subía la tierra | P2 | **Cerrado** | `751b3a1` |
 | M-18 · Equipo de acometida sin conductor del electrodo (Tabla 250-66) ni puente de unión principal (250-28(d)(1)) | P3 | **Cerrado** | `a600dc9` |
+| M-19 · El alimentador no subía a conductores en paralelo cuando la ampacidad no alcanzaba: «No hay calibre en el catálogo…» | P2 | **Cerrado** | `4fad887` |
 | R-01 · Caída del alimentador fija en 5 %, sin verificar la combinada — 215-2(a)(4) NOTA 2 | P1 | **Cerrado** | `2a973ea` |
 | R-02 · Caída del alimentador sin la caída del neutro | P2 | **Cerrado** | `d6cd1c6` |
 | R-03 · La publicación no corre `PowerNode.Web.Tests` | P1 | **Cerrado** | `986c9d7` |
@@ -666,6 +671,51 @@ cadenas) y pide revisarla. Por decidir.
 
 **I-153** (riesgo 3) — Luminarias «continua» por omisión fuera de vivienda: en la misma propuesta que
 I-149.
+
+### Auditoría NOM, ronda 2, del 2026-10-02
+
+Caja negra contra `3f53a3f`. Las 12 correcciones de la ronda 1 verificadas en la app; de los 8 casos nuevos,
+6 coincidieron con el cálculo a mano. Pruebas: `Auditoria20261002Tests` (7). La sección 4 de la auditoría
+(I-149, I-150, I-151, I-153) sigue como propuesta abierta.
+
+**M-19** (N-1) — Hecho: con la fase más cargada arriba de ~665 A (2000 kcmil de cobre a 75 °C),
+«No hay calibre en el catálogo con ampacidad utilizable > 743.57 A…» y el alimentador sin resultado. Cuando
+lo que no alcanzaba era la caída, `SeleccionConductor` ya subía solo a 2, 3… conductores por fase; por
+ampacidad, `DeterminarCalibreBase` tronaba antes. Corrección (`4fad887`): agotar el catálogo por ampacidad o
+por 240-4 también prueba con el siguiente N, hasta el tope de conductores en paralelo; cita 310-10(h)(1)
+propia («ni el calibre más grande … tenía la ampacidad»), 1/0 AWG o mayor, juego completo y tierra en cada
+canalización (250-122(f), ya existente); si se agota el tope, el error dice ampacidad, no caída. Con
+«Paralelos en un tubo», el factor de agrupamiento entra como antes (la vuelta de `CalcularAlimentador`).
+3 × 90 kVA continuos: 708.57 A, 125 % = 885.71 A → 1000 A; 1000 A pasa de 800 A (sin 240-4(b)): 2 × 900
+kcmil (2 × 520 = 1040 A), tierra 2/0 AWG ×2, EMT 2 × 103 mm; visto en el navegador. Que el usuario fije N
+(opcional en la auditoría) no se hizo. Prueba: `N1_…` (3). Pendiente: llevar a `PowerNode-DesignSuite`
+([`../conocimiento/motor-copiado.md`](../conocimiento/motor-copiado.md)).
+
+**I-158** (N-2) — Hecho: restaurante, 2 polos, Aparatos · Cocina comercial 3 × 5000 W: «Circuito derivado
+para aparatos, 3 salidas», 80 A y 3 AWG sin aviso. 210-3: los circuitos que no son individuales van de 15 a
+50 A; la excepción (más de 50 A para cargas que no son de alumbrado) es de instalaciones industriales con
+mantenimiento y supervisión calificados. Corrección (`4fad887`): regla de clase 210-3, como aviso en el renglón
+y en la memoria: «Circuito de 3 salidas de 80 A: 210-3 limita a 50 A … Separar en circuitos individuales»,
+y nombra la excepción. Aviso y no error: la captura no sabe si la instalación es industrial (el inmueble
+«Otro» junta oficina, comercio e industria), y las reglas de clase no cambian el cálculo (I-124). Un
+individual de más de 50 A y uno de varias salidas de 50 A no avisan. Prueba: `N2_…` (3); en el navegador.
+
+**I-159** (N-3) — No se reprodujo: con Playwright, Espacios 24 → 6 (y Fases 3 → 1) con un circuito fuera,
+por `selectOption`, por script (`value` + `change`) y con Esc, tres veces seguidas: Cancelar deja el menú en
+24 y el tablero en 24. `CambiarEspacios`, `CambiarFases` y `CambiarHilos` ya regresaban el menú
+(`powerNode.restablecer`). Refuerzo (`4fad887`): `restablecer` vuelve a poner el valor vigente en el cuadro
+siguiente (`requestAnimationFrame`), por si un dibujo llega después. Sin prueba automática (es del DOM).
+
+**I-160** (observación menor) — Riel DIN: un circuito de más de 125 A, también de 1 polo, ya sale en el
+aviso del tablero («En riel DIN no hay interruptores de más de 125 A…»); prueba `Menor_…` con el subtablero
+de 225 A de la auditoría. Centro de carga: el máximo de 1 polo depende de la familia (QO, NQ…), que el
+programa no modela sin catálogo. Propuesta, por decidir (David): un tope genérico de 1 polo (70 A, común en
+interruptores enchufables) como aviso, o dejarlo para cuando se modelen los centros de carga (pendiente del tablero).
+
+**I-161** (observación menor) — El neutro del alimentador es igual a la fase (600 kcmil con 185 A de
+neutro). Conservador. 220-61 permite reducir el neutro a su carga de desbalance (con el 70 % arriba de 200 A
+en 220-61(b), sin reducir la parte no lineal). Propuesta, por decidir (David): ofrecerlo como opción del
+alimentador, con su cita, sin cambiar el valor por omisión.
 
 ### «Pendiente de probar» de la auditoría, 2026-09-30
 
