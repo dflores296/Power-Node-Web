@@ -305,7 +305,10 @@
         const etiqueta = el.closest('label');
         if (etiqueta) {
             const span = etiqueta.querySelector('.ayuda');
-            nombre ||= (span?.textContent ?? etiqueta.firstChild?.textContent ?? '').trim();
+            // El primer hijo que no sea comentario (I-179): Blazor deja a veces un <!--!--> antes del rótulo, y
+            // la barra decía «!» («Longitud del alimentador (m)»).
+            const primero = [...etiqueta.childNodes].find(n => n.nodeType !== Node.COMMENT_NODE);
+            nombre ||= (span?.textContent ?? primero?.textContent ?? '').trim();
             ayuda ||= span?.getAttribute('title') ?? etiqueta.getAttribute('title') ?? '';
         }
         const propia = el.getAttribute('title');
