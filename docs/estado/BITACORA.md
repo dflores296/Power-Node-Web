@@ -6,6 +6,7 @@ Registro de acciones por sesión, con hallazgo y commit.
 
 **El conductor visto de frente** (pedido de David) — `c572985`, I-181: en el alimentador, en lugar de las cajitas de
 color; forro de la NOM y 7 hilos, de aluminio si el conductor lo es, y la tierra sin forro si va desnuda.
+Luego, a pedido de David, las fases lado a lado y con brillo, cobre o aluminio — `22589e0`.
 
 **Iconos de la ficha** (pedido de David) — `4f3b49a`, `c053993` y el commit de docs:
 
