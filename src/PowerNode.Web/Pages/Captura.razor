@@ -1282,7 +1282,7 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
                                 {
                                     var elegida = o.PorFase == enUso;
                                     <tr @key="o.PorFase" class="@(elegida ? "elegida" : null)">
-                                        <td class="izq">@o.PorFase@if (o.EsAutomatico) {<span class="pastilla">automático</span>}@if (o.PorPisoDeParalelo) {<span class="pastilla" title="Solo cumple con 1/0 AWG, el mínimo en paralelo — 310-10(h)(1): sobredimensionado por ese mínimo.">mín. 1/0</span>}</td>
+                                        <td class="izq">@o.PorFase@if (o.EsAutomatico) {<span class="pastilla">automático</span>}@if (o.PorPisoDeParalelo) {<span class="pastilla" title="Solo cumple con 1/0 AWG, el mínimo en paralelo — 310-10(h)(1): sobredimensionado por ese mínimo.">mín. 1/0</span>}@if (o.LlenadoSinVerificar is { } falta) {<span class="pastilla" title="@($"Cumple por ampacidad, pero el llenado de su canalización no se pudo verificar: falta el diámetro del fabricante de {falta} — Capítulo 10, Nota 5.")">llenado sin verificar</span>}</td>
                                         <td>@o.Fase.DesignacionConUnidad</td>
                                         @if (Cuadro.SistemaConNeutro)
                                         {

@@ -114,6 +114,12 @@ public sealed class CanalizacionDelTablero(string id, bool automatica = false)
     public bool NingunTamanoAlcanza =>
         Ocupacion is { Tamano: null, Excede: true } && Tipo is TipoCanalizacion.TuboConduit or TipoCanalizacion.Niple;
 
+    /// <summary>
+    /// El llenado no se pudo verificar: a algún conductor le falta el diámetro del fabricante (Capítulo 10,
+    /// Nota 5). Lo que falta, «1250 kcmil THHN», o null si se verificó.
+    /// </summary>
+    public string? LlenadoSinVerificar => Ocupacion is { Faltantes.Count: > 0 } o ? string.Join(", ", o.Faltantes) : null;
+
     /// <summary>«PVC 40», «Ducto metálico».</summary>
     public string Rotulo => Tipo switch
     {

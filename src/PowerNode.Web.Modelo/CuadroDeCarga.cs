@@ -2808,7 +2808,8 @@ public sealed class CuadroDeCarga
                 opciones.Add(new OpcionDeParalelo(k, r.CalibreFase, r.CalibreNeutro, r.CalibreTierra,
                     r.Detalle?.AmpacidadConductorA ?? 0m, r.CaidaTensionPct, $"{copia.Rotulo} · {copia.TamanoRotulo}",
                     k * (polos * r.CalibreFase.AreaMm2 + (conNeutro ? r.CalibreNeutro.AreaMm2 : 0m))
-                        + (copia.JuegosEnUnTubo ? 1 : k) * r.CalibreTierra.AreaMm2));
+                        + (copia.JuegosEnUnTubo ? 1 : k) * r.CalibreTierra.AreaMm2,
+                    LlenadoSinVerificar: copia.LlenadoSinVerificar));
             }
             catch (Exception ex)
             {
@@ -2833,7 +2834,8 @@ public sealed class CuadroDeCarga
                     opciones.Add(new OpcionDeParalelo(k, resultado.CalibreFase, resultado.CalibreNeutro, resultado.CalibreTierra,
                         resultado.Detalle?.AmpacidadConductorA ?? 0m, resultado.CaidaTensionPct, $"{canal.Rotulo} · {canal.TamanoRotulo}",
                         k * (polos * resultado.CalibreFase.AreaMm2 + (conNeutro ? resultado.CalibreNeutro.AreaMm2 : 0m))
-                            + (canal.JuegosEnUnTubo ? 1 : k) * resultado.CalibreTierra.AreaMm2, PorPisoDeParalelo: true));
+                            + (canal.JuegosEnUnTubo ? 1 : k) * resultado.CalibreTierra.AreaMm2, PorPisoDeParalelo: true,
+                        LlenadoSinVerificar: canal.LlenadoSinVerificar));
                 var auto = ConductoresPorFaseAutomatico is int a
                     ? (a == k ? "; el automático da lo mismo." : $"; el automático daba {a}.")
                     : "; el automático no encuentra cómo.";
@@ -2945,13 +2947,26 @@ public sealed class CuadroDeCarga
                 $"{con}, ni el calibre más grande del catálogo alcanza la ampacidad o queda protegido — 240-4.",
             _ => $"{con}: {ex.Message}",
         };
-        var lista = cumplen.Select(o => o.PorFase.ToString()).ToList();
+        // Las que cumplen con el llenado verificado, y aparte las que cumplen por ampacidad pero sin poder
+        // verificar el llenado (falta un diámetro del fabricante): no se recomiendan como seguras.
+        var lista = cumplen.Where(o => o.LlenadoSinVerificar is null).Select(o => o.PorFase.ToString()).ToList();
+        var sinVerificar = cumplen.Where(o => o.LlenadoSinVerificar is not null).ToList();
         var cuales = lista.Count switch
         {
+            0 when sinVerificar.Count > 0 => "",
             0 => $" Ningún número de 1 a {DatosDelTablero.MaximoConductoresPorFase} cumple.",
             1 => $" Cumple {lista[0]} por fase.",
             _ => $" Cumplen {string.Join(", ", lista[..^1])} o {lista[^1]} por fase.",
         };
+        if (sinVerificar.Count > 0)
+        {
+            var ns = sinVerificar.Select(o => o.PorFase.ToString()).ToList();
+            var faltan = string.Join(", ", sinVerificar.Select(o => o.LlenadoSinVerificar).Distinct());
+            cuales += ns.Count == 1
+                ? $" {ns[0]} por fase cumple por ampacidad; el llenado de su canalización no se pudo verificar"
+                : $" {string.Join(", ", ns[..^1])} o {ns[^1]} por fase cumplen por ampacidad; el llenado de su canalización no se pudo verificar";
+            cuales += $" (falta el diámetro del fabricante de {faltan} — Capítulo 10, Nota 5).";
+        }
         return porque + cuales;
     }
 

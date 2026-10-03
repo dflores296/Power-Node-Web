@@ -527,6 +527,25 @@ public class Auditoria20261002Tests
     }
 
     [Fact]
+    public void R4_1_LaOpcionSinDiametroNoSeRecomiendaComoSegura()
+    {
+        // Caso de David: 708 A, «Paralelos en un tubo», 3 fijado. Con 2 por fase sale 1250 kcmil, sin
+        // diámetro del fabricante en THHN: cumple por ampacidad, pero el llenado no se pudo verificar.
+        var cuadro = De708A();
+        cuadro.Datos.CanalizacionAlimentador.JuegosEnUnTubo = true;
+        cuadro.Datos.ConductoresPorFaseAlimentador = 3;
+        cuadro.Recalcular();
+
+        var error = cuadro.Alimentador.Error!;
+        Assert.DoesNotContain("Cumple 2 por fase", error);
+        Assert.Contains("2 por fase cumple por ampacidad; el llenado de su canalización no se pudo verificar", error);
+        Assert.Contains("falta el diámetro del fabricante de", error);
+        var dos = Assert.Single(cuadro.OpcionesDeParalelo, o => o.PorFase == 2);
+        Assert.NotNull(dos.LlenadoSinVerificar);
+        Assert.All(cuadro.OpcionesDeParalelo.Where(o => o.PorFase != 2), o => Assert.Null(o.LlenadoSinVerificar));
+    }
+
+    [Fact]
     public void I162_ElNFijadoSeGuardaEnElArchivo()
     {
         var cuadro = De708A();

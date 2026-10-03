@@ -19,4 +19,7 @@ public sealed record OpcionDeParalelo(
     decimal CobreMm2,
     bool EsAutomatico = false,
     // R4-3: un N fijado que solo cumple con 1/0 AWG, el mínimo en paralelo — 310-10(h)(1).
-    bool PorPisoDeParalelo = false);
+    bool PorPisoDeParalelo = false,
+    // Cumple por ampacidad, pero el llenado de su canalización no se pudo verificar: falta el diámetro del
+    // fabricante de este conductor (Capítulo 10, Nota 5). Null si se verificó.
+    string? LlenadoSinVerificar = null);
