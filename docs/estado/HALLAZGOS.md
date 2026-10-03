@@ -185,8 +185,8 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-157 · El mínimo de 220-12 contaba anuncios, aparadores y portalámparas de trabajo pesado como alumbrado general | P2 | **Cerrado** | `4caba1f` |
 | I-158 · Circuito de varias salidas de más de 50 A sin aviso de 210-3 | P2 | **Cerrado** (aviso) | `4fad887` |
 | I-159 · Al cancelar «Reducir espacios», el menú seguía en el valor rechazado | P3 | **Cerrado** (no se reprodujo; refuerzo) | `4fad887` |
-| I-160 · Interruptor de 1 polo arriba del máximo de la familia | P3 | Riel DIN ya avisa; centro de carga, propuesta (David) | — |
-| I-161 · Neutro del alimentador igual a la fase, sin la reducción de 220-61 | P3 | Propuesta, por decidir (David) | — |
+| I-160 · Interruptor de 1 polo arriba del máximo de la familia | P3 | **Cerrado** (aviso) | `b259e88` |
+| I-161 · Neutro del alimentador igual a la fase, sin la reducción de 220-61 | P3 | **Cerrado** (opción) | `b259e88` |
 | M-14 · Sin el mínimo de alumbrado general por superficie (220-12) en el alimentador; en vivienda, contactos de uso general sumados aparte (220-14(j)) | P1 | **Cerrado** | `71abc56` |
 | M-15 · Motor: la Excepción 1 de 430-52(c)(1) redondeaba dentro de la serie (35 → 40 A en riel DIN) y se citaba sin redondeo; sin Excepción 2 | P1 | **Cerrado** | `8b4d893`, `60a4f91` |
 | M-16 · «Húmedo o mojado» en una opción: XHHW mojado a 90 °C (conductor de menos); RHH y XHH aceptados en mojado | P1 | **Cerrado** | `a3fded5` |
@@ -706,16 +706,29 @@ por `selectOption`, por script (`value` + `change`) y con Esc, tres veces seguid
 (`powerNode.restablecer`). Refuerzo (`4fad887`): `restablecer` vuelve a poner el valor vigente en el cuadro
 siguiente (`requestAnimationFrame`), por si un dibujo llega después. Sin prueba automática (es del DOM).
 
-**I-160** (observación menor) — Riel DIN: un circuito de más de 125 A, también de 1 polo, ya sale en el
-aviso del tablero («En riel DIN no hay interruptores de más de 125 A…»); prueba `Menor_…` con el subtablero
-de 225 A de la auditoría. Centro de carga: el máximo de 1 polo depende de la familia (QO, NQ…), que el
-programa no modela sin catálogo. Propuesta, por decidir (David): un tope genérico de 1 polo (70 A, común en
-interruptores enchufables) como aviso, o dejarlo para cuando se modelen los centros de carga (pendiente del tablero).
+**I-160** (observación menor; aceptada por David el 2026-10-03) — Hecho: el subtablero de 225 A en 1 polo
+calcula bien, pero ese interruptor no existe. En riel DIN ya salía en el aviso del tablero (más de 125 A;
+prueba `Menor_…`). Corrección (`b259e88`): regla de clase para cualquier clase, también un subtablero: un
+circuito de 1 polo de más de 70 A en centro de carga (`SeriesDeInterruptores.MaximoUnPoloCentroDeCargaA`)
+o de más de 125 A con la lista completa avisa en su renglón y en «Avisos»: «Interruptor de 1 polo de 225 A:
+en centro de carga los de 1 polo llegan, por lo común, a 70 A. Pasar el circuito a 2 o 3 polos, o confirmar
+que la familia que se instala tiene ese tamaño. Criterio del proyectista, no de la NOM». Los 70 A son el tope
+común de los enchufables de 1 polo, no un dato de catálogo. Prueba: `I160_…` (5).
 
-**I-161** (observación menor) — El neutro del alimentador es igual a la fase (600 kcmil con 185 A de
-neutro). Conservador. 220-61 permite reducir el neutro a su carga de desbalance (con el 70 % arriba de 200 A
-en 220-61(b), sin reducir la parte no lineal). Propuesta, por decidir (David): ofrecerlo como opción del
-alimentador, con su cita, sin cambiar el valor por omisión.
+**I-161** (observación menor; aceptada por David el 2026-10-03) — Hecho: el neutro del alimentador era
+siempre igual a la fase (600 kcmil con 185 A de neutro). Corrección (`b259e88`): casilla «Reducir el neutro a su
+carga de desbalance — 220-61» en la tarjeta del alimentador, debajo de los conductores; apagada por omisión
+(del lado seguro) y guardada en el archivo. Marcada: la mayor carga entre el neutro y una fase (220-61(a);
+cada circuito que lleva neutro con su corriente demandada en cada fase que toca, un motor con su FLC, el
+mínimo de 220-12 parejo); lo que pase de 200 A, al 70 % (220-61(b)(2)), salvo los circuitos de 2 polos con
+neutro en 3F-4H (220-61(c)(1)). El calibre: la menor ampacidad utilizable con la columna y los factores de la
+fase, no menor que la tierra de equipos (criterio del proyectista) ni que el conductor del electrodo en un
+equipo de acometida (250-24(c)(1)), 1/0 AWG o mayor en paralelo, nunca mayor que la fase. Debajo, una línea
+con la fase, la corriente y el calibre; la cita 220-61 va a la memoria; la canalización se dimensiona con el
+neutro reducido. Deshabilitada, con el motivo, en 1F-2H, 2F-3H de estrella (220-61(c)(1)) y con «Carga no
+lineal» (220-61(c)(2)). No se aplica la reducción de 220-61(b)(1) (estufas de vivienda al 70 %). Prueba:
+`I161_…` (4); en el navegador (3 × 14 000 VA en la fase A: 330.66 A → 291.46 A, neutro 350 kcmil con fase de
+400 kcmil).
 
 ### «Pendiente de probar» de la auditoría, 2026-09-30
 

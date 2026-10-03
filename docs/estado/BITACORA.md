@@ -11,10 +11,10 @@ en la app; tres hallazgos nuevos y dos observaciones — `4fad887`:
   708.57 A) — M-19.
 - N-2: aviso de 210-3 en un circuito de varias salidas de más de 50 A — I-158.
 - N-3: no se reprodujo con Playwright; `restablecer` refuerza el regreso del menú — I-159.
-- Observaciones: el 1 polo de 225 A en riel DIN ya se avisa; centro de carga y la reducción del neutro
-  por 220-61, propuestas — I-160, I-161.
+- Observaciones, aceptadas por David: aviso de 1 polo arriba de 70 A en centro de carga — I-160; casilla
+  para reducir el neutro del alimentador por 220-61 — I-161, `b259e88`.
 
-Pruebas: 491 en `PowerNode.Web.Tests` (7 nuevas en `Auditoria20261002Tests`), 52 en `PowerNode.Normativa.Tests`.
+Pruebas: 500 en `PowerNode.Web.Tests` (16 nuevas en `Auditoria20261002Tests`), 52 en `PowerNode.Normativa.Tests`.
 
 ## 2026-09-30 (tercera parte)
 
