@@ -20,6 +20,7 @@ public sealed record ResultadoCircuitoDerivado(
     // Solo en un circuito con varios motores (430-53(c)(4), 440-22(b)): de dónde sale el límite de
     // la protección. Nació en Power Node Web — ver CalculadoraCircuitoDerivadoGrupo.
     DetalleDelGrupo? Grupo = null,
-    // Solo en el derivado de un motor solo: el rango de 430-52(c)(1) y cómo se escogió la protección
-    // dentro de él. Nació en Power Node Web (M-20) — ver CalculadoraCircuitoDerivadoMotor.
-    RangoDeProteccionMotor? RangoMotor = null);
+    // En el derivado de un motor solo, de un equipo de A/C (salvo el de habitación) y de un variador: el
+    // rango de la protección y cómo se escogió dentro de él. Nació en Power Node Web (M-20) — ver
+    // ProteccionDentroDelRango.
+    RangoDeProteccion? Rango = null);

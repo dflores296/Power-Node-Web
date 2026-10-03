@@ -136,13 +136,17 @@ public sealed class CircuitoDelCuadro
     public decimal? ProteccionElegidaA { get; set; }
 
     /// <summary>
-    /// La protección de este motor se puede escoger: es un motor solo y ya tiene su rango calculado — M-20.
-    /// Es lo que activa el selector de la celda «Protec. (A)».
+    /// La protección se puede escoger: el circuito ya tiene su rango calculado — M-20. Solo lo tienen un
+    /// motor solo, un equipo de A/C (salvo el de habitación) y un variador; un grupo no. Es lo que activa el
+    /// selector de la celda «Protec. (A)».
     /// </summary>
-    public bool ProteccionEscogible => EsMotorSolo && Resultado?.RangoMotor is not null;
+    public bool ProteccionEscogible => Resultado?.Rango is not null;
 
-    /// <summary>Lo que se le dio al motor de cálculo en el último recálculo, si es un motor solo — M-20.</summary>
-    public PowerNode.DesignSuite.Calculo.Casos.DatosEntradaCircuitoDerivadoMotor? EntradaDelMotor { get; internal set; }
+    /// <summary>
+    /// Lo que se le dio al motor de cálculo en el último recálculo, si la protección se puede escoger: la
+    /// entrada de un motor, de un equipo de A/C o de un variador — M-20.
+    /// </summary>
+    public object? EntradaDeLaProteccion { get; internal set; }
 
     /// <summary>A/C: qué trae la placa. Ver <see cref="PlacaDeAireAcondicionado"/>.</summary>
     public PlacaDeAireAcondicionado PlacaAire { get; set; } = PlacaDeAireAcondicionado.AmpacidadYProteccion;
@@ -829,7 +833,7 @@ public sealed class CircuitoDelCuadro
     internal void Limpiar()
     {
         Resultado = null;
-        EntradaDelMotor = null;
+        EntradaDeLaProteccion = null;
         Error = null;
         CaidaCombinadaPct = null;
         CaidaAlimentadorPct = null;

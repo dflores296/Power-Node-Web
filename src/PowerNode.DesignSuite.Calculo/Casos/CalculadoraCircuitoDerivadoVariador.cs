@@ -1,4 +1,4 @@
-using PowerNode.DesignSuite.Calculo.TablasNom;
+﻿using PowerNode.DesignSuite.Calculo.TablasNom;
 using PowerNode.DesignSuite.Calculo.Unidades;
 
 namespace PowerNode.DesignSuite.Calculo.Casos;
@@ -29,7 +29,16 @@ public sealed record DatosEntradaCircuitoDerivadoVariador(
     LugarDeInstalacion Lugar = LugarDeInstalacion.Seco,
     MetodoInstalacion MetodoInstalacion = MetodoInstalacion.CanalizacionOCable,
     int MaxConductoresParaleloAutomatico = SeleccionConductor.MaxNParaleloAutoResueltoPorOmision,
-    bool TerminalesMarcadas75C = false);
+    bool TerminalesMarcadas75C = false,
+
+    /// <summary>
+    /// <b>Cómo se escoge la protección dentro del rango</b> — Power Node Web, M-20, fase 2. Por omisión, el
+    /// máximo: lo que hacía antes.
+    /// </summary>
+    CriterioProteccionMotor CriterioProteccion = CriterioProteccionMotor.Maximo430_52,
+
+    /// <summary>Con <see cref="CriterioProteccionMotor.Manual"/>: la que escogió el proyectista (M-20).</summary>
+    decimal? ProteccionElegidaA = null);
 
 /// <summary>
 /// <b>El derivado de un variador</b> — 430-122(a), 110-3(b). La corriente es la de entrada del variador,
@@ -79,16 +88,21 @@ public class CalculadoraCircuitoDerivadoVariador(
                 $"({d.ProteccionMaximaA:0.##} A) del variador. Revisa los dos datos de la placa.");
         citas.Add(new Cita("110-3(b)",
             breaker == d.ProteccionMaximaA
-                ? $"Protección: {breaker:0.##} A, la máxima que marca el fabricante del variador."
-                : $"Protección: {breaker:0.##} A, el mayor tamaño estándar que no excede la máxima del fabricante ({d.ProteccionMaximaA:0.##} A)."));
-        citas.Add(new Cita("240-4(g)",
-            "La protección puede quedar arriba de la ampacidad del conductor: protege contra cortocircuito y falla a tierra " +
-            "(Art. 430, Partes D y J). La sobrecarga del motor la da el variador si así lo marca — 430-124(a)."));
+                ? $"Máximo: {breaker:0.##} A, la protección máxima que marca el fabricante del variador."
+                : $"Máximo: {breaker:0.##} A, el mayor tamaño estándar que no excede la máxima del fabricante ({d.ProteccionMaximaA:0.##} A)."));
 
-        // 3. Terminales y aislamiento — 110-14(c).
+        // 2.5. EL RANGO — M-20, fase 2: la máxima del fabricante es un techo («no exceda»); cualquiera del
+        // rango cumple. Ver ProteccionDentroDelRango.
+        var maximo = breaker;
+        var criterio = d.CriterioProteccion;
+        var (minimo, valores) = ProteccionDentroDelRango.Rango(proteccionEstandar, capacidadMinConductor, maximo);
+        (breaker, var paraLaColumna) = ProteccionDentroDelRango.Inicial(criterio, d.ProteccionElegidaA, minimo, maximo, valores);
+        var indiceDelRango = citas.Count;
+
+        // 3. Terminales y aislamiento — 110-14(c). Con prioridad al conductor, la columna del piso (M-20).
         var tempTerminales = TemperaturaTerminales.Para(
-            breaker, d.TerminalesMarcadas75C, aislamiento.TemperaturaMaxima(d.TipoAislamiento, d.Lugar));
-        citas.Add(new Cita("110-14(c)(1)", TemperaturaTerminales.Explicacion(breaker, d.TerminalesMarcadas75C, tempTerminales)));
+            paraLaColumna, d.TerminalesMarcadas75C, aislamiento.TemperaturaMaxima(d.TipoAislamiento, d.Lugar));
+        var indiceDeTerminales = citas.Count;
         var tempAislamiento = aislamiento.TemperaturaMaxima(d.TipoAislamiento, d.Lugar)
             ?? throw new AislamientoIncompatibleException(
                 $"'{d.TipoAislamiento}' no se reconoce, o no es válido para el lugar capturado ({d.Lugar.Nombre()}) -- " +
@@ -114,7 +128,7 @@ public class CalculadoraCircuitoDerivadoVariador(
 
         // 5. Calibre por ampacidad y por caída, con la corriente de entrada.
         var tensionEfectiva = d.NumeroFases == 1 ? d.TensionFaseNeutroV : d.TensionFaseFaseV;
-        var seleccion = SeleccionConductor.Seleccionar(
+        SeleccionConductor.Resultado Seleccionar(decimal? protegidoPorA) => SeleccionConductor.Seleccionar(
             catalogo, ampacidad, impedancia,
             capacidadMinConductorA: capacidadMinConductor,
             corrienteParaCaidaA: entrada,
@@ -131,9 +145,31 @@ public class CalculadoraCircuitoDerivadoVariador(
             tensionEfectivaV: tensionEfectiva,
             caidaTensionMaxPct: d.CaidaTensionMaxPct,
             pisoPracticoCalibreMm2: null,
+            proteccionEstandar: protegidoPorA is null ? null : proteccionEstandar,
+            proteccionA: protegidoPorA,
+            permiteExcepcion2404b: true,
             metodoInstalacion: d.MetodoInstalacion,
             maxNParaleloAutoResuelto: d.MaxConductoresParaleloAutomatico);
+
+        var escogida = ProteccionDentroDelRango.Escoger(
+            criterio, breaker, minimo, valores, tempTerminales, proteccionEstandar, d.MaterialConductor, Seleccionar,
+            c => SeleccionConductor.AmpacidadUtilizable(ampacidad, c, d.MaterialConductor, tempAislamiento, tempTerminales, factorTemp, factorAgrup, d.MetodoInstalacion));
+        var seleccion = escogida.Seleccion;
+        breaker = escogida.ProteccionA;
         citas.AddRange(seleccion.Citas);
+
+        var rango = ProteccionDentroDelRango.Armar(
+            "110-3(b)", $"la protección máxima del fabricante ({d.ProteccionMaximaA:0.##} A)",
+            $"125 % de la corriente de entrada = {capacidadMinConductor:0.##} A",
+            "la sobrecarga del motor la da el variador si así lo marca — 430-124(a)",
+            capacidadMinConductor, minimo, maximo,
+            // 430-62(a): la que marca el fabricante.
+            d.ProteccionMaximaA, valores, criterio, d.ProteccionElegidaA, null, escogida, proteccionEstandar, d.MaterialConductor,
+            (p, max) => new Cita("110-3(b)",
+                $"El fabricante marca la protección máxima; con {p:0.##} A, menos que ella, verificar en las instrucciones del variador que el " +
+                $"interruptor le sirve (que no dispare al energizarlo); si no, subir hasta {max:0.##} A."));
+        citas.Insert(indiceDeTerminales, new Cita("110-14(c)(1)", TemperaturaTerminales.Explicacion(breaker, d.TerminalesMarcadas75C, tempTerminales)));
+        citas.InsertRange(indiceDelRango, ProteccionDentroDelRango.Citas(rango, seleccion.CalibreFase, seleccion.AmpacidadUtilizableTotalA));
 
         // 6. Tierra — Tabla 250-122, con la protección del derivado.
         var (calibreTierra, citasTierra) = PuestaTierraEquipos.Seleccionar(
@@ -158,6 +194,7 @@ public class CalculadoraCircuitoDerivadoVariador(
             TablaAmpacidadId: d.MetodoInstalacion == MetodoInstalacion.AlAireLibre ? "310-15(b)(17)" : "310-15(b)(16)",
             Citas: citas,
             NumeroConductoresParalelo: nParalelo,
+            Rango: rango,
             Detalle: new DetalleDelCalculo(
                 CapacidadMinimaA: capacidadMinConductor,
                 FactorTemperatura: factorTemp,

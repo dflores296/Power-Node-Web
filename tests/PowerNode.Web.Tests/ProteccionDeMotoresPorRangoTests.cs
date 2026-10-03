@@ -62,7 +62,7 @@ public class ProteccionDeMotoresPorRangoTests
     [InlineData(30, 3, 220, 100, 200)]  // 80 A: 100 A; 200 A
     public void M20_ElRangoVaDel125DeLaFlcAlTechoDe430_52(double hp, int polos, int v, int minimo, int maximo)
     {
-        var r = Calcular((decimal)hp, polos, v, CriterioProteccionMotor.Maximo430_52).RangoMotor!;
+        var r = Calcular((decimal)hp, polos, v, CriterioProteccionMotor.Maximo430_52).Rango!;
 
         Assert.Equal(minimo, r.MinimoA);
         Assert.Equal(maximo, r.MaximoA);
@@ -74,7 +74,7 @@ public class ProteccionDeMotoresPorRangoTests
     public void M20_ElRangoDe100HpEnLaNomCompleta()
     {
         // 124 A (columna de 460 V): 155 A → 175 A; 310 A → 350 A (Excepción 1).
-        var r = Calcular(100m, 3, 480m, CriterioProteccionMotor.Maximo430_52, SerieDeInterruptores.NomCompleta).RangoMotor!;
+        var r = Calcular(100m, 3, 480m, CriterioProteccionMotor.Maximo430_52, SerieDeInterruptores.NomCompleta).Rango!;
 
         Assert.Equal(175m, r.MinimoA);
         Assert.Equal(350m, r.MaximoA);
@@ -90,8 +90,8 @@ public class ProteccionDeMotoresPorRangoTests
         Assert.Equal(15m, r.ProteccionA);
         Assert.Equal("14", r.CalibreFase.Designacion);
         Assert.Equal("14", r.CalibreTierra.Designacion);
-        Assert.True(r.RangoMotor!.ProtegeAlConductor);
-        Assert.False(r.RangoMotor.EsElMaximo);
+        Assert.True(r.Rango!.ProtegeAlConductor);
+        Assert.False(r.Rango.EsElMaximo);
         Assert.Contains(r.Citas, x => x.Referencia == "240-4" && x.Descripcion.Contains("prioridad al conductor"));
         // No la elige por el arranque: lo dice — 430-52(b).
         Assert.Contains(r.Citas, x => x.Referencia == "430-52(b)" && x.Descripcion.Contains("25 A"));
@@ -125,8 +125,8 @@ public class ProteccionDeMotoresPorRangoTests
 
         Assert.Equal(25m, r.ProteccionA);
         Assert.Equal("14", r.CalibreFase.Designacion);
-        Assert.True(r.RangoMotor!.EsElMaximo);
-        Assert.False(r.RangoMotor.ProtegeAlConductor);
+        Assert.True(r.Rango!.EsElMaximo);
+        Assert.False(r.Rango.ProtegeAlConductor);
         Assert.Contains(r.Citas, x => x.Referencia == "240-4(g)" && x.Descripcion.Contains("430-32"));
         Assert.DoesNotContain(r.Citas, x => x.Referencia == "430-52(b)");
     }
@@ -139,7 +139,7 @@ public class ProteccionDeMotoresPorRangoTests
         var medio = Calcular(0.5m, 1, 127m, CriterioProteccionMotor.Conductor, agrupados: 12, temperaturaC: 40m);
         Assert.Equal(15m, medio.ProteccionA);
         Assert.Equal("14", medio.CalibreFase.Designacion);
-        Assert.True(medio.RangoMotor!.PorExcepcion240_4b);
+        Assert.True(medio.Rango!.PorExcepcion240_4b);
         Assert.Contains(medio.Citas, x => x.Referencia == "240-4(b)");
 
         // 1 HP: 12 AWG = 13.65 A no cumple 430-22 (17.5 A); 10 AWG = 18.2 A, y 240-4(b) da 20 A = Pmín.
@@ -158,8 +158,8 @@ public class ProteccionDeMotoresPorRangoTests
 
         Assert.Equal(32m, r.ProteccionA);
         Assert.Equal("8", r.CalibreFase.Designacion);
-        Assert.True(r.RangoMotor!.SubioElCalibre);
-        Assert.True(r.RangoMotor.ProtegeAlConductor);
+        Assert.True(r.Rango!.SubioElCalibre);
+        Assert.True(r.Rango.ProtegeAlConductor);
         Assert.Equal(50m, Calcular(7.5m, 3, 220m, CriterioProteccionMotor.Maximo430_52, SerieDeInterruptores.RielDinIec).ProteccionA);
     }
 
@@ -172,8 +172,8 @@ public class ProteccionDeMotoresPorRangoTests
 
         Assert.Equal(15m, r.ProteccionA);
         Assert.Equal("12", r.CalibreFase.Designacion);
-        Assert.Equal("14", r.RangoMotor!.CalibreProtegido!.Designacion);
-        Assert.True(r.RangoMotor.ProtegeAlConductor);
+        Assert.Equal("14", r.Rango!.CalibreProtegido!.Designacion);
+        Assert.True(r.Rango.ProtegeAlConductor);
         Assert.Contains(r.Citas, x => x.Referencia == "240-4" && x.Descripcion.Contains("protege a 14 (15 A)") && x.Descripcion.Contains("12 por caída de tensión sigue protegido"));
     }
 
@@ -187,7 +187,7 @@ public class ProteccionDeMotoresPorRangoTests
 
         Assert.Equal(100m, r.ProteccionA);
         Assert.Equal("1", r.CalibreFase.Designacion);
-        Assert.True(r.RangoMotor!.TopadoEn100A);
+        Assert.True(r.Rango!.TopadoEn100A);
         Assert.Contains(r.Citas, x => x.Referencia == "240-4" && x.Descripcion.Contains("110-14(c)(1)a."));
         Assert.Equal(60, r.Detalle!.TemperaturaTerminalesC);
 
@@ -195,7 +195,7 @@ public class ProteccionDeMotoresPorRangoTests
         var marcadas = Calcular(30m, 3, 220m, CriterioProteccionMotor.Conductor, marcadas75: true);
         Assert.Equal(100m, marcadas.ProteccionA);
         Assert.Equal("3", marcadas.CalibreFase.Designacion);
-        Assert.False(marcadas.RangoMotor!.TopadoEn100A);
+        Assert.False(marcadas.Rango!.TopadoEn100A);
     }
 
     [Fact]
@@ -216,7 +216,7 @@ public class ProteccionDeMotoresPorRangoTests
         foreach (var criterio in Enum.GetValues<CriterioProteccionMotor>())
         {
             var r = Calcular(0.25m, 1, 127m, criterio, SerieDeInterruptores.RielDinIec, elegida: 16m);
-            Assert.Equal([15m], r.RangoMotor!.Valores);
+            Assert.Equal([15m], r.Rango!.Valores);
             Assert.Equal(15m, r.ProteccionA);
             Assert.Equal("14", r.CalibreFase.Designacion);
         }
@@ -226,9 +226,9 @@ public class ProteccionDeMotoresPorRangoTests
     public void M20_ManualSoloOfreceValoresDeLaSerieDentroDelRango()
     {
         // 1 HP a 127 V: de 17.5 A a 35 A.
-        Assert.Equal([20m, 25m, 30m, 35m], Calcular(1m, 1, 127m, CriterioProteccionMotor.Manual).RangoMotor!.Valores);
-        Assert.Equal([20m, 25m, 32m], Calcular(1m, 1, 127m, CriterioProteccionMotor.Manual, SerieDeInterruptores.RielDinIec).RangoMotor!.Valores);
-        Assert.Equal([20m, 25m, 30m, 32m, 35m], Calcular(1m, 1, 127m, CriterioProteccionMotor.Manual, SerieDeInterruptores.NomCompleta).RangoMotor!.Valores);
+        Assert.Equal([20m, 25m, 30m, 35m], Calcular(1m, 1, 127m, CriterioProteccionMotor.Manual).Rango!.Valores);
+        Assert.Equal([20m, 25m, 32m], Calcular(1m, 1, 127m, CriterioProteccionMotor.Manual, SerieDeInterruptores.RielDinIec).Rango!.Valores);
+        Assert.Equal([20m, 25m, 30m, 32m, 35m], Calcular(1m, 1, 127m, CriterioProteccionMotor.Manual, SerieDeInterruptores.NomCompleta).Rango!.Valores);
     }
 
     [Fact]
@@ -238,7 +238,7 @@ public class ProteccionDeMotoresPorRangoTests
         var r = Calcular(1m, 1, 127m, CriterioProteccionMotor.Manual, SerieDeInterruptores.RielDinIec, elegida: 35m);
 
         Assert.Equal(32m, r.ProteccionA);
-        Assert.Equal(35m, r.RangoMotor!.PedidaA);
+        Assert.Equal(35m, r.Rango!.PedidaA);
         Assert.Contains(r.Citas, x => x.Descripcion.Contains("pidió 35 A"));
 
         // Abajo del mínimo, el mínimo.
@@ -251,11 +251,11 @@ public class ProteccionDeMotoresPorRangoTests
         var arriba = Calcular(1m, 1, 127m, CriterioProteccionMotor.Manual, elegida: 30m);
         Assert.Equal(30m, arriba.ProteccionA);
         Assert.Equal("12", arriba.CalibreFase.Designacion);
-        Assert.False(arriba.RangoMotor!.ProtegeAlConductor);
+        Assert.False(arriba.Rango!.ProtegeAlConductor);
         Assert.Contains(arriba.Citas, x => x.Referencia == "240-4(g)" && x.Descripcion.Contains("430-32"));
 
         var protegido = Calcular(1m, 1, 127m, CriterioProteccionMotor.Manual, elegida: 20m);
-        Assert.True(protegido.RangoMotor!.ProtegeAlConductor);
+        Assert.True(protegido.Rango!.ProtegeAlConductor);
         Assert.Contains(protegido.Citas, x => x.Referencia == "240-4" && x.Descripcion.Contains("protege a 12"));
     }
 
@@ -265,7 +265,7 @@ public class ProteccionDeMotoresPorRangoTests
         // 1 HP que no arranca con 35 A: hasta 400 % × 14 = 56 A → 50 A. El rango, arriba de 35 A.
         var maximo = Calcular(1m, 1, 127m, CriterioProteccionMotor.Maximo430_52, noArranca: true);
         Assert.Equal(50m, maximo.ProteccionA);
-        Assert.Equal([40m, 45m, 50m], maximo.RangoMotor!.Valores);
+        Assert.Equal([40m, 45m, 50m], maximo.Rango!.Valores);
 
         Assert.Equal(45m, Calcular(1m, 1, 127m, CriterioProteccionMotor.Manual, elegida: 45m, noArranca: true).ProteccionA);
 
@@ -284,9 +284,9 @@ public class ProteccionDeMotoresPorRangoTests
         Assert.Equal("2", Calcular(100m, 3, 480m, CriterioProteccionMotor.Maximo430_52, SerieDeInterruptores.NomCompleta).CalibreTierra.Designacion);
 
         // 430-62(a): «el valor máximo permitido … de acuerdo con 430-52», sin importar el criterio.
-        Assert.Equal(350m, conductor.RangoMotor!.MaximoPermitidoA);
+        Assert.Equal(350m, conductor.Rango!.MaximoPermitidoA);
         // En riel DIN, 35 A aunque se instalen 32 (1 HP a 127 V).
-        Assert.Equal(35m, Calcular(1m, 1, 127m, CriterioProteccionMotor.Maximo430_52, SerieDeInterruptores.RielDinIec).RangoMotor!.MaximoPermitidoA);
+        Assert.Equal(35m, Calcular(1m, 1, 127m, CriterioProteccionMotor.Maximo430_52, SerieDeInterruptores.RielDinIec).Rango!.MaximoPermitidoA);
     }
 
     // ---- En el cuadro: el criterio de cada circuito ----------------------------------------------
@@ -327,14 +327,14 @@ public class ProteccionDeMotoresPorRangoTests
         Assert.Equal(15m, medio.Resultado!.ProteccionA);   // ½ HP: prioridad al conductor
         Assert.Equal(20m, uno.Resultado!.ProteccionA);     // 1 HP, todavía «1 HP o menos»
         Assert.Equal(40m, cinco.Resultado!.ProteccionA);   // 5 HP: el máximo
-        Assert.Equal(CriterioProteccionMotor.Conductor, medio.Resultado.RangoMotor!.Criterio);
-        Assert.Equal(CriterioProteccionMotor.Maximo430_52, cinco.Resultado.RangoMotor!.Criterio);
+        Assert.Equal(CriterioProteccionMotor.Conductor, medio.Resultado.Rango!.Criterio);
+        Assert.Equal(CriterioProteccionMotor.Maximo430_52, cinco.Resultado.Rango!.Criterio);
 
         // Con la Excepción 2 el automático va al máximo: el motor no arranca con menos.
         medio.NoArrancaConLaTabla = true;
         cuadro.Recalcular();
-        Assert.Equal(CriterioProteccionMotor.Maximo430_52, medio.Resultado!.RangoMotor!.Criterio);
-        Assert.True(medio.Resultado.RangoMotor.Tabla430_52.UsaExcepcion2);
+        Assert.Equal(CriterioProteccionMotor.Maximo430_52, medio.Resultado!.Rango!.Criterio);
+        Assert.True(medio.Resultado.Rango.Tabla430_52!.UsaExcepcion2);
     }
 
     [Fact]
@@ -352,7 +352,7 @@ public class ProteccionDeMotoresPorRangoTests
     }
 
     [Fact]
-    public void M20_ElSelectorSoloSeActivaEnUnMotorSolo()
+    public void M20_ElSelectorSeActivaEnMotorAireYVariador_NoEnGrupoNiHabitacion()
     {
         var cuadro = Nuevo();
         var motor = ConMotor(cuadro, 1, 0.5m);
@@ -383,10 +383,18 @@ public class ProteccionDeMotoresPorRangoTests
         alumbrado.NoContinua = 900m;
         cuadro.Recalcular();
 
-        Assert.False(aire.ProteccionEscogible);
-        Assert.False(variador.ProteccionEscogible);
+        // Fase 2 (David, 2026-10-03): A/C y variador, sí; grupos de motores, no.
+        Assert.True(aire.ProteccionEscogible);
+        Assert.True(variador.ProteccionEscogible);
         Assert.False(grupo.ProteccionEscogible);
         Assert.False(alumbrado.ProteccionEscogible);
+
+        // El acondicionador de habitación ya es el mínimo (440-62(b)): sin rango.
+        aire.PlacaAire = PlacaDeAireAcondicionado.Habitacion;
+        aire.CorrientePlacaA = 8m;
+        cuadro.Recalcular();
+        Assert.Null(aire.Error);
+        Assert.False(aire.ProteccionEscogible);
     }
 
     [Fact]
@@ -451,7 +459,7 @@ public class ProteccionDeMotoresPorRangoTests
         var renglones = equipo.Proteccion.ToDictionary(r => r.Rotulo, r => r.Valor);
 
         Assert.StartsWith("25 A, el valor inmediato superior", renglones["Máximo del rango — 430-52(c)(1) Excepción 1"]);
-        Assert.StartsWith("15 A (≥ 125 % × 8.90 A = 11.13 A) a 25 A", renglones["Rango permitido — 430-52(c)(1)"]);
+        Assert.StartsWith("15 A (≥ 125 % de la FLC = 11.13 A) a 25 A", renglones["Rango permitido — 430-52(c)(1)"]);
         Assert.Contains("Automático: 1/2 HP, 1 HP o menos", renglones["Criterio"]);
         Assert.Contains("protege a 14 AWG (15 A)", renglones["Criterio"]);
         Assert.Equal("15 A — protege a 14 AWG (15.00 A)", renglones["Protección seleccionada — 240-4"]);
@@ -562,11 +570,192 @@ public class ProteccionDeMotoresPorRangoTests
         var cuadro = apertura.Cuadro!;
         Assert.Equal(32m, cuadro.Circuitos[0].Resultado!.ProteccionA);
         Assert.Equal(32m, cuadro.Circuitos[0].ProteccionElegidaA);
-        Assert.Null(cuadro.Circuitos[0].Resultado!.RangoMotor!.PedidaA);
+        Assert.Null(cuadro.Circuitos[0].Resultado!.Rango!.PedidaA);
         Assert.Contains(apertura.Avisos, a => a.StartsWith("El circuito 1 trae 35 A de protección") && a.Contains("20 a 32 A") && a.EndsWith("se abrió con 32 A."));
         // «Manual» sin valor: el máximo, y se dice.
         Assert.Equal(CriterioDeProteccion.Maximo430_52, cuadro.Circuitos[2].CriterioProteccion);
         Assert.Equal(32m, cuadro.Circuitos[2].Resultado!.ProteccionA);
         Assert.Contains(apertura.Avisos, a => a.StartsWith("El circuito 3 trae la protección del motor en «manual» sin el valor"));
+    }
+
+    // ---- Fase 2: A/C y variador (David, 2026-10-03) ---------------------------------------------------
+
+    private static CircuitoDelCuadro Aire(CuadroDeCarga cuadro, int espacio, decimal nominal, bool arranque = false)
+    {
+        var c = cuadro.Circuitos.Single(x => x.Espacio == espacio);
+        c.Categoria = CategoriaDeCarga.AireAcondicionado;
+        Assert.Null(cuadro.CambiarPolos(c, 2));
+        c.PlacaAire = PlacaDeAireAcondicionado.CorrienteNominal;
+        c.CorrientePlacaA = nominal;
+        c.ArranqueAl225 = arranque;
+        cuadro.Recalcular();
+        return c;
+    }
+
+    private static CircuitoDelCuadro AirePorPlaca(CuadroDeCarga cuadro, int espacio, decimal mca, decimal mocp)
+    {
+        var c = cuadro.Circuitos.Single(x => x.Espacio == espacio);
+        c.Categoria = CategoriaDeCarga.AireAcondicionado;
+        Assert.Null(cuadro.CambiarPolos(c, 2));
+        c.PlacaAire = PlacaDeAireAcondicionado.AmpacidadYProteccion;
+        c.AmpacidadMinimaA = mca;
+        c.ProteccionMaximaA = mocp;
+        cuadro.Recalcular();
+        return c;
+    }
+
+    private static CircuitoDelCuadro Variador(CuadroDeCarga cuadro, int espacio, decimal entrada, decimal maxima)
+    {
+        var c = cuadro.Circuitos.Single(x => x.Espacio == espacio);
+        c.Categoria = CategoriaDeCarga.Motor;
+        Assert.Null(cuadro.CambiarPolos(c, 3));
+        c.CapturaMotor = CapturaDeMotor.Variador;
+        c.CorrienteEntradaVariadorA = entrada;
+        c.ProteccionMaximaVariadorA = maxima;
+        cuadro.Recalcular();
+        return c;
+    }
+
+    [Fact]
+    public void M20F2_AirePorCorrienteNominal_ElRangoDe440_22aYLosCriterios()
+    {
+        // 20 A de placa, 2 polos: conductor al 125 % = 25 A → 10 AWG (30 A a 60 °C) — 440-32. Techo: 175 % =
+        // 35 A — 440-22(a). Rango 25, 30 y 35 A.
+        var cuadro = Nuevo();
+        var c = Aire(cuadro, 1, 20m);
+        var r = c.Resultado!.Rango!;
+
+        Assert.Equal("440-22(a)", r.Regla);
+        Assert.Equal([25m, 30m, 35m], r.Valores);
+        // Automático: el máximo (fase 2), como antes.
+        Assert.Equal(CriterioDeProteccion.Automatico, c.CriterioProteccion);
+        Assert.Equal(35m, c.Resultado.ProteccionA);
+        Assert.Equal("10", c.Resultado.CalibreFase.Designacion);
+
+        // Prioridad al conductor: 30 A, lo que protege a 10 AWG (y su tope de 240-4(d)).
+        c.CriterioProteccion = CriterioDeProteccion.Conductor;
+        cuadro.Recalcular();
+        Assert.Equal(30m, c.Resultado!.ProteccionA);
+        Assert.True(c.Resultado.Rango!.ProtegeAlConductor);
+        Assert.Contains(c.Resultado.Citas, x => x.Referencia == "440-22(a)" && x.Descripcion.Contains("corriente de arranque del motocompresor"));
+
+        // Manual, abajo del mínimo: el mínimo.
+        c.CriterioProteccion = CriterioDeProteccion.Manual;
+        c.ProteccionElegidaA = 20m;
+        cuadro.Recalcular();
+        Assert.Equal(25m, c.Resultado!.ProteccionA);
+    }
+
+    [Fact]
+    public void M20F2_AireConEl225_ElRangoEmpiezaArribaDelDel175()
+    {
+        // 16 A: al 175 % = 28 A → 25 A; declarado que no arranca, 225 % = 36 A → 35 A. El rango, arriba de 25 A.
+        var cuadro = Nuevo();
+        var c = Aire(cuadro, 1, 16m, arranque: true);
+
+        Assert.Equal([30m, 35m], c.Resultado!.Rango!.Valores);
+        Assert.Equal(25m, c.Resultado.Rango.ArribaDeA);
+        Assert.Equal(35m, c.Resultado.ProteccionA);
+    }
+
+    [Fact]
+    public void M20F2_AirePorPlaca_DeLaMcaALaMocp()
+    {
+        // MCA 18 A → 12 AWG (20 A); MOCP 30 A. Rango 20, 25 y 30 A — 440-4(b).
+        var cuadro = Nuevo();
+        var c = AirePorPlaca(cuadro, 1, 18m, 30m);
+
+        Assert.Equal("440-4(b)", c.Resultado!.Rango!.Regla);
+        Assert.Equal([20m, 25m, 30m], c.Resultado.Rango.Valores);
+        Assert.Equal(30m, c.Resultado.ProteccionA);
+        Assert.Equal(30m, c.Resultado.Rango.MaximoPermitidoA);
+
+        c.CriterioProteccion = CriterioDeProteccion.Conductor;
+        cuadro.Recalcular();
+        Assert.Equal(20m, c.Resultado!.ProteccionA);
+        Assert.Equal("12", c.Resultado.CalibreFase.Designacion);
+        Assert.Contains(c.Resultado.Citas, x => x.Referencia == "440-22(b)");
+    }
+
+    [Fact]
+    public void M20F2_Variador_DelCientoVeinticincoDeLaEntradaALaMaximaDelFabricante()
+    {
+        // Entrada 20 A: conductor 25 A → 10 AWG (30 A) — 430-122(a). Máxima del fabricante 40 A — 110-3(b).
+        var cuadro = Nuevo();
+        var c = Variador(cuadro, 1, 20m, 40m);
+
+        Assert.Equal("110-3(b)", c.Resultado!.Rango!.Regla);
+        Assert.Equal([25m, 30m, 35m, 40m], c.Resultado.Rango.Valores);
+        Assert.Equal(40m, c.Resultado.ProteccionA); // automático: la del fabricante
+        Assert.Equal(40m, cuadro.ProteccionConCriterio(c, CriterioDeProteccion.Automatico));
+        Assert.Equal(30m, cuadro.ProteccionConCriterio(c, CriterioDeProteccion.Conductor));
+
+        c.CriterioProteccion = CriterioDeProteccion.Conductor;
+        cuadro.Recalcular();
+        Assert.Equal(30m, c.Resultado!.ProteccionA);
+        Assert.Contains(c.Resultado.Citas, x => x.Referencia == "110-3(b)" && x.Descripcion.Contains("instrucciones del variador"));
+        Assert.Contains(cuadro.Desglose(c)!.Proteccion, l => l.StartsWith("Máximo del rango: 40 A"));
+        Assert.Contains(cuadro.Desglose(c)!.Proteccion, l => l == "Protección: 30 A");
+    }
+
+    [Fact]
+    public void M20F2_ElAutomaticoDeAireYVariadorEsElMaximoYLoDice()
+    {
+        var cuadro = Nuevo();
+        var aire = Aire(cuadro, 1, 20m);
+        var variador = Variador(cuadro, 5, 20m, 40m);
+
+        Assert.StartsWith("Automático: equipo de A/C, el máximo de 440-22(a)", cuadro.CriterioDeLaProteccion(aire));
+        Assert.StartsWith("Automático: variador, la máxima del fabricante", cuadro.CriterioDeLaProteccion(variador));
+    }
+
+    [Fact]
+    public void M20F2_LaMemoriaDelAireDiceElRangoYElArranque()
+    {
+        var cuadro = Nuevo();
+        var c = Aire(cuadro, 1, 20m);
+        c.CriterioProteccion = CriterioDeProteccion.Conductor;
+        cuadro.Recalcular();
+
+        var equipo = MemoriaDeCalculo.DeCircuito(cuadro, c).Equipo!;
+        var renglones = equipo.Proteccion.ToDictionary(r => r.Rotulo, r => r.Valor);
+
+        Assert.StartsWith("35 A", renglones["Máximo del rango — 440-22(a)"]);
+        Assert.StartsWith("25 A (≥ 125 % de la corriente = 25 A) a 35 A", renglones["Rango permitido — 440-22(a)"]);
+        Assert.StartsWith("Prioridad al conductor", renglones["Criterio"]);
+        Assert.Equal("30 A — protege a 10 AWG (30.00 A)", renglones["Protección seleccionada — 240-4"]);
+        Assert.Contains(equipo.Notas, n => n.StartsWith("Arranque — 440-22(a)") && n.Contains("subir hasta 35 A"));
+    }
+
+    [Fact]
+    public void M20F2_El430_62aConElAireUsaElMaximoPermitido()
+    {
+        // El A/C con 30 A instalados: el techo de 430-62(a) parte de los 35 A que permite 440-22(a).
+        var cuadro = Nuevo();
+        var c = Aire(cuadro, 1, 20m);
+        c.CriterioProteccion = CriterioDeProteccion.Conductor;
+        cuadro.Recalcular();
+
+        Assert.Equal(30m, c.Resultado!.ProteccionA);
+        Assert.Equal(35m, c.Resultado.Rango!.MaximoPermitidoA);
+        Assert.Equal(35m, cuadro.Alimentador.Resultado!.TechoProteccion430_62A);
+    }
+
+    [Fact]
+    public void M20F2_ElCriterioDelAireYDelVariadorSeGuardaYSeAbre()
+    {
+        var cuadro = Nuevo();
+        var aire = Aire(cuadro, 1, 20m);
+        aire.CriterioProteccion = CriterioDeProteccion.Manual;
+        aire.ProteccionElegidaA = 25m;
+        var variador = Variador(cuadro, 5, 20m, 40m);
+        variador.CriterioProteccion = CriterioDeProteccion.Conductor;
+        cuadro.Recalcular();
+
+        var abierto = ArchivoDelCuadro.Abrir(ArchivoDelCuadro.Guardar(cuadro, DateTimeOffset.Now), Motor).Cuadro!;
+
+        Assert.Equal(25m, abierto.Circuitos[0].Resultado!.ProteccionA);
+        Assert.Equal(30m, abierto.Circuitos[4].Resultado!.ProteccionA);
+        Assert.Equal(ArchivoDelCuadro.Huella(cuadro), ArchivoDelCuadro.Huella(abierto));
     }
 }

@@ -47,7 +47,7 @@ public static class MemoriaDeCalculo
             : circuito.Descripcion.Trim();
 
         var equipo = circuito.EsGrupo ? DelGrupo(cuadro, circuito, r)
-            : circuito.EsVariador ? DelVariador(circuito, r)
+            : circuito.EsVariador ? DelVariador(cuadro, circuito, r)
             : circuito.EsMotor ? DelMotor(cuadro, circuito, r, circuito.Hp, circuito.MotorEnAmperes)
             : circuito.EsAireAcondicionado ? DelAireAcondicionado(cuadro, circuito, r)
             : null;
@@ -117,8 +117,8 @@ public static class MemoriaDeCalculo
         // M-20: la protección se escoge dentro de un rango. Con el máximo, los renglones de siempre
         // («Protección seleccionada — 430-52(c)(1)…»); con menos, ese renglón dice «Máximo del rango» y la
         // seleccionada va aparte, con su 240-4.
-        var p = r.RangoMotor?.Tabla430_52 ?? cuadro.ProteccionDelMotor(c);
-        var rango = r.RangoMotor;
+        var p = r.Rango?.Tabla430_52 ?? cuadro.ProteccionDelMotor(c);
+        var rango = r.Rango;
         var debajoDelMaximo = rango is { EsElMaximo: false };
         var rotulo = debajoDelMaximo ? "Máximo del rango" : "Protección seleccionada";
         var maximo = p.SeleccionadaA;
@@ -139,35 +139,15 @@ public static class MemoriaDeCalculo
                 ? new($"{rotulo} — 430-52(c)(1) Excepción 1", $"{maximo:N0} A, el valor inmediato superior: {p.TechoA:N2} A no es valor normalizado de 240-6(a)")
                 : new($"{rotulo} — 430-52(c)(1)", $"{maximo:N0} A — " + DesgloseDeSeleccion.LineaDeLaProteccion(p, cuadro.Datos.SerieInterruptores)),
         };
-        if (rango is not null)
-        {
-            var piso = r.Citas.Any(x => x.Referencia == "430-22(e)") ? "la capacidad de 430-22(e)" : $"125 % × {flc:N2} A";
-            renglones.Add(new("Rango permitido — 430-52(c)(1)", rango.Valores.Count == 1
-                ? $"Solo {rango.MaximoA:N0} A"
-                : $"{rango.MinimoA:N0} A (≥ {piso} = {rango.CapacidadMinimaA:N2} A) a {rango.MaximoA:N0} A: la protección «no debe exceder» el máximo; cualquiera del rango cumple"));
-            if (cuadro.CriterioDeLaProteccion(c) is { } criterio)
-                renglones.Add(new("Criterio", criterio));
-            if (debajoDelMaximo)
-                renglones.Add(new($"Protección seleccionada — {(rango.PorExcepcion240_4b ? "240-4(b)" : rango.ProtegeAlConductor ? "240-4" : "240-4(g)")}",
-                    $"{r.ProteccionA:N0} A" + (rango.ProtegeAlConductor
-                        ? $" — protege a {r.CalibreFase.DesignacionConUnidad} ({r.Detalle?.AmpacidadConductorA ?? 0m:N2} A)"
-                        : $" — arriba de la ampacidad de {r.CalibreFase.DesignacionConUnidad}: la sobrecarga la da el relevador o el protector térmico — 430-32")));
-        }
+        AgregarRango(cuadro, c, r, renglones);
 
         var notas = new List<string>
         {
-            rango?.ProtegeAlConductor == true
-                ? "La FLC sale de la tabla, no de la placa — 430-6(a). El interruptor del tablero protege el circuito contra " +
-                  "cortocircuito y falla a tierra, y además al conductor según su ampacidad — 240-4."
-                : "La FLC sale de la tabla, no de la placa — 430-6(a). El interruptor del tablero protege el circuito contra " +
-                  "cortocircuito y falla a tierra; puede quedar arriba de la ampacidad del conductor — 240-4(g).",
+            "La FLC sale de la tabla, no de la placa — 430-6(a). " + LaProteccionYElConductor(r),
             "La protección contra sobrecarga del motor va en el arrancador (relevador de sobrecarga) o en el propio " +
             "motor — 430-32. No la da el interruptor del tablero.",
         };
-        if (debajoDelMaximo)
-            notas.Add($"Arranque — 430-52(b): la protección debe soportar la corriente de arranque del motor. Verificar con la curva del " +
-                      $"interruptor que {r.ProteccionA:N0} A no dispara al arrancar; si dispara, subir hasta {rango!.MaximoA:N0} A" +
-                      (p.TechoExcepcion2A is null ? " o declarar la Excepción 2." : "."));
+        AgregarArranque(r, notas);
 
         return new EquipoDeLaHoja(
             Rotulo: "Motor",
@@ -181,28 +161,28 @@ public static class MemoriaDeCalculo
     /// <b>La hoja de un motor con variador</b> — I-119, 430 Parte J: la corriente de entrada del variador,
     /// el conductor al 125 % de ella (430-122(a)) y la protección del fabricante (110-3(b)).
     /// </summary>
-    private static EquipoDeLaHoja DelVariador(CircuitoDelCuadro c, ResultadoCircuitoDerivado r)
+    private static EquipoDeLaHoja DelVariador(CuadroDeCarga cuadro, CircuitoDelCuadro c, ResultadoCircuitoDerivado r)
     {
         var tipo = c.Polos == 3 ? "trifásico" : "monofásico";
         var entrada = c.CorrienteEntradaVariadorA;
         return new EquipoDeLaHoja(
             Rotulo: "Motor con variador",
             Descripcion: $"Variador de velocidad · {tipo} · entrada {entrada:N2} A, protección máxima del fabricante {c.ProteccionMaximaVariadorA:N0} A — 430 Parte J",
-            Proteccion:
+            Proteccion: ConElRango(cuadro, c, r,
             [
                 new("Corriente — 430-122(a)", $"{entrada:N2} A, la nominal de entrada del variador"),
                 new("Capacidad mínima del conductor — 430-122(a)", $"125 % × {entrada:N2} A = {1.25m * entrada:N2} A"),
                 new("Protección máxima — 110-3(b)", $"{c.ProteccionMaximaVariadorA:N0} A, la que marca el fabricante del variador"),
-                new("Protección seleccionada — 110-3(b)", r.ProteccionA == c.ProteccionMaximaVariadorA
-                    ? $"{r.ProteccionA:N0} A"
-                    : $"{r.ProteccionA:N0} A, el mayor tamaño estándar que no excede la máxima del fabricante"),
-            ],
-            Notas:
+                new($"{RotuloDelMaximo(r)} — 110-3(b)", MaximoDelRango(r) == c.ProteccionMaximaVariadorA
+                    ? $"{MaximoDelRango(r):N0} A"
+                    : $"{MaximoDelRango(r):N0} A, el mayor tamaño estándar que no excede la máxima del fabricante"),
+            ]),
+            Notas: ConElArranque(r,
             [
                 "Con variador, la corriente del circuito es la de entrada del variador: la FLC del motor y la Tabla 430-52 no se " +
-                "usan. El interruptor del tablero puede quedar arriba de la ampacidad del conductor — 240-4(g).",
+                "usan. " + LaProteccionYElConductor(r),
                 "La sobrecarga del motor la da el variador si así lo marca; si no, va aparte — 430-124(a).",
-            ],
+            ]),
             Corriente: "corriente de entrada");
     }
 
@@ -342,9 +322,9 @@ public static class MemoriaDeCalculo
             [
                 new("Ampacidad mínima del conductor — 440-4(b)", $"{c.AmpacidadMinimaA:N2} A, de la placa (ya trae el 125 % del motor mayor)"),
                 new("Protección máxima — 440-4(b)", $"{c.ProteccionMaximaA:N0} A, de la placa"),
-                new("Protección seleccionada — 440-4(b)", r.ProteccionA == c.ProteccionMaximaA
-                    ? $"{r.ProteccionA:N0} A"
-                    : $"{r.ProteccionA:N0} A, el mayor tamaño estándar que no excede la máxima de placa"),
+                new($"{RotuloDelMaximo(r)} — 440-4(b)", MaximoDelRango(r) == c.ProteccionMaximaA
+                    ? $"{MaximoDelRango(r):N0} A"
+                    : $"{MaximoDelRango(r):N0} A, el mayor tamaño estándar que no excede la máxima de placa"),
             ];
         }
         else
@@ -361,22 +341,75 @@ public static class MemoriaDeCalculo
                 new("Capacidad mínima del conductor — 440-32", $"125 % × {baseA:N2} A = {1.25m * baseA:N2} A"),
                 new("Protección máxima — 440-22(a)", $"{pct:0} % × {baseA:N2} A = {baseA * pct / 100m:N2} A" +
                     (c.ArranqueAl225 ? ": al 175 % no arranca" : "")),
-                new("Protección seleccionada — 440-22(a)", $"{r.ProteccionA:N0} A, el mayor tamaño estándar que no excede el máximo"),
+                new($"{RotuloDelMaximo(r)} — 440-22(a)", $"{MaximoDelRango(r):N0} A, el mayor tamaño estándar que no excede el máximo"),
             ];
         }
 
         return new EquipoDeLaHoja(
             Rotulo: "Equipo de A/C",
             Descripcion: descripcion,
-            Proteccion: proteccion,
-            Notas:
+            Proteccion: ConElRango(cuadro, c, r, proteccion),
+            Notas: ConElArranque(r,
             [
-                "La corriente sale de la placa, no de las tablas del Art. 430 — 440-6(a). El interruptor del tablero protege el " +
-                "circuito contra cortocircuito y falla a tierra; puede quedar arriba de la ampacidad del conductor — 240-4(g).",
+                "La corriente sale de la placa, no de las tablas del Art. 430 — 440-6(a). " + LaProteccionYElConductor(r),
                 "La sobrecarga del motocompresor la cuida su protector o el relevador del equipo — 440-52. No la da el " +
                 "interruptor del tablero.",
-            ],
+            ]),
             Corriente: "corriente");
+    }
+
+    // ---- El rango de la protección — M-20 y su fase 2 ----------------------------------------------
+
+    /// <summary>«Máximo del rango» si se escogió menos que el máximo; si no, «Protección seleccionada», como antes.</summary>
+    private static string RotuloDelMaximo(ResultadoCircuitoDerivado r) =>
+        r.Rango is { EsElMaximo: false } ? "Máximo del rango" : "Protección seleccionada";
+
+    /// <summary>El máximo del rango; sin rango, la protección.</summary>
+    private static decimal MaximoDelRango(ResultadoCircuitoDerivado r) => r.Rango?.MaximoA ?? r.ProteccionA;
+
+    /// <summary>
+    /// Los renglones del rango: el rango permitido, el criterio y, abajo del máximo, la protección escogida
+    /// con su 240-4 — M-20. Igual en un motor, un equipo de A/C y un variador.
+    /// </summary>
+    private static void AgregarRango(CuadroDeCarga cuadro, CircuitoDelCuadro c, ResultadoCircuitoDerivado r, List<RenglonMemoria> renglones)
+    {
+        if (r.Rango is not { } rango)
+            return;
+        renglones.Add(new($"Rango permitido — {rango.Regla}", rango.Valores.Count == 1
+            ? $"Solo {rango.MaximoA:N0} A"
+            : $"{rango.MinimoA:N0} A (≥ {rango.Piso}) a {rango.MaximoA:N0} A: la protección «no debe exceder» {rango.Techo}; cualquiera del rango cumple"));
+        if (cuadro.CriterioDeLaProteccion(c) is { } criterio)
+            renglones.Add(new("Criterio", criterio));
+        if (!rango.EsElMaximo)
+            renglones.Add(new($"Protección seleccionada — {(rango.PorExcepcion240_4b ? "240-4(b)" : rango.ProtegeAlConductor ? "240-4" : "240-4(g)")}",
+                $"{r.ProteccionA:N0} A" + (rango.ProtegeAlConductor
+                    ? $" — protege a {r.CalibreFase.DesignacionConUnidad} ({r.Detalle?.AmpacidadConductorA ?? 0m:N2} A)"
+                    : $" — arriba de la ampacidad de {r.CalibreFase.DesignacionConUnidad}: {rango.Sobrecarga}")));
+    }
+
+    private static List<RenglonMemoria> ConElRango(CuadroDeCarga cuadro, CircuitoDelCuadro c, ResultadoCircuitoDerivado r, List<RenglonMemoria> renglones)
+    {
+        AgregarRango(cuadro, c, r, renglones);
+        return renglones;
+    }
+
+    /// <summary>Si el interruptor protege también al conductor (240-4) o puede quedar arriba de su ampacidad (240-4(g)).</summary>
+    private static string LaProteccionYElConductor(ResultadoCircuitoDerivado r) =>
+        r.Rango?.ProtegeAlConductor == true
+            ? "El interruptor del tablero protege el circuito contra cortocircuito y falla a tierra, y además al conductor según su ampacidad — 240-4."
+            : "El interruptor del tablero protege el circuito contra cortocircuito y falla a tierra; puede quedar arriba de la ampacidad del conductor — 240-4(g).";
+
+    /// <summary>Abajo del máximo, la nota de qué verificar del arranque y hasta dónde subir.</summary>
+    private static void AgregarArranque(ResultadoCircuitoDerivado r, List<string> notas)
+    {
+        if (r.Rango?.Arranque is { } arranque)
+            notas.Add($"Arranque — {arranque.Referencia}: {char.ToLowerInvariant(arranque.Descripcion[0])}{arranque.Descripcion[1..]}");
+    }
+
+    private static List<string> ConElArranque(ResultadoCircuitoDerivado r, List<string> notas)
+    {
+        AgregarArranque(r, notas);
+        return notas;
     }
 
     /// <summary>

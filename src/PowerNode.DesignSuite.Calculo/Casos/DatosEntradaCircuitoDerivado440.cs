@@ -1,4 +1,4 @@
-using PowerNode.DesignSuite.Calculo.Unidades;
+﻿using PowerNode.DesignSuite.Calculo.Unidades;
 
 namespace PowerNode.DesignSuite.Calculo.Casos;
 
@@ -63,7 +63,16 @@ public sealed record DatosEntradaCircuitoDerivado440(
     /// 440-62(a)(3): la corriente total de carga nominal de un acondicionador de aire para habitación
     /// con cordón y clavija, en su circuito, sin otras cargas — 440 Parte G, I-117.
     /// </summary>
-    decimal? CorrienteTotalHabitacionA = null)
+    decimal? CorrienteTotalHabitacionA = null,
+
+    /// <summary>
+    /// <b>Cómo se escoge la protección dentro del rango</b> — Power Node Web, M-20, fase 2. Por omisión, el
+    /// máximo: lo que hacía antes.
+    /// </summary>
+    CriterioProteccionMotor CriterioProteccion = CriterioProteccionMotor.Maximo430_52,
+
+    /// <summary>Con <see cref="CriterioProteccionMotor.Manual"/>: la que escogió el proyectista (M-20).</summary>
+    decimal? ProteccionElegidaA = null)
 {
     /// <summary>La placa trae ampacidad mínima y protección máxima (440-4(b)), no la corriente nominal.</summary>
     public bool EsPorAmpacidadYProteccion => AmpacidadMinimaPlacaA is not null;

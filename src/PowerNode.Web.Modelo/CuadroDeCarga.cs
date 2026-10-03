@@ -464,7 +464,8 @@ public sealed class CuadroDeCarga
         if (c.EsVariador)
             return DesgloseDeSeleccion.DeVariador(
                 _motor.Ampacidad, Datos, c.CorrienteEntradaVariadorA, c.ProteccionMaximaVariadorA,
-                r.ProteccionA, r.CalibreFase, r.NumeroConductoresParalelo, detalle, r.Citas);
+                r.ProteccionA, r.CalibreFase, r.NumeroConductoresParalelo, detalle, r.Citas,
+                rango: r.Rango, criterio: CriterioDeLaProteccion(c));
 
         if (c.EsMotor)
             return DesgloseDeSeleccion.DeMotor(
@@ -472,13 +473,13 @@ public sealed class CuadroDeCarga
                 origenFlc: OrigenDeLaFlc(c),
                 flcA: c.FlcA,
                 porcentaje: PorcentajeProteccionMotor(c),
-                seleccion: r.RangoMotor?.Tabla430_52 ?? ProteccionDelMotor(c),
+                seleccion: r.Rango?.Tabla430_52 ?? ProteccionDelMotor(c),
                 calibre: r.CalibreFase,
                 conductoresPorFase: r.NumeroConductoresParalelo,
                 d: detalle,
                 citas: r.Citas,
                 servicio: r.Citas.FirstOrDefault(x => x.Referencia == "430-22(e)")?.Descripcion,
-                rango: r.RangoMotor,
+                rango: r.Rango,
                 criterio: CriterioDeLaProteccion(c));
 
         if (c.EsAireAcondicionado)
@@ -488,7 +489,9 @@ public sealed class CuadroDeCarga
                 calibre: r.CalibreFase,
                 conductoresPorFase: r.NumeroConductoresParalelo,
                 d: detalle,
-                citas: r.Citas);
+                citas: r.Citas,
+                rango: r.Rango,
+                criterio: CriterioDeLaProteccion(c));
 
         var divisor = TensionDeCalculo.Divisor(c.Polos, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV);
         // Otro tablero se cita con el 215 — I-125.
@@ -579,15 +582,21 @@ public sealed class CuadroDeCarga
     /// </summary>
     public decimal? ProteccionConCriterio(CircuitoDelCuadro c, CriterioDeProteccion criterio)
     {
-        if (c.EntradaDelMotor is not { } entrada || criterio == CriterioDeProteccion.Manual)
+        if (criterio == CriterioDeProteccion.Manual)
             return null;
         try
         {
-            return Recordado(entrada with
+            return c.EntradaDeLaProteccion switch
             {
-                CriterioProteccion = criterio.ParaElCalculo(entrada.Hp, c.NoArrancaConLaTabla),
-                ProteccionElegidaA = null,
-            }).ProteccionA;
+                DatosEntradaCircuitoDerivadoMotor m => Recordado(m with
+                {
+                    CriterioProteccion = criterio.ParaElCalculo(m.Hp, c.NoArrancaConLaTabla),
+                    ProteccionElegidaA = null,
+                }).ProteccionA,
+                DatosEntradaCircuitoDerivado440 a => Recordado(a with { CriterioProteccion = criterio.ParaElCalculo(), ProteccionElegidaA = null }).ProteccionA,
+                DatosEntradaCircuitoDerivadoVariador v => Recordado(v with { CriterioProteccion = criterio.ParaElCalculo(), ProteccionElegidaA = null }).ProteccionA,
+                _ => null,
+            };
         }
         catch (Exception e) when (e is InvalidOperationException or ArgumentException)
         {
@@ -602,11 +611,18 @@ public sealed class CuadroDeCarga
     /// </summary>
     public string? CriterioDeLaProteccion(CircuitoDelCuadro c)
     {
-        if (c.Resultado is not { RangoMotor: { } r } resultado)
+        if (c.Resultado is not { Rango: { } r } resultado)
             return null;
         var cual = c.CriterioProteccion == CriterioDeProteccion.Automatico
-            ? CriteriosDeProteccion.PorQueAutomatico(c.EntradaDelMotor?.Hp ?? 0m, c.NoArrancaConLaTabla)
-            : r.Criterio == CriterioProteccionMotor.Manual ? "Manual, un valor fijo" : r.Criterio.Nombre();
+            ? c.EntradaDeLaProteccion is DatosEntradaCircuitoDerivadoMotor m
+                ? CriteriosDeProteccion.PorQueAutomatico(m.Hp, c.NoArrancaConLaTabla)
+                : CriteriosDeProteccion.PorQueAutomaticoSinCorte(r, c.EsVariador)
+            : r.Criterio switch
+            {
+                CriterioProteccionMotor.Manual => "Manual, un valor fijo",
+                CriterioProteccionMotor.Maximo430_52 => $"Máximo {r.Regla}",
+                _ => r.Criterio.Nombre(),
+            };
         var calibre = r.CalibreProtegido is { } protegido
             ? $"{protegido.DesignacionConUnidad} ({r.AmpacidadProtegidaA:0.##} A)" +
               (protegido.Designacion != resultado.CalibreFase.Designacion ? $", el calibre por ampacidad; {resultado.CalibreFase.DesignacionConUnidad} por caída de tensión sigue protegido" : "")
@@ -2117,8 +2133,9 @@ public sealed class CuadroDeCarga
         }
 
         // En amperes, los caballos interpolados (430-6(a)(1)) van solo a la cita; la FLC es la corriente.
-        c.EntradaDelMotor = DatosDeUnMotor(c, canal, enAmperes ? c.MotorEnAmperes!.Hp : c.Hp!.Value, enAmperes ? c.FlcA : null) with { Servicio = servicio };
-        c.Resultado = Recordado(c.EntradaDelMotor);
+        var entrada = DatosDeUnMotor(c, canal, enAmperes ? c.MotorEnAmperes!.Hp : c.Hp!.Value, enAmperes ? c.FlcA : null) with { Servicio = servicio };
+        c.EntradaDeLaProteccion = entrada;
+        c.Resultado = Recordado(entrada);
     }
 
     private DatosEntradaCircuitoDerivadoMotor DatosDeUnMotor(CircuitoDelCuadro c, CanalizacionDelTablero canal, decimal hp, decimal? flcMarcadaEnAmperesA)
@@ -2182,9 +2199,10 @@ public sealed class CuadroDeCarga
 
         if (maquinas is [{ Clase: ClaseDeAparato.Motor, Cantidad: 1 } solo] && otras.Count == 0)
         {
-            c.EntradaDelMotor = DatosDeUnMotor(c, canal, solo.MotorEnAmperes?.Hp ?? solo.Hp!.Value,
+            var entrada = DatosDeUnMotor(c, canal, solo.MotorEnAmperes?.Hp ?? solo.Hp!.Value,
                 solo.CapturaMotor == CapturaDeMotor.Amperes ? solo.CorrienteUnitariaA : null);
-            c.Resultado = Recordado(c.EntradaDelMotor);
+            c.EntradaDeLaProteccion = entrada;
+            c.Resultado = Recordado(entrada);
             return;
         }
 
@@ -2233,8 +2251,9 @@ public sealed class CuadroDeCarga
     /// <b>Un motor con variador</b> — I-119, 430 Parte J: la corriente de entrada del variador al 125 %
     /// (430-122(a)) y la protección máxima de su fabricante (110-3(b)).
     /// </summary>
-    private void CalcularVariador(CircuitoDelCuadro c, CanalizacionDelTablero canal) =>
-        c.Resultado = Recordado(new DatosEntradaCircuitoDerivadoVariador(
+    private void CalcularVariador(CircuitoDelCuadro c, CanalizacionDelTablero canal)
+    {
+        var entrada = new DatosEntradaCircuitoDerivadoVariador(
             CorrienteEntradaA: c.CorrienteEntradaVariadorA,
             ProteccionMaximaA: c.ProteccionMaximaVariadorA,
             NumeroFases: c.Polos == 3 ? 3 : 1,
@@ -2250,7 +2269,13 @@ public sealed class CuadroDeCarga
             CaidaTensionMaxPct: Datos.CaidaMaxDerivadoPct,
             TipoAislamiento: Datos.TipoAislamiento,
             Lugar: Datos.Lugar,
-            TerminalesMarcadas75C: Datos.TerminalesMarcadas75C));
+            TerminalesMarcadas75C: Datos.TerminalesMarcadas75C,
+            // M-20, fase 2: el automático de un variador es la máxima del fabricante.
+            CriterioProteccion: c.CriterioProteccion.ParaElCalculo(),
+            ProteccionElegidaA: c.CriterioProteccion == CriterioDeProteccion.Manual ? c.ProteccionElegidaA : null);
+        c.EntradaDeLaProteccion = entrada;
+        c.Resultado = Recordado(entrada);
+    }
 
     /// <summary>«Extractor», o «Motor 2» si no se describió: el número de su renglón en el desglose.</summary>
     public static string NombreDeMaquina(CircuitoDelCuadro c, CargaDelCircuito a) =>
@@ -2285,7 +2310,7 @@ public sealed class CuadroDeCarga
     {
         var porPlaca = c.PlacaAire == PlacaDeAireAcondicionado.AmpacidadYProteccion;
         var deHabitacion = c.PlacaAire == PlacaDeAireAcondicionado.Habitacion;
-        c.Resultado = Recordado(new DatosEntradaCircuitoDerivado440(
+        var entrada = new DatosEntradaCircuitoDerivado440(
             // Un equipo de 2 polos es monofásico entre fases; el de 3, trifásico.
             NumeroFases: c.Polos == 3 ? 3 : 1,
             TensionFaseNeutroV: c.Polos == 1 ? Datos.TensionFaseNeutroV : Datos.TensionFaseFaseV,
@@ -2307,7 +2332,12 @@ public sealed class CuadroDeCarga
             AmpacidadMinimaPlacaA: porPlaca ? c.AmpacidadMinimaA : null,
             ProteccionMaximaPlacaA: porPlaca ? c.ProteccionMaximaA : null,
             // 440 Parte G — I-117: una sola unidad de motor, en su circuito.
-            CorrienteTotalHabitacionA: deHabitacion ? c.CorrientePlacaA : null));
+            CorrienteTotalHabitacionA: deHabitacion ? c.CorrientePlacaA : null,
+            // M-20, fase 2: el automático de un equipo de A/C es el máximo (440-22(a) o la placa).
+            CriterioProteccion: c.CriterioProteccion.ParaElCalculo(),
+            ProteccionElegidaA: c.CriterioProteccion == CriterioDeProteccion.Manual ? c.ProteccionElegidaA : null);
+        c.EntradaDeLaProteccion = deHabitacion ? null : entrada;
+        c.Resultado = Recordado(entrada);
     }
 
     /// <summary>
@@ -2591,7 +2621,7 @@ public sealed class CuadroDeCarga
     /// —el de la lista de 240-6(a)—, aunque se instale menos; en lo demás, la protección del circuito.
     /// </summary>
     private static decimal? ProteccionPara430_62(CircuitoDelCuadro c) =>
-        c.Resultado?.RangoMotor?.MaximoPermitidoA ?? c.Resultado?.ProteccionA;
+        c.Resultado?.Rango?.MaximoPermitidoA ?? c.Resultado?.ProteccionA;
 
     private IEnumerable<MotorDelAlimentador> MotoresDelAlimentador() =>
         _circuitos
@@ -3278,7 +3308,7 @@ public sealed class CuadroDeCarga
                 // motor —como se captura en el desplegable— va por 430-52, no por 430-53(c)(4).
                 (mayor.Resultado!.Grupo is { } grupoMayor ? $"que {grupoMayor.Regla} dimensiona para el arranque"
                     : mayor.EsVariador ? "la que marca el fabricante del variador — 110-3(b)"
-                    : mayor.EsMotor ? (mayor.Resultado!.RangoMotor is { EsElMaximo: false }
+                    : mayor.EsMotor ? (mayor.Resultado!.Rango is { EsElMaximo: false }
                         ? "escogida dentro del rango de 430-52(c)(1)"
                         : "que 430-52 dimensiona para el arranque")
                     : mayor.PlacaAire == PlacaDeAireAcondicionado.AmpacidadYProteccion ? "la que permite su placa — 440-4(b)"

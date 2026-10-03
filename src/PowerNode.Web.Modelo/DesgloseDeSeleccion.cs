@@ -120,7 +120,7 @@ public sealed record DesgloseDeSeleccion(IReadOnlyList<string> Proteccion, IRead
         DetalleDelCalculo d,
         IReadOnlyList<Cita> citas,
         string? servicio = null,
-        RangoDeProteccionMotor? rango = null,
+        RangoDeProteccion? rango = null,
         string? criterio = null)
     {
         // M-20: la que quedó puede ser menor que el máximo de la tabla.
@@ -140,20 +140,7 @@ public sealed record DesgloseDeSeleccion(IReadOnlyList<string> Proteccion, IRead
                   "el mayor tamaño que no lo excede — 430-52(c)(1) Excepción 2(3)"
                 : $"No arranca con {seleccion.ProteccionA:N0} A, pero ningún tamaño mayor queda sin exceder {seleccion.PorcentajeExcepcion2:0} % × {flcA:N2} A = {techo2:N2} A — 430-52(c)(1) Excepción 2(3)");
         // EL RANGO Y EL CRITERIO — M-20: «no exceda» es un techo; cualquiera del rango cumple.
-        if (rango is not null)
-        {
-            proteccion.Add(rango.Valores.Count == 1
-                ? $"Rango: solo {rango.MaximoA:N0} A — 430-52(c)(1)"
-                : $"Rango: {rango.MinimoA:N0} a {rango.MaximoA:N0} A — del menor de la serie que lleva {rango.CapacidadMinimaA:N2} A (lo que lleva el conductor) " +
-                  "al máximo, que la protección «no debe exceder» — 430-52(c)(1)");
-            if (criterio is not null)
-                proteccion.Add($"Criterio: {criterio}");
-            if (debajoDelMaximo)
-            {
-                proteccion.Add($"Protección: {proteccionA:N0} A");
-                proteccion.Add($"Arranque: verificar con la curva del interruptor que {proteccionA:N0} A lo soporta; si no, subir hasta {rango.MaximoA:N0} A — 430-52(b)");
-            }
-        }
+        AgregarRango(proteccion, rango, criterio);
         proteccion.Add(rango?.ProtegeAlConductor == true
             ? "Sobrecarga del motor: relevador en el arrancador o protector del motor — 430-32. El interruptor protege además al conductor — 240-4"
             : "Sobrecarga del motor: relevador en el arrancador o protector del motor — 430-32");
@@ -166,6 +153,27 @@ public sealed record DesgloseDeSeleccion(IReadOnlyList<string> Proteccion, IRead
               $"{(d.AmpacidadConductorA >= d.CapacidadMinimaA ? "✔" : "✘")} — 430-22");
         conductor.AddRange(PorQueCrecio(citas, proteccionA, d));
         return new DesgloseDeSeleccion(proteccion, conductor);
+    }
+
+    /// <summary>
+    /// <b>El rango, el criterio y, abajo del máximo, la protección y qué verificar del arranque</b> — M-20,
+    /// igual en un motor, un equipo de A/C y un variador.
+    /// </summary>
+    private static void AgregarRango(List<string> proteccion, RangoDeProteccion? rango, string? criterio)
+    {
+        if (rango is null)
+            return;
+        proteccion.Add(rango.Valores.Count == 1
+            ? $"Rango: solo {rango.MaximoA:N0} A — {rango.Regla}"
+            : $"Rango: {rango.MinimoA:N0} a {rango.MaximoA:N0} A — del menor de la serie que lleva el {rango.Piso} al máximo, que la " +
+              $"protección «no debe exceder» — {rango.Regla}");
+        if (criterio is not null)
+            proteccion.Add($"Criterio: {criterio}");
+        if (rango.EsElMaximo)
+            return;
+        proteccion.Add($"Protección: {rango.ProteccionA:N0} A");
+        if (rango.Arranque is { } arranque)
+            proteccion.Add($"Arranque: {char.ToLowerInvariant(arranque.Descripcion[0])}{arranque.Descripcion[1..]} — {arranque.Referencia}");
     }
 
     /// <summary>
@@ -199,17 +207,22 @@ public sealed record DesgloseDeSeleccion(IReadOnlyList<string> Proteccion, IRead
         Calibre calibre,
         int conductoresPorFase,
         DetalleDelCalculo d,
-        IReadOnlyList<Cita> citas)
+        IReadOnlyList<Cita> citas,
+        RangoDeProteccion? rango = null,
+        string? criterio = null)
     {
+        // M-20, fase 2: abajo del máximo, el renglón del máximo lo dice, y la escogida va aparte.
+        var maximoA = rango?.MaximoA ?? proteccionA;
         var proteccion = new List<string>
         {
             $"Corriente = {entradaA:N2} A, la nominal de entrada del variador — 430-122(a)",
             $"Protección máxima del fabricante: {maximaA:N0} A — 110-3(b)",
-            $"Protección: {proteccionA:N0} A, " +
-                (proteccionA == maximaA ? "la máxima del fabricante" : "el mayor tamaño estándar que no la excede") +
+            $"{(rango is { EsElMaximo: false } ? "Máximo del rango" : "Protección")}: {maximoA:N0} A, " +
+                (maximoA == maximaA ? "la máxima del fabricante" : "el mayor tamaño estándar que no la excede") +
                 $" en «{datos.SerieInterruptores.Nombre()}»",
-            "Sobrecarga del motor: la da el variador si así lo marca — 430-124(a)",
         };
+        AgregarRango(proteccion, rango, criterio);
+        proteccion.Add("Sobrecarga del motor: la da el variador si así lo marca — 430-124(a)");
 
         var conductor = LineasDelConductor(ampacidad, datos, proteccionA, calibre, conductoresPorFase, d);
         conductor.Add(
@@ -284,10 +297,15 @@ public sealed record DesgloseDeSeleccion(IReadOnlyList<string> Proteccion, IRead
         Calibre calibre,
         int conductoresPorFase,
         DetalleDelCalculo d,
-        IReadOnlyList<Cita> citas)
+        IReadOnlyList<Cita> citas,
+        RangoDeProteccion? rango = null,
+        string? criterio = null)
     {
         List<string> proteccion;
         string requisito;
+        // M-20, fase 2: abajo del máximo, el renglón del máximo lo dice, y la escogida va aparte.
+        var maximoA = rango?.MaximoA ?? proteccionA;
+        var rotuloDelMaximo = rango is { EsElMaximo: false } ? "Máximo del rango" : "Protección";
         if (c.PlacaAire == PlacaDeAireAcondicionado.Habitacion)
         {
             // 440 Parte G — I-117.
@@ -307,8 +325,8 @@ public sealed record DesgloseDeSeleccion(IReadOnlyList<string> Proteccion, IRead
             proteccion =
             [
                 $"Placa: ampacidad mínima {c.AmpacidadMinimaA:N2} A, protección máxima {c.ProteccionMaximaA:N0} A — 440-4(b)",
-                $"Protección: {proteccionA:N0} A, " +
-                    (proteccionA == c.ProteccionMaximaA ? "la máxima de placa" : "el mayor tamaño estándar que no excede la máxima de placa") +
+                $"{rotuloDelMaximo}: {maximoA:N0} A, " +
+                    (maximoA == c.ProteccionMaximaA ? "la máxima de placa" : "el mayor tamaño estándar que no excede la máxima de placa") +
                     $" en «{datos.SerieInterruptores.Nombre()}»",
             ];
             requisito = $"ampacidad mínima de placa {d.CapacidadMinimaA:N2} A {(d.AmpacidadConductorA >= d.CapacidadMinimaA ? "✔" : "✘")} — 440-4(b)";
@@ -323,13 +341,14 @@ public sealed record DesgloseDeSeleccion(IReadOnlyList<string> Proteccion, IRead
                     ? $"Corriente = {baseA:N2} A, la de selección del circuito (mayor que la nominal, {c.CorrientePlacaA:N2} A) — 440-6(a) Excepción 1"
                     : $"Corriente = {baseA:N2} A, la de carga nominal de la placa — 440-6(a)",
                 $"Máximo = {pct:0} % × {baseA:N2} A = {baseA * pct / 100m:N2} A" + (c.ArranqueAl225 ? ", porque al 175 % no arranca" : "") + " — 440-22(a)",
-                $"Protección: {proteccionA:N0} A, " +
-                    (proteccionA == CalculadoraCarga440.ProteccionMinimaA && baseA * pct / 100m < proteccionA
+                $"{rotuloDelMaximo}: {maximoA:N0} A, " +
+                    (maximoA == CalculadoraCarga440.ProteccionMinimaA && baseA * pct / 100m < maximoA
                         ? "no se exige menos — 440-22(a) Excepción"
                         : $"el mayor tamaño estándar que no excede el máximo en «{datos.SerieInterruptores.Nombre()}» — 440-22(a) no permite redondear hacia arriba"),
             ];
             requisito = $"125 % × {baseA:N2} A = {d.CapacidadMinimaA:N2} A {(d.AmpacidadConductorA >= d.CapacidadMinimaA ? "✔" : "✘")} — 440-32";
         }
+        AgregarRango(proteccion, rango, criterio);
         proteccion.Add("Sobrecarga del motocompresor: su protector o el relevador del equipo — 440-52");
 
         var conductor = LineasDelConductor(ampacidad, datos, proteccionA, calibre, conductoresPorFase, d);

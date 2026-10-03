@@ -1,4 +1,4 @@
-using PowerNode.DesignSuite.Calculo.TablasNom;
+﻿using PowerNode.DesignSuite.Calculo.TablasNom;
 using PowerNode.DesignSuite.Calculo.Unidades;
 
 namespace PowerNode.DesignSuite.Calculo.Casos;
@@ -32,6 +32,9 @@ public class CalculadoraCircuitoDerivado440(
 
         // 1-3. Corriente, capacidad del conductor y protección, según lo que traiga la placa.
         decimal corriente, capacidadMinConductor, breaker;
+        // M-20, fase 2: la regla que pone el techo y lo que hace falta para el rango. Null en uno de
+        // habitación: 440-62(b) ya da el mínimo, no hay rango.
+        (string Regla, string Techo, string Piso, decimal MaximoPermitidoA, decimal? ArribaDeA, Func<decimal, decimal, Cita> Arranque)? techo = null;
         if (d.EsDeHabitacion)
         {
             // 440 Parte G — I-117: un aparato monofásico de hasta 250 V y 40 A, con cordón y clavija,
@@ -88,8 +91,14 @@ public class CalculadoraCircuitoDerivado440(
                     $"máxima ({maxima:0.##} A) de la placa. Revisa los dos datos.");
             citas.Add(new Cita("440-4(b)",
                 breaker == maxima
-                    ? $"Protección: {breaker:0.##} A, la máxima que marca la placa."
-                    : $"Protección: {breaker:0.##} A, el mayor tamaño estándar que no excede la máxima de placa ({maxima:0.##} A)."));
+                    ? $"Máximo: {breaker:0.##} A, la protección máxima que marca la placa."
+                    : $"Máximo: {breaker:0.##} A, el mayor tamaño estándar que no excede la máxima de placa ({maxima:0.##} A)."));
+            techo = ("440-4(b)", $"la protección máxima de placa ({maxima:0.##} A)", $"la ampacidad mínima de placa = {ampacidadMinima:0.##} A",
+                // 430-62(a): la que marca la placa.
+                maxima, null,
+                (p, max) => new Cita("440-22(b)",
+                    $"La protección debe ser capaz de conducir la corriente de arranque del equipo. Verificar con la curva del interruptor que " +
+                    $"{p:0.##} A no dispara al arrancar; si dispara, subir hasta {max:0.##} A."));
         }
         else
         {
@@ -101,16 +110,44 @@ public class CalculadoraCircuitoDerivado440(
             corriente = r.CorrienteBaseA;
             capacidadMinConductor = r.CorrienteConductorA;
             breaker = r.ProteccionCortocircuitoA;
+
+            var porcentaje = d.RequiereArranque ? CalculadoraCarga440.TechoProteccionArranquePct : CalculadoraCarga440.TechoProteccionPct;
+            var techoA = corriente * porcentaje / 100m;
+            techo = ("440-22(a)",
+                breaker > techoA
+                    ? $"el {porcentaje:0} % de {corriente:0.##} A, o {CalculadoraCarga440.ProteccionMinimaA:0} A (Excepción de 440-22(a))"
+                    : $"el {porcentaje:0} % de {corriente:0.##} A = {techoA:0.##} A",
+                $"125 % de la corriente = {capacidadMinConductor:0.##} A",
+                // 430-62(a): «el valor máximo permitido … de acuerdo con 440-22(a)», de la lista de 240-6(a),
+                // sin bajar de 15 A.
+                Math.Max(CalculadoraCarga440.ProteccionMinimaA, proteccionEstandar.ValoresDeLaNorma.Where(v => v <= techoA).DefaultIfEmpty(0m).Max()),
+                // Con el 225 % declarado, no arranca con lo del 175 %: el rango empieza arriba de él.
+                d.RequiereArranque ? CalculadoraCarga440.Calcular(proteccionEstandar, nominal, d.CorrienteSeleccionCircuitoA).ProteccionCortocircuitoA : null,
+                (p, max) => new Cita("440-22(a)",
+                    $"La protección debe ser capaz de conducir la corriente de arranque del motocompresor. Verificar con la curva del " +
+                    $"interruptor que {p:0.##} A no dispara al arrancar; si dispara, subir hasta {max:0.##} A" +
+                    (d.RequiereArranque ? "." : " o declarar que no arranca al 175 % (hasta 225 %).")));
         }
-        if (!d.EsDeHabitacion)
-            citas.Add(new Cita("240-4(g)",
-                "La protección del derivado puede quedar arriba de la ampacidad del conductor: protege contra cortocircuito y falla " +
-                "a tierra (Art. 440, Partes C y F). La sobrecarga la cuida el protector del motocompresor — 440-52."));
+
+        // 3.5. EL RANGO — M-20, fase 2: el techo de 440-22(a) o de la placa es un techo («no exceda»), y
+        // cualquiera del rango cumple. Ver ProteccionDentroDelRango.
+        var maximo = breaker;
+        var criterio = d.CriterioProteccion;
+        IReadOnlyList<decimal> valores = [breaker];
+        var minimo = breaker;
+        var paraLaColumna = breaker;
+        if (techo is { } t)
+        {
+            (minimo, valores) = ProteccionDentroDelRango.Rango(proteccionEstandar, capacidadMinConductor, maximo, t.ArribaDeA);
+            (breaker, paraLaColumna) = ProteccionDentroDelRango.Inicial(criterio, d.ProteccionElegidaA, minimo, maximo, valores);
+        }
+        var indiceDelRango = citas.Count;
 
         // 4. Temperatura de terminales -- 110-14(c)(1), con la declaración de 75 °C como en los demás derivados.
+        // Con prioridad al conductor, la del piso del rango (M-20).
         var tempTerminales = TemperaturaTerminales.Para(
-            breaker, d.TerminalesMarcadas75C, aislamiento.TemperaturaMaxima(d.TipoAislamiento, d.Lugar));
-        citas.Add(new Cita("110-14(c)(1)", TemperaturaTerminales.Explicacion(breaker, d.TerminalesMarcadas75C, tempTerminales)));
+            paraLaColumna, d.TerminalesMarcadas75C, aislamiento.TemperaturaMaxima(d.TipoAislamiento, d.Lugar));
+        var indiceDeTerminales = citas.Count;
 
         // 4.5. Aislamiento -- 110-14(c).
         var tempAislamiento = aislamiento.TemperaturaMaxima(d.TipoAislamiento, d.Lugar)
@@ -139,7 +176,8 @@ public class CalculadoraCircuitoDerivado440(
         // 6-8. Calibre por ampacidad y por caída. La caída, con la corriente de placa; con la
         // ampacidad mínima, con ella, del lado seguro (ya trae el 25 % del motor mayor).
         var tensionEfectiva = d.NumeroFases == 1 ? d.TensionFaseNeutroV : d.TensionFaseFaseV;
-        var seleccion = SeleccionConductor.Seleccionar(
+        var deHabitacion = breaker;
+        SeleccionConductor.Resultado Seleccionar(decimal? protegidoPorA) => SeleccionConductor.Seleccionar(
             catalogo, ampacidad, impedancia,
             capacidadMinConductorA: capacidadMinConductor,
             corrienteParaCaidaA: corriente,
@@ -156,12 +194,35 @@ public class CalculadoraCircuitoDerivado440(
             tensionEfectivaV: tensionEfectiva,
             caidaTensionMaxPct: d.CaidaTensionMaxPct,
             pisoPracticoCalibreMm2: null,
-            // En uno de habitación el conductor cubre la protección, sin 240-4(b) — 440-62(a)(4).
-            proteccionEstandar: d.EsDeHabitacion ? proteccionEstandar : null,
-            proteccionA: d.EsDeHabitacion ? breaker : null,
+            // En uno de habitación el conductor cubre la protección, sin 240-4(b) — 440-62(a)(4). Con
+            // prioridad al conductor (M-20), queda protegido por la escogida, con 240-4(b).
+            proteccionEstandar: d.EsDeHabitacion || protegidoPorA is not null ? proteccionEstandar : null,
+            proteccionA: d.EsDeHabitacion ? deHabitacion : protegidoPorA,
+            permiteExcepcion2404b: !d.EsDeHabitacion,
             metodoInstalacion: d.MetodoInstalacion,
             maxNParaleloAutoResuelto: d.MaxConductoresParaleloAutomatico);
+
+        SeleccionConductor.Resultado seleccion;
+        RangoDeProteccion? rango = null;
+        if (techo is { } t2)
+        {
+            var escogida = ProteccionDentroDelRango.Escoger(
+                criterio, breaker, minimo, valores, tempTerminales, proteccionEstandar, d.MaterialConductor, Seleccionar,
+                c => SeleccionConductor.AmpacidadUtilizable(ampacidad, c, d.MaterialConductor, tempAislamiento, tempTerminales, factorTemp, factorAgrup, d.MetodoInstalacion));
+            seleccion = escogida.Seleccion;
+            breaker = escogida.ProteccionA;
+            rango = ProteccionDentroDelRango.Armar(
+                t2.Regla, t2.Techo, t2.Piso, "la sobrecarga la cuida el protector del motocompresor — 440-52",
+                capacidadMinConductor, minimo, maximo, t2.MaximoPermitidoA, valores, criterio, d.ProteccionElegidaA, t2.ArribaDeA,
+                escogida, proteccionEstandar, d.MaterialConductor, t2.Arranque);
+        }
+        else
+            seleccion = Seleccionar(null);
         citas.AddRange(seleccion.Citas);
+
+        citas.Insert(indiceDeTerminales, new Cita("110-14(c)(1)", TemperaturaTerminales.Explicacion(breaker, d.TerminalesMarcadas75C, tempTerminales)));
+        if (rango is not null)
+            citas.InsertRange(indiceDelRango, ProteccionDentroDelRango.Citas(rango, seleccion.CalibreFase, seleccion.AmpacidadUtilizableTotalA));
 
         var calibreFinal = seleccion.CalibreFase;
         var nParalelo = seleccion.NumeroConductoresParalelo;
@@ -186,6 +247,7 @@ public class CalculadoraCircuitoDerivado440(
             TablaAmpacidadId: d.MetodoInstalacion == MetodoInstalacion.AlAireLibre ? "310-15(b)(17)" : "310-15(b)(16)",
             Citas: citas,
             NumeroConductoresParalelo: nParalelo,
+            Rango: rango,
             Detalle: new DetalleDelCalculo(
                 CapacidadMinimaA: capacidadMinConductor,
                 FactorTemperatura: factorTemp,

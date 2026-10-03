@@ -388,7 +388,7 @@ public class PendientesDeProbar20260930Tests
         // automático: 1 HP o menos, prioridad al conductor — 15 A sobre 14 AWG, el caso de David.
         Assert.Equal(8.9m, bomba.Resultado!.CorrienteDisenoA);
         Assert.Equal(15m, bomba.Resultado.ProteccionA);
-        Assert.Equal(25m, bomba.Resultado.RangoMotor!.MaximoA);
+        Assert.Equal(25m, bomba.Resultado.Rango!.MaximoA);
 
         // 220-52: 780 + 780 + 1000 VA. 220-12: 33 × 120 = 3960 VA contra 1500 + 2160 + 360 capturados.
         Assert.Equal(2560m, cuadro.Resumen.Minimo220_52VA);

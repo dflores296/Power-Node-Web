@@ -115,7 +115,7 @@ public static class ArchivoDelCuadro
         // cercano que sí, y se dice — como el F.P. fuera de rango (I-80).
         var corregidos = false;
         foreach (var c in cuadro.Circuitos.Where(c => c.CriterioProteccion == CriterioDeProteccion.Manual))
-            if (c.Resultado?.RangoMotor is { PedidaA: { } pedida } rango)
+            if (c.Resultado?.Rango is { PedidaA: { } pedida } rango)
             {
                 avisos.Add($"El circuito {c.Espacio} trae {pedida:0.##} A de protección, fuera del rango de 430-52(c)(1) " +
                            $"({rango.MinimoA:0.##} a {rango.MaximoA:0.##} A en «{cuadro.Datos.SerieInterruptores.Nombre()}»); se abrió con {rango.ProteccionA:0.##} A.");
