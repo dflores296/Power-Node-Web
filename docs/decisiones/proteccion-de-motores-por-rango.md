@@ -402,6 +402,58 @@ Pendiente menor, sin cambiar el cálculo: la cita 240-4(g) del variador podría 
 **PROPUESTA · Claude · 2026-10-03** — I-182, pedida por David. Cambia lo que se implementó para la
 pregunta 3 (opción B): la celda sigue siendo el selector, pero cambia lo que trae.
 
+### La física detrás del rango (Claude · 2026-10-03, a pregunta de David)
+
+**Por qué solo motores, A/C y variador.** En una carga resistiva (alumbrado, resistencias, contactos)
+hay una sola corriente, y el interruptor es la única protección del conductor contra sobrecarga. El
+interruptor tiene que llevar la carga (210-20(a)) y proteger al conductor (240-4), así que el piso y el
+techo se juntan en el primer tamaño que lleva la carga. Uno más grande obliga a un conductor más grande
+y no gana nada. En un motor el trabajo se parte en dos:
+
+| Dispositivo | Qué cuida | Cuándo actúa |
+|---|---|---|
+| Relevador de sobrecarga o protector térmico (430-32, 440-52) | El motor **y el conductor** | Corriente sostenida arriba de ~115–125 % de la de placa |
+| Interruptor del derivado (430-52, 440-22) | Cortocircuito y falla a tierra | Cientos o miles de amperes |
+
+Con la sobrecarga en manos del relevador, el interruptor ya no tiene que seguir la ampacidad del
+conductor (240-4(g)) y queda libre entre dos límites. Además, el motor tiene dos corrientes: la de
+operación y la de arranque, que es la de rotor bloqueado.
+
+**El techo** (Tabla 430-52, 440-22(a), 440-4(b), 110-3(b)) pide que el interruptor dispare **rápido** ante una falla:
+
+- Mientras más grande es el interruptor, más corriente necesita una falla para dispararlo al instante.
+- Al final de un circuito largo y delgado, la falla puede ser chica.
+- 430-52(c)(2) pone además el límite del relevador y del contactor, que tienen un aguante propio.
+- El 250 % es el acuerdo de la norma. La bomba: 14 AWG, 15 m de ida y vuelta (10.2 Ω/km, Tabla 9) da
+  ~0.31 Ω y una falla de ~400 A (sin contar el transformador). La ven al instante tanto el de 15 A como
+  el de 25 A.
+
+**El piso** (430-52(b)) pide que el interruptor **no dispare al arrancar**. La NOM no pone número porque depende de:
+
+- La corriente de rotor bloqueado. En la bomba de 1/2 HP es ~59 A, unas 6–7 veces su corriente
+  (Tabla 430-251(a): 58.8 A a 115 V).
+- El pico del primer medio ciclo, que puede ser ~1.5 veces más.
+- Lo que tarda en acelerar: una bomba, menos de 1 s; un ventilador pesado, 10 s o más.
+- La curva del interruptor:
+  - Disparo instantáneo: ~5 a 10 veces su valor en centro de carga.
+  - Riel DIN: curva B, 3 a 5 veces; C, 5 a 10; D, 10 a 20.
+- Con 15 A, los 59 A son ~4 veces el valor: no llegan al instantáneo de una curva típica, y el
+  térmico tarda decenas de segundos. Eso explica que en campo funcione con 15 A.
+- En curva B el pico podría tocar el instantáneo.
+
+La app no tiene esos datos. Usa el 125 % de la FLC como piso de criterio: abajo de eso el interruptor
+competiría con el relevador (pregunta 2).
+
+**El calculado** es criterio de ingeniería dentro de esos dos límites:
+
+- **Motor de 1 HP o menos:** el mayor valor que todavía protege al conductor.
+  - El conductor tiene doble protección, porque el motor chico puede no traer relevador propio
+    (430-32(d)(2)a.).
+  - De los que lo protegen, el mayor deja más margen para el arranque.
+- **Motor de más de 1 HP:** el máximo.
+  - El relevador es obligatorio (430-32(a)).
+  - Arranques más largos y corrientes más grandes hacen que el margen valga más que la doble protección.
+
 ### Lo que no funciona
 
 Hoy el selector trae dos grupos con los mismos números: **Criterio** («15 auto», «15 cond.», «25 máx.»)
@@ -443,9 +495,12 @@ pinta en el color de acento y aparece ↺ para regresar al cálculo. Aquí serí
    > Calculado: 15 A, el mayor que protege al 14 AWG (motor de 1 HP o menos).
    > 25 A es el máximo de la Tabla 430-52. Con menos, verificar que el interruptor soporte el arranque (430-52(b)).
    > Escoger otro valor para fijarlo.
-5. **Si un valor fijado se sale del rango** (cambió el motor o la placa), regresa al calculado y el
-   aviso del renglón lo dice: «La protección fijada, 15 A, quedó fuera del rango (25 a 45 A): regresó al
-   calculado, 45 A». Hoy salta en silencio al valor más cercano.
+5. **Un valor fijado se borra si cambia lo que define el rango**: el equipo (HP, tensión o polos, corriente,
+   placa de A/C o del variador), la Excepción 2 o la serie de interruptores. Regresa al calculado y el aviso
+   del renglón lo dice una vez: «La protección fijada, 15 A, era para el motor de 1/2 HP: regresó al
+   calculado, 45 A». Lo demás (longitud, tubo, temperatura, agrupamiento, terminales) mueve el conductor,
+   no el rango, y no lo borra. Así un valor fijado nunca queda fuera del rango, y tampoco se queda un 25 A
+   que era el máximo de 1/2 HP y en 1 1/2 HP pasa a ser el mínimo. Hoy salta en silencio al más cercano.
 6. **La memoria y el desglose** dicen «15 A, calculada: el mayor que protege al 14 AWG» o «20 A,
    fijada por el proyectista», siempre con el rango. Ya no aparece «Criterio: Prioridad al conductor».
 7. **El encabezado «Protec. (A)»**: su ayuda se acorta y deja de nombrar auto, cond. y máx.
@@ -480,7 +535,7 @@ Calculado (color normal)        Fijado (acento, con ↺)
 
 | # | Pregunta | Opciones | Recomendación |
 |---|---|---|---|
-| 1 | Un valor fijado que se sale del rango | **A.** Regresa al calculado, con aviso · **B.** Salta al más cercano, con aviso | **A**: el valor fijo era para otro equipo; la app no debe inventar otro valor fijo |
+| 1 | Cuando cambia lo que define el rango, el valor fijado… | **A.** Se borra siempre, con aviso · **B.** Se queda si cabe en el nuevo rango; si no, regresa al calculado, con aviso | **A** (David preguntó por qué quedaría fuera: solo cuando cambia el equipo, y entonces el valor era para otro equipo; con A, «fuera de rango» desaparece) |
 | 2 | ¿Se marca en la lista cuál es el calculado? | **A.** No, como en el tubo; lo dicen el color y ↺ · **B.** «15 · calculado» | **A**: lo que pidió David, solo el rango |
 
 ## Preguntas para David, con opciones

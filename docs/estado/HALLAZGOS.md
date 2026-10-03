@@ -966,7 +966,8 @@ pero creo que lo entiendo por ser el desarrollador»; pide que el desplegable tr
 Los dos grupos dan el mismo número hoy y se separan al cambiar el circuito: con la bomba pasada de 1/2 a
 1 1/2 HP, «auto» da 45 A, «cond.» 30 A, «máx.» 45 A y un 15 fijo salta en silencio a 25 A. Propuesta (como
 el tamaño del tubo, I-44): solo los valores del rango, llega con el calculado y escoger otro lo fija, en el
-acento y con ↺; el porqué, en la ayuda. Un fijado que se sale del rango regresa al calculado con aviso. El
+acento y con ↺; el porqué, en la ayuda. Un fijado se borra, con aviso, si cambia lo que define el rango (el
+equipo, la Excepción 2 o la serie): así nunca queda fuera del rango (pregunta de David). El
 motor de cálculo no cambia. [`../decisiones/proteccion-de-motores-por-rango.md`](../decisiones/proteccion-de-motores-por-rango.md#la-celda-protec-a-segunda-versión-solo-el-rango).
 
 ### «Pendiente de probar» de la auditoría, 2026-09-30

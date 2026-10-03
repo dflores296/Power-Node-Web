@@ -4,6 +4,15 @@ Registro de acciones por sesión, con hallazgo y commit.
 
 ## 2026-10-03
 
+**I-182, a pregunta de David: para qué es el rango y por qué un fijado quedaría fuera** — solo documentos:
+
+- La física del rango, en la decisión de M-20: en el motor el relevador da la sobrecarga y el interruptor solo
+  la falla, así que el interruptor se separa del conductor. El techo es disparar rápido ante una falla. El piso
+  es no disparar al arrancar: rotor bloqueado (Tabla 430-251(a)), aceleración y curva del interruptor, que la
+  NOM no puede fijar.
+- Un fijado solo queda fuera del rango si cambia el equipo, la Excepción 2 o la serie: la propuesta ahora lo
+  borra en esos casos, con aviso.
+
 **I-182: el selector de la protección, solo con el rango** (David: «auto», «cond.» y «máx.» se entienden
 por ser el desarrollador) — propuesta, sin implementar; solo documentos:
 
