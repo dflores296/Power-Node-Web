@@ -102,6 +102,7 @@
         --barra-fondo: rgb(245 246 247 / .86);
         --brillo-tarjeta: none;
         --sombra-flotante: 0 8px 24px rgb(15 16 17 / .10), 0 1px 2px rgb(15 16 17 / .06);
+        --corte-orilla: rgb(0 0 0 / .22);  /* la orilla del conductor de frente (I-181) */
 
         --accion: #e4f222;          /* el «Acid Lime» de Linear */
         --accion-hover: #ecf65a;
@@ -160,6 +161,7 @@
         --barra-fondo: rgb(8 9 10 / .82);
         --brillo-tarjeta: inset 0 1px 0 rgb(255 255 255 / .03);
         --sombra-flotante: 0 4px 32px rgb(8 9 10 / .6), 0 0 0 1px rgb(0 0 0 / .6);
+        --corte-orilla: rgb(255 255 255 / .2);
 
         --accion-hover: #ecf65a;
         --accion-borde: #e4f222;
@@ -457,16 +459,19 @@ input.desc:focus, input.va:focus {
 
 /* EL CONDUCTOR VISTO DE FRENTE (I-181), Layout/CorteDeConductor.razor: antes de «Fase», «Neutro» y «Puesta
    a tierra» en el alimentador, en lugar de las cajitas de color. Sólido: el forro con el color de la NOM y los
-   7 hilos en cobre o en aluminio, con su brillo (degradados en el componente). La fase A es negra: en oscuro
-   lleva borde (--fase-borde); el neutro, blanco, lo lleva en claro. Las fases, lado a lado: montadas, el aro
-   que las separaba les comía la orilla (David). */
+   7 hilos en cobre o en aluminio, con su brillo (degradados en el componente). Las fases, lado a lado: montadas,
+   el aro que las separaba les comía la orilla (David).
+   LA MISMA ORILLA PARA LOS CINCO (David: el neutro «se ve raro comparado con sus compañeros»): antes el neutro
+   llevaba en claro una línea gris y la fase A en oscuro otra, y los demás la de su color; el neutro parecía un
+   botón con marco. Ahora todos llevan --corte-orilla, tenue (oscura en claro, clara en oscuro), y la sombra del
+   brillo hace lo demás. El neutro, apenas gris: en blanco puro el reflejo no se veía. */
 .corte { display: block; flex: none; overflow: visible; }
-.corte .forro { stroke-width: 1; }
-.corte .forro-a { fill: #1b1f23; stroke: var(--fase-borde); }
-.corte .forro-b { fill: #c62828; stroke: #c62828; }
-.corte .forro-c { fill: #1565c0; stroke: #1565c0; }
-.corte .forro-neutro { fill: #fff; stroke: var(--punteado); }
-.corte .forro-tierra { fill: #2e7d32; stroke: #2e7d32; }
+.corte .forro { stroke: var(--corte-orilla); stroke-width: .8; }
+.corte .forro-a { fill: #1b1f23; }
+.corte .forro-b { fill: #c62828; }
+.corte .forro-c { fill: #1565c0; }
+.corte .forro-neutro { fill: #eef0f3; }
+.corte .forro-tierra { fill: #2e7d32; }
 .corte .hueco { fill: rgb(0 0 0 / .45); }
 .corte .hilo { stroke: #6e3816; stroke-width: .5; }
 .corte.aluminio .hilo { stroke: #5f666e; }
