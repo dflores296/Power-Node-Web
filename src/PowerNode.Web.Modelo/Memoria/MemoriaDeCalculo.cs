@@ -498,7 +498,8 @@ public static class MemoriaDeCalculo
             ReferenciaDeMotores: cuadro.ReferenciaDeMotores,
             MotoresQueGobiernan: cuadro.Alimentador.Gobierna?.Motores ?? default,
             Techo430_62A: r.TechoProteccion430_62A,
-            TierraDeAcometida: cuadro.TierraDeAcometida);
+            TierraDeAcometida: cuadro.TierraDeAcometida,
+            ImpedanciaNeutro: cuadro.NeutroReducido?.Impedancia);
     }
 
     /// <summary>«Estufa: 1 × 3,000 W = 3,000 VA · no continua · F.P. 1.00». Un renglón por aparato — I-35.</summary>
@@ -729,7 +730,7 @@ public static class MemoriaDeCalculo
         // ---- 5
         bloques.Add(Seccion("5. CONDUCTOR DE FASE SELECCIONADO", [
             ("Calibre", CalibreDe(hoja.ConductorFase, hoja.ConductoresPorFase)),
-            ("Conductor de neutro", hoja.ConductorNeutro is null ? "No lleva: la carga va entre fases" : CalibreDe(hoja.ConductorNeutro, 1)),
+            ("Conductor de neutro", hoja.ConductorNeutro is null ? "No lleva: la carga va entre fases" : CalibreDe(hoja.ConductorNeutro, hoja.ConductoresPorFase)),
             ("Ampacidad utilizable", d is { AmpacidadConductorA: > 0m } ? $"{d.AmpacidadConductorA:N2} A" : null)]));
 
         // ---- 6
@@ -741,18 +742,24 @@ public static class MemoriaDeCalculo
             // R-02: fase por fase con el neutro. Cada renglón se puede recalcular a mano: Z por la
             // suma fasorial de la corriente de la fase y la del neutro, proyectada sobre su tensión.
             var peor = porFase.Aggregate((max, f) => f.CaidaPct > max.CaidaPct ? f : max);
+            var zn = hoja.ImpedanciaNeutro;
             var formulasFase = new List<string>
             {
-                "e_f = Re[ Z × (I_f + I_N) × conj(û_f) ],   I_N = suma fasorial de las corrientes de fase",
+                zn is null
+                    ? "e_f = Re[ Z × (I_f + I_N) × conj(û_f) ],   I_N = suma fasorial de las corrientes de fase"
+                    : "e_f = Re[ ( Z × I_f + Z_N × I_N ) × conj(û_f) ],   I_N = suma fasorial de las corrientes de fase",
                 $"Z = ( {d.ResistenciaOhmKm:N2} + j {d.ReactanciaOhmKm:N2} ) Ω/km × {hoja.LongitudM:N2} m ÷ 1000 / {hoja.ConductoresPorFase}",
             };
+            if (zn is { } z)
+                formulasFase.Add($"Z_N = ( {z.ROhmKm:N2} + j {z.XOhmKm:N2} ) Ω/km × {hoja.LongitudM:N2} m ÷ 1000 / {hoja.ConductoresPorFase}   (neutro de {hoja.ConductorNeutro})");
             if (hoja.CorrienteNeutro is { } iN)
                 formulasFase.Add($"I_N = {iN.Magnitud:N2} A ∠ {iN.AnguloGrados:N1}°");
             formulasFase.AddRange(porFase.Select(f =>
                 $"Fase {f.Fase}: I = {f.Corriente.Magnitud:N2} A ∠ {f.Corriente.AnguloGrados:N1}° → e = {f.CaidaV:N2} V ({f.CaidaPct:N2} %)"));
             bloques.Add(new BloqueMemoria("6. CÁLCULO DE CAÍDA DE TENSIÓN", [], formulasFase,
             [
-                "R y X en ohm/km, de la Tabla 9 de la NOM-001-SEDE-2012. Todos los valores se muestran con dos decimales; el cálculo usa los completos. El neutro es del mismo calibre que la fase.",
+                "R y X en ohm/km, de la Tabla 9 de la NOM-001-SEDE-2012. Todos los valores se muestran con dos decimales; el cálculo usa los completos. "
+                    + (zn is null ? "El neutro es del mismo calibre que la fase." : $"El neutro, reducido a su carga de desbalance (220-61), es de {hoja.ConductorNeutro}: cae con su propia R y X."),
                 $"Ángulos respecto a V_AN = 0°; cada corriente, atrasada según el F.P. de sus circuitos. Porcentaje sobre " +
                 $"V_FN = {hoja.TensionFaseNeutroV:N2} V. Manda la fase {peor.Fase}.",
                 .. (hueco is null ? Array.Empty<string>() : new[] { $"{hueco.Descripcion}." }),

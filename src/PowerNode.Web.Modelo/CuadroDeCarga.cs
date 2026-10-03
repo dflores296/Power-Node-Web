@@ -138,7 +138,9 @@ public sealed record CorrienteDeFase(char Fase, decimal ContinuaA, decimal NoCon
 /// El neutro del alimentador reducido por 220-61 — I-161: la fase de mayor carga al neutro, esa carga, la
 /// corriente con la que se eligió (con el 70 % arriba de 200 A si aplicó) y el calibre.
 /// </summary>
-public sealed record NeutroDe220_61(char Fase, decimal DesbalanceA, decimal CorrienteA, Calibre Calibre, bool Con70Pct);
+/// <param name="Impedancia">R y X del neutro reducido, de la Tabla 9, con las que entra a la caída — R3-2. Null si quedó igual que la fase.</param>
+public sealed record NeutroDe220_61(char Fase, decimal DesbalanceA, decimal CorrienteA, Calibre Calibre, bool Con70Pct,
+    PowerNode.DesignSuite.Calculo.TablasNom.ImpedanciaConductor? Impedancia = null);
 
 public sealed record RenglonDelAlimentador(
     ResultadoAlimentador? Resultado,
@@ -2760,7 +2762,7 @@ public sealed class CuadroDeCarga
             // dimensionar la canalización, que lleva el neutro que se instala.
             NeutroDe220_61? neutro = null;
             if (Datos.NeutroReducido220_61 && PorQueNoSeReduceElNeutro is null)
-                (resultado, neutro) = ReducirNeutro(resultado);
+                (resultado, neutro) = ReducirNeutro(resultado, canal);
 
             var n = resultado.NumeroConductoresParalelo;
             canal.CanalizacionesIguales = canal.JuegosEnUnTubo ? 1 : n;
@@ -2900,10 +2902,10 @@ public sealed class CuadroDeCarga
     /// su FLC); el mínimo de 220-12, parejo. Lo que pasa de 200 A, al 70 % — 220-61(b)(2), salvo lo de los
     /// circuitos de 2 polos con neutro en 3F-4H, que no se reduce — (c)(1). El calibre: la menor ampacidad
     /// utilizable que lleva esa corriente por conductor (mismos factores y columna que la fase); no menor
-    /// que la tierra de equipos (criterio), ni que el conductor del electrodo en un equipo de acometida
+    /// que la tierra de equipos (215-2(a)(2)), ni que el conductor del electrodo en un equipo de acometida
     /// (250-24(c)(1)), ni de 1/0 AWG en paralelo (310-10(h)(1)); nunca mayor que la fase.
     /// </summary>
-    private (ResultadoAlimentador, NeutroDe220_61?) ReducirNeutro(ResultadoAlimentador r)
+    private (ResultadoAlimentador, NeutroDe220_61?) ReducirNeutro(ResultadoAlimentador r, CanalizacionDelTablero canal)
     {
         if (r.Detalle is not { } d)
             return (r, null);
@@ -2950,16 +2952,77 @@ public sealed class CuadroDeCarga
         if (calibre.AreaMm2 >= r.CalibreFase.AreaMm2)
             calibre = r.CalibreFase;
 
+        // R3-2 (ronda 3): EL NEUTRO REDUCIDO CAE MÁS. La caída de cada fase lleva la del neutro, que
+        // regresa la suma fasorial: con su calibre, no con el de la fase. Si así pasa del límite, el
+        // neutro sube hasta que no pase (o hasta la fase, que ya cumplía).
+        var porCaida = false;
+        var caida = CaidaConNeutro(r, calibre, canal);
+        while (caida is { } c0 && c0.Max(x => x.CaidaPct) > Datos.CaidaMaxAlimentadorPct && calibre.AreaMm2 < r.CalibreFase.AreaMm2)
+        {
+            calibre = _motor.Calibres.Listar().OrderBy(c => c.AreaMm2).First(c => c.AreaMm2 > calibre.AreaMm2);
+            porCaida = true;
+            caida = CaidaConNeutro(r, calibre, canal);
+        }
+
         var porConductor = n > 1 ? $" ({corriente / n:N2} A por conductor, {n} en paralelo)" : "";
+        var igual = calibre.Designacion == r.CalibreFase.Designacion;
         var cita = new Cita("220-61",
             $"Neutro a su carga de desbalance: la mayor entre el neutro y una fase es la de la fase {fase}, {desbalance:N2} A" +
             (con70 ? $"; lo que pasa de 200 A, al 70 % — 220-61(b)(2): {corriente:N2} A" : "") +
             (fija[fase] > 0m ? $" (los circuitos de 2 polos con neutro, {fija[fase]:N2} A, sin reducir — 220-61(c)(1))" : "") +
-            $" -> neutro {calibre}{porConductor}, no menor que la tierra de equipos (criterio del proyectista)" +
+            $" -> neutro {calibre}{porConductor}, no menor que el conductor de puesta a tierra de equipos de 250-122 — 215-2(a)(2)" +
             (pisos.Count > 1 ? " ni que el conductor del electrodo — 250-24(c)(1)" : "") +
-            (calibre.Designacion == r.CalibreFase.Designacion ? "; queda igual que la fase." : "."));
-        return (r with { CalibreNeutro = calibre, Citas = [.. r.Citas, cita] },
-            new NeutroDe220_61(fase, desbalance, corriente, calibre, con70));
+            (porCaida ? $"; sube a {calibre} para que la caída de tensión, que lleva la del neutro, no pase de {Datos.CaidaMaxAlimentadorPct:0.##} %" : "") +
+            (igual ? "; queda igual que la fase." : "."));
+        var citas = new List<Cita>(r.Citas) { cita };
+        if (!igual && caida is { } porFase && r.CaidaPorFase is { Count: > 0 } antes)
+        {
+            var peor = porFase.Aggregate((m, f) => f.CaidaPct > m.CaidaPct ? f : m);
+            citas.Add(new Cita("Tabla 9",
+                $"Caída por fase con el neutro de {calibre}: " + string.Join("; ", porFase.Select(f => $"{f.Fase} {f.CaidaPct:0.##}%")) +
+                $" -- manda la fase {peor.Fase} (con el neutro igual a la fase, {antes.Max(f => f.CaidaPct):0.##}%)."));
+            r = r with
+            {
+                CaidaPorFase = porFase,
+                CaidaTensionPct = peor.CaidaPct,
+                Detalle = d with { CaidaTensionV = peor.CaidaV },
+            };
+        }
+        return (r with { CalibreNeutro = calibre, Citas = citas },
+            new NeutroDe220_61(fase, desbalance, corriente, calibre, con70, igual ? null : ImpedanciaDe(calibre, canal)));
+    }
+
+    /// <summary>
+    /// La caída de cada fase con un neutro de otro calibre — R3-2. La misma de <see cref="CaidaPorFase"/>, con
+    /// la Z del neutro aparte: e_f = Re[ (Z_f · I_f + Z_N · I_N) · conj(û_f) ]. Las corrientes, con demanda,
+    /// son las que ya usó el motor. Null si el resultado no trae caída por fase. Un calibre sin R ni X en la
+    /// Tabla 9 toma las del menor más cercano con datos (más resistencia: del lado seguro).
+    /// </summary>
+    private PowerNode.DesignSuite.Calculo.TablasNom.ImpedanciaConductor? ImpedanciaDe(Calibre calibre, CanalizacionDelTablero canal) =>
+        _motor.Calibres.Listar().Where(c => c.AreaMm2 <= calibre.AreaMm2).OrderByDescending(c => c.AreaMm2)
+            .Select(c => _motor.Impedancia.Impedancia(c, Datos.MaterialConductor, canal.MaterialParaTabla9))
+            .FirstOrDefault(z => z is not null);
+
+    private IReadOnlyList<CaidaDeFase>? CaidaConNeutro(ResultadoAlimentador r, Calibre neutro, CanalizacionDelTablero canal)
+    {
+        if (r.CaidaPorFase is not { Count: > 0 } fases || r.CorrienteNeutro is not { } iN || r.Detalle is not { } d)
+            return null;
+        if (ImpedanciaDe(neutro, canal) is not { } z)
+            return null;
+        var km = Datos.LongitudAlimentadorM / 1000m / r.NumeroConductoresParalelo;
+        double rf = (double)(d.ResistenciaOhmKm * km), xf = (double)(d.ReactanciaOhmKm * km);
+        double rn = (double)(z.ROhmKm * km), xn = (double)(z.XOhmKm * km);
+        return
+        [
+            .. fases.Select(f =>
+            {
+                var u = AnguloDeTension(f.Fase);
+                var i = new Fasor(f.Corriente.Magnitud, f.Corriente.AnguloGrados - u);
+                var n = new Fasor(iN.Magnitud, iN.AnguloGrados - u);
+                var caidaV = (decimal)(rf * (double)i.Real - xf * (double)i.Imaginario + rn * (double)n.Real - xn * (double)n.Imaginario);
+                return new CaidaDeFase(f.Fase, f.Corriente, caidaV, caidaV * 100m / Datos.TensionFaseNeutroV);
+            }),
+        ];
     }
 
     /// <summary>

@@ -1101,7 +1101,7 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
                 <label class="suelto opcion-neutro">
                     <input type="checkbox" class="casilla" id="campo-neutro-reducido" checked="@(Datos.NeutroReducido220_61 && noSeReduce is null)" disabled="@(noSeReduce is not null)"
                            @onchange="e => { Datos.NeutroReducido220_61 = e.Value is true; Recalcular(); }" />
-                    <span class="ayuda" title="Marcar para dimensionar el neutro con la mayor carga entre el neutro y una fase, y no con la de la fase — 220-61(a). Lo que pase de 200 A, al 70 % — 220-61(b)(2). No menor que la tierra de equipos, ni que el conductor del electrodo en un equipo de acometida. No se permite en 2 fases + neutro de estrella (220-61(c)(1)) ni con carga no lineal (220-61(c)(2)). Sin marcar: igual que la fase, del lado seguro.">Reducir el neutro a su carga de desbalance — 220-61</span>
+                    <span class="ayuda" title="Marcar para dimensionar el neutro con la mayor carga entre el neutro y una fase, y no con la de la fase — 220-61(a). Lo que pase de 200 A, al 70 % — 220-61(b)(2). No menor que la tierra de equipos de 250-122 — 215-2(a)(2), ni que el conductor del electrodo en un equipo de acometida. La caída de tensión se calcula con el neutro que resulta. No se permite en 2 fases + neutro de estrella (220-61(c)(1)) ni con carga no lineal (220-61(c)(2)). Sin marcar: igual que la fase, del lado seguro.">Reducir el neutro a su carga de desbalance — 220-61</span>
                 </label>
                 @if (noSeReduce is not null)
                 {

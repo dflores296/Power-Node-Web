@@ -342,6 +342,11 @@
     // N-3 (auditoría del 2026-10-02): al cancelar «Reducir espacios» el menú se quedó en «6» en una
     // prueba por script. No se reprodujo ni con clic ni por script, pero el valor se vuelve a poner
     // en el cuadro siguiente: si un dibujo de Blazor o el propio cambio llegan después, gana el vigente.
+    //
+    // R3-1 (ronda 3): con la pestaña oculta el cuadro siguiente no llega (requestAnimationFrame no corre
+    // hasta que se ve) y el menú se quedó en «6». Se pone también en la siguiente vuelta del ciclo
+    // (setTimeout) y, si la pestaña está oculta, otra vez al volver a verse.
+    const alVolver = new Map();
     window.powerNode.restablecer = (selector, valor) => {
         const poner = () => {
             const el = document.querySelector(selector);
@@ -351,8 +356,24 @@
             el.dataset.previo = valor;
         };
         poner();
+        setTimeout(poner);
         requestAnimationFrame(poner);
+        if (document.visibilityState === 'hidden')
+            alVolver.set(selector, poner);
     };
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState !== 'visible')
+            return;
+        alVolver.forEach(poner => poner());
+        alVolver.clear();
+    });
+    // Si el ingeniero cambia ese campo antes de volver (no puede con la pestaña oculta, pero por si
+    // acaso), ya no se le regresa: manda lo que eligió.
+    document.addEventListener('change', e => {
+        for (const selector of alVolver.keys())
+            if (e.target instanceof Element && e.target.matches(selector))
+                alVolver.delete(selector);
+    }, true);
 
     // ---- Para la página: regresar el último número que el modelo no aceptó (P2-3) -----------------
     // Lo mismo, para un campo numérico: si el valor llegó sin foco, el filtro de arriba no sabía a qué

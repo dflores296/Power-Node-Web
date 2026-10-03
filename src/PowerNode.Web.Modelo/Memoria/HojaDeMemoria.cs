@@ -85,7 +85,9 @@ public sealed record HojaDeMemoria(
     int FrecuenciaHz = 60,
     IReadOnlyList<ReglaDeClase>? ReglasDeClase = null,
     MinimoPorSuperficie? Superficie = null,
-    PowerNode.DesignSuite.Calculo.Casos.ResultadoTierraDeAcometida? TierraDeAcometida = null);
+    PowerNode.DesignSuite.Calculo.Casos.ResultadoTierraDeAcometida? TierraDeAcometida = null,
+    // R3-2: el neutro reducido por 220-61 entra a la caída con su R y X, no con las de la fase.
+    PowerNode.DesignSuite.Calculo.TablasNom.ImpedanciaConductor? ImpedanciaNeutro = null);
 
 /// <summary>
 /// <b>Un motor o un equipo de A/C, como lo pone la memoria</b> — I-15, I-74. Ya redactado, porque las

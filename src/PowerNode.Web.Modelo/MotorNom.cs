@@ -72,6 +72,7 @@ public sealed class MotorNom
 
         ProteccionEstandar = proteccion;
         Ampacidad = ampacidad;
+        Impedancia = impedancia;
         Dimensiones = new TablaDimensionesConductorJson(fuente);
         Tubos = new TablaTuboConduitJson(fuente);
         Ocupacion = new CalculadoraOcupacion(new TablaOcupacionJson(fuente), Tubos, Dimensiones);
@@ -95,6 +96,9 @@ public sealed class MotorNom
 
     /// <summary>La Tabla 310-15(b)(16). La consulta el desglose para enseñar la ampacidad de tabla de cada columna.</summary>
     public ITablaAmpacidad Ampacidad { get; }
+
+    /// <summary>La Tabla 9: R y X de un calibre. La caída del alimentador con el neutro reducido (R3-2) la consulta.</summary>
+    public ITablaImpedancia Impedancia { get; }
 
     /// <summary>Cada renglón del cuadro: circuito derivado de Alumbrado, Contactos o Equipo (Art. 210).</summary>
     public CalculadoraCircuitoDerivadoNoMotor NoMotor(SerieDeInterruptores serie) => _noMotor[serie];

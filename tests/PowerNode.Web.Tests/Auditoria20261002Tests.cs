@@ -512,4 +512,104 @@ public class Auditoria20261002Tests
             PowerNode.Web.Modelo.Archivo.ArchivoDelCuadro.Guardar(cuadro, DateTimeOffset.Now), Motor);
         Assert.Null(automatico.Cuadro!.Datos.ConductoresPorFaseAlimentador);
     }
+
+    // ---- Ronda 3 (verificación sobre f960bcb) -----------------------------------------------------
+
+    /// <summary>
+    /// 150 kVA trifásicos continuos y 2 × 3 000 VA de 1 polo en A, 20 m: el neutro lleva 47.24 A y, reducido,
+    /// sale de 1 AWG (la tierra de equipos) contra la fase de 1000 kcmil. Antes la caída seguía como si el
+    /// neutro fuera de 1000 kcmil. La diferencia de la fase A es solo la del neutro:
+    /// Δe = L/1000 × [ (R_N − R_F) × Re(I_N) − (X_N − X_F) × Im(I_N) ], con I_N referida a V_AN — R3-2.
+    /// </summary>
+    [Fact]
+    public void R3_2_ElNeutroReducidoEntraALaCaidaDeTension()
+    {
+        var cuadro = Nuevo();
+        Carga(cuadro, 1, CategoriaDeCarga.Equipo, SubtipoDeCarga.OtraCargaEspecifica, 3, 1, 150000m, continua: true);
+        Carga(cuadro, 2, CategoriaDeCarga.Equipo, SubtipoDeCarga.OtraCargaEspecifica, 1, 1, 3000m, continua: false);
+        Carga(cuadro, 8, CategoriaDeCarga.Equipo, SubtipoDeCarga.OtraCargaEspecifica, 1, 1, 3000m, continua: false);
+        var completo = cuadro.Alimentador.Resultado!;
+        Assert.Equal(completo.CalibreFase, completo.CalibreNeutro);
+        var antesA = completo.CaidaPorFase!.Single(f => f.Fase == 'A');
+
+        cuadro.Datos.NeutroReducido220_61 = true;
+        cuadro.Recalcular();
+
+        var r = cuadro.Alimentador.Resultado!;
+        Assert.Equal("1", r.CalibreNeutro.Designacion);
+        Assert.Equal(1, r.NumeroConductoresParalelo);
+        var canal = cuadro.Datos.CanalizacionAlimentador.MaterialParaTabla9;
+        var zf = Motor.Impedancia.Impedancia(r.CalibreFase, MaterialConductor.Cobre, canal)!.Value;
+        var zn = Motor.Impedancia.Impedancia(r.CalibreNeutro, MaterialConductor.Cobre, canal)!.Value;
+        var iN = r.CorrienteNeutro!.Value;
+        var km = cuadro.Datos.LongitudAlimentadorM / 1000m;
+        var esperadaV = antesA.CaidaV + km * ((zn.ROhmKm - zf.ROhmKm) * iN.Real - (zn.XOhmKm - zf.XOhmKm) * iN.Imaginario);
+        var despuesA = r.CaidaPorFase!.Single(f => f.Fase == 'A');
+        Assert.Equal(Math.Round(esperadaV, 3), Math.Round(despuesA.CaidaV, 3));
+        Assert.True(despuesA.CaidaPct > antesA.CaidaPct);
+        Assert.Equal(r.CaidaPorFase!.Max(f => f.CaidaPct), r.CaidaTensionPct);
+        Assert.Equal(despuesA.CaidaV, r.Detalle!.CaidaTensionV);
+        Assert.Contains(r.Citas, x => x.Referencia == "Tabla 9" && x.Descripcion.Contains("con el neutro de 1"));
+        Assert.Equal(zn, cuadro.NeutroReducido!.Impedancia);
+    }
+
+    /// <summary>La memoria dice que el neutro está reducido y pone su Z_N, en vez de «del mismo calibre que la fase».</summary>
+    [Fact]
+    public void R3_2_LaMemoriaDiceQueElNeutroEstaReducido()
+    {
+        var cuadro = Nuevo();
+        Carga(cuadro, 1, CategoriaDeCarga.Equipo, SubtipoDeCarga.OtraCargaEspecifica, 3, 1, 150000m, continua: true);
+        Carga(cuadro, 2, CategoriaDeCarga.Equipo, SubtipoDeCarga.OtraCargaEspecifica, 1, 1, 3000m, continua: false);
+        string Caida() => string.Join("\n", PowerNode.Web.Modelo.Memoria.MemoriaDeCalculo.Secciones(
+                PowerNode.Web.Modelo.Memoria.MemoriaDeCalculo.DelAlimentador(cuadro)!)
+            .Single(b => b.Titulo.StartsWith("6.")) is var b ? [.. b.Formulas, .. b.Notas] : []);
+
+        Assert.Contains("El neutro es del mismo calibre que la fase.", Caida());
+        Assert.DoesNotContain("Z_N", Caida());
+
+        cuadro.Datos.NeutroReducido220_61 = true;
+        cuadro.Recalcular();
+
+        var texto = Caida();
+        Assert.DoesNotContain("del mismo calibre que la fase", texto);
+        Assert.Contains("reducido a su carga de desbalance (220-61)", texto);
+        Assert.Contains("Z_N = (", texto);
+        Assert.Contains("Z × I_f + Z_N × I_N", texto);
+    }
+
+    /// <summary>
+    /// A 100 m con 3 por fase, el neutro que pide la carga de desbalance haría pasar la caída del límite: sube
+    /// lo necesario, y la cita lo dice. La caída nunca queda arriba del límite por reducir el neutro.
+    /// </summary>
+    [Fact]
+    public void R3_2_SiLaCaidaPasaDelLimiteElNeutroSube()
+    {
+        var cuadro = Nuevo();
+        cuadro.Datos.LongitudAlimentadorM = 100m;
+        Carga(cuadro, 1, CategoriaDeCarga.Equipo, SubtipoDeCarga.OtraCargaEspecifica, 3, 1, 150000m, continua: true);
+        Carga(cuadro, 2, CategoriaDeCarga.Equipo, SubtipoDeCarga.OtraCargaEspecifica, 1, 1, 3000m, continua: false);
+        Carga(cuadro, 8, CategoriaDeCarga.Equipo, SubtipoDeCarga.OtraCargaEspecifica, 1, 1, 3000m, continua: false);
+        cuadro.Datos.NeutroReducido220_61 = true;
+        cuadro.Recalcular();
+
+        var r = cuadro.Alimentador.Resultado!;
+        Assert.True(r.CaidaTensionPct <= cuadro.Datos.CaidaMaxAlimentadorPct);
+        Assert.True(r.CalibreNeutro.AreaMm2 < r.CalibreFase.AreaMm2);
+        Assert.Contains(r.Citas, x => x.Referencia == "220-61" && x.Descripcion.Contains("para que la caída de tensión"));
+    }
+
+    /// <summary>El piso del neutro es la tierra de 250-122 por 215-2(a)(2), no un criterio del proyectista — R3-3.</summary>
+    [Fact]
+    public void R3_3_ElPisoDelNeutroCita215_2a2()
+    {
+        var cuadro = Nuevo();
+        Carga(cuadro, 1, CategoriaDeCarga.Equipo, SubtipoDeCarga.OtraCargaEspecifica, 3, 1, 150000m, continua: true);
+        Carga(cuadro, 2, CategoriaDeCarga.Equipo, SubtipoDeCarga.OtraCargaEspecifica, 1, 1, 3000m, continua: false);
+        cuadro.Datos.NeutroReducido220_61 = true;
+        cuadro.Recalcular();
+
+        var cita = Assert.Single(cuadro.Alimentador.Resultado!.Citas, x => x.Referencia == "220-61");
+        Assert.Contains("250-122 — 215-2(a)(2)", cita.Descripcion);
+        Assert.DoesNotContain("criterio del proyectista", cita.Descripcion);
+    }
 }
