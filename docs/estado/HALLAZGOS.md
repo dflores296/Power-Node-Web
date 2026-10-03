@@ -190,7 +190,7 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-162 · Conductores por fase del alimentador sin poder fijarlos ni comparar | P3 | **Cerrado** (opción) | `224d97b` |
 | I-163 · Con la pestaña oculta, el menú no regresaba al cancelar (R3-1) | P3 | **Cerrado** | `1175c18` |
 | I-164 · Con el neutro reducido por 220-61, la caída seguía con el neutro del calibre de la fase (R3-2) | P2 | **Cerrado** | `1175c18` |
-| I-165 · El piso del neutro citaba «criterio del proyectista» y no 215-2(a)(2) (R3-3) | P3 | **Cerrado**; área combinada en paralelo: propuesta, por decidir (David) | `1175c18` |
+| I-165 · El piso del neutro citaba «criterio del proyectista» y no 215-2(a)(2) (R3-3) | P3 | **Cerrado**; en paralelo, área del juego (David, 2026-10-03) | `1175c18`, `1105651` |
 | M-14 · Sin el mínimo de alumbrado general por superficie (220-12) en el alimentador; en vivienda, contactos de uso general sumados aparte (220-14(j)) | P1 | **Cerrado** | `71abc56` |
 | M-15 · Motor: la Excepción 1 de 430-52(c)(1) redondeaba dentro de la serie (35 → 40 A en riel DIN) y se citaba sin redondeo; sin Excepción 2 | P1 | **Cerrado** | `8b4d893`, `60a4f91` |
 | M-16 · «Húmedo o mojado» en una opción: XHHW mojado a 90 °C (conductor de menos); RHH y XHH aceptados en mojado | P1 | **Cerrado** | `a3fded5` |
@@ -782,13 +782,14 @@ proyectista)»: la regla es de la NOM, 215-2(a)(2) (el conductor puesto a tierra
 lo que exige 250-122). Corrección (`1175c18`): la cita y la ayuda de la casilla nombran 215-2(a)(2). Prueba:
 `R3_3_…`.
 
-**Propuesta por decidir (David) — el área combinada de los neutros en paralelo.** 215-2(a)(2) termina
+**El área combinada de los neutros en paralelo — decidido por David el 2026-10-03.** 215-2(a)(2) termina
 «excepto que no se debe aplicar 250-122(f) cuando los conductores puestos a tierra estén instalados en
-paralelo». Una lectura: en paralelo, el piso de 250-122 se cumple con el área combinada de los neutros
-(3 × 1/0 = 160 mm² contra 67.43 mm² de un 2/0) y cada uno podría ser menor que la tierra de la tabla. Hoy la
-app pide que **cada** conductor del neutro sea no menor que la tierra de 250-122, que es del lado seguro, y se
-queda así hasta que David decida. Si se acepta: el piso se compararía contra el área del juego (N × área) y
-el neutro seguiría en 1/0 AWG o mayor en paralelo (310-10(h)(1)).
+paralelo»: en paralelo, el piso de 250-122 lo cumple el juego. Antes la app pedía que **cada** neutro fuera no
+menor que la tierra de la tabla. Corrección (`1105651`): se compara N × el área de un neutro contra la tierra
+de 250-122; cada uno sigue de 1/0 AWG o mayor (310-10(h)(1)) y no menor que el conductor del electrodo en un
+equipo de acometida (250-24(c)(1), por conductor, sin cambio). Con 708.57 A: 2 × 1/0 (106.98 mm²) contra la
+tierra de 2/0 (67.43 mm²), en vez de 2 × 2/0. La lectura sale de la cita del auditor y del equivalente del
+NEC (215.2(A)(2)); el texto del DOF no se pudo consultar desde la sesión. Prueba: `I165_…`.
 
 ### «Pendiente de probar» de la auditoría, 2026-09-30
 

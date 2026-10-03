@@ -10,10 +10,10 @@ tres observaciones aplicadas — `1175c18`:
 - R3-1: el menú regresa también con la pestaña oculta — I-163.
 - R3-2: con el neutro reducido, la caída lleva la Z del neutro real y la memoria lo dice; si pasa del
   límite, el neutro sube — I-164.
-- R3-3: el piso del neutro cita 215-2(a)(2) — I-165. El área combinada de los neutros en paralelo queda
-  como propuesta para David; la app sigue del lado seguro.
+- R3-3: el piso del neutro cita 215-2(a)(2) — I-165. Decidido por David: en paralelo, el neutro cumple
+  250-122 con el área del juego, cada uno de 1/0 o mayor — `1105651`.
 
-Pruebas: 513 en `PowerNode.Web.Tests`, 52 en `PowerNode.Normativa.Tests`.
+Pruebas: 514 en `PowerNode.Web.Tests`, 52 en `PowerNode.Normativa.Tests`.
 
 ## 2026-10-02
 
