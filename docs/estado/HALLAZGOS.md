@@ -196,6 +196,11 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-168 · La barra de ayuda se quedaba puesta al deslizar en pantalla táctil (pointercancel) | P3 | **Cerrado** | `44ba372` |
 | I-169 · Citas corridas: 1/0 AWG en 310-10(h)(2); juego completo en 250-122(f) | P3 | **Cerrado** | `44ba372` |
 | I-170 · La memoria no decía cuándo R y X del neutro reducido eran de otro calibre | P3 | **Cerrado** | `44ba372` |
+| I-171 · Con ningún tubo que alcance, el alimentador salía resuelto con «EMT · —» (R4-1) | P2 | **Cerrado** | `d74c16a` |
+| I-172 · Con «Paralelos en un tubo», una tierra por juego en vez de una sola — 250-122(f) (R4-2) | P3 | **Cerrado** | `d74c16a` |
+| I-173 · N fijado con calibre menor que 1/0 se rechazaba en vez de subir a 1/0 (R4-3) | P3 | **Cerrado** (opción) | `d74c16a` |
+| I-174 · 250-24(c)(2): el 12.5 % con el área total de las fases en paralelo, lectura literal (R4-4) | P3 | Propuesta, por confirmar (David) | `d74c16a` (cita) |
+| I-175 · Caída con 1.98 % en la tarjeta y 1.9 % en la memoria (R4-5) | P3 | **Cerrado** | `d74c16a` |
 | M-14 · Sin el mínimo de alumbrado general por superficie (220-12) en el alimentador; en vivienda, contactos de uso general sumados aparte (220-14(j)) | P1 | **Cerrado** | `71abc56` |
 | M-15 · Motor: la Excepción 1 de 430-52(c)(1) redondeaba dentro de la serie (35 → 40 A en riel DIN) y se citaba sin redondeo; sin Excepción 2 | P1 | **Cerrado** | `8b4d893`, `60a4f91` |
 | M-16 · «Húmedo o mojado» en una opción: XHHW mojado a 90 °C (conductor de menos); RHH y XHH aceptados en mojado | P1 | **Cerrado** | `a3fded5` |
@@ -833,6 +838,37 @@ También: fuera el BOM UTF-8 que se coló en seis archivos de la ronda 2; decisi
 [`../decisiones/conductores-por-fase-del-alimentador.md`](../decisiones/conductores-por-fase-del-alimentador.md)
 (CONFIRMADA) y [`../decisiones/neutro-del-alimentador-por-220-61.md`](../decisiones/neutro-del-alimentador-por-220-61.md)
 (nueva, CONFIRMADA). Sigue pendiente llevar M-19 e I-169 al escritorio (`motor-copiado.md`).
+
+### Verificación NOM, ronda 4, del 2026-10-02
+
+Caja negra contra `ef49373` con los tableros «708 A» y «415 A» de las pruebas en modo usuario. Todo lo
+probado coincidió con el cálculo a mano (M-19, I-161, I-162, I-164 a I-167, I-170); la fila 16 (pestaña
+oculta) quedó sin conclusión porque la pestaña nunca volvió a estar visible. Cinco observaciones, en `d74c16a`:
+
+**I-171** (R4-1) — Con «Paralelos en un tubo» y 3 × 700 kcmil fijados, la suma pasaba del EMT de 103 mm y la
+tarjeta decía «EMT · —» sin error. Ahora, si ningún tamaño de tubo o niple de la Tabla 4 cumple el llenado,
+el alimentador da error con el área y la salida (quitar «Paralelos en un tubo», ducto o charola, otro N); en
+el modo automático también (no busca otro N: lo dice el mensaje). En los derivados, aviso por canalización
+(`CanalizacionDelTablero.NingunTamanoAlcanza`). Pruebas: `R4_1_…`, `I162_FijadoConLosJuegosEnUnTubo`; en el
+navegador.
+
+**I-172** (R4-2) — Con «Paralelos en un tubo», la tierra es una sola para todos los juegos — 250-122(f): en
+la tarjeta, la memoria, el documento, el llenado del tubo y el cobre de «Comparar opciones»
+(`CuadroDeCarga.TierrasDelAlimentador`).
+
+**I-173** (R4-3) — Con N fijado y un calibre por ampacidad, 240-4 y caída menor que 1/0, el resultado es 1/0
+(el mínimo en paralelo, 310-10(h)(1)) con la cita «sobredimensionado por ese mínimo», y «Comparar opciones»
+lo muestra con «mín. 1/0». En automático no cambia: ese N sigue sin ofrecerse. Efecto: la tierra sube en
+proporción por 250-122(b) (415 A × 4: tierra de 1/0).
+
+**I-174** (R4-4) — 250-24(c)(2) en la NOM toma el área total de las fases en paralelo; el NEC, la de cada
+canalización (2 × 250 kcmil contra 2 × 2/0 con 708.57 A). Se deja la lectura literal y la cita lo dice;
+decisión [`../decisiones/neutro-de-acometida-en-paralelo-250-24-c-2.md`](../decisiones/neutro-de-acometida-en-paralelo-250-24-c-2.md),
+PROPUESTA.
+
+**I-175** (R4-5) — La caída en las citas del motor (`SeleccionConductor`, `CalculadoraAlimentador`,
+`CaidaTensionAcumulada`) y en la memoria va con dos decimales, como en la tarjeta. Solo texto
+(`motor-copiado.md`). Prueba: `R4_5_…`.
 
 ### «Pendiente de probar» de la auditoría, 2026-09-30
 

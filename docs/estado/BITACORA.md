@@ -4,6 +4,17 @@ Registro de acciones por sesión, con hallazgo y commit.
 
 ## 2026-10-03
 
+**Verificación NOM, ronda 4** (caja negra contra `ef49373`): lo probado, correcto; cinco observaciones —
+`d74c16a` y el commit de docs:
+
+- R4-1: error si ningún tubo alcanza (alimentador) y aviso en los derivados — I-171.
+- R4-2: una sola tierra con «Paralelos en un tubo» — I-172.
+- R4-3: N fijado abajo de 1/0 sube a 1/0 en vez de rechazarse — I-173.
+- R4-4: 250-24(c)(2) con el área total, lectura literal; decisión PROPUESTA, por confirmar (David) — I-174.
+- R4-5: caída con dos decimales en la memoria y en las citas del motor — I-175.
+
+Pruebas: 518 en `PowerNode.Web.Tests`, 52 en `PowerNode.Normativa.Tests`.
+
 **Revisión de cabos sueltos de las rondas 2 y 3** (`3f53a3f..246dccc`), cerrada a petición de David, que
 confirmó todo — `44ba372` y el commit de docs:
 
