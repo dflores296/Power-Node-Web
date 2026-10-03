@@ -161,6 +161,21 @@ papel y una línea abajo; 64 px de alto (56 hasta I-59).
 - **Tipos de carga** (I-63): alumbrado, contactos, equipo, motor y calefacción, en el resumen de carga
   (uno por renglón) y junto al selector «Tipo» del cuadro, solo en los renglones con carga. No en la
   puesta a tierra (ya lleva la muestra verde de la NOM) ni en el documento impreso, que se firma.
+- **Campos de la ficha** (I-178, pedido de David, 2026-10-03): uno por campo de Identificación, Sistema,
+  Gabinete y Condiciones de cálculo, a 14 px y del color del rótulo, en un `span.rotulo` junto al texto
+  (la etiqueta es una rejilla de dos columnas: un tercer hijo la rompía). 30 nuevos; «Tablero» reusa el
+  del tipo de carga. Dibujados aquí con el mismo trazo y relleno, no copiados de ningún juego:
+  - Identificación: etiqueta (clave), alfiler (ubicación), portapapeles (proyecto), persona (cliente).
+  - Sistema: rayo (tensión), **fasores a 120°** (fases), corte de un cable con sus conductores (hilos),
+    senoide (frecuencia).
+  - Gabinete: espacios en dos columnas; flecha que entra (acometida); **interruptor de tres polos con la
+    manija común** (montaje del principal); el principal ocupando espacios; caja contra el muro (montaje);
+    tres barras; escudo con gota (gabinete NEMA: el grado de protección); medidor de aguja (capacidad de
+    barra); interruptor (familia); casa (inmueble); área con cotas; tabla (uso, Tabla 220-12); **medidor**
+    (equipo de acometida).
+  - Condiciones: cable con el conductor desnudo; corte del aislamiento; terminal de ojillo; gota (lugar);
+    termómetro; onda con armónicas (carga no lineal); la caída desde el punto de derivación y desde la
+    barra (e% máx.); Ø (diámetro del fabricante).
 
 ## El relieve
 

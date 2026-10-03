@@ -4,6 +4,14 @@ Registro de acciones por sesión, con hallazgo y commit.
 
 ## 2026-10-03
 
+**Iconos de la ficha** (pedido de David) — `4f3b49a`, `c053993` y el commit de docs:
+
+- I-178: un icono por campo de Identificación, Sistema, Gabinete y Condiciones de cálculo; 30 nuevos en
+  `Icono.razor`, del juego duotono, revisados en una hoja de contacto antes de entrar.
+- I-179: la barra de ayuda decía «!» en tres campos (un comentario de Blazor antes del rótulo).
+
+Pruebas: 519 en `PowerNode.Web.Tests`, 52 en `PowerNode.Normativa.Tests`.
+
 **La piel Linear** (pedido de David: el `DESIGN.md` de Linear y la skill ui-ux-pro-max como referencia,
 sin tocar funcionalidad) — `3261de1` y el commit de docs, I-176:
 

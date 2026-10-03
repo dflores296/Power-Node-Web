@@ -203,6 +203,8 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-175 · Caída con 1.98 % en la tarjeta y 1.9 % en la memoria (R4-5) | P3 | **Cerrado** | `d74c16a` |
 | I-176 · La interfaz con la piel de Linear: Inter, líneas finas y lima en la acción (pedido de David) | P3 | **Cerrado** | `3261de1` |
 | I-177 · En el gabinete, la conexión punteada de un espacio libre atravesaba su número | P3 | **Cerrado** | `9f3716e` |
+| I-178 · Los campos de la ficha, sin icono (pedido de David) | P3 | **Cerrado** | `4f3b49a` |
+| I-179 · La barra de ayuda decía «!» en vez del nombre de algunos campos | P3 | **Cerrado** | `4f3b49a`, `c053993` |
 | M-14 · Sin el mínimo de alumbrado general por superficie (220-12) en el alimentador; en vivienda, contactos de uso general sumados aparte (220-14(j)) | P1 | **Cerrado** | `71abc56` |
 | M-15 · Motor: la Excepción 1 de 430-52(c)(1) redondeaba dentro de la serie (35 → 40 A en riel DIN) y se citaba sin redondeo; sin Excepción 2 | P1 | **Cerrado** | `8b4d893`, `60a4f91` |
 | M-16 · «Húmedo o mojado» en una opción: XHHW mojado a 90 °C (conductor de menos); RHH y XHH aceptados en mojado | P1 | **Cerrado** | `a3fded5` |
@@ -892,6 +894,22 @@ libre se veía a través del rótulo con su número. `.etq.libre` llevaba `opaci
 translúcido el rótulo entero, fondo incluido. Corrección: fondo opaco; el número y el contorno, mezclados
 al 45 % con el papel (`color-mix`), lo mismo que daba la opacidad. Prueba: navegador, claro y oscuro — la
 línea llega a la orilla del rótulo, como en un espacio ocupado.
+
+**I-178** — Hecho (David, 2026-10-03: «generar iconos para cada campo» de Identificación, Sistema, Gabinete y
+Condiciones de cálculo): 30 iconos nuevos en `Layout/Icono.razor`, del juego duotono de I-62, dibujados
+aquí; «Tablero» reusa el del tipo de carga. Van a 14 px en un `span.rotulo` antes del texto de los 31
+campos, incluidos los que salen según la configuración. Cuáles son: `../conocimiento/marca.md`,
+«Tipografía e iconos». Prueba: hoja de contacto a 56 y 14 px en claro y oscuro (cinco redibujados: el
+principal parecía un monitor, el medidor un foco, el conductor una cápsula; la frecuencia y la carga no
+lineal sin el eje punteado; la terminal con su engarce); la ficha en el navegador a 1920, 1440 y 360 px;
+sin cortes ni desplazamiento lateral de 360 a 1920 px; la barra de ayuda, con los mismos nombres y
+ayudas en los 30 campos.
+
+**I-179** — Visto al probar I-178: al enfocar «Ubicación», «T. ambiente (°C)» o «Longitud del alimentador
+(m)», la barra de ayuda decía «!» en vez del nombre. `ayudaDe()` (`js/teclado.js`) tomaba el primer hijo
+de la etiqueta, y Blazor deja a veces un comentario `<!--!-->` antes del rótulo. En la ficha lo quitó el
+`span.rotulo` de I-178 (`4f3b49a`); en general, ahora toma el primer hijo que no sea comentario
+(`c053993`). Prueba: navegador — la barra dice el nombre de los tres.
 
 ### «Pendiente de probar» de la auditoría, 2026-09-30
 

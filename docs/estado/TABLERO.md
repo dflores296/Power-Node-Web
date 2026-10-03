@@ -54,6 +54,7 @@ Ejecutar en el navegador (Blazor WebAssembly), sin servidor, publicado en GitHub
 - Piel Linear (David, 2026-10-03 — I-176): Inter dentro de la app, superficies con línea de 1 px, lima
   en «Imprimir / PDF» y en la página activa; impreso sin cambios — [`../conocimiento/marca.md`](../conocimiento/marca.md).
   Falta regenerar `docs/portada.png`.
+- Un icono por campo de la ficha (Identificación, Sistema, Gabinete, Condiciones de cálculo) — I-178.
 - Barra superior fija (patrón de la NOM y de msa-toolkit): Captura · Cuadro de carga · Memoria de
   cálculo, tema Sistema | Claro | Oscuro (`wwwroot/js/tema.js`) e Imprimir en el documento; impreso,
   siempre en claro.
