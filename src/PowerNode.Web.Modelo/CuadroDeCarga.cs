@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using PowerNode.DesignSuite.Calculo.Canalizaciones;
 using PowerNode.DesignSuite.Calculo.Casos;
 using PowerNode.DesignSuite.Calculo.Magnitudes;
@@ -1798,6 +1798,13 @@ public sealed class CuadroDeCarga
         }
 
         // Dos o más salidas: uso general o para aparatos.
+        // 210-3: los que no son individuales van de 15 a 50 A. La excepción —más de 50 A para cargas que
+        // no son de alumbrado— es solo de instalaciones industriales con mantenimiento y supervisión
+        // calificados, y la captura no lo sabe: se avisa siempre y se nombra — auditoría del 2026-10-02, N-2.
+        if (proteccion > 50m)
+            reglas.Add(new("210-3", $"Circuito de {SalidasDe(c)} de {proteccion:N0} A: 210-3 limita a 50 A los circuitos derivados que no son individuales. " +
+                "Separar en circuitos individuales. Solo en una instalación industrial con mantenimiento y supervisión calificados se permite más de 50 A " +
+                "para cargas que no son de alumbrado (210-3, Excepción).", true));
         if (conContactos)
         {
             var fuera = proteccion > 20m && c.UsoEfectivo == UsoDeContactos.General && ContactosDeUsoGeneral(c);
@@ -1887,6 +1894,9 @@ public sealed class CuadroDeCarga
             ? new("210-6(a)(2)", $"En vivienda, los contactos para cargas con cordón y clavija de 1440 VA o menos no pasan de 120 V entre conductores; este circuito queda a {tension:N0} V.", true)
             : new("210-6(c)(6)", $"Contactos a {tension:N0} V a tierra: se permiten para equipo de utilización con cordón y clavija de esa tensión; no son contactos de uso general de 127 V.", false);
     }
+
+    /// <summary>«3 salidas», o «varias salidas» si es carga total sin desglose.</summary>
+    private static string SalidasDe(CircuitoDelCuadro c) => c.Salidas is int n and > 1 ? $"{n} salidas" : "varias salidas";
 
     /// <summary>Tabla 210-21(b)(3): el valor de los contactos según el del circuito.</summary>
     private static string ValorDeContactos(decimal circuitoA) => circuitoA switch

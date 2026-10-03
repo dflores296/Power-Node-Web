@@ -323,12 +323,20 @@
     // ---- Para la página: regresar un selector que el modelo no aceptó (I-78, I-79) ---------------
     // Blazor no toca el DOM si el valor del modelo no cambió: el selector se quedaba diciendo «3
     // polos» con el circuito en 1. La página lo regresa aquí, y también lo que Esc recuerda.
+    //
+    // N-3 (auditoría del 2026-10-02): al cancelar «Reducir espacios» el menú se quedó en «6» en una
+    // prueba por script. No se reprodujo ni con clic ni por script, pero el valor se vuelve a poner
+    // en el cuadro siguiente: si un dibujo de Blazor o el propio cambio llegan después, gana el vigente.
     window.powerNode.restablecer = (selector, valor) => {
-        const el = document.querySelector(selector);
-        if (!el)
-            return;
-        el.value = valor;
-        el.dataset.previo = valor;
+        const poner = () => {
+            const el = document.querySelector(selector);
+            if (!el)
+                return;
+            el.value = valor;
+            el.dataset.previo = valor;
+        };
+        poner();
+        requestAnimationFrame(poner);
     };
 
     // ---- Para la página: regresar el último número que el modelo no aceptó (P2-3) -----------------

@@ -141,20 +141,33 @@ public static class SeleccionConductor
         var senTheta = TrianguloPotencias.SenoDelAngulo(factorPotencia);
         var k = numeroFases == 3 ? (decimal)Math.Sqrt(3) : 2m;
 
+        // Por qué no alcanzó el N mínimo: ampacidad (o 240-4) o caída de tensión. Cambia la cita y el
+        // error final — Power Node Web, auditoría del 2026-10-02, N-1.
+        bool? minimoAgotoPorAmpacidad = null;
+        var ultimoAgotoPorAmpacidad = false;
         for (var nParalelo = nParaleloMinimo; nParalelo <= maxNParaleloAutoResuelto; nParalelo++)
         {
             var intento = IntentarConN(catalogo, ampacidad, impedancia, capacidadMinConductorA, corrienteParaCaidaA,
                 nParalelo, factorTemp, factorAgrup, materialConductor, materialCanalizacion, tempAislamiento, tempTerminales,
                 longitudM, factorPotencia, senTheta, k, tensionEfectivaV, caidaTensionMaxPct, pisoPracticoCalibreMm2,
                 proteccionEstandar, proteccionA, permiteExcepcion2404b, metodoInstalacion, cargaAl100PctA,
-                caidaVoltsPorImpedancia);
+                caidaVoltsPorImpedancia, out ultimoAgotoPorAmpacidad);
 
             if (intento is null)
+            {
+                minimoAgotoPorAmpacidad ??= ultimoAgotoPorAmpacidad;
                 continue; // catálogo agotado con este N -- prueba con más conductores en paralelo.
+            }
 
             var (calibreFinal, calibreBase, caidaPct, ampacidadTotalA, citas, _, _, _) = intento.Value;
 
-            if (nParalelo > nParaleloMinimo)
+            if (nParalelo > nParaleloMinimo && minimoAgotoPorAmpacidad == true)
+                citas.Insert(0, new Cita("310-10(h)(1)",
+                    $"Con {nParaleloMinimo} conductor(es) por fase, ni el calibre más grande del catálogo tenía la ampacidad para " +
+                    $"{capacidadMinConductorA:0.##} A{(proteccionA is decimal pr ? $" ni quedaba protegido por {pr} A (240-4)" : "")} -- se sube " +
+                    $"automáticamente a {nParalelo} conductores en paralelo por fase, de {calibreFinal} (1/0 AWG o mayor). Cada canalización " +
+                    "lleva su juego completo y su conductor de tierra (250-122(f)). Si se capturó otro N, actualízalo a éste."));
+            else if (nParalelo > nParaleloMinimo)
                 citas.Insert(0, new Cita("310-10(h)(1)",
                     $"Con {nParaleloMinimo} conductor(es) por fase, ni el calibre más grande del catálogo bajaba la caída de tensión a " +
                     $"{caidaTensionMaxPct}% -- se sube automáticamente a {nParalelo} conductores en paralelo por fase para resolver. " +
@@ -167,6 +180,12 @@ public static class SeleccionConductor
             return new Resultado(calibreFinal, calibreBase, caidaPct, nParalelo, citas, ampacidadTotalA,
                                  intento.Value.ROhmKm, intento.Value.XOhmKm, intento.Value.CaidaV);
         }
+
+        if (ultimoAgotoPorAmpacidad)
+            throw new InvalidOperationException(
+                $"Ni subiendo hasta {maxNParaleloAutoResuelto} conductores en paralelo por fase alcanza la ampacidad para " +
+                $"{capacidadMinConductorA:0.##} A con {materialConductor} ({(int)tempAislamiento}°C, topado a {(int)tempTerminales}°C de la terminal). " +
+                "Hace falta dividir la carga o subir el tope de conductores en paralelo.");
 
         throw new CaidaTensionExcedidaException(
             $"Ni con el calibre más grande del catálogo ni subiendo hasta {maxNParaleloAutoResuelto} conductores en paralelo por fase " +
@@ -190,15 +209,26 @@ public static class SeleccionConductor
         decimal tensionEfectivaV, decimal caidaTensionMaxPct, decimal? pisoPracticoCalibreMm2,
         ITablaProteccionEstandar? proteccionEstandar, decimal? proteccionA, bool permiteExcepcion2404b,
         MetodoInstalacion metodoInstalacion, decimal? cargaAl100PctA,
-        Func<decimal, decimal, int, decimal>? caidaVoltsPorImpedancia)
+        Func<decimal, decimal, int, decimal>? caidaVoltsPorImpedancia, out bool agotoPorAmpacidad)
     {
+        agotoPorAmpacidad = false;
+
         // Calibre de partida: por ampacidad utilizable de la corriente de diseño (crédito de
         // aislamiento incluido, ver docstring de la clase), y luego 240-4 decide si ese calibre basta
         // para la PROTECCIÓN ya elegida o si hay que subirlo.
-        var (calibreBase, citaProteccion) = DeterminarCalibreBase(
-            catalogo, ampacidad, proteccionEstandar, capacidadMinConductorA, proteccionA, permiteExcepcion2404b,
-            nParalelo, factorTemp, factorAgrup, materialConductor, tempAislamiento, tempTerminales, metodoInstalacion,
-            cargaAl100PctA);
+        //
+        // SI EL CATÁLOGO SE AGOTA POR AMPACIDAD, también se prueba con más conductores en paralelo, igual
+        // que con la caída de tensión. Antes el alimentador de más de ~665 A (2000 kcmil de cobre a 75 °C)
+        // se quedaba sin resultado: «No hay calibre en el catálogo…» — auditoría del 2026-10-02, N-1.
+        if (DeterminarCalibreBase(
+                catalogo, ampacidad, proteccionEstandar, capacidadMinConductorA, proteccionA, permiteExcepcion2404b,
+                nParalelo, factorTemp, factorAgrup, materialConductor, tempAislamiento, tempTerminales, metodoInstalacion,
+                cargaAl100PctA) is not { } deAmpacidad)
+        {
+            agotoPorAmpacidad = true;
+            return null;
+        }
+        var (calibreBase, citaProteccion) = deAmpacidad;
 
         var objetivoPorConductor = capacidadMinConductorA / nParalelo;
         var columnaDescripcion = tempAislamiento == tempTerminales
@@ -351,7 +381,9 @@ public static class SeleccionConductor
     /// aplica a un circuito derivado que alimenta más de un contacto de uso general).
     /// <c>proteccionA: null</c> desactiva esta verificación por completo (Motor/430-52).
     /// </summary>
-    private static (Calibre CalibreBase, Cita? CitaProteccion) DeterminarCalibreBase(
+    /// <returns>Null si ni el calibre más grande del catálogo alcanza la ampacidad o queda protegido
+    /// con este N: la señal para probar con más conductores en paralelo.</returns>
+    private static (Calibre CalibreBase, Cita? CitaProteccion)? DeterminarCalibreBase(
         ICatalogoCalibres catalogo, ITablaAmpacidad ampacidad, ITablaProteccionEstandar? proteccionEstandar,
         decimal capacidadMinConductorA, decimal? proteccionA, bool permiteExcepcion2404b,
         int nParalelo, decimal factorTemp, decimal factorAgrup, MaterialConductor materialConductor,
@@ -365,6 +397,8 @@ public static class SeleccionConductor
                 factorTemp, factorAgrup, metodoInstalacion)
             : CalibrePorAmpacidadUtilizable(
                 catalogo, ampacidad, objetivoPorCarga, materialConductor, tempAislamiento, tempTerminales, factorTemp, factorAgrup, metodoInstalacion);
+        if (calibrePorCarga is null)
+            return null;
 
         if (proteccionA is not decimal breaker || proteccionEstandar is null)
             return (calibrePorCarga, null); // fuera de alcance de 240-4 (Motor, que se rige por 430-52).
@@ -408,9 +442,7 @@ public static class SeleccionConductor
                       "240-6(a) y no excede 800 A."));
         }
 
-        throw new InvalidOperationException(
-            $"No hay calibre en el catálogo que quede protegido por {breaker} A para {materialConductor} " +
-            $"({(int)tempAislamiento}°C, topado a {(int)tempTerminales}°C de la terminal).");
+        return null; // ningún calibre del catálogo queda protegido por la protección con este N.
     }
 
     /// <summary>
@@ -456,7 +488,7 @@ public static class SeleccionConductor
     /// las dos formas dan lo mismo.
     /// </para>
     /// </summary>
-    private static Calibre CalibrePorDosRevisiones(
+    private static Calibre? CalibrePorDosRevisiones(
         ICatalogoCalibres catalogo, ITablaAmpacidad ampacidad, decimal capacidadMinimaPorConductorA, decimal cargaPorConductorA,
         MaterialConductor material, TemperaturaAislamiento tempAislamiento, TemperaturaAislamiento tempTerminales,
         decimal factorTemp, decimal factorAgrup, MetodoInstalacion metodo)
@@ -467,12 +499,10 @@ public static class SeleccionConductor
                 ampacidad.Ampacidad(c, material, tempTerminales, metodo) is decimal deTabla && deTabla >= capacidadMinimaPorConductorA &&
                 AmpacidadUtilizable(ampacidad, c, material, tempAislamiento, tempTerminales, factorTemp, factorAgrup, metodo) is decimal u && u >= cargaPorConductorA);
 
-        return calibre ?? throw new InvalidOperationException(
-            $"No hay calibre en el catálogo con ampacidad de tabla >= {capacidadMinimaPorConductorA:0.##} A a {(int)tempTerminales}°C y " +
-            $"ampacidad corregida >= {cargaPorConductorA:0.##} A para {material}.");
+        return calibre; // null: ninguno alcanza con este N.
     }
 
-    private static Calibre CalibrePorAmpacidadUtilizable(
+    private static Calibre? CalibrePorAmpacidadUtilizable(
         ICatalogoCalibres catalogo, ITablaAmpacidad ampacidad, decimal corrienteObjetivoPorConductor,
         MaterialConductor material, TemperaturaAislamiento tempAislamiento, TemperaturaAislamiento tempTerminales,
         decimal factorTemp, decimal factorAgrup, MetodoInstalacion metodo)
@@ -481,9 +511,7 @@ public static class SeleccionConductor
             .OrderBy(c => c.AreaMm2)
             .FirstOrDefault(c => AmpacidadUtilizable(ampacidad, c, material, tempAislamiento, tempTerminales, factorTemp, factorAgrup, metodo) is decimal u && u >= corrienteObjetivoPorConductor);
 
-        return calibre ?? throw new InvalidOperationException(
-            $"No hay calibre en el catálogo con ampacidad utilizable >= {corrienteObjetivoPorConductor:0.##} A para {material} " +
-            $"({(int)tempAislamiento}°C, topado a {(int)tempTerminales}°C de la terminal).");
+        return calibre; // null: ninguno alcanza con este N.
     }
 
     /// <summary>
