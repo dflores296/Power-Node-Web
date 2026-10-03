@@ -1,7 +1,7 @@
 # Neutro de acometida en paralelo: el 12.5 % se toma del área total de las fases
 
-**PROPUESTA · Claude · 2026-10-03** — por confirmar (David). Sale de la verificación NOM, ronda 4 (R4-4,
-I-174), que pidió dejar la lectura actual y registrarla.
+**CONFIRMADA · David · 2026-10-03** — propuesta por Claude el mismo día. Sale de la verificación NOM, ronda 4
+(R4-4, I-174), que pidió dejar la lectura actual y registrarla; David la confirmó en el hilo («confirmo»).
 
 ## La decisión
 

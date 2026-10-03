@@ -10,7 +10,7 @@ Registro de acciones por sesión, con hallazgo y commit.
 - R4-1: error si ningún tubo alcanza (alimentador) y aviso en los derivados — I-171.
 - R4-2: una sola tierra con «Paralelos en un tubo» — I-172.
 - R4-3: N fijado abajo de 1/0 sube a 1/0 en vez de rechazarse — I-173.
-- R4-4: 250-24(c)(2) con el área total, lectura literal; decisión PROPUESTA, por confirmar (David) — I-174.
+- R4-4: 250-24(c)(2) con el área total, lectura literal; decisión CONFIRMADA por David — I-174.
 - R4-5: caída con dos decimales en la memoria y en las citas del motor — I-175.
 
 Pruebas: 518 en `PowerNode.Web.Tests`, 52 en `PowerNode.Normativa.Tests`.

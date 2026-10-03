@@ -199,7 +199,7 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-171 · Con ningún tubo que alcance, el alimentador salía resuelto con «EMT · —» (R4-1) | P2 | **Cerrado** | `d74c16a` |
 | I-172 · Con «Paralelos en un tubo», una tierra por juego en vez de una sola — 250-122(f) (R4-2) | P3 | **Cerrado** | `d74c16a` |
 | I-173 · N fijado con calibre menor que 1/0 se rechazaba en vez de subir a 1/0 (R4-3) | P3 | **Cerrado** (opción) | `d74c16a` |
-| I-174 · 250-24(c)(2): el 12.5 % con el área total de las fases en paralelo, lectura literal (R4-4) | P3 | Propuesta, por confirmar (David) | `d74c16a` (cita) |
+| I-174 · 250-24(c)(2): el 12.5 % con el área total de las fases en paralelo, lectura literal (R4-4) | P3 | **Cerrado** (lectura literal, David, 2026-10-03) | `d74c16a` |
 | I-175 · Caída con 1.98 % en la tarjeta y 1.9 % en la memoria (R4-5) | P3 | **Cerrado** | `d74c16a` |
 | M-14 · Sin el mínimo de alumbrado general por superficie (220-12) en el alimentador; en vivienda, contactos de uso general sumados aparte (220-14(j)) | P1 | **Cerrado** | `71abc56` |
 | M-15 · Motor: la Excepción 1 de 430-52(c)(1) redondeaba dentro de la serie (35 → 40 A en riel DIN) y se citaba sin redondeo; sin Excepción 2 | P1 | **Cerrado** | `8b4d893`, `60a4f91` |
@@ -864,7 +864,7 @@ proporción por 250-122(b) (415 A × 4: tierra de 1/0).
 **I-174** (R4-4) — 250-24(c)(2) en la NOM toma el área total de las fases en paralelo; el NEC, la de cada
 canalización (2 × 250 kcmil contra 2 × 2/0 con 708.57 A). Se deja la lectura literal y la cita lo dice;
 decisión [`../decisiones/neutro-de-acometida-en-paralelo-250-24-c-2.md`](../decisiones/neutro-de-acometida-en-paralelo-250-24-c-2.md),
-PROPUESTA.
+CONFIRMADA por David (2026-10-03).
 
 **I-175** (R4-5) — La caída en las citas del motor (`SeleccionConductor`, `CalculadoraAlimentador`,
 `CaidaTensionAcumulada`) y en la memoria va con dos decimales, como en la tarjeta. Solo texto

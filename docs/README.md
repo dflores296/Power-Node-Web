@@ -50,7 +50,7 @@ Solo David confirma una decisión.
 | [`decisiones/documento-imprimible-en-vez-de-archivo.md`](decisiones/documento-imprimible-en-vez-de-archivo.md) | PROPUESTA · Claude · 2026-09-22 |
 | [`decisiones/conductores-por-fase-del-alimentador.md`](decisiones/conductores-por-fase-del-alimentador.md) | CONFIRMADA · David · 2026-10-03 |
 | [`decisiones/neutro-del-alimentador-por-220-61.md`](decisiones/neutro-del-alimentador-por-220-61.md) | CONFIRMADA · David · 2026-10-03 (opción; en paralelo, área del juego; en acometida, 250-24(c)) |
-| [`decisiones/neutro-de-acometida-en-paralelo-250-24-c-2.md`](decisiones/neutro-de-acometida-en-paralelo-250-24-c-2.md) | PROPUESTA · Claude · 2026-10-03 (12.5 % del área total, lectura literal) |
+| [`decisiones/neutro-de-acometida-en-paralelo-250-24-c-2.md`](decisiones/neutro-de-acometida-en-paralelo-250-24-c-2.md) | CONFIRMADA · David · 2026-10-03 (12.5 % del área total, lectura literal) |
 
 ## `conocimiento/` — referencia técnica
 
