@@ -1,0 +1,46 @@
+@*
+    EL CONDUCTOR VISTO DE FRENTE (David, 2026-10-03 — I-181). Reemplaza a las cajitas de color de «Fase»,
+    «Neutro» y «Puesta a tierra» del alimentador. Sólido, no duotono: el forro con el color que le toca —
+    fases A negro, B rojo, C azul; neutro blanco, 200-6; tierra verde, 250-119 — y adentro el conductor
+    cableado de 7 hilos (1 + 6), como en la Tabla 8.
+
+    Dice lo que el cálculo usa: los hilos en cobre o en aluminio según el material, y la tierra sin forro
+    cuando la canalización la lleva desnuda.
+
+    El forro, delgado como el de un THHN, y los hilos grandes: a 26 px, con el forro de antes (4 de 24) y
+    hilos chicos, el cobre se veía como una mancha. El aro del color de la tarjeta separa a las fases cuando
+    van juntas en el haz.
+*@
+<svg class="corte @(Aluminio ? "aluminio" : null)" viewBox="0 0 24 24" width="@Tamano" height="@Tamano" aria-hidden="true" focusable="false">
+    @if (Desnudo)
+    {
+        <circle class="aro" cx="12" cy="12" r="8.9" />
+    }
+    else
+    {
+        <circle class="aro" cx="12" cy="12" r="12" />
+        <circle class="forro forro-@Forro" cx="12" cy="12" r="11" />
+        <circle class="hueco" cx="12" cy="12" r="8.2" />
+    }
+    <circle class="hilo" cx="12" cy="12" r="2.6" />
+    <circle class="hilo" cx="16.46" cy="14.58" r="2.6" />
+    <circle class="hilo" cx="12" cy="17.15" r="2.6" />
+    <circle class="hilo" cx="7.54" cy="14.58" r="2.6" />
+    <circle class="hilo" cx="7.54" cy="9.43" r="2.6" />
+    <circle class="hilo" cx="12" cy="6.85" r="2.6" />
+    <circle class="hilo" cx="16.46" cy="9.43" r="2.6" />
+</svg>
+
+@code {
+    /// <summary>a, b, c (la fase), neutro o tierra.</summary>
+    [Parameter, EditorRequired] public string Forro { get; set; } = "";
+
+    /// <summary>Sin forro: la tierra desnuda.</summary>
+    [Parameter] public bool Desnudo { get; set; }
+
+    /// <summary>Los hilos en aluminio; si no, en cobre.</summary>
+    [Parameter] public bool Aluminio { get; set; }
+
+    /// <summary>En px.</summary>
+    [Parameter] public int Tamano { get; set; } = 26;
+}

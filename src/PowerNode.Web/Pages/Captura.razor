@@ -1066,12 +1066,12 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
 
             <div class="cables">
                 <div class="cable">
-                    <span class="muestras grande">@foreach (var barra in Datos.Barras) { <i class="color-@char.ToLowerInvariant(barra)"></i> }</span>
+                    <span class="haz">@foreach (var barra in Datos.Barras) { <CorteDeConductor Forro="@char.ToLowerInvariant(barra).ToString()" Aluminio="AlimentadorDeAluminio" /> }</span>
                     <span class="rotulo">Fase</span>
                     <span class="calibre">@Ayuda(ConHilos(a.CalibreFase, a.NumeroConductoresParalelo), Cuadro.DesgloseDelAlimentador()?.Conductor)<small>@a.CalibreFase.AreaMm2.ToString("N2") mm²</small></span>
                 </div>
                 <div class="cable">
-                    <span class="muestras grande"><i class="color-neutro"></i></span>
+                    <span class="haz"><CorteDeConductor Forro="neutro" Aluminio="AlimentadorDeAluminio" /></span>
                     <span class="rotulo"><span class="ayuda" title="Consultar el conductor de neutro: mismo calibre que la fase. En 2 fases + neutro de estrella lleva ≈ la corriente de fase: contarlo en «Agrupados» — 310-15(b)(5)(2); no reducirlo — 220-61(c)(1). Blanco o gris claro — 200-6.">Neutro</span></span>
                     @* I-73: en 3F-3H el alimentador no lleva neutro, como un bipolar sin «+N» — I-41. *@
                     @if (Cuadro.SistemaConNeutro)
@@ -1084,7 +1084,7 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
                     }
                 </div>
                 <div class="cable">
-                    <span class="muestras grande"><i class="color-tierra"></i></span>
+                    <span class="haz"><CorteDeConductor Forro="tierra" Aluminio="AlimentadorDeAluminio" Desnudo="Datos.CanalizacionAlimentador.TierraDesnuda" /></span>
                     <span class="rotulo"><span class="ayuda" title="Consultar el conductor de puesta a tierra de equipos — Tabla 250-122. Verde, o verde con franjas amarillas — 250-119. En paralelo, uno en cada canalización; si van todos en la misma, basta uno — 250-122(f).">Puesta a tierra</span></span>
                     @* En paralelo, uno por canalización: «3 × 300 kcmil», no «300 kcmil» (auditoría del 2026-09-29, riesgo 4); con «Paralelos en un tubo», uno solo (R4-2). *@
                     <span class="calibre">@ConHilos(a.CalibreTierra, Cuadro.TierrasDelAlimentador)<small>@a.CalibreTierra.AreaMm2.ToString("N2") mm²@(a.NumeroConductoresParalelo > 1 ? (Cuadro.TierrasDelAlimentador == 1 ? " · uno para todos los juegos en un tubo" : " · uno por canalización") : "")</small></span>
@@ -1626,6 +1626,9 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
             <th colspan="2" data-col="cn-mm cn-in"><span class="ayuda" title="Tubo: el tamaño más chico que alcanza — Tablas 1 y 4 del Capítulo 10. Se puede cambiar en el combo; fijado, se marca y el programa verifica que alcance. ↺ regresa al cálculo. Ducto o canal: sus medidas, o sin ellas el área interior mínima. «2 ×»: una canalización por juego de conductores en paralelo — 310-10(h)(3).">Tamaño</span></th>
             <th rowspan="2"><span class="ayuda" title="Área de los conductores entre el área interior de la canalización.">Ocupación</span></th>
         </text>;
+
+    // I-181: los hilos del corte del conductor, en aluminio o en cobre.
+    private bool AlimentadorDeAluminio => Datos.MaterialConductor == MaterialConductor.Aluminio;
 
     private RenderFragment EncabezadoTierraDesnuda() =>
         @<th class="dos-lineas" data-col="cn-desnuda"><span class="ayuda" title="Tierra desnuda: su área sale de la Tabla 8 — Nota 8 del Capítulo 10.">Tierra desnuda</span></th>;
