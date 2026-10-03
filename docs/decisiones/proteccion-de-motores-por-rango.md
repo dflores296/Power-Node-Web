@@ -399,7 +399,9 @@ Pendiente menor, sin cambiar el cálculo: la cita 240-4(g) del variador podría 
 
 ## La celda «Protec. (A)», segunda versión: solo el rango
 
-**PROPUESTA · Claude · 2026-10-03** — I-182, pedida por David. Cambia lo que se implementó para la
+**CONFIRMADA · David · 2026-10-03** («estoy de acuerdo con tus recomendaciones»; sin el botón ↺: «¿no puedes
+simplemente volver a seleccionar el antiguo?») — propuesta por Claude el mismo día, I-182, pedida por David.
+Plan aprobado por David. Cambia lo que se implementó para la
 pregunta 3 (opción B): la celda sigue siendo el selector, pero cambia lo que trae.
 
 ### La física detrás del rango (Claude · 2026-10-03, a pregunta de David)
@@ -481,15 +483,16 @@ Medido en el navegador con la bomba de David: 1/2 HP a 127 V, y luego la misma b
 ### La propuesta: como el tamaño del tubo
 
 La app ya resuelve el mismo caso en el tamaño de la canalización (I-44) y en los conductores por fase
-del alimentador (I-162). Llega con lo calculado; si el ingeniero escoge otro valor, queda **fijado**, se
-pinta en el color de acento y aparece ↺ para regresar al cálculo. Aquí sería igual:
+del alimentador (I-162). Llega con lo calculado; si el ingeniero escoge otro valor, queda **fijado** y se
+pinta en el color de acento. Aquí sería igual, sin el ↺ del tubo (David): para regresar se escoge el
+calculado en la lista.
 
 1. **El desplegable trae solo el rango**: `15 · 20 · 25`. Sin grupos y sin «auto», «cond.» ni «máx.».
 2. **Llega con el calculado**, con la regla confirmada (pregunta 1): un motor de 1 HP o menos lleva el
    mayor que protege al conductor; arriba de 1 HP, un A/C o un variador llevan el máximo. Se ve en
    color normal y se recalcula si cambia el circuito.
-3. **Escoger otro número lo fija**: color de acento (clase `fijado`) y ↺ con el título «Regresar al
-   cálculo: 15 A». Escoger el número que da el cálculo lo regresa al cálculo, como `FijarTamano`.
+3. **Escoger otro número lo fija**: color de acento (clase `fijado`). Escoger el número que da el
+   cálculo lo regresa al cálculo, como `FijarTamano`; la ayuda del fijado dice cuál es.
 4. **El porqué, en la ayuda de la celda**, en palabras llanas:
    > Se permite de 15 a 25 A: 430-52(c)(1) solo pone el techo.
    > Calculado: 15 A, el mayor que protege al 14 AWG (motor de 1 HP o menos).
@@ -497,7 +500,7 @@ pinta en el color de acento y aparece ↺ para regresar al cálculo. Aquí serí
    > Escoger otro valor para fijarlo.
 5. **Un valor fijado se borra si cambia lo que define el rango**: el equipo (HP, tensión o polos, corriente,
    placa de A/C o del variador), la Excepción 2 o la serie de interruptores. Regresa al calculado y el aviso
-   del renglón lo dice una vez: «La protección fijada, 15 A, era para el motor de 1/2 HP: regresó al
+   flotante lo dice una vez: «La protección fijada, 15 A, era para el motor de 1/2 HP: regresó al
    calculado, 45 A». Lo demás (longitud, tubo, temperatura, agrupamiento, terminales) mueve el conductor,
    no el rango, y no lo borra. Así un valor fijado nunca queda fuera del rango, y tampoco se queda un 25 A
    que era el máximo de 1/2 HP y en 1 1/2 HP pasa a ser el mínimo. Hoy salta en silencio al más cercano.
@@ -506,9 +509,9 @@ pinta en el color de acento y aparece ↺ para regresar al cálculo. Aquí serí
 7. **El encabezado «Protec. (A)»**: su ayuda se acorta y deja de nombrar auto, cond. y máx.
 
 ```
-Calculado (color normal)        Fijado (acento, con ↺)
+Calculado (color normal)        Fijado (acento)
 ┌──────────┐                    ┌──────────┐
-│ 15     ▾ │                    │ 20     ▾ │ ↺
+│ 15     ▾ │                    │ 20     ▾ │
 └──────────┘                    └──────────┘
    15
    20
@@ -536,11 +539,14 @@ Calculado (color normal)        Fijado (acento, con ↺)
 | # | Pregunta | Opciones | Recomendación |
 |---|---|---|---|
 | 1 | Cuando cambia lo que define el rango, el valor fijado… | **A.** Se borra siempre, con aviso · **B.** Se queda si cabe en el nuevo rango; si no, regresa al calculado, con aviso | **A** (David preguntó por qué quedaría fuera: solo cuando cambia el equipo, y entonces el valor era para otro equipo; con A, «fuera de rango» desaparece) |
-| 2 | ¿Se marca en la lista cuál es el calculado? | **A.** No, como en el tubo; lo dicen el color y ↺ · **B.** «15 · calculado» | **A**: lo que pidió David, solo el rango |
+| 2 | ¿Se marca en la lista cuál es el calculado? | **A.** No, como en el tubo; lo dicen el color y la ayuda · **B.** «15 · calculado» | **A**: lo que pidió David, solo el rango |
+
+**Respuestas de David (2026-10-03):** 1 → A, 2 → A («estoy de acuerdo con tus recomendaciones»).
 
 ## La sobrecarga (OL) se especifica, no se pregunta
 
-**PROPUESTA · Claude · 2026-10-03** — I-183, a partir de la clasificación de motores del Art. 430 que
+**CONFIRMADA · David · 2026-10-03** («estoy de acuerdo con tus recomendaciones»; en A/C, «Sí, con "de
+fábrica"») — propuesta por Claude el mismo día, I-183, a partir de la clasificación de motores del Art. 430 que
 pidió David (uso general y velocidad ajustable; sin motores de aparatos ni motocompresores).
 
 ### Lo que dice la clasificación
@@ -606,6 +612,10 @@ Como el ICFT de 210-8 (`c2ba046`): es un requisito, no un incumplimiento. Va com
 |---|---|---|---|
 | 1 | ¿La sobrecarga se especifica sin preguntarla? | **A.** Sí, como regla del circuito · **B.** Preguntarla por motor | **A** |
 | 2 | ¿«OL» en el renglón de todo motor, o solo cuando el interruptor pasa la ampacidad del conductor? | **A.** Siempre · **B.** Solo arriba de la ampacidad | **A**: la NOM la exige siempre, y lo lee quien instala |
+
+**Respuestas de David (2026-10-03):** 1 → A, 2 → A. «OL» también en A/C (salvo el de habitación), con el
+título «de fábrica — 440-52». Sin «OL» el motor de servicio no continuo: ahí la puede dar el mismo
+interruptor (430-33).
 
 ## Preguntas para David, con opciones
 
