@@ -4,6 +4,23 @@ Registro de acciones por sesión, con hallazgo y commit.
 
 ## 2026-10-03
 
+**M-20 implementado** (David contestó: 1C, 2A, 3B solo en motores y explicando por qué, 5 y 6 las
+recomendadas) — `3b1b689` y el commit de docs:
+
+- Motor de cálculo: el rango de 430-52(c)(1) (del menor de la serie ≥ 125 % de la FLC al máximo) y tres
+  criterios: máximo, prioridad al conductor (240-4, 240-4(b), 240-4(d); tope de 100 A con terminal de 60 °C)
+  y manual. Tierra con la protección escogida.
+- Automático en los circuitos nuevos: prioridad al conductor hasta 1 HP, máximo arriba. La bomba de 1/2 HP:
+  15 A sobre 14 AWG.
+- La celda «Protec. (A)» de un motor solo es un selector («15 auto», «25 máx.», valores fijos), con el porqué
+  en la ayuda. Desglose y memoria con rango, criterio y nota de arranque (430-52(b)).
+- 430-62(a) y 430-63 con el valor máximo permitido; A-4 con la instalada. Formato 12; un motor de formato 11
+  abre en el máximo.
+- Visto en el navegador (claro, oscuro, 390 px). Pregunta 4 (fase 2) sin contestar: David preguntó qué
+  fases eran; venían en la sección 8 de la propuesta.
+
+Pruebas: 555 en `PowerNode.Web.Tests` (36 nuevas), 52 en `PowerNode.Normativa.Tests`.
+
 **Protección del derivado de motor por rango** (caso de David: bomba de cisterna de 1/2 HP a 127 V con 25 A
 sobre 14 AWG; en campo, 15 A) — propuesta M-20, sin implementar; solo documentos:
 

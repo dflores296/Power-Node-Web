@@ -1,8 +1,9 @@
 # Protección del derivado de motor: rango permitido y criterio del proyectista
 
-**PROPUESTA · Claude · 2026-10-03** — hallazgo **M-20**, de la auditoría NOM del 2026-10-02/03. No
-implementada. Cambia P-5 de [`../conocimiento/requisitos.md`](../conocimiento/requisitos.md):
-**decisión de David**. Verificada contra el motor en `e0eb887`; dos correcciones al algoritmo (pasos 2,
+**PROPUESTA · Claude · 2026-10-03** · implementada el 2026-10-03 (`3b1b689`) — hallazgo **M-20**, de la
+auditoría NOM del 2026-10-02/03. David contestó las preguntas 1, 2, 3, 5 y 6 el mismo día
+([abajo](#respuestas-de-david-2026-10-03-y-lo-implementado)); la 4 (fase 2) sigue abierta. Falta que la
+marque CONFIRMADA. Cambia P-5 de [`../conocimiento/requisitos.md`](../conocimiento/requisitos.md). Verificada contra el motor en `e0eb887`; dos correcciones al algoritmo (pasos 2,
 7 y 8) — ver [Verificación](#verificación-contra-el-código-claude--2026-10-03). Revisada contra el texto
 de la NOM a pedido de David: 430-62(a) corregido y opciones para cada pregunta — ver
 [Preguntas](#preguntas-para-david-con-opciones).
@@ -297,6 +298,40 @@ Corrida con `CalculadoraCircuitoDerivadoMotor` en `e0eb887` (cobre, THHN, seco, 
   contrario y se corrigió (pregunta 6, nueva). Se agregaron 430-52(b) (soportar el arranque es
   obligación), 430-31 (la sobrecarga de 430-32 también protege al conductor), 430-55 y
   110-14(c)(1)a.(4). Con eso, la recomendación de la pregunta 1 pasa de A a C.
+
+## Respuestas de David (2026-10-03) y lo implementado
+
+| Pregunta | Respuesta | Implementado (`3b1b689`) |
+|---|---|---|
+| 1. Criterio de los circuitos nuevos | **C**, y aclaró: solo motores (el tipo Motor) | «Automático»: prioridad al conductor hasta 1 HP, máximo 430-52 arriba. Con la Excepción 2 declarada, el máximo. Solo en un motor solo (`EsMotorSolo`): A/C, grupos y variador siguen igual |
+| 2. Piso del rango | **A**, 125 % de la FLC | El menor valor de la serie ≥ 125 % de la FLC (o la capacidad de 430-22(e)), nunca arriba del máximo |
+| 3. Dónde va el valor manual | **B**, en la celda «Protec. (A)», «pero solo se activa en motores donde se puede hacer la selección y hay que explicar por qué se permite seleccionar» | La celda de un motor solo es un selector: «15 auto», «15 cond.», «25 máx.» y los valores fijos del rango; en lo demás, el número de siempre. La ayuda del valor (y la barra de ayuda) dice por qué se puede escoger y da el desglose. Excepción explícita a [`captura-en-el-desplegable.md`](captura-en-el-desplegable.md) |
+| 4. Fase 2 (A/C, grupos, variador) | Preguntó cuáles fases: venían en la sección 8, no en lo que había leído | **Pendiente.** Se le explicó; sin respuesta todavía |
+| 5. Columna cerca de 100 A | La recomendada (A) | Con terminal de 60 °C, la protección no pasa de 100 A; la memoria y la cita lo dicen. La salida a 75 °C es la casilla que ya existe (terminales marcadas 75 °C) |
+| 6. 430-62(a) y 430-63 | La recomendada (A) | El techo del principal con el valor máximo permitido por 430-52 (en riel DIN, 35 A aunque se instalen 32); A-4 compara contra la protección instalada |
+
+Lo que se agregó al implementar, sin pregunta:
+
+- **Cuatro criterios en el circuito**, no tres: `Automatico` (el de un circuito nuevo), `Conductor`,
+  `Maximo430_52` y `Manual`. El motor de cálculo recibe solo los tres de la sección 1; el automático lo
+  resuelve el modelo con los HP (los interpolados, si el motor se capturó en amperes).
+- **Con la Excepción 2 declarada, el rango empieza arriba de lo que da la tabla**: el proyectista ya dijo
+  que el motor no arranca con eso. Si no hay un tamaño mayor, el rango es solo el de la tabla.
+- **Archivo, formato 12**: sin el campo, un motor de formato 11 o anterior abre en el máximo; uno de
+  formato 12, en automático. «Manual» sin valor abre en el máximo, con aviso; un valor fijo fuera del
+  rango, con el más cercano y aviso (patrón de I-80).
+- **El calibre que se protege es el de ampacidad**: si la caída de tensión lo sube, la cita dice que el más
+  grueso sigue protegido (la bomba a 30 m: 15 A, 14 AWG por ampacidad, 12 AWG por caída).
+- **Diez pruebas que ya existían** cambiaron: siete fijan el máximo porque prueban la Tabla 430-52 (P1-1,
+  R-05, I-15; las dos de I-15 prueban antes el automático); dos pasan la bomba de 1/2 HP a 15 A (vivienda media, desplegable); el techo de 430-62(a) del
+  10 HP en riel DIN pasa de 63 A a 70 A (pregunta 6). Más cuatro que fijan el número de formato.
+- **Pruebas nuevas:** 36 en `ProteccionDeMotoresPorRangoTests`: las de la tabla de abajo con otros
+  nombres, más `M20_SubirPorCaidaNoSubeLaProteccion`, `M20_ConTerminalesDe75ElTopeDe240_4dSigueMandando`,
+  `M20_SinValorQueLoProtejaQuedaElMinimoYSubeElCalibre`, `M20_ElSelectorSoloSeActivaEnUnMotorSolo`,
+  `M20_ElSelectorDiceLoQueDaCadaCriterio`, `M20_UnValorFijoFueraDelRangoAbreConElMasCercanoYAvisa`, entre otras.
+- **Visto en el navegador** (Playwright contra `127.0.0.1:5199`, claro, oscuro y 390 px): el selector solo
+  en los motores, «20 cond.» al escogerlo en el 5 HP, la barra de ayuda con el porqué, la memoria con el
+  rango, el criterio y la nota de arranque; sin desplazamiento lateral de la página.
 
 ## Preguntas para David, con opciones
 

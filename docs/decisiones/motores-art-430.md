@@ -3,6 +3,10 @@
 **PROPUESTA · Claude · 2026-09-26** — I-15, a pedido de David («vamos con I-15»). Implementada;
 pendiente de confirmar.
 
+> **Reemplazada en parte (2026-10-03)** por [`proteccion-de-motores-por-rango.md`](proteccion-de-motores-por-rango.md),
+> M-20: la protección del motor deja de ser siempre «el mayor que no excede el máximo» de la Tabla
+> 430-52; se escoge dentro del rango, con el automático por omisión.
+>
 > **Reemplazada en parte (2026-09-27)** por [`tipos-de-carga.md`](tipos-de-carga.md), I-74: HP deja
 > de ser una unidad de Motor / A/C —Motor pasa a ser un tipo propio— y el Art. 440 entra, como el
 > tipo A/C y refrigeración. El cálculo del motor, 430-24 por fase, el techo de 430-62(a) y las dos

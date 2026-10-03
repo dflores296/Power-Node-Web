@@ -51,6 +51,14 @@ de cabecera»*. Falta que David la confirme.
   detiene la página hasta que se contesta, y una herramienta que no lo ve la toma por congelada.
 - **Varios tableros dentro de la aplicación**: ver arriba, alcance de v1.
 
+## Formato 12 — M-20 (2026-10-03)
+
+El circuito guarda `criterioProteccion` (`Conductor`, `Maximo430_52`, `Manual`; sin el campo, automático)
+y `proteccionElegida` (amperes, solo con `Manual`). **Un motor de formato 11 o anterior abre en el
+máximo**: la memoria de un tablero entregado no cambia al abrirlo. Un valor fijo fuera del rango abre con
+el más cercano y se avisa; «manual» sin valor abre en el máximo. Ver
+[`proteccion-de-motores-por-rango.md`](proteccion-de-motores-por-rango.md).
+
 ## Para cambiar el formato después
 
 - Agregar un campo: no pide nada; los archivos viejos abren con el valor por omisión.

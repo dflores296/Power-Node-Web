@@ -7,6 +7,10 @@ marque CONFIRMADA.
 Sigue a [`cargas-y-clases-de-circuito.md`](cargas-y-clases-de-circuito.md) (implementada el
 2026-09-30).
 
+> **Excepción (David, 2026-10-03, M-20):** la protección de un motor solo se escoge en la celda «Protec.
+> (A)» del renglón, no en el desplegable — [`proteccion-de-motores-por-rango.md`](proteccion-de-motores-por-rango.md),
+> pregunta 3.
+
 ## El problema
 
 Después de las fases B y C hay dos lugares para capturar la misma carga: las casillas del renglón
