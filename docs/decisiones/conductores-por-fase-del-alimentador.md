@@ -1,7 +1,7 @@
 # Conductores por fase del alimentador: automático, o fijado por el proyectista
 
-**PROPUESTA · Claude · 2026-10-03** — David aprobó la propuesta el 2026-10-03 («me gusta, impleméntalo»);
-falta que la marque CONFIRMADA.
+**CONFIRMADA · David · 2026-10-03** — propuesta por Claude el mismo día; David la aprobó («me gusta,
+impleméntalo») y la confirmó en el hilo de la revisión de cabos sueltos («si confirmo todo»).
 
 ## La decisión
 
@@ -34,4 +34,5 @@ menos cobre a cambio de cuatro canalizaciones más. El programa tomaba siempre e
 ## Dónde está
 
 `DatosDelTablero.ConductoresPorFaseAlimentador`, `CuadroDeCarga.OpcionesDeParalelo`,
-`CuadroDeCarga.ConductoresPorFaseAutomatico`; la tarjeta del alimentador en `Captura.razor`. Hallazgo I-162.
+`CuadroDeCarga.ConductoresPorFaseAutomatico`; la tarjeta del alimentador en `Captura.razor`. Hallazgo I-162;
+la tabla de comparar muestra también el neutro desde I-167.

@@ -191,6 +191,11 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-163 · Con la pestaña oculta, el menú no regresaba al cancelar (R3-1) | P3 | **Cerrado** | `1175c18` |
 | I-164 · Con el neutro reducido por 220-61, la caída seguía con el neutro del calibre de la fase (R3-2) | P2 | **Cerrado** | `1175c18` |
 | I-165 · El piso del neutro citaba «criterio del proyectista» y no 215-2(a)(2) (R3-3) | P3 | **Cerrado**; en paralelo, área del juego (David, 2026-10-03) | `1175c18`, `1105651` |
+| I-166 · En acometida, el neutro reducido no aplicaba el 12.5 % de 250-24(c)(1) | P1 | **Cerrado** | `44ba372` |
+| I-167 · «Comparar opciones» no mostraba el neutro de cada opción | P3 | **Cerrado** | `44ba372` |
+| I-168 · La barra de ayuda se quedaba puesta al deslizar en pantalla táctil (pointercancel) | P3 | **Cerrado** | `44ba372` |
+| I-169 · Citas corridas: 1/0 AWG en 310-10(h)(2); juego completo en 250-122(f) | P3 | **Cerrado** | `44ba372` |
+| I-170 · La memoria no decía cuándo R y X del neutro reducido eran de otro calibre | P3 | **Cerrado** | `44ba372` |
 | M-14 · Sin el mínimo de alumbrado general por superficie (220-12) en el alimentador; en vivienda, contactos de uso general sumados aparte (220-14(j)) | P1 | **Cerrado** | `71abc56` |
 | M-15 · Motor: la Excepción 1 de 430-52(c)(1) redondeaba dentro de la serie (35 → 40 A en riel DIN) y se citaba sin redondeo; sin Excepción 2 | P1 | **Cerrado** | `8b4d893`, `60a4f91` |
 | M-16 · «Húmedo o mojado» en una opción: XHHW mojado a 90 °C (conductor de menos); RHH y XHH aceptados en mojado | P1 | **Cerrado** | `a3fded5` |
@@ -679,7 +684,7 @@ I-149.
 ### Auditoría NOM, ronda 2, del 2026-10-02
 
 Caja negra contra `3f53a3f`. Las 12 correcciones de la ronda 1 verificadas en la app; de los 8 casos nuevos,
-6 coincidieron con el cálculo a mano. Pruebas: `Auditoria20261002Tests` (7). La sección 4 de la auditoría
+6 coincidieron con el cálculo a mano. Pruebas: `Auditoria20261002Tests` (25 de esta ronda; 32 con las de la ronda 3 y la revisión de cabos sueltos). La sección 4 de la auditoría
 (I-149, I-150, I-151, I-153) sigue como propuesta abierta.
 
 **M-19** (N-1) — Hecho: con la fase más cargada arriba de ~665 A (2000 kcmil de cobre a 75 °C),
@@ -692,7 +697,7 @@ canalización (250-122(f), ya existente); si se agota el tope, el error dice amp
 «Paralelos en un tubo», el factor de agrupamiento entra como antes (la vuelta de `CalcularAlimentador`).
 3 × 90 kVA continuos: 708.57 A, 125 % = 885.71 A → 1000 A; 1000 A pasa de 800 A (sin 240-4(b)): 2 × 900
 kcmil (2 × 520 = 1040 A), tierra 2/0 AWG ×2, EMT 2 × 103 mm; visto en el navegador. Que el usuario fije N
-(opcional en la auditoría) no se hizo. Prueba: `N1_…` (3). Pendiente: llevar a `PowerNode-DesignSuite`
+(opcional en la auditoría) se hizo después: I-162. Prueba: `N1_…` (3). Pendiente: llevar a `PowerNode-DesignSuite`
 ([`../conocimiento/motor-copiado.md`](../conocimiento/motor-copiado.md)).
 
 **I-158** (N-2) — Hecho: restaurante, 2 polos, Aparatos · Cocina comercial 3 × 5000 W: «Circuito derivado
@@ -795,6 +800,39 @@ fija el 1/0 AWG para el neutro en paralelo; 250-24(c)(2) dimensiona cada neutro 
 total de las fases, no menor que 1/0. La norma no dice «área combinada» con esas palabras para el neutro: es
 lo que queda al quitar 250-122(f), igual que el «área combinada» que 250-122(a) admite para conductores
 seccionados. Prueba: `I165_…`.
+
+### Revisión de cabos sueltos de las rondas 2 y 3, 2026-10-03
+
+Revisión independiente de `3f53a3f..246dccc` (código, pruebas, documentos y citas contra
+`dflores296/NOM-001-SEDE-2012`, `data/corpus.json`). Un defecto de cálculo y cuatro menores, cerrados en
+`44ba372`; los pendientes de documentos, en el commit de docs del mismo día. David confirmó todo (2026-10-03).
+
+**I-166** (P1) — Con «Equipo de acometida» y «Reducir el neutro — 220-61», el piso del neutro era solo la
+Tabla 250-66 (`ConductorElectrodo`). 250-24(c)(1) pide además, con más de 557 mm² (1100 kcmil) de cobre o
+887 mm² (1750 kcmil) de aluminio en las fases, no menor que el 12.5 % de su área; y (c)(2), en paralelo, cada
+neutro. Con 708.57 A: 2 × 900 kcmil = 912 mm² → 114 mm²: 2 × 250 kcmil, no 2 × 3/0. Corrección: el piso es el
+puente de unión principal de `PuestaTierraDeAcometida`, que ya aplicaba la misma regla (250-28(d)(1)); la cita
+220-61 dice cuál de los dos mandó y, en paralelo, 250-24(c)(2). Con 3 por fase (3 × 400 = 609 mm²) da 3/0; con
+4 o más (abajo de 557 mm²) manda la tabla. Prueba: `Cabo1_…` (2); en el navegador.
+
+**I-167** — La tabla «Comparar opciones» tiene columna Neutro (con neutro en el sistema): con el neutro
+reducido, se ve de dónde sale la diferencia de cobre.
+
+**I-168** — La barra de ayuda espera a que se suelte el botón (I-162); un deslizamiento táctil da
+`pointercancel`, no `pointerup`, y la barra se quedaba hasta el siguiente toque. Se escuchan los dos. Sin
+prueba automática (es del DOM).
+
+**I-169** — Citas: «1/0 AWG o mayor» es 310-10(h)(1) y «todos iguales» (h)(2) (cita de N fijado y ayuda del
+selector); el juego completo en cada canalización es 300-3(b)(1), y 250-122(f) permite una sola tierra cuando
+van todos en la misma (ayuda de la tierra y cita de M-19 del motor, ver `motor-copiado.md`).
+
+**I-170** — Si el calibre del neutro reducido no está en la Tabla 9 (450, 700, 800, 900 kcmil…), su caída usa
+R y X del menor con datos (R3-2); la memoria ahora lo dice junto a Z_N. En la práctica rara vez se alcanza.
+
+También: fuera el BOM UTF-8 que se coló en seis archivos de la ronda 2; decisiones
+[`../decisiones/conductores-por-fase-del-alimentador.md`](../decisiones/conductores-por-fase-del-alimentador.md)
+(CONFIRMADA) y [`../decisiones/neutro-del-alimentador-por-220-61.md`](../decisiones/neutro-del-alimentador-por-220-61.md)
+(nueva, CONFIRMADA). Sigue pendiente llevar M-19 e I-169 al escritorio (`motor-copiado.md`).
 
 ### «Pendiente de probar» de la auditoría, 2026-09-30
 

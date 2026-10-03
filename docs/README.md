@@ -48,6 +48,8 @@ Solo David confirma una decisión.
 | [`decisiones/factores-de-demanda-del-articulo-220.md`](decisiones/factores-de-demanda-del-articulo-220.md) | PROPUESTA · Claude · 2026-09-30 (auditoría NOM P3-1 y riesgo 2; cambia R-12, por decidir) |
 | [`decisiones/capacidad-interruptiva.md`](decisiones/capacidad-interruptiva.md) | PROPUESTA · Claude · 2026-09-30 (auditoría NOM P3-2; por decidir) |
 | [`decisiones/documento-imprimible-en-vez-de-archivo.md`](decisiones/documento-imprimible-en-vez-de-archivo.md) | PROPUESTA · Claude · 2026-09-22 |
+| [`decisiones/conductores-por-fase-del-alimentador.md`](decisiones/conductores-por-fase-del-alimentador.md) | CONFIRMADA · David · 2026-10-03 |
+| [`decisiones/neutro-del-alimentador-por-220-61.md`](decisiones/neutro-del-alimentador-por-220-61.md) | CONFIRMADA · David · 2026-10-03 (opción; en paralelo, área del juego; en acometida, 250-24(c)) |
 
 ## `conocimiento/` — referencia técnica
 

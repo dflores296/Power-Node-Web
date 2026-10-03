@@ -4,6 +4,18 @@ Registro de acciones por sesión, con hallazgo y commit.
 
 ## 2026-10-03
 
+**Revisión de cabos sueltos de las rondas 2 y 3** (`3f53a3f..246dccc`), cerrada a petición de David, que
+confirmó todo — `44ba372` y el commit de docs:
+
+- I-166: en acometida, el neutro reducido no baja del 12.5 % del área de las fases arriba de 1100 kcmil —
+  250-24(c)(1) y (c)(2). 708.57 A: 2 × 250 kcmil en vez de 2 × 3/0.
+- I-167 a I-170: neutro en «Comparar opciones», `pointercancel` en la barra de ayuda, citas de 310-10(h) y
+  300-3(b)(1), y la memoria dice cuándo R y X del neutro son de otro calibre. Fuera el BOM de seis archivos.
+- Decisiones: conductores por fase, CONFIRMADA; neutro del alimentador por 220-61, nueva y CONFIRMADA.
+- TABLERO y HALLAZGOS al día; `motor-copiado.md` con la cita de I-169.
+
+Pruebas: 516 en `PowerNode.Web.Tests`, 52 en `PowerNode.Normativa.Tests`.
+
 **Verificación NOM, ronda 3** (caja negra contra `f960bcb`): M-19, I-158, I-160, I-161 e I-162 correctos;
 tres observaciones aplicadas — `1175c18`:
 
