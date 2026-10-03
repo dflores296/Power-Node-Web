@@ -2,6 +2,19 @@
 
 Registro de acciones por sesión, con hallazgo y commit.
 
+## 2026-10-03
+
+**Verificación NOM, ronda 3** (caja negra contra `f960bcb`): M-19, I-158, I-160, I-161 e I-162 correctos;
+tres observaciones aplicadas — `1175c18`:
+
+- R3-1: el menú regresa también con la pestaña oculta — I-163.
+- R3-2: con el neutro reducido, la caída lleva la Z del neutro real y la memoria lo dice; si pasa del
+  límite, el neutro sube — I-164.
+- R3-3: el piso del neutro cita 215-2(a)(2) — I-165. El área combinada de los neutros en paralelo queda
+  como propuesta para David; la app sigue del lado seguro.
+
+Pruebas: 513 en `PowerNode.Web.Tests`, 52 en `PowerNode.Normativa.Tests`.
+
 ## 2026-10-02
 
 **Auditoría NOM, ronda 2** (caja negra contra `3f53a3f`): las 12 correcciones de la ronda 1 se verificaron

@@ -188,6 +188,9 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-160 · Interruptor de 1 polo arriba del máximo de la familia | P3 | **Cerrado** (aviso) | `b259e88` |
 | I-161 · Neutro del alimentador igual a la fase, sin la reducción de 220-61 | P3 | **Cerrado** (opción) | `b259e88` |
 | I-162 · Conductores por fase del alimentador sin poder fijarlos ni comparar | P3 | **Cerrado** (opción) | `224d97b` |
+| I-163 · Con la pestaña oculta, el menú no regresaba al cancelar (R3-1) | P3 | **Cerrado** | `1175c18` |
+| I-164 · Con el neutro reducido por 220-61, la caída seguía con el neutro del calibre de la fase (R3-2) | P2 | **Cerrado** | `1175c18` |
+| I-165 · El piso del neutro citaba «criterio del proyectista» y no 215-2(a)(2) (R3-3) | P3 | **Cerrado**; área combinada en paralelo: propuesta, por decidir (David) | `1175c18` |
 | M-14 · Sin el mínimo de alumbrado general por superficie (220-12) en el alimentador; en vivienda, contactos de uso general sumados aparte (220-14(j)) | P1 | **Cerrado** | `71abc56` |
 | M-15 · Motor: la Excepción 1 de 430-52(c)(1) redondeaba dentro de la serie (35 → 40 A en riel DIN) y se citaba sin redondeo; sin Excepción 2 | P1 | **Cerrado** | `8b4d893`, `60a4f91` |
 | M-16 · «Húmedo o mojado» en una opción: XHHW mojado a 90 °C (conductor de menos); RHH y XHH aceptados en mojado | P1 | **Cerrado** | `a3fded5` |
@@ -747,6 +750,45 @@ opciones abiertas. De paso, la barra de ayuda espera a que se suelte el botón d
 de la página todo bajaba de golpe y el clic en «Comparar opciones» se soltaba en otra cosa. Decisión:
 [`../decisiones/conductores-por-fase-del-alimentador.md`](../decisiones/conductores-por-fase-del-alimentador.md).
 Prueba: `I162_…` (9), con los casos de 708.57 A (cumplen 2 a 6) y 415.5 A (cumplen 1 a 3); en el navegador.
+
+### Verificación NOM, ronda 3, del 2026-10-02
+
+Caja negra contra `f960bcb` (3F-4H 220/127 V, cobre THHN, restaurante; fase B con 819.32 A): M-19, I-158,
+I-160, I-161 e I-162 correctos en la app. Tres observaciones, aplicadas a petición de David el 2026-10-03:
+
+**I-163** (R3-1) — Con la pestaña oculta (ventana minimizada o tapada), al cancelar «Reducir espacios» el
+tablero se quedó en 24 y el menú en «6»: `requestAnimationFrame` no corre en una pestaña oculta, y por eso
+Playwright, con la ventana visible, no lo reprodujo (I-159). Con el cuadro siguiente detenido a mano, el
+regreso inmediato sí bastó; la causa exacta con la pestaña oculta no se reprodujo en Chromium sin ventana.
+Corrección (`1175c18`): `restablecer` pone el valor de inmediato, en la siguiente vuelta del ciclo
+(`setTimeout`), en el cuadro siguiente y, si la pestaña está oculta, otra vez en `visibilitychange` al
+volver a verse (salvo que el campo haya cambiado antes). Sin prueba automática (es del DOM); en el
+navegador con `requestAnimationFrame` detenido.
+
+**I-164** (R3-2) — Con «Reducir el neutro — 220-61», el neutro bajaba (3 × 400 kcmil → 3 × 2/0 AWG) pero la
+caída seguía en 0.82 % y la memoria decía «El neutro es del mismo calibre que la fase»: la caída por fase
+del motor usa una sola Z para fase y neutro. Corrección (`1175c18`): con el neutro reducido, la caída de
+cada fase se recalcula con la Z de la fase para I_f y la del neutro, de su calibre real (Tabla 9; un calibre
+sin datos toma las del menor más cercano), para I_N: e_f = Re[(Z_F·I_f + Z_N·I_N)·conj(û_f)], con las mismas
+corrientes con demanda del motor. Si así pasa del límite del alimentador, el neutro sube calibre por calibre
+hasta que no pase (o hasta la fase), y la cita 220-61 lo dice. Cita «Tabla 9» con la caída por fase nueva;
+la memoria pone Z_N y «El neutro, reducido a su carga de desbalance (220-61), es de …: cae con su propia R
+y X», y el neutro en paralelo se lee «3 × …». Sin cambio en el motor: la reducción por 220-61 es solo de la
+web. Prueba: `R3_2_…` (3), con la diferencia de la fase A recalculada a mano con la Tabla 9; en el navegador
+(1.79 % → 1.83 % con el neutro de 350 kcmil).
+
+**I-165** (R3-3) — La cita del neutro reducido decía «no menor que la tierra de equipos (criterio del
+proyectista)»: la regla es de la NOM, 215-2(a)(2) (el conductor puesto a tierra del alimentador no menor que
+lo que exige 250-122). Corrección (`1175c18`): la cita y la ayuda de la casilla nombran 215-2(a)(2). Prueba:
+`R3_3_…`.
+
+**Propuesta por decidir (David) — el área combinada de los neutros en paralelo.** 215-2(a)(2) termina
+«excepto que no se debe aplicar 250-122(f) cuando los conductores puestos a tierra estén instalados en
+paralelo». Una lectura: en paralelo, el piso de 250-122 se cumple con el área combinada de los neutros
+(3 × 1/0 = 160 mm² contra 67.43 mm² de un 2/0) y cada uno podría ser menor que la tierra de la tabla. Hoy la
+app pide que **cada** conductor del neutro sea no menor que la tierra de 250-122, que es del lado seguro, y se
+queda así hasta que David decida. Si se acepta: el piso se compararía contra el área del juego (N × área) y
+el neutro seguiría en 1/0 AWG o mayor en paralelo (310-10(h)(1)).
 
 ### «Pendiente de probar» de la auditoría, 2026-09-30
 
