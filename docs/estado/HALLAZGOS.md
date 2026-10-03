@@ -213,7 +213,7 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-185 · Quitar la única carga dejaba una «carga total» fantasma con sus VA, su protección y las reglas de otra clase: la lavadora de 20 A, en 15 A (AM-2, AM-3) | P1 | **Cerrado** | `585a857` |
 | I-186 · Sin «Tablero nuevo»: empezar de cero pedía otra pestaña (AM-8) | P2 | **Cerrado** | `585a857` |
 | I-187 · Carga inicial de 40 s a 3 min por pestaña (AM-9) | P3 | **Cerrado** (el mensaje; la descarga sigue en I-152) | `585a857` |
-| I-188 · La página se congeló (> 45 s) al capturar varios campos seguidos (AM-10) | P2 | Propuesta, por decidir (David) | — |
+| I-188 · La página se congeló (> 45 s) al capturar varios campos seguidos (AM-10) | P2 | Propuesta, por decidir (David): [`dibujo-por-renglon.md`](../decisiones/dibujo-por-renglon.md) | — |
 | I-189 · Minisplit, motocompresor y variador arrancan en 1 polo (127 V) (AM-11) | P3 | Propuesta, por decidir (David) | — |
 | I-190 · La lista de HP repetía «1/2 HP — 8.90 A» y «1/2 HP — 4.90 A»; solo el grupo decía la tensión (AM-12) | P3 | **Cerrado** | `585a857` |
 | I-191 · La columna Descripción decía «—» con la carga capturada con nombre (AM-13) | P3 | **Cerrado** | `585a857` |
@@ -1054,6 +1054,12 @@ causa es de estructura: cada cambio recalcula todo y vuelve a dibujar la página
 | **C. Compilar AOT** | Todo corre de 3 a 10 veces más rápido | Sin tocar código | La descarga crece (choca con I-152) y la publicación tarda más |
 
 **Recomendación: A**, en una sesión aparte, medida antes y después con el mismo tablero.
+
+Después, a pedido de David («explícame el cambio estructural»), medido por partes en una compilación de prueba:
+el recálculo ~50 ms (el alimentador, 20–40, porque se calcula siete veces), el dibujo de la tabla ~33 ms y el del
+gabinete ~23 ms en .NET, y el navegador ~100 ms, sobre todo por esas dos. Sin tabla ni gabinete, el cambio baja de
+~240 a ~115 ms. La propuesta pasa a dos fases (recordar el alimentador y el gabinete; luego un componente por
+renglón), con B y C para después: [`../decisiones/dibujo-por-renglon.md`](../decisiones/dibujo-por-renglon.md).
 
 **I-189** (AM-11) — Minisplit, motocompresor y variador nacen en 1 polo (127 V); el minisplit de 1 TR de la
 auditoría dio 12 AWG por caída hasta pasarlo a 2 polos. Propuesta, por decidir: **A.** nacer en 2 polos (220 V)

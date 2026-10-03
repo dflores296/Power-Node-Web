@@ -4,6 +4,16 @@ Registro de acciones por sesión, con hallazgo y commit.
 
 ## 2026-10-03
 
+**A `main` y el cambio estructural explicado** (David: «haz merge a main de los bugs que corregiste… explícame el
+cambio estructural, y cuando acabemos… nos vamos con puntos de criterio») — este commit:
+
+- `claude/new-session-ghrrb6` a `main` en avance rápido (`d9a1ff8..2dfcd78`): build sin advertencias, 52 + 598
+  pruebas; publicación, CI y Pages en verde. Lleva todo `585a857`: los bugs y lo de usabilidad, que van en el
+  mismo commit.
+- I-188 medido por partes en una compilación de prueba (no publicada): recálculo ~50 ms (el alimentador se calcula
+  siete veces), tabla ~33 ms y gabinete ~23 ms de dibujo en .NET, navegador ~100 ms. Propuesta en dos fases:
+  [`../decisiones/dibujo-por-renglon.md`](../decisiones/dibujo-por-renglon.md) (PROPUESTA · Claude).
+
 **Auditoría de motores, Art. 430** (David; caja negra contra `d9a1ff8`, 25 circuitos en cinco tableros): el
 cálculo coincidió en todos; 18 hallazgos de interfaz y de criterio — `585a857` y este commit:
 

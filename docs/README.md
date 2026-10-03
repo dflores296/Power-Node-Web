@@ -52,6 +52,7 @@ Solo David confirma una decisión.
 | [`decisiones/conductores-por-fase-del-alimentador.md`](decisiones/conductores-por-fase-del-alimentador.md) | CONFIRMADA · David · 2026-10-03 |
 | [`decisiones/neutro-del-alimentador-por-220-61.md`](decisiones/neutro-del-alimentador-por-220-61.md) | CONFIRMADA · David · 2026-10-03 (opción; en paralelo, área del juego; en acometida, 250-24(c)) |
 | [`decisiones/neutro-de-acometida-en-paralelo-250-24-c-2.md`](decisiones/neutro-de-acometida-en-paralelo-250-24-c-2.md) | CONFIRMADA · David · 2026-10-03 (12.5 % del área total, lectura literal) |
+| [`decisiones/dibujo-por-renglon.md`](decisiones/dibujo-por-renglon.md) | PROPUESTA · Claude · 2026-10-03 (I-188: recordar el alimentador, el gabinete y un componente por renglón; por decidir) |
 
 ## `conocimiento/` — referencia técnica
 
