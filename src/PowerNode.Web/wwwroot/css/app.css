@@ -980,7 +980,14 @@ circle.union { stroke: var(--encabezado); }
    centra el número y no la caja. El alto impar (15, 13 por dentro) le da al dígito, de 7, el mismo
    aire arriba y abajo; con alto par queda medio píxel arriba. */
 .etq > span { display: block; text-box: trim-both cap alphabetic; }
-.etq.libre { opacity: .45; }
+/* El espacio libre, tenue — pero con el fondo opaco (I-177, David, 2026-10-03): con opacity: .45 el
+   rótulo entero se volvía translúcido, fondo incluido, y la conexión punteada de abajo lo atravesaba.
+   Se atenúan el número y el contorno (mezclados al 45 % con el papel, lo mismo que daba la opacidad);
+   el fondo tapa la línea como en un espacio ocupado. */
+.etq.libre { color: color-mix(in srgb, var(--tinta) 45%, var(--papel)); }
+.etq-a.libre { border-color: color-mix(in srgb, var(--barra-a) 45%, var(--papel)); }
+.etq-b.libre { border-color: color-mix(in srgb, var(--barra-b) 45%, var(--papel)); }
+.etq-c.libre { border-color: color-mix(in srgb, var(--barra-c) 45%, var(--papel)); }
 .etq-a { border-color: var(--barra-a); }
 .etq-b { border-color: var(--barra-b); }
 .etq-c { border-color: var(--barra-c); }
