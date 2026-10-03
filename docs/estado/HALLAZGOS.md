@@ -196,7 +196,7 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-168 · La barra de ayuda se quedaba puesta al deslizar en pantalla táctil (pointercancel) | P3 | **Cerrado** | `44ba372` |
 | I-169 · Citas corridas: 1/0 AWG en 310-10(h)(2); juego completo en 250-122(f) | P3 | **Cerrado** | `44ba372` |
 | I-170 · La memoria no decía cuándo R y X del neutro reducido eran de otro calibre | P3 | **Cerrado** | `44ba372` |
-| I-171 · Con ningún tubo que alcance, el alimentador salía resuelto con «EMT · —» (R4-1) | P2 | **Cerrado** | `d74c16a` |
+| I-171 · Con ningún tubo que alcance, el alimentador salía resuelto con «EMT · —» (R4-1) | P2 | **Cerrado** | `d74c16a`, `1b325da` |
 | I-172 · Con «Paralelos en un tubo», una tierra por juego en vez de una sola — 250-122(f) (R4-2) | P3 | **Cerrado** | `d74c16a` |
 | I-173 · N fijado con calibre menor que 1/0 se rechazaba en vez de subir a 1/0 (R4-3) | P3 | **Cerrado** (opción) | `d74c16a` |
 | I-174 · 250-24(c)(2): el 12.5 % con el área total de las fases en paralelo, lectura literal (R4-4) | P3 | **Cerrado** (lectura literal, David, 2026-10-03) | `d74c16a` |
@@ -850,7 +850,11 @@ tarjeta decía «EMT · —» sin error. Ahora, si ningún tamaño de tubo o nip
 el alimentador da error con el área y la salida (quitar «Paralelos en un tubo», ducto o charola, otro N); en
 el modo automático también (no busca otro N: lo dice el mensaje). En los derivados, aviso por canalización
 (`CanalizacionDelTablero.NingunTamanoAlcanza`). Pruebas: `R4_1_…`, `I162_FijadoConLosJuegosEnUnTubo`; en el
-navegador.
+navegador. Detalle que vio David al probarlo (`1b325da`): el error sugería «Cumple 2 por fase», pero esa opción
+sale de 1250 kcmil THHN, sin diámetro del fabricante, y su llenado nunca se verificó. Ahora dice «2 por fase
+cumple por ampacidad; el llenado de su canalización no se pudo verificar (falta el diámetro del fabricante de
+1250 kcmil THHN — Capítulo 10, Nota 5)», y «Comparar opciones» la marca «llenado sin verificar» (`OpcionDeParalelo.LlenadoSinVerificar`). No se agregó el diámetro: no hay una fuente confiable a la mano para THHN de
+1250 kcmil, y las tablas del programa no lo traen (por eso se pide). Prueba: `R4_1_LaOpcionSinDiametroNoSeRecomiendaComoSegura`.
 
 **I-172** (R4-2) — Con «Paralelos en un tubo», la tierra es una sola para todos los juegos — 250-122(f): en
 la tarjeta, la memoria, el documento, el llenado del tubo y el cobre de «Comparar opciones»
