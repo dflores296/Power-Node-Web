@@ -401,7 +401,7 @@ Pendiente menor, sin cambiar el cálculo: la cita 240-4(g) del variador podría 
 
 **CONFIRMADA · David · 2026-10-03** («estoy de acuerdo con tus recomendaciones»; sin el botón ↺: «¿no puedes
 simplemente volver a seleccionar el antiguo?») — propuesta por Claude el mismo día, I-182, pedida por David.
-Plan aprobado por David. Cambia lo que se implementó para la
+Plan aprobado por David; implementada en `230d16f`. Cambia lo que se implementó para la
 pregunta 3 (opción B): la celda sigue siendo el selector, pero cambia lo que trae.
 
 ### La física detrás del rango (Claude · 2026-10-03, a pregunta de David)
@@ -546,7 +546,7 @@ Calculado (color normal)        Fijado (acento)
 ## La sobrecarga (OL) se especifica, no se pregunta
 
 **CONFIRMADA · David · 2026-10-03** («estoy de acuerdo con tus recomendaciones»; en A/C, «Sí, con "de
-fábrica"») — propuesta por Claude el mismo día, I-183, a partir de la clasificación de motores del Art. 430 que
+fábrica"») — propuesta por Claude el mismo día e implementada en `230d16f`, I-183, a partir de la clasificación de motores del Art. 430 que
 pidió David (uso general y velocidad ajustable; sin motores de aparatos ni motocompresores).
 
 ### Lo que dice la clasificación

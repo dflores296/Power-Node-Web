@@ -4,6 +4,20 @@ Registro de acciones por sesión, con hallazgo y commit.
 
 ## 2026-10-03
 
+**I-182 e I-183 implementados** (plan aprobado por David; sin el botón ↺: «¿no puedes simplemente volver a
+seleccionar el antiguo?»; «OL» también en A/C, «de fábrica») — `b2b5f51` (confirmación), `230d16f` y este commit:
+
+- La lista de «Protec. (A)» solo con el rango; la fijada en el acento; la calculada la regresa. La fijada guarda
+  la huella del rango y se borra si cambia (equipo, Excepción 2, serie), con aviso una vez; solo ese circuito se
+  recalcula. «cond.» y «máx.» de formato 12 abren fijados, sin formato nuevo.
+- `SobrecargaRequerida` por equipo; «OL» junto a la clase en el renglón y en el documento, con leyenda; desglose,
+  memoria y guía con el texto por equipo y el alcance de motores. Motor de cálculo: solo textos de citas.
+- De paso, dos comentarios que M-20 dejó fuera de su método (`CambiarCanalizacion`, `ProteccionDelMotor`).
+- Visto en el navegador: claro, oscuro, 390 px; bomba de 1/2 HP 15 → 20 fijado → 15; a 1 1/2 HP, aviso y 45 A;
+  «OL» en motor, A/C y variador, no en un intermitente; documento con leyenda; memoria; archivo de formato 12.
+
+Pruebas: 581 en `PowerNode.Web.Tests` (18 nuevas), 52 en `PowerNode.Normativa.Tests`.
+
 **I-183: la sobrecarga del motor se especifica, no se pregunta** — propuesta, sin implementar; solo documentos:
 
 - David pidió la clasificación de motores del Art. 430 (uso general y velocidad ajustable), sacada del texto de

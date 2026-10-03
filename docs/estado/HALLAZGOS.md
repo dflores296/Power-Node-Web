@@ -207,8 +207,8 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-179 · La barra de ayuda decía «!» en vez del nombre de algunos campos | P3 | **Cerrado** | `4f3b49a`, `c053993` |
 | I-180 · El icono de «Conductor» parecía la llave del SIM | P3 | **Cerrado** | `544e083`, `d1f023f` |
 | I-181 · En el alimentador, cajitas de color en lugar de un icono del conductor (pedido de David) | P3 | **Cerrado** | `c572985`, `22589e0`, `30f6332` |
-| I-182 · El selector de la protección (M-20) habla como el programador: «auto», «cond.», «máx.» y dos grupos con los mismos números (pedido de David) | P3 | Confirmada (David), en implementación | — |
-| I-183 · La app da por hecha la protección contra sobrecarga del motor (430-32) y no la dice donde se lee: con el interruptor arriba de la ampacidad, el conductor depende de un dispositivo que el cuadro no menciona | P2 | Confirmada (David), en implementación | — |
+| I-182 · El selector de la protección (M-20) habla como el programador: «auto», «cond.», «máx.» y dos grupos con los mismos números (pedido de David) | P3 | **Cerrado** | `230d16f` |
+| I-183 · La app da por hecha la protección contra sobrecarga del motor (430-32) y no la dice donde se lee: con el interruptor arriba de la ampacidad, el conductor depende de un dispositivo que el cuadro no menciona | P2 | **Cerrado** | `230d16f` |
 | M-14 · Sin el mínimo de alumbrado general por superficie (220-12) en el alimentador; en vivienda, contactos de uso general sumados aparte (220-14(j)) | P1 | **Cerrado** | `71abc56` |
 | M-15 · Motor: la Excepción 1 de 430-52(c)(1) redondeaba dentro de la serie (35 → 40 A en riel DIN) y se citaba sin redondeo; sin Excepción 2 | P1 | **Cerrado** | `8b4d893`, `60a4f91` |
 | M-16 · «Húmedo o mojado» en una opción: XHHW mojado a 90 °C (conductor de menos); RHH y XHH aceptados en mojado | P1 | **Cerrado** | `a3fded5` |
@@ -970,6 +970,11 @@ el tamaño del tubo, I-44): solo los valores del rango, llega con el calculado y
 acento y con ↺; el porqué, en la ayuda. Un fijado se borra, con aviso, si cambia lo que define el rango (el
 equipo, la Excepción 2 o la serie): así nunca queda fuera del rango (pregunta de David). El
 motor de cálculo no cambia. [`../decisiones/proteccion-de-motores-por-rango.md`](../decisiones/proteccion-de-motores-por-rango.md#la-celda-protec-a-segunda-versión-solo-el-rango).
+CONFIRMADA por David (2026-10-03; sin el botón ↺). Cerrado en `230d16f`: la lista solo con los valores del rango; la fijada en el
+acento; la calculada la regresa; la huella del rango (regla y valores) borra la fijada cuando cambia, con aviso
+una vez, y solo ese circuito se recalcula; «cond.» y «máx.» de formato 12 abren fijados (o calculados si
+coinciden), sin formato nuevo; desglose y memoria con «Calculada» o «Fijada por el proyectista». Pruebas:
+`ProteccionFijadaYSobrecargaTests` (`I182_…`); en el navegador, claro, oscuro, 390 px y un archivo de formato 12.
 
 **I-183** — David (2026-10-03): «la NOM permite un interruptor más grande pero supone que hay otro dispositivo
 de protección como una OL; ¿el programa distingue eso?». No lo distingue: lo supone (POR-VERIFICAR, `d2eabdc`)
@@ -979,6 +984,11 @@ el portátil de 1 HP o menos a la vista (430-32(d)(2)a.) y la bomba contra incen
 Propuesta: especificarla, no preguntarla, como el ICFT de 210-8: «OL» junto a la clase en el renglón y el texto
 por clase en desglose, memoria y documento. También el porqué del automático de 1 HP (criterio, no 430-32(b))
 y el alcance de motores en la ayuda. [`../decisiones/proteccion-de-motores-por-rango.md`](../decisiones/proteccion-de-motores-por-rango.md#la-sobrecarga-ol-se-especifica-no-se-pregunta).
+CONFIRMADA por David (2026-10-03; «OL» también en A/C, «de fábrica»). Cerrado en `230d16f`: `SobrecargaRequerida` por
+equipo (430-32(a), 430-32(b), 430-33 sin «OL», 430-124(a) y 430-126, 440-52, 430-53); «OL» junto a la clase en
+el renglón y en el documento, con leyenda; desglose y memoria con el texto por equipo; la cita de 240-4(g) se apoya
+en la sobrecarga que exige 430-32 (en el variador, por 430-120); guía con el alcance de motores. Pruebas:
+`ProteccionFijadaYSobrecargaTests` (`I183_…`); en el navegador, motor, A/C, variador e intermitente (sin «OL»).
 
 ### «Pendiente de probar» de la auditoría, 2026-09-30
 
