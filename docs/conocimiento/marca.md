@@ -178,6 +178,14 @@ papel y una línea abajo; 64 px de alto (56 hasta I-59).
     termómetro; onda con armónicas (carga no lineal); la caída desde el punto de derivación y desde la
     barra (e% máx.); Ø (diámetro del fabricante).
 
+- **El conductor visto de frente** (I-181, pedido de David, 2026-10-03): en el alimentador, antes de «Fase»,
+  «Neutro» y «Puesta a tierra», en lugar de las cajitas de color. No es del juego duotono: es **sólido**, a
+  26 px (`Layout/CorteDeConductor.razor`). El forro con el color de la NOM —A negro, B rojo, C azul; neutro
+  blanco, 200-6; tierra verde, 250-119— y adentro 7 hilos (1 + 6), como en la Tabla 8; las fases, en un haz
+  montado. Los hilos van en **aluminio** si el conductor lo es, y la tierra va **sin forro** si la
+  canalización del alimentador la lleva desnuda. El forro delgado, como un THHN: grueso, a 22 px, el cobre se
+  veía como una mancha.
+
 ## El relieve
 
 > **Reemplazado · David · 2026-10-03** por las líneas finas de «La piel Linear». Se queda aquí como

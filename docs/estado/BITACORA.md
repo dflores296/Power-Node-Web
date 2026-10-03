@@ -4,6 +4,9 @@ Registro de acciones por sesión, con hallazgo y commit.
 
 ## 2026-10-03
 
+**El conductor visto de frente** (pedido de David) — `c572985`, I-181: en el alimentador, en lugar de las cajitas de
+color; forro de la NOM y 7 hilos, de aluminio si el conductor lo es, y la tierra sin forro si va desnuda.
+
 **Iconos de la ficha** (pedido de David) — `4f3b49a`, `c053993` y el commit de docs:
 
 - I-178: un icono por campo de Identificación, Sistema, Gabinete y Condiciones de cálculo; 30 nuevos en
