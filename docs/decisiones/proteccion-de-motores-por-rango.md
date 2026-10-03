@@ -1,9 +1,9 @@
 # Protección del derivado de motor: rango permitido y criterio del proyectista
 
-**PROPUESTA · Claude · 2026-10-03** · implementada el 2026-10-03 (`3b1b689`) — hallazgo **M-20**, de la
-auditoría NOM del 2026-10-02/03. David contestó las preguntas 1, 2, 3, 5 y 6 el mismo día
-([abajo](#respuestas-de-david-2026-10-03-y-lo-implementado)); la 4 (fase 2) sigue abierta. Falta que la
-marque CONFIRMADA. Cambia P-5 de [`../conocimiento/requisitos.md`](../conocimiento/requisitos.md). Verificada contra el motor en `e0eb887`; dos correcciones al algoritmo (pasos 2,
+**CONFIRMADA · David · 2026-10-03** («confirma») — propuesta por Claude el mismo día, implementada en
+`3b1b689`. Hallazgo **M-20**, de la auditoría NOM del 2026-10-02/03. David contestó las preguntas 1, 2, 3, 5
+y 6 ([abajo](#respuestas-de-david-2026-10-03-y-lo-implementado)); de la 4 (fase 2) pidió A/C y variador,
+sin grupos de motores. No se lleva por ahora a PowerNode-DesignSuite (David). Cambia P-5 de [`../conocimiento/requisitos.md`](../conocimiento/requisitos.md). Verificada contra el motor en `e0eb887`; dos correcciones al algoritmo (pasos 2,
 7 y 8) — ver [Verificación](#verificación-contra-el-código-claude--2026-10-03). Revisada contra el texto
 de la NOM a pedido de David: 430-62(a) corregido y opciones para cada pregunta — ver
 [Preguntas](#preguntas-para-david-con-opciones).
@@ -306,7 +306,7 @@ Corrida con `CalculadoraCircuitoDerivadoMotor` en `e0eb887` (cobre, THHN, seco, 
 | 1. Criterio de los circuitos nuevos | **C**, y aclaró: solo motores (el tipo Motor) | «Automático»: prioridad al conductor hasta 1 HP, máximo 430-52 arriba. Con la Excepción 2 declarada, el máximo. Solo en un motor solo (`EsMotorSolo`): A/C, grupos y variador siguen igual |
 | 2. Piso del rango | **A**, 125 % de la FLC | El menor valor de la serie ≥ 125 % de la FLC (o la capacidad de 430-22(e)), nunca arriba del máximo |
 | 3. Dónde va el valor manual | **B**, en la celda «Protec. (A)», «pero solo se activa en motores donde se puede hacer la selección y hay que explicar por qué se permite seleccionar» | La celda de un motor solo es un selector: «15 auto», «15 cond.», «25 máx.» y los valores fijos del rango; en lo demás, el número de siempre. La ayuda del valor (y la barra de ayuda) dice por qué se puede escoger y da el desglose. Excepción explícita a [`captura-en-el-desplegable.md`](captura-en-el-desplegable.md) |
-| 4. Fase 2 (A/C, grupos, variador) | Preguntó cuáles fases: venían en la sección 8, no en lo que había leído | **Pendiente.** Se le explicó; sin respuesta todavía |
+| 4. Fase 2 (A/C, grupos, variador) | Después de la explicación: «rífate la fase 2 con A/C y variador» | A/C y variador, sin grupos de motores — ver [Fase 2](#fase-2-ac-y-variador) |
 | 5. Columna cerca de 100 A | La recomendada (A) | Con terminal de 60 °C, la protección no pasa de 100 A; la memoria y la cita lo dicen. La salida a 75 °C es la casilla que ya existe (terminales marcadas 75 °C) |
 | 6. 430-62(a) y 430-63 | La recomendada (A) | El techo del principal con el valor máximo permitido por 430-52 (en riel DIN, 35 A aunque se instalen 32); A-4 compara contra la protección instalada |
 
@@ -332,6 +332,13 @@ Lo que se agregó al implementar, sin pregunta:
 - **Visto en el navegador** (Playwright contra `127.0.0.1:5199`, claro, oscuro y 390 px): el selector solo
   en los motores, «20 cond.» al escogerlo en el 5 HP, la barra de ayuda con el porqué, la memoria con el
   rango, el criterio y la nota de arranque; sin desplazamiento lateral de la página.
+
+## Fase 2: A/C y variador
+
+Pedida por David el 2026-10-03 («rífate la fase 2 con A/C y variador»): el mismo rango y el mismo selector
+para el equipo de A/C por corriente nominal (440-22(a)), el de A/C por placa (MCA y MOCP, 440-4(b)) y el
+variador (110-3(b)). Fuera: grupos de motores (430-53(c)(4)) y acondicionador de habitación (440-62, ya es
+el mínimo). En curso.
 
 ## Preguntas para David, con opciones
 
