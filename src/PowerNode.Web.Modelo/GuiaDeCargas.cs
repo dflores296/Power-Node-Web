@@ -245,9 +245,9 @@ public static class GuiaDeCargas
             [
                 C("430-6(a)(1)", "La corriente de las Tablas 430-248 (monofásicos) y 430-250 (trifásicos), no la de placa; en A, interpolando los HP."),
                 D("430-22", "Conductor al 125 % de la corriente de tabla."),
-                D("430-52, Tabla 430-52", "Protección: 250 % con interruptor de tiempo inverso; el tamaño siguiente — 430-52(c)(1) Exc. 1."),
+                D("430-52, Tabla 430-52", "Protección: no más de 250 % con interruptor de tiempo inverso (el tamaño siguiente — 430-52(c)(1) Exc. 1); se escoge en la lista, del 125 % de la FLC a ese máximo."),
                 D("430-53", "Varios motores, o motores y otras cargas: protección no mayor que 430-52 del mayor más los demás — (c)(4); conductor por 430-24."),
-                D("430-32", "La sobrecarga, en el arrancador o en el motor."),
+                D("430-32", "Sobrecarga requerida aparte del interruptor: relevador en el arrancador o motor «Protegido térmicamente»; la app la marca «OL»."),
                 D("430-110(a)", "Medio de desconexión: no menos de 115 % de la corriente de plena carga."),
                 A("430-24", "125 % del motor mayor más los demás y las otras cargas."),
                 A("430-62(a), 430-63", "La protección máxima del alimentador con motores."),
@@ -255,8 +255,9 @@ public static class GuiaDeCargas
             ],
             [
                 new("motores-uso-general", "Uso general", "Motor de uso general",
-                    "Bombas, extractores, compresores de aire, portones: monofásicos a 127 o 220 V, o trifásicos.",
-                    "HP o A; servicio continuo por omisión.",
+                    "Bombas, extractores, compresores de aire, portones: monofásicos a 127 o 220 V, o trifásicos de jaula de ardilla (también el diseño B eficiente y el síncrono). " +
+                    "No se calculan aquí: rotor devanado, corriente continua, alto par, velocidades múltiples, devanado dividido ni bomba contra incendio (Art. 695, va sin sobrecarga).",
+                    "HP o A; servicio continuo por omisión. Un motor de baja velocidad (menos de 1200 rpm), en A con la corriente de placa — 430-6(a)(1).",
                     [
                         C("Tablas 430-248, 430-250", "La corriente de plena carga por HP y tensión."),
                         D("430-22(c), (d)", "Estrella-delta y devanado dividido: 125 % del lado de línea; 72 % o 62.5 % del arrancador al motor."),
@@ -270,8 +271,8 @@ public static class GuiaDeCargas
                     "La corriente nominal de entrada del variador y la protección máxima de su fabricante.",
                     [
                         D("430-122(a)", "Conductor al 125 % de la corriente nominal de entrada del equipo de conversión."),
-                        D("110-3(b)", "La protección que indica el fabricante."),
-                        D("430-124", "La sobrecarga la da el equipo si así lo marca."),
+                        D("110-3(b)", "La protección máxima que indica el fabricante; se escoge en la lista, del 125 % de la entrada a ella."),
+                        D("430-124, 430-126", "La sobrecarga la da el variador si así lo marca; la app la marca «OL». Con el motor a baja velocidad sin ventilación propia, además protección contra sobretemperatura."),
                         D("430-128", "Medio de desconexión: no menos de 115 % de la corriente de entrada."),
                     ],
                     [], CategoriaDeCarga.Motor, SubtipoDeCarga.MotorVelocidadAjustable),

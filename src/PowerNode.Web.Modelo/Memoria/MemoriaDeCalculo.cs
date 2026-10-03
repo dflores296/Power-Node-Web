@@ -114,13 +114,11 @@ public static class MemoriaDeCalculo
                $"{flc:N2} A — {cuadro.FuenteDeFlc(c)}",
                $"{MotoresEnHp.Texto(hp ?? 0m)} HP · {tipo} · FLC {flc:N2} A — {cuadro.FuenteDeFlc(c)}, 430-6(a)");
 
-        // M-20: la protección se escoge dentro de un rango. Con el máximo, los renglones de siempre
-        // («Protección seleccionada — 430-52(c)(1)…»); con menos, ese renglón dice «Máximo del rango» y la
-        // seleccionada va aparte, con su 240-4.
+        // M-20, I-182: con rango, este renglón dice «Máximo del rango», y la que quedó va aparte —calculada o
+        // fijada—, con su 240-4.
         var p = r.Rango?.Tabla430_52 ?? cuadro.ProteccionDelMotor(c);
         var rango = r.Rango;
-        var debajoDelMaximo = rango is { EsElMaximo: false };
-        var rotulo = debajoDelMaximo ? "Máximo del rango" : "Protección seleccionada";
+        var rotulo = rango is not null ? "Máximo del rango" : "Protección seleccionada";
         var maximo = p.SeleccionadaA;
         var renglones = new List<RenglonMemoria>
         {
@@ -144,8 +142,8 @@ public static class MemoriaDeCalculo
         var notas = new List<string>
         {
             "La FLC sale de la tabla, no de la placa — 430-6(a). " + LaProteccionYElConductor(r),
-            "La protección contra sobrecarga del motor va en el arrancador (relevador de sobrecarga) o en el propio " +
-            "motor — 430-32. No la da el interruptor del tablero.",
+            DeLaSobrecarga(c, "La protección contra sobrecarga del motor va en el arrancador (relevador de sobrecarga) o en el propio " +
+            "motor — 430-32. No la da el interruptor del tablero."),
         };
         AgregarArranque(r, notas);
 
@@ -181,7 +179,7 @@ public static class MemoriaDeCalculo
             [
                 "Con variador, la corriente del circuito es la de entrada del variador: la FLC del motor y la Tabla 430-52 no se " +
                 "usan. " + LaProteccionYElConductor(r),
-                "La sobrecarga del motor la da el variador si así lo marca; si no, va aparte — 430-124(a).",
+                DeLaSobrecarga(c, "La sobrecarga del motor la da el variador si así lo marca; si no, va aparte — 430-124(a)."),
             ]),
             Corriente: "corriente de entrada");
     }
@@ -352,24 +350,24 @@ public static class MemoriaDeCalculo
             Notas: ConElArranque(r,
             [
                 "La corriente sale de la placa, no de las tablas del Art. 430 — 440-6(a). " + LaProteccionYElConductor(r),
-                "La sobrecarga del motocompresor la cuida su protector o el relevador del equipo — 440-52. No la da el " +
-                "interruptor del tablero.",
+                DeLaSobrecarga(c, "La sobrecarga del motocompresor la cuida su protector o el relevador del equipo — 440-52. No la da el " +
+                "interruptor del tablero."),
             ]),
             Corriente: "corriente");
     }
 
     // ---- El rango de la protección — M-20 y su fase 2 ----------------------------------------------
 
-    /// <summary>«Máximo del rango» si se escogió menos que el máximo; si no, «Protección seleccionada», como antes.</summary>
+    /// <summary>«Máximo del rango» si hay rango (la que quedó va aparte, I-182); si no, «Protección seleccionada».</summary>
     private static string RotuloDelMaximo(ResultadoCircuitoDerivado r) =>
-        r.Rango is { EsElMaximo: false } ? "Máximo del rango" : "Protección seleccionada";
+        r.Rango is not null ? "Máximo del rango" : "Protección seleccionada";
 
     /// <summary>El máximo del rango; sin rango, la protección.</summary>
     private static decimal MaximoDelRango(ResultadoCircuitoDerivado r) => r.Rango?.MaximoA ?? r.ProteccionA;
 
     /// <summary>
-    /// Los renglones del rango: el rango permitido, el criterio y, abajo del máximo, la protección escogida
-    /// con su 240-4 — M-20. Igual en un motor, un equipo de A/C y un variador.
+    /// Los renglones del rango — M-20, I-182: el rango permitido y la protección que quedó, calculada o
+    /// fijada por el proyectista, con su porqué y su 240-4. Igual en un motor, un equipo de A/C y un variador.
     /// </summary>
     private static void AgregarRango(CuadroDeCarga cuadro, CircuitoDelCuadro c, ResultadoCircuitoDerivado r, List<RenglonMemoria> renglones)
     {
@@ -378,14 +376,23 @@ public static class MemoriaDeCalculo
         renglones.Add(new($"Rango permitido — {rango.Regla}", rango.Valores.Count == 1
             ? $"Solo {rango.MaximoA:N0} A"
             : $"{rango.MinimoA:N0} A (≥ {rango.Piso}) a {rango.MaximoA:N0} A: la protección «no debe exceder» {rango.Techo}; cualquiera del rango cumple"));
-        if (cuadro.CriterioDeLaProteccion(c) is { } criterio)
-            renglones.Add(new("Criterio", criterio));
-        if (!rango.EsElMaximo)
-            renglones.Add(new($"Protección seleccionada — {(rango.PorExcepcion240_4b ? "240-4(b)" : rango.ProtegeAlConductor ? "240-4" : "240-4(g)")}",
-                $"{r.ProteccionA:N0} A" + (rango.ProtegeAlConductor
-                    ? $" — protege a {r.CalibreFase.DesignacionConUnidad} ({r.Detalle?.AmpacidadConductorA ?? 0m:N2} A)"
-                    : $" — arriba de la ampacidad de {r.CalibreFase.DesignacionConUnidad}: {rango.Sobrecarga}")));
+        var fijada = CuadroDeCarga.ProteccionFijada(c);
+        var referencia = rango.PorExcepcion240_4b ? "240-4(b)" : rango.ProtegeAlConductor ? "240-4" : "240-4(g)";
+        // La calculada «el mayor que protege a…» ya dice el 240-4; lo demás lo dice aquí.
+        var yaLoDice = !fijada && rango.Criterio == CriterioProteccionMotor.Conductor;
+        renglones.Add(new($"Protección {(fijada ? "fijada por el proyectista" : "calculada")} — {referencia}",
+            $"{r.ProteccionA:N0} A, {cuadro.PorQueLaProteccion(c)}" + (yaLoDice ? ""
+                : rango.ProtegeAlConductor
+                    ? $"; protege a {r.CalibreFase.DesignacionConUnidad} ({r.Detalle?.AmpacidadConductorA ?? 0m:N2} A)"
+                    : $"; arriba de la ampacidad de {r.CalibreFase.DesignacionConUnidad}: {rango.Sobrecarga}")));
     }
+
+    /// <summary>
+    /// La nota de la sobrecarga — I-183: «Protección contra sobrecarga — 430-32(b): requerida aparte del
+    /// interruptor…», según el equipo; sin ella, el texto de antes.
+    /// </summary>
+    private static string DeLaSobrecarga(CircuitoDelCuadro c, string deAntes) =>
+        c.Sobrecarga is { } s ? $"Protección contra sobrecarga — {s.Referencia}: {s.Texto}." : deAntes;
 
     private static List<RenglonMemoria> ConElRango(CuadroDeCarga cuadro, CircuitoDelCuadro c, ResultadoCircuitoDerivado r, List<RenglonMemoria> renglones)
     {

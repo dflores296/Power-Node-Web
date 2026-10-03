@@ -146,6 +146,13 @@
             </tbody>
         </table>
         </div>
+        @* I-183: qué quiere decir «OL» junto a la clase — la sobrecarga que pide el equipo, aparte del interruptor. *@
+        @if (Cuadro.Circuitos.Any(c => c.Sobrecarga is { Aparte: true }))
+        {
+            <p class="doc-leyenda"><strong>OL</strong>: el circuito requiere protección contra sobrecarga además del interruptor — relevador en el
+                arrancador o motor «Protegido térmicamente» (430-32); en un variador, la del variador (430-124(a)); en A/C, la trae el
+                equipo (440-52).</p>
+        }
 
         <section class="doc-pie">
             <div>
@@ -520,5 +527,8 @@ else
     /// captura — decisión captura-en-el-desplegable.md. El tipo es de cada carga, no del circuito.
     /// </summary>
     private static string? ClaseDe(CircuitoDelCuadro c) =>
-        c.SinTipo || c.ClaseDelCircuito is not { } clase ? null : clase.Nombre();
+        c.SinTipo || c.ClaseDelCircuito is not { } clase ? null
+        // I-183: «Individual · OL», como en el renglón de la captura.
+        : c.Sobrecarga is { Aparte: true } ? $"{clase.Nombre()} · {SobrecargaRequerida.Etiqueta}"
+        : clase.Nombre();
 }

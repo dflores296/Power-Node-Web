@@ -816,6 +816,7 @@ table.opciones-paralelo .pastilla { font-size: 9px; font-weight: 600; color: var
 }
 .doc-resumen.separado { margin-top: 12px; }
 .doc-nota { margin-top: 16px; font-size: 10px; color: var(--tenue); line-height: 1.5; }
+.doc-leyenda { margin: 6px 0 0; font-size: 9px; color: var(--tenue); line-height: 1.4; }
 
 /* La memoria: una hoja por tramo, con sus nueve secciones. */
 .hoja { border-top: 1px solid var(--linea); padding-top: 14px; margin-top: 18px; }
@@ -1197,6 +1198,10 @@ polygon.riel-a { fill: var(--barra-a); } polygon.riel-b { fill: var(--barra-b); 
 .cuadro select.canal { field-sizing: content; min-width: 72px; max-width: 220px; }
 /* M-20: la protección de un motor se escoge en su celda — «15 auto», «25 máx.» o un valor fijo. */
 .cuadro select.proteccion { field-sizing: content; min-width: 60px; max-width: 120px; text-align: right; font-variant-numeric: tabular-nums; }
+/* I-182: fijada por el proyectista, en el acento, como un tamaño de tubo fijado; calculada, normal. */
+.cuadro select.proteccion.fijado { color: var(--acento); border-color: var(--acento); }
+/* I-183: «OL» junto a la clase, como el ICFT; el título dice quién la da. */
+.cuadro abbr.ol { text-decoration: none; cursor: help; }
 .cuadro td.canal .en-va { text-align: center; }
 .cuadro .mas-n { display: flex; align-items: center; justify-content: center; gap: 3px;
                  font-size: 10px; color: var(--tenue); margin-top: 3px; cursor: pointer; }

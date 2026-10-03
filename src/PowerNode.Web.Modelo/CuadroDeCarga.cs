@@ -458,14 +458,15 @@ public sealed class CuadroDeCarga
                 calibre: r.CalibreFase,
                 conductoresPorFase: r.NumeroConductoresParalelo,
                 d: detalle,
-                citas: r.Citas);
+                citas: r.Citas,
+                sobrecarga: c.Sobrecarga);
         }
 
         if (c.EsVariador)
             return DesgloseDeSeleccion.DeVariador(
                 _motor.Ampacidad, Datos, c.CorrienteEntradaVariadorA, c.ProteccionMaximaVariadorA,
                 r.ProteccionA, r.CalibreFase, r.NumeroConductoresParalelo, detalle, r.Citas,
-                rango: r.Rango, criterio: CriterioDeLaProteccion(c));
+                rango: r.Rango, criterio: CriterioDeLaProteccion(c), sobrecarga: c.Sobrecarga);
 
         if (c.EsMotor)
             return DesgloseDeSeleccion.DeMotor(
@@ -480,7 +481,8 @@ public sealed class CuadroDeCarga
                 citas: r.Citas,
                 servicio: r.Citas.FirstOrDefault(x => x.Referencia == "430-22(e)")?.Descripcion,
                 rango: r.Rango,
-                criterio: CriterioDeLaProteccion(c));
+                criterio: CriterioDeLaProteccion(c),
+                sobrecarga: c.Sobrecarga);
 
         if (c.EsAireAcondicionado)
             return DesgloseDeSeleccion.DeAireAcondicionado(
@@ -491,7 +493,8 @@ public sealed class CuadroDeCarga
                 d: detalle,
                 citas: r.Citas,
                 rango: r.Rango,
-                criterio: CriterioDeLaProteccion(c));
+                criterio: CriterioDeLaProteccion(c),
+                sobrecarga: c.Sobrecarga);
 
         var divisor = TensionDeCalculo.Divisor(c.Polos, Datos.TensionFaseNeutroV, Datos.TensionFaseFaseV);
         // Otro tablero se cita con el 215 — I-125.
@@ -573,12 +576,9 @@ public sealed class CuadroDeCarga
         _motor.ProteccionMotor.PorcentajeMaximo(MotoresEnHp.TipoDeMotor(c.Polos), TipoDispositivoProteccionMotor.InterruptorTiempoInverso);
 
     /// <summary>
-    /// La protección del derivado de un motor: techo de la Tabla 430-52, máximo permitido por
-    /// 430-52(c)(1) y su Excepción 1 contra la lista de 240-6(a), y el tamaño de la serie — P1-1.
-    /// </summary>
-    /// <summary>
-    /// <b>La protección que daría otro criterio</b> — M-20: para rotular el selector de la celda «Protec.
-    /// (A)» («15 auto», «25 máx.»). <c>null</c> si el circuito no es un motor solo calculado, o en manual.
+    /// <b>La protección que daría otro criterio</b> — M-20: la calculada (para decir cuál es cuando hay una
+    /// fijada) y, al abrir un archivo de formato 12, la de «cond.» o «máx.» (I-182). <c>null</c> si el circuito
+    /// no tiene rango calculado, o con <see cref="CriterioDeProteccion.Manual"/>.
     /// </summary>
     public decimal? ProteccionConCriterio(CircuitoDelCuadro c, CriterioDeProteccion criterio)
     {
@@ -604,44 +604,144 @@ public sealed class CuadroDeCarga
         }
     }
 
+    /// <summary>La protección calculada del circuito, aunque tenga una fijada — I-182.</summary>
+    public decimal? ProteccionCalculada(CircuitoDelCuadro c) =>
+        c.CriterioProteccion == CriterioDeProteccion.Automatico && c.Resultado?.Rango is not null
+            ? c.Resultado.ProteccionA
+            : ProteccionConCriterio(c, CriterioDeProteccion.Automatico);
+
+    /// <summary>La protección quedó fijada por el proyectista, dentro de su rango — I-182.</summary>
+    public static bool ProteccionFijada(CircuitoDelCuadro c) =>
+        c.CriterioProteccion == CriterioDeProteccion.Manual && c.Resultado?.Rango is not null;
+
     /// <summary>
-    /// <b>Con qué criterio salió la protección del motor, y por qué</b> — M-20, para el desglose y la memoria:
-    /// «Automático: 0.5 HP, 1 HP o menos — prioridad al conductor: el mayor valor del rango que protege a 14
-    /// (15 A) — 240-4». <c>null</c> si el circuito no tiene rango.
+    /// <b>Escoger la protección en la celda</b> — I-182: un valor del rango la fija y guarda la huella del
+    /// rango; el valor que da el cálculo, o <c>null</c>, la regresa al cálculo. Un valor fuera del rango no
+    /// se acepta (la lista solo trae los del rango). Recalcula.
     /// </summary>
-    public string? CriterioDeLaProteccion(CircuitoDelCuadro c)
+    public void FijarProteccion(CircuitoDelCuadro c, decimal? amperes)
+    {
+        if (c.Resultado?.Rango is not { } rango)
+            return;
+        if (amperes is { } a && rango.Valores.Contains(a) && a != ProteccionCalculada(c))
+        {
+            c.CriterioProteccion = CriterioDeProteccion.Manual;
+            c.ProteccionElegidaA = a;
+            c.HuellaDelFijado = Huella(rango);
+        }
+        else
+        {
+            c.CriterioProteccion = CriterioDeProteccion.Automatico;
+            c.ProteccionElegidaA = null;
+            c.HuellaDelFijado = null;
+        }
+        Recalcular();
+    }
+
+    /// <summary>
+    /// La huella de un rango: su regla y sus valores — I-182. Cambia con el equipo (la FLC, la placa), la
+    /// Excepción 2 o la serie; no con el conductor.
+    /// </summary>
+    internal static string Huella(RangoDeProteccion r) =>
+        $"{r.Regla}:{string.Join("|", r.Valores.Select(v => v.ToString(CultureInfo.InvariantCulture)))}";
+
+    private readonly List<ProteccionQueRegreso> _regresaron = [];
+
+    /// <summary>
+    /// <b>Las protecciones fijadas que regresaron al cálculo</b> porque cambió su rango — I-182. La pantalla las
+    /// toma para avisar una vez; tomarlas las borra.
+    /// </summary>
+    public IReadOnlyList<ProteccionQueRegreso> TomarProteccionesQueRegresaron()
+    {
+        var todas = _regresaron.ToList();
+        _regresaron.Clear();
+        return todas;
+    }
+
+    /// <summary>
+    /// Después de calcular un circuito con su protección fijada — I-182: si viene de un archivo, toma la huella
+    /// del rango que salió; si el rango ya no es aquel con que se fijó, la regresa al cálculo y lo anota.
+    /// <c>true</c> si hay que volver a calcular ese circuito; ya en calculada no puede volver a pasar.
+    /// </summary>
+    private bool RegresarSiCambioElRango(CircuitoDelCuadro c)
+    {
+        if (c.CriterioProteccion != CriterioDeProteccion.Manual || c.Resultado?.Rango is not { } rango)
+            return false;
+        var huella = Huella(rango);
+        if (c.HuellaDelFijado is null)
+        {
+            c.HuellaDelFijado = huella;
+            return false;
+        }
+        if (c.HuellaDelFijado == huella)
+            return false;
+        _regresaron.Add(new ProteccionQueRegreso(c.Espacio, c.ProteccionElegidaA ?? rango.ProteccionA, rango.MinimoA, rango.MaximoA));
+        c.CriterioProteccion = CriterioDeProteccion.Automatico;
+        c.ProteccionElegidaA = null;
+        c.HuellaDelFijado = null;
+        return true;
+    }
+
+    /// <summary>
+    /// <b>Cómo quedó la protección dentro de su rango, y por qué</b> — M-20, I-182, para el desglose y la
+    /// memoria: «Calculada: 15 A, el mayor que protege a 14 AWG (15 A) — 240-4; criterio para motores de 1 HP
+    /// o menos», o «Fijada por el proyectista: 20 A, dentro del rango». <c>null</c> si el circuito no tiene rango.
+    /// </summary>
+    public string? CriterioDeLaProteccion(CircuitoDelCuadro c) =>
+        PorQueLaProteccion(c) is { } porque
+            ? $"{(ProteccionFijada(c) ? "Fijada por el proyectista" : "Calculada")}: {c.Resultado!.ProteccionA:N0} A, {porque}"
+            : null;
+
+    /// <summary>
+    /// El porqué de <see cref="CriterioDeLaProteccion"/>, sin el valor: «el mayor que protege a 14 AWG (15 A) —
+    /// 240-4; criterio…» o, fijada, «dentro del rango». <c>null</c> sin rango.
+    /// </summary>
+    public string? PorQueLaProteccion(CircuitoDelCuadro c)
     {
         if (c.Resultado is not { Rango: { } r } resultado)
             return null;
-        var cual = c.CriterioProteccion == CriterioDeProteccion.Automatico
-            ? c.EntradaDeLaProteccion is DatosEntradaCircuitoDerivadoMotor m
-                ? CriteriosDeProteccion.PorQueAutomatico(m.Hp, c.NoArrancaConLaTabla)
-                : CriteriosDeProteccion.PorQueAutomaticoSinCorte(r, c.EsVariador)
-            : r.Criterio switch
-            {
-                CriterioProteccionMotor.Manual => "Manual, un valor fijo",
-                CriterioProteccionMotor.Maximo430_52 => $"Máximo {r.Regla}",
-                _ => r.Criterio.Nombre(),
-            };
+        if (ProteccionFijada(c))
+            return "dentro del rango";
         var calibre = r.CalibreProtegido is { } protegido
             ? $"{protegido.DesignacionConUnidad} ({r.AmpacidadProtegidaA:0.##} A)" +
               (protegido.Designacion != resultado.CalibreFase.Designacion ? $", el calibre por ampacidad; {resultado.CalibreFase.DesignacionConUnidad} por caída de tensión sigue protegido" : "")
             : $"{resultado.CalibreFase.DesignacionConUnidad} ({resultado.Detalle?.AmpacidadConductorA ?? 0m:0.##} A)";
-        var porque = r.Criterio switch
-        {
-            CriterioProteccionMotor.Conductor when r.SubioElCalibre =>
-                "ningún valor del rango protegía al calibre por ampacidad: el mínimo, y el calibre sube hasta quedar protegido — 240-4",
-            CriterioProteccionMotor.Conductor =>
-                $"el mayor valor del rango que protege a {calibre} — 240-4" +
-                (r.TopadoEn100A ? "; sin pasar de 100 A, porque la terminal es de 60 °C — 110-14(c)(1)a." : ""),
-            CriterioProteccionMotor.Manual =>
-                "lo escogió el proyectista dentro del rango" +
-                (r.PedidaA is { } pedida ? $" (pidió {pedida:0.##} A, fuera del rango: el más cercano)" : ""),
-            _ => "el mayor del rango",
-        };
-        return $"{cual} — {porque}";
+        return CriteriosDeProteccion.PorQueLaCalculada(r, calibre, c.EntradaDeLaProteccion is DatosEntradaCircuitoDerivadoMotor, c.NoArrancaConLaTabla);
     }
 
+    /// <summary>
+    /// <b>La ayuda de la celda «Protec. (A)»</b> — I-182: el rango y por qué se puede escoger, la calculada y
+    /// su porqué, o la fijada y cuál es la calculada; qué verificar abajo del máximo. En palabras llanas, sin
+    /// «auto», «cond.» ni «máx.». <c>null</c> sin rango.
+    /// </summary>
+    public string? AyudaDeLaProteccion(CircuitoDelCuadro c)
+    {
+        if (c.Resultado is not { Rango: { } r } resultado)
+            return null;
+        var lineas = new List<string>();
+        var calculada = ProteccionCalculada(c);
+        if (ProteccionFijada(c))
+            lineas.Add($"Fijada: {resultado.ProteccionA:N0} A." + (calculada is { } calc
+                ? $" El cálculo da {calc:N0} A; escogerlo en la lista lo regresa al cálculo."
+                : ""));
+        lineas.Add(r.Valores.Count == 1
+            ? $"Solo se permite {r.MaximoA:N0} A — {r.Regla}."
+            : $"Se permite de {r.MinimoA:N0} a {r.MaximoA:N0} A: {r.Regla} solo pone el techo.");
+        if (!ProteccionFijada(c) && PorQueLaProteccion(c) is { } porque)
+            lineas.Add($"Calculada: {resultado.ProteccionA:N0} A, {porque}.");
+        if (r.Valores.Count > 1)
+            lineas.Add($"{r.MaximoA:N0} A es el máximo {CriteriosDeProteccion.DeDondeElMaximo(r)}.");
+        if (r.Arranque is { } arranque)
+            lineas.Add($"{arranque.Descripcion.TrimEnd('.')} — {arranque.Referencia}.");
+        if (!ProteccionFijada(c) && r.Valores.Count > 1)
+            lineas.Add("Escoger otro valor para fijarlo.");
+        return string.Join("\n", lineas);
+    }
+
+    /// <summary>
+    /// La protección del derivado de un motor: techo de la Tabla 430-52, máximo permitido por
+    /// 430-52(c)(1) y su Excepción 1 contra la lista de 240-6(a), y el tamaño de la serie — P1-1.
+    /// </summary>
     public ProteccionDeMotor ProteccionDelMotor(CircuitoDelCuadro c) =>
         CalculadoraCircuitoDerivadoMotor.ProteccionDeLaTabla430_52(
             new ProteccionEstandarDeLaSerie(_motor.ProteccionEstandar, Datos.SerieInterruptores),
@@ -1759,29 +1859,16 @@ public sealed class CuadroDeCarga
 
             try
             {
-                if (c.EsGrupo)
+                if (CalcularEquipo(c, canal))
                 {
-                    CalcularGrupo(c, canal);
-                    continue;
-                }
-                if (c.Categoria == CategoriaDeCarga.Tablero)
-                {
-                    CalcularAlimentadorATablero(c, canal);
-                    continue;
-                }
-                if (c.EsVariador)
-                {
-                    CalcularVariador(c, canal);
-                    continue;
-                }
-                if (c.EsMotor)
-                {
-                    CalcularMotor(c, canal);
-                    continue;
-                }
-                if (c.EsAireAcondicionado)
-                {
-                    CalcularAireAcondicionado(c, canal);
+                    // I-182: una protección fijada para otro rango regresa al cálculo, y solo este circuito se
+                    // vuelve a calcular. Ya en calculada no puede volver a pasar: una vez como máximo.
+                    if (RegresarSiCambioElRango(c))
+                    {
+                        c.Limpiar();
+                        CalcularEquipo(c, canal);
+                        _regresaron[^1] = _regresaron[^1] with { CalculadaA = c.Resultado?.ProteccionA };
+                    }
                     continue;
                 }
                 if (c.ErrorDeExclusividad() is { } exclusividad)
@@ -1840,7 +1927,31 @@ public sealed class CuadroDeCarga
             }
         }
         foreach (var c in _circuitos)
+        {
+            c.Sobrecarga = SobrecargaRequerida.De(c);
             c.ReglasDeClase = ReglasDeClase(c);
+        }
+    }
+
+    /// <summary>
+    /// Un grupo, otro tablero, un variador, un motor o un equipo de A/C: los que tienen su propio cálculo.
+    /// <c>false</c> si el circuito es de cargas de placa.
+    /// </summary>
+    private bool CalcularEquipo(CircuitoDelCuadro c, CanalizacionDelTablero canal)
+    {
+        if (c.EsGrupo)
+            CalcularGrupo(c, canal);
+        else if (c.Categoria == CategoriaDeCarga.Tablero)
+            CalcularAlimentadorATablero(c, canal);
+        else if (c.EsVariador)
+            CalcularVariador(c, canal);
+        else if (c.EsMotor)
+            CalcularMotor(c, canal);
+        else if (c.EsAireAcondicionado)
+            CalcularAireAcondicionado(c, canal);
+        else
+            return false;
+        return true;
     }
 
     /// <summary>
@@ -2166,7 +2277,7 @@ public sealed class CuadroDeCarga
             Lugar: Datos.Lugar,
             TerminalesMarcadas75C: Datos.TerminalesMarcadas75C,
             NoArrancaConLaTabla: c.NoArrancaConLaTabla,
-            // M-20: el automático, por los HP — prioridad al conductor hasta 1 HP (430-32(a), (b)).
+            // M-20: la calculada, por los HP — la mayor que protege al conductor hasta 1 HP (criterio, I-183).
             CriterioProteccion: c.CriterioProteccion.ParaElCalculo(hp, c.NoArrancaConLaTabla),
             ProteccionElegidaA: c.CriterioProteccion == CriterioDeProteccion.Manual ? c.ProteccionElegidaA : null);
     }

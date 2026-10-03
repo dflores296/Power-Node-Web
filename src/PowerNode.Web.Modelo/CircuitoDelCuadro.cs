@@ -126,14 +126,26 @@ public sealed class CircuitoDelCuadro
     public bool NoArrancaConLaTabla { get; set; }
 
     /// <summary>
-    /// <b>Cómo se escoge la protección del motor dentro de su rango</b> — M-20: automático (por omisión),
-    /// prioridad al conductor, máximo 430-52 o un valor fijo. Solo cuenta en un motor solo
-    /// (<see cref="EsMotorSolo"/>). Un archivo de formato 11 o anterior abre en el máximo: lo de antes.
+    /// <b>La protección dentro de su rango: calculada o fijada</b> — M-20, I-182. Calculada
+    /// (<see cref="CriterioDeProteccion.Automatico"/>, por omisión) o un valor fijo que escogió el proyectista
+    /// (<see cref="CriterioDeProteccion.Manual"/>). Solo cuenta donde hay rango (<see cref="ProteccionEscogible"/>).
+    /// Se cambia con <see cref="CuadroDeCarga.FijarProteccion"/>.
     /// </summary>
     public CriterioDeProteccion CriterioProteccion { get; set; } = CriterioDeProteccion.Automatico;
 
     /// <summary>Con <see cref="CriterioDeProteccion.Manual"/>: el valor que escogió el proyectista, en A — M-20.</summary>
     public decimal? ProteccionElegidaA { get; set; }
+
+    /// <summary>
+    /// <b>La huella del rango con que se fijó la protección</b> — I-182: su regla y sus valores. Si el rango
+    /// cambia (otro equipo, la Excepción 2, otra serie), el valor fijado era para otro rango y regresa al
+    /// calculado. La longitud, el tubo o la temperatura mueven el conductor, no el rango: no la cambian.
+    /// <c>null</c> en lo calculado, y en lo fijado que se acaba de abrir de un archivo, hasta el primer cálculo.
+    /// </summary>
+    public string? HuellaDelFijado { get; internal set; }
+
+    /// <summary>La protección contra sobrecarga que pide su equipo — I-183; <c>null</c> si no es motor, variador ni A/C.</summary>
+    public SobrecargaRequerida? Sobrecarga { get; internal set; }
 
     /// <summary>
     /// La protección se puede escoger: el circuito ya tiene su rango calculado — M-20. Solo lo tienen un
@@ -822,6 +834,7 @@ public sealed class CircuitoDelCuadro
         NoArrancaConLaTabla = false;
         CriterioProteccion = CriterioDeProteccion.Automatico;
         ProteccionElegidaA = null;
+        HuellaDelFijado = null;
         CapturaMotor = CapturaDeMotor.Hp;
         PlacaAire = PlacaDeAireAcondicionado.AmpacidadYProteccion;
         Cargas.Clear();
@@ -839,6 +852,7 @@ public sealed class CircuitoDelCuadro
         CaidaAlimentadorPct = null;
         AvisoCaidaCombinada = null;
         AvisoAireDeHabitacion = null;
+        Sobrecarga = null;
     }
 
     /// <summary>

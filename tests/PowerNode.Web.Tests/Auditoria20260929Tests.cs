@@ -96,7 +96,9 @@ public class Auditoria20260929Tests
         Assert.True(cuadro.ProteccionDelMotor(c).UsaExcepcion1);
         Assert.Contains(c.Resultado.Citas, x => x.Referencia == "430-52" && x.Descripcion.Contains("Excepción 1"));
         var hoja = MemoriaDeCalculo.DeCircuito(cuadro, c);
-        Assert.Contains(hoja.Equipo!.Proteccion, f => f.Rotulo == "Protección seleccionada — 430-52(c)(1) Excepción 1");
+        // I-182: con rango, el renglón del techo dice «Máximo del rango»; la que quedó va en «Protección calculada».
+        Assert.Contains(hoja.Equipo!.Proteccion, f => f.Rotulo == "Máximo del rango — 430-52(c)(1) Excepción 1");
+        Assert.Contains(hoja.Equipo.Proteccion, f => f.Rotulo.StartsWith("Protección calculada") && f.Valor.StartsWith("80 A, el máximo"));
     }
 
     [Fact]
@@ -170,7 +172,7 @@ public class Auditoria20260929Tests
         Assert.Contains(c.Resultado.Citas, x => x.Referencia == "430-52(c)(1) Excepción 2");
         Assert.Contains(cuadro.Desglose(c)!.Proteccion, l => l.Contains("Excepción 2(3)"));
         var hoja = MemoriaDeCalculo.DeCircuito(cuadro, c);
-        Assert.Contains(hoja.Equipo!.Proteccion, f => f.Rotulo == "Protección seleccionada — 430-52(c)(1) Excepción 2(3)");
+        Assert.Contains(hoja.Equipo!.Proteccion, f => f.Rotulo == "Máximo del rango — 430-52(c)(1) Excepción 2(3)");
 
         // Se guarda en el archivo y se abre igual.
         var texto = PowerNode.Web.Modelo.Archivo.ArchivoDelCuadro.Guardar(cuadro, DateTimeOffset.Now);

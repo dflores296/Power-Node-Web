@@ -161,7 +161,7 @@ public class CalculadoraCircuitoDerivadoVariador(
         var rango = ProteccionDentroDelRango.Armar(
             "110-3(b)", $"la protección máxima del fabricante ({d.ProteccionMaximaA:0.##} A)",
             $"125 % de la corriente de entrada = {capacidadMinConductor:0.##} A",
-            "la sobrecarga del motor la da el variador si así lo marca — 430-124(a)",
+            "la sobrecarga del motor la da el variador si así lo marca (430-124(a)); el permiso llega por 430-120 a la Parte D, que la Tabla 240-4(g) nombra",
             capacidadMinConductor, minimo, maximo,
             // 430-62(a): la que marca el fabricante.
             d.ProteccionMaximaA, valores, criterio, d.ProteccionElegidaA, null, escogida, proteccionEstandar, d.MaterialConductor,

@@ -4,41 +4,50 @@ using PowerNode.DesignSuite.Calculo.Unidades;
 namespace PowerNode.Web.Modelo;
 
 /// <summary>
-/// <b>Cómo se escoge la protección de un derivado dentro de su rango</b> — M-20, decisión
+/// <b>La protección de un derivado dentro de su rango: calculada o fijada</b> — M-20 e I-182, decisión
 /// <c>proteccion-de-motores-por-rango.md</c>. 430-52(c)(1), 440-22(a), 440-4(b) y 110-3(b) piden un valor
-/// «que no exceda»: es un techo. En un motor solo, un equipo de A/C (salvo el de habitación) y un variador
-/// (fase 2, David, 2026-10-03); un grupo sigue con el mayor que no excede su máximo.
+/// «que no exceda»: es un techo. En un motor solo, un equipo de A/C (salvo el de habitación) y un variador;
+/// un grupo sigue con el mayor que no excede su máximo. La pantalla solo ofrece los valores del rango: llega
+/// con el calculado, y otro valor queda fijado (I-182, CONFIRMADA · David · 2026-10-03).
 /// </summary>
 public enum CriterioDeProteccion
 {
     /// <summary>
-    /// El de un circuito nuevo. En un motor (David, 2026-10-03, pregunta 1: opción C): prioridad al conductor
-    /// hasta 1 HP, el máximo arriba — el corte que ya hace 430-32 entre (a) y (b); con la Excepción 2
-    /// declarada, el máximo. En un equipo de A/C y en un variador, el máximo (fase 2): el de 440-22(a) está
-    /// pensado para el arranque del motocompresor, y el de la placa o del fabricante lo marca quien lo hizo.
+    /// <b>Calculada</b>, la de un circuito nuevo. En un motor (David, 2026-10-03, pregunta 1: opción C): la
+    /// mayor que protege al conductor hasta 1 HP, el máximo arriba; con la Excepción 2 declarada, el máximo. En
+    /// un equipo de A/C y en un variador, el máximo (fase 2, CONFIRMADA): el de 440-22(a) está pensado para el
+    /// arranque del motocompresor, y el de la placa o del fabricante lo marca quien hizo el equipo.
     /// </summary>
     Automatico,
 
-    /// <summary>El mayor valor del rango que protege al conductor — 240-4.</summary>
+    /// <summary>
+    /// «cond.» de M-20. Solo para abrir un archivo de formato 12 que lo guardó: al abrir se convierte en
+    /// fijada con el valor que daba, o en calculada si coincide (I-182). La pantalla ya no lo ofrece.
+    /// </summary>
     Conductor,
 
-    /// <summary>El mayor que no excede el máximo de la Tabla 430-52. Lo que hacía la app antes de M-20.</summary>
+    /// <summary>
+    /// «máx.» de M-20, y el motor de un archivo de formato 11 o anterior, que abre en el máximo. Igual que
+    /// <see cref="Conductor"/>: al abrir se convierte en fijada o en calculada.
+    /// </summary>
     Maximo430_52,
 
-    /// <summary>Un valor fijo del rango, que escoge el proyectista.</summary>
+    /// <summary><b>Fijada</b>: un valor del rango que escogió el proyectista.</summary>
     Manual,
 }
 
-/// <summary>Lo que se dice de cada criterio, y cómo llega al motor de cálculo.</summary>
+/// <summary>Lo que se dice de la protección calculada, y cómo llega cada criterio al motor de cálculo.</summary>
 public static class CriteriosDeProteccion
 {
     /// <summary>
-    /// Hasta aquí, el automático protege al conductor — 430-32(a) es «de más de 746 watts (1 hp)»; (b) y
-    /// (d), «de 746 watts (1 hp) o menos».
+    /// Hasta aquí, la calculada protege al conductor. Es criterio, no norma (CONFIRMADO, pregunta 1): 430-32
+    /// pide protección contra sobrecarga a los dos lados del corte —(a) arriba de 1 HP, (b) y (d)(1) abajo—.
+    /// En un motor chico el interruptor que protege al conductor suele dejarlo arrancar, y el conductor queda
+    /// con doble protección; arriba, el margen de arranque vale más.
     /// </summary>
     public const decimal CorteDelAutomaticoHp = 1m;
 
-    /// <summary>El criterio que se calcula: el automático se resuelve con los HP del motor y la Excepción 2.</summary>
+    /// <summary>El criterio que se calcula en un motor: la calculada se resuelve con los HP y la Excepción 2.</summary>
     public static CriterioProteccionMotor ParaElCalculo(this CriterioDeProteccion criterio, decimal hp, bool noArrancaConLaTabla) =>
         criterio switch
         {
@@ -50,7 +59,7 @@ public static class CriteriosDeProteccion
                 : CriterioProteccionMotor.Maximo430_52,
         };
 
-    /// <summary>El criterio que se calcula en un equipo de A/C o un variador: el automático es el máximo (fase 2).</summary>
+    /// <summary>El criterio que se calcula en un equipo de A/C o un variador: la calculada es el máximo.</summary>
     public static CriterioProteccionMotor ParaElCalculo(this CriterioDeProteccion criterio) =>
         criterio switch
         {
@@ -59,58 +68,67 @@ public static class CriteriosDeProteccion
             _ => CriterioProteccionMotor.Maximo430_52,
         };
 
-    /// <summary>Por qué el automático de un equipo de A/C o de un variador es el máximo.</summary>
-    public static string PorQueAutomaticoSinCorte(RangoDeProteccion r, bool esVariador) =>
-        esVariador ? "Automático: variador, la máxima del fabricante — 110-3(b)"
-        : r.Regla == "440-4(b)" ? "Automático: equipo de A/C, la protección máxima de su placa — 440-4(b)"
-        : "Automático: equipo de A/C, el máximo de 440-22(a), que está pensado para el arranque del motocompresor";
-
-    /// <summary>«Prioridad al conductor», «Máximo 430-52», «Manual».</summary>
-    public static string Nombre(this CriterioProteccionMotor criterio) => criterio switch
-    {
-        CriterioProteccionMotor.Conductor => "Prioridad al conductor",
-        CriterioProteccionMotor.Manual => "Manual",
-        _ => "Máximo 430-52",
-    };
-
-    /// <summary>Por qué el automático quedó en ese criterio, para la memoria y la ayuda.</summary>
-    public static string PorQueAutomatico(decimal hp, bool noArrancaConLaTabla) =>
-        noArrancaConLaTabla
-            ? "Automático: el motor no arranca con la Tabla 430-52 (Excepción 2), así que el máximo"
-            : hp <= CorteDelAutomaticoHp
-                ? $"Automático: {MotoresEnHp.Texto(hp)} HP, 1 HP o menos (430-32(b)), prioridad al conductor"
-                : $"Automático: {MotoresEnHp.Texto(hp)} HP, más de 1 HP (430-32(a)), máximo 430-52";
-
-    /// <summary>Por qué se puede escoger, según la regla que pone el techo — M-20 y su fase 2.</summary>
-    public static string PorQueSePuedeEscogerEn(RangoDeProteccion r) => r.Regla switch
-    {
-        "440-22(a)" =>
-            "Equipo de A/C: 440-22(a) pide una protección que «no exceda» el 175 % de su corriente (225 % si se declara que no " +
-            "arranca) — es un techo, no el valor obligatorio. Cumple cualquier valor de la serie entre el 125 % de la corriente (lo " +
-            "que lleva el conductor, 440-32) y ese techo. Automático: el máximo, porque el techo está pensado para el arranque del " +
-            "motocompresor. Con menos, verificar que el interruptor conduzca el arranque (440-22(a)). La sobrecarga la da el " +
-            "protector del motocompresor (440-52).",
-        "440-4(b)" =>
-            "Equipo de A/C por placa: la protección «no debe exceder» la máxima que marca la placa (440-4(b)) — es un techo. Cumple " +
-            "cualquier valor de la serie entre la ampacidad mínima de la placa y esa máxima. Automático: la máxima de placa. Con " +
-            "menos, verificar que el interruptor conduzca el arranque del equipo (440-22(b)). La sobrecarga la da el protector del " +
-            "motocompresor (440-52).",
-        "110-3(b)" =>
-            "Variador: la protección no debe exceder la máxima que marca su fabricante (110-3(b)) — es un techo. Cumple cualquier " +
-            "valor de la serie entre el 125 % de la corriente de entrada (lo que lleva el conductor, 430-122(a)) y esa máxima. " +
-            "Automático: la máxima del fabricante. Con menos, verificar en las instrucciones del variador que el interruptor le " +
-            "sirve. La sobrecarga del motor la da el variador si así lo marca (430-124(a)).",
-        _ => PorQueSePuedeEscoger,
-    };
-
     /// <summary>
-    /// <b>Por qué se puede escoger</b> (David, 2026-10-03: «hay que explicar por qué se permite
-    /// seleccionar»). Va en la ayuda de la celda «Protec. (A)» de un motor.
+    /// <b>Por qué salió la calculada</b>, sin el valor: «el mayor que protege a 14 AWG (15 A) — 240-4; criterio
+    /// para motores de 1 HP o menos». Para la ayuda de la celda, el desglose y la memoria — I-182.
     /// </summary>
-    public const string PorQueSePuedeEscoger =
-        "Motor: 430-52(c)(1) pide una protección «que no exceda» el valor de la Tabla 430-52 — es un techo, no el " +
-        "valor obligatorio. Cumple cualquier valor de la serie entre el 125 % de la FLC (lo que lleva el conductor, " +
-        "430-22) y ese techo. Automático: hasta 1 HP, el mayor que protege al conductor (240-4); arriba de 1 HP, el " +
-        "máximo. Con menos del máximo, verificar que el interruptor soporte el arranque (430-52(b)). La sobrecarga " +
-        "del motor la da su relevador o protector térmico, siempre (430-32).";
+    /// <param name="r">El rango calculado, con su criterio resuelto.</param>
+    /// <param name="calibre">El calibre protegido, ya redactado con su ampacidad.</param>
+    /// <param name="esMotor">Un motor (HP o A), no un equipo de A/C ni un variador.</param>
+    /// <param name="noArrancaConLaTabla">El proyectista declaró la Excepción 2 de 430-52(c)(1).</param>
+    public static string PorQueLaCalculada(RangoDeProteccion r, string calibre, bool esMotor, bool noArrancaConLaTabla) =>
+        r.Criterio switch
+        {
+            CriterioProteccionMotor.Conductor when r.SubioElCalibre =>
+                "el mínimo del rango: ninguno protegía al calibre por ampacidad, y el calibre sube hasta quedar protegido — 240-4; " +
+                "criterio para motores de 1 HP o menos",
+            CriterioProteccionMotor.Conductor =>
+                $"el mayor que protege a {calibre} — 240-4" +
+                (r.TopadoEn100A ? ", sin pasar de 100 A porque la terminal es de 60 °C — 110-14(c)(1)a." : "") +
+                "; criterio para motores de 1 HP o menos",
+            _ when !esMotor => r.Regla switch
+            {
+                "110-3(b)" => "la máxima que marca el fabricante del variador — 110-3(b)",
+                "440-4(b)" => "la máxima que marca la placa — 440-4(b)",
+                _ => $"el máximo de {r.Regla}, pensado para el arranque del motocompresor",
+            },
+            _ when noArrancaConLaTabla => "el máximo: el motor no arranca con la Tabla 430-52 (Excepción 2, declarada)",
+            _ => "el máximo — criterio para motores de más de 1 HP",
+        };
+
+    /// <summary>«de la Tabla 430-52», «que marca la placa»: de dónde sale el máximo del rango.</summary>
+    public static string DeDondeElMaximo(RangoDeProteccion r) => r.Regla switch
+    {
+        "110-3(b)" => "que marca el fabricante del variador (110-3(b))",
+        "440-4(b)" => "que marca la placa (440-4(b))",
+        "440-22(a)" => "de 440-22(a)",
+        _ => "de la Tabla 430-52",
+    };
+}
+
+/// <summary>
+/// <b>Una protección fijada que regresó al cálculo</b> porque cambió su rango — I-182: otro equipo, la
+/// Excepción 2 u otra serie. La pantalla lo avisa una vez.
+/// </summary>
+/// <param name="Espacio">El circuito.</param>
+/// <param name="FijadaA">La que estaba fijada.</param>
+/// <param name="MinimoA">El menor valor del rango nuevo.</param>
+/// <param name="MaximoA">El mayor valor del rango nuevo.</param>
+/// <param name="CalculadaA">La calculada con que quedó; <c>null</c> si el circuito ya no se pudo calcular.</param>
+public sealed record ProteccionQueRegreso(int Espacio, decimal FijadaA, decimal MinimoA, decimal MaximoA, decimal? CalculadaA = null)
+{
+    /// <summary>
+    /// El aviso, de una o de varias: «Circuito 3: cambió el rango de la protección (25 a 45 A); la fijada, 15 A,
+    /// regresó al calculado, 45 A.»
+    /// </summary>
+    public static string Aviso(IReadOnlyList<ProteccionQueRegreso> regresaron) => regresaron switch
+    {
+        [var una] => $"Circuito {una.Espacio}: cambió el rango de la protección ({una.MinimoA:N0} a {una.MaximoA:N0} A); " +
+                     $"la fijada, {una.FijadaA:N0} A, regresó al calculado" + (una.CalculadaA is { } calc ? $", {calc:N0} A." : "."),
+        _ => $"Circuitos {Lista(regresaron.Select(x => x.Espacio).ToList())}: cambió el rango de la protección; " +
+             "las fijadas regresaron al calculado.",
+    };
+
+    private static string Lista(IReadOnlyList<int> espacios) =>
+        espacios.Count == 1 ? $"{espacios[0]}" : $"{string.Join(", ", espacios.Take(espacios.Count - 1))} y {espacios[^1]}";
 }

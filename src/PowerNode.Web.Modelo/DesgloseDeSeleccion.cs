@@ -121,12 +121,13 @@ public sealed record DesgloseDeSeleccion(IReadOnlyList<string> Proteccion, IRead
         IReadOnlyList<Cita> citas,
         string? servicio = null,
         RangoDeProteccion? rango = null,
-        string? criterio = null)
+        string? criterio = null,
+        SobrecargaRequerida? sobrecarga = null)
     {
         // M-20: la que quedó puede ser menor que el máximo de la tabla.
         var proteccionA = rango?.ProteccionA ?? seleccion.SeleccionadaA;
-        var debajoDelMaximo = rango is { EsElMaximo: false };
-        var rotuloDelMaximo = debajoDelMaximo ? "Máximo del rango" : "Protección";
+        // I-182: con rango, este renglón es su máximo; la que quedó va en «Calculada:» o «Fijada…:».
+        var rotuloDelMaximo = rango is not null ? "Máximo del rango" : "Protección";
         var proteccion = new List<string>
         {
             origenFlc,
@@ -141,9 +142,8 @@ public sealed record DesgloseDeSeleccion(IReadOnlyList<string> Proteccion, IRead
                 : $"No arranca con {seleccion.ProteccionA:N0} A, pero ningún tamaño mayor queda sin exceder {seleccion.PorcentajeExcepcion2:0} % × {flcA:N2} A = {techo2:N2} A — 430-52(c)(1) Excepción 2(3)");
         // EL RANGO Y EL CRITERIO — M-20: «no exceda» es un techo; cualquiera del rango cumple.
         AgregarRango(proteccion, rango, criterio);
-        proteccion.Add(rango?.ProtegeAlConductor == true
-            ? "Sobrecarga del motor: relevador en el arrancador o protector del motor — 430-32. El interruptor protege además al conductor — 240-4"
-            : "Sobrecarga del motor: relevador en el arrancador o protector del motor — 430-32");
+        proteccion.Add(LineaDeSobrecarga(sobrecarga, "Sobrecarga del motor: relevador en el arrancador o protector del motor — 430-32") +
+            (rango?.ProtegeAlConductor == true ? ". El interruptor protege además al conductor — 240-4" : ""));
 
         var conductor = LineasDelConductor(ampacidad, datos, proteccionA, calibre, conductoresPorFase, d);
         // Servicio no continuo (I-120): el % de la Tabla 430-22(e) sobre la placa, en lugar del 125 % de la FLC.
@@ -167,14 +167,15 @@ public sealed record DesgloseDeSeleccion(IReadOnlyList<string> Proteccion, IRead
             ? $"Rango: solo {rango.MaximoA:N0} A — {rango.Regla}"
             : $"Rango: {rango.MinimoA:N0} a {rango.MaximoA:N0} A — del menor de la serie que lleva el {rango.Piso} al máximo, que la " +
               $"protección «no debe exceder» — {rango.Regla}");
-        if (criterio is not null)
-            proteccion.Add($"Criterio: {criterio}");
-        if (rango.EsElMaximo)
-            return;
-        proteccion.Add($"Protección: {rango.ProteccionA:N0} A");
+        // I-182: «Calculada: 15 A, …» o «Fijada por el proyectista: 20 A, …», con el valor.
+        proteccion.Add(criterio ?? $"Protección: {rango.ProteccionA:N0} A");
         if (rango.Arranque is { } arranque)
             proteccion.Add($"Arranque: {char.ToLowerInvariant(arranque.Descripcion[0])}{arranque.Descripcion[1..]} — {arranque.Referencia}");
     }
+
+    /// <summary>«Sobrecarga: …» — I-183: quién la da, según el equipo; sin ella, el texto de antes.</summary>
+    private static string LineaDeSobrecarga(SobrecargaRequerida? sobrecarga, string deAntes) =>
+        sobrecarga is null ? deAntes : $"Sobrecarga: {sobrecarga.Texto} — {sobrecarga.Referencia}";
 
     /// <summary>
     /// Por qué ese tamaño: igual al máximo; el inmediato superior de un máximo que no es normalizado
@@ -209,7 +210,8 @@ public sealed record DesgloseDeSeleccion(IReadOnlyList<string> Proteccion, IRead
         DetalleDelCalculo d,
         IReadOnlyList<Cita> citas,
         RangoDeProteccion? rango = null,
-        string? criterio = null)
+        string? criterio = null,
+        SobrecargaRequerida? sobrecarga = null)
     {
         // M-20, fase 2: abajo del máximo, el renglón del máximo lo dice, y la escogida va aparte.
         var maximoA = rango?.MaximoA ?? proteccionA;
@@ -217,12 +219,12 @@ public sealed record DesgloseDeSeleccion(IReadOnlyList<string> Proteccion, IRead
         {
             $"Corriente = {entradaA:N2} A, la nominal de entrada del variador — 430-122(a)",
             $"Protección máxima del fabricante: {maximaA:N0} A — 110-3(b)",
-            $"{(rango is { EsElMaximo: false } ? "Máximo del rango" : "Protección")}: {maximoA:N0} A, " +
+            $"{(rango is not null ? "Máximo del rango" : "Protección")}: {maximoA:N0} A, " +
                 (maximoA == maximaA ? "la máxima del fabricante" : "el mayor tamaño estándar que no la excede") +
                 $" en «{datos.SerieInterruptores.Nombre()}»",
         };
         AgregarRango(proteccion, rango, criterio);
-        proteccion.Add("Sobrecarga del motor: la da el variador si así lo marca — 430-124(a)");
+        proteccion.Add(LineaDeSobrecarga(sobrecarga, "Sobrecarga del motor: la da el variador si así lo marca — 430-124(a)"));
 
         var conductor = LineasDelConductor(ampacidad, datos, proteccionA, calibre, conductoresPorFase, d);
         conductor.Add(
@@ -252,7 +254,8 @@ public sealed record DesgloseDeSeleccion(IReadOnlyList<string> Proteccion, IRead
         Calibre calibre,
         int conductoresPorFase,
         DetalleDelCalculo d,
-        IReadOnlyList<Cita> citas)
+        IReadOnlyList<Cita> citas,
+        SobrecargaRequerida? sobrecarga = null)
     {
         var proteccion = new List<string>(maquinas);
         if (otrasContinuaA + otrasNoContinuaA > 0m)
@@ -271,8 +274,8 @@ public sealed record DesgloseDeSeleccion(IReadOnlyList<string> Proteccion, IRead
                 ? $"Protección: {proteccionA:N0} A, no se exige menos — 440-22(a) Excepción"
                 : $"Protección: {proteccionA:N0} A, el mayor tamaño estándar que no excede el máximo en «{datos.SerieInterruptores.Nombre()}» — " +
                   $"{g.Regla}, sin el redondeo hacia arriba de 430-52(c)(1) Excepción 1");
-        proteccion.Add("Sobrecarga: la de cada motor, con controlador y relevador aprobados para instalación en grupo — 430-53(c), 430-32" +
-                       (g.Regla.StartsWith("440") ? ", 440-52" : ""));
+        proteccion.Add(LineaDeSobrecarga(sobrecarga, "Sobrecarga: la de cada motor — 430-32" + (g.Regla.StartsWith("440") ? ", 440-52" : "")) +
+                       ". Controladores y relevadores aprobados para instalación en grupo — 430-53(c)");
 
         var conductor = LineasDelConductor(ampacidad, datos, proteccionA, calibre, conductoresPorFase, d);
         conductor.Add($"Capacidad mínima = {capacidad} — {articuloCapacidad}");
@@ -299,13 +302,14 @@ public sealed record DesgloseDeSeleccion(IReadOnlyList<string> Proteccion, IRead
         DetalleDelCalculo d,
         IReadOnlyList<Cita> citas,
         RangoDeProteccion? rango = null,
-        string? criterio = null)
+        string? criterio = null,
+        SobrecargaRequerida? sobrecarga = null)
     {
         List<string> proteccion;
         string requisito;
         // M-20, fase 2: abajo del máximo, el renglón del máximo lo dice, y la escogida va aparte.
         var maximoA = rango?.MaximoA ?? proteccionA;
-        var rotuloDelMaximo = rango is { EsElMaximo: false } ? "Máximo del rango" : "Protección";
+        var rotuloDelMaximo = rango is not null ? "Máximo del rango" : "Protección";
         if (c.PlacaAire == PlacaDeAireAcondicionado.Habitacion)
         {
             // 440 Parte G — I-117.
@@ -349,7 +353,7 @@ public sealed record DesgloseDeSeleccion(IReadOnlyList<string> Proteccion, IRead
             requisito = $"125 % × {baseA:N2} A = {d.CapacidadMinimaA:N2} A {(d.AmpacidadConductorA >= d.CapacidadMinimaA ? "✔" : "✘")} — 440-32";
         }
         AgregarRango(proteccion, rango, criterio);
-        proteccion.Add("Sobrecarga del motocompresor: su protector o el relevador del equipo — 440-52");
+        proteccion.Add(LineaDeSobrecarga(sobrecarga, "Sobrecarga del motocompresor: su protector o el relevador del equipo — 440-52"));
 
         var conductor = LineasDelConductor(ampacidad, datos, proteccionA, calibre, conductoresPorFase, d);
         conductor.Add($"Con factores: {d.AmpacidadConductorA:N2} A ≥ {requisito}");

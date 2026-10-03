@@ -212,7 +212,7 @@ public class CalculadoraCircuitoDerivado440(
             seleccion = escogida.Seleccion;
             breaker = escogida.ProteccionA;
             rango = ProteccionDentroDelRango.Armar(
-                t2.Regla, t2.Techo, t2.Piso, "la sobrecarga la cuida el protector del motocompresor — 440-52",
+                t2.Regla, t2.Techo, t2.Piso, "la sobrecarga la da el protector del motocompresor que exige 440-52, de fábrica",
                 capacidadMinConductor, minimo, maximo, t2.MaximoPermitidoA, valores, criterio, d.ProteccionElegidaA, t2.ArribaDeA,
                 escogida, proteccionEstandar, d.MaterialConductor, t2.Arranque);
         }

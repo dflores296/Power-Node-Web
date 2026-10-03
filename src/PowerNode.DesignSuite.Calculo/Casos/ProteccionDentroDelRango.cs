@@ -144,15 +144,15 @@ internal static class ProteccionDentroDelRango
         {
             CriterioProteccionMotor.Conductor => new Cita("240-4",
                 r.SubioElCalibre
-                    ? $"Criterio «prioridad al conductor»: ningún valor del rango protegía al calibre por ampacidad; {r.ProteccionA:0.##} A, el mínimo, y el calibre sube hasta quedar protegido"
-                    : $"Criterio «prioridad al conductor»: {r.ProteccionA:0.##} A, el mayor valor del rango que protege a {r.CalibreProtegido ?? calibre} " +
+                    ? $"Calculada: {r.ProteccionA:0.##} A, el mínimo del rango: ningún valor protegía al calibre por ampacidad, y el calibre sube hasta quedar protegido"
+                    : $"Calculada: {r.ProteccionA:0.##} A, el mayor valor del rango que protege a {r.CalibreProtegido ?? calibre} " +
                       $"({r.AmpacidadProtegidaA ?? ampacidadA:0.##} A), el calibre por ampacidad" +
                       (r.CalibreProtegido is { } cp && cp.Designacion != calibre.Designacion ? $"; {calibre} por caída de tensión sigue protegido" : "") +
                       (r.TopadoEn100A ? "; sin pasar de 100 A: la terminal se queda en 60 °C — 110-14(c)(1)a." : "")),
             CriterioProteccionMotor.Manual => new Cita(r.Regla,
-                $"Criterio «manual»: {r.ProteccionA:0.##} A, la que escogió el proyectista dentro del rango" +
+                $"Fijada por el proyectista: {r.ProteccionA:0.##} A, dentro del rango" +
                 (r.PedidaA is { } pedida ? $" (pidió {pedida:0.##} A, fuera del rango o de la serie: la más cercana)" : "")),
-            _ => new Cita(r.Regla, $"Criterio «máximo»: {r.ProteccionA:0.##} A, el mayor del rango"),
+            _ => new Cita(r.Regla, $"Calculada: {r.ProteccionA:0.##} A, el máximo del rango"),
         };
 
         yield return r.ProtegeAlConductor

@@ -195,7 +195,7 @@ public class CalculadoraCircuitoDerivadoMotor(
             regla: "430-52(c)(1)",
             techo: "el valor de la Tabla 430-52",
             piso: d.Servicio is not null ? $"{capacidadMinConductor:0.##} A de 430-22(e)" : $"125 % de la FLC = {capacidadMinConductor:0.##} A",
-            sobrecarga: "la sobrecarga del motor y del conductor la da el relevador del arrancador o el protector térmico del motor — 430-32, 430-31",
+            sobrecarga: "la sobrecarga del motor y del conductor la da la protección que exige 430-32 (relevador en el arrancador o motor «Protegido térmicamente») — 430-31",
             capacidadMinimaA: capacidadMinConductor,
             minimoA: minimo, maximoA: maximo,
             // 430-62(a), 430-63(1): «el valor máximo permitido … de acuerdo con 430-52» (pregunta 6).

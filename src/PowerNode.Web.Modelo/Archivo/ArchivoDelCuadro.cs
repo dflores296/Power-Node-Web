@@ -111,19 +111,43 @@ public static class ArchivoDelCuadro
         }
         cuadro.Recalcular();
 
-        // M-20: UN VALOR FIJO QUE YA NO ESTÁ EN EL RANGO (editado a mano, u otra serie) abre con el más
-        // cercano que sí, y se dice — como el F.P. fuera de rango (I-80).
-        var corregidos = false;
-        foreach (var c in cuadro.Circuitos.Where(c => c.CriterioProteccion == CriterioDeProteccion.Manual))
-            if (c.Resultado?.Rango is { PedidaA: { } pedida } rango)
+        // I-182: LA PANTALLA SOLO TIENE CALCULADA O FIJADA. Un «cond.» o «máx.» de formato 12 —o el máximo
+        // con que abre un motor de formato 11— queda fijado con el valor que daba, o calculado si es el mismo:
+        // al abrir se ve lo mismo que se guardó. Un valor fijo que ya no está en el rango (editado a mano, u
+        // otra serie) regresa al calculado, y se dice — como el F.P. fuera de rango (I-80).
+        var cambiados = false;
+        foreach (var c in cuadro.Circuitos.Where(c => c.CriterioProteccion != CriterioDeProteccion.Automatico))
+        {
+            if (c.Resultado?.Rango is not { } rango)
             {
-                avisos.Add($"El circuito {c.Espacio} trae {pedida:0.##} A de protección, fuera del rango de 430-52(c)(1) " +
-                           $"({rango.MinimoA:0.##} a {rango.MaximoA:0.##} A en «{cuadro.Datos.SerieInterruptores.Nombre()}»); se abrió con {rango.ProteccionA:0.##} A.");
-                c.ProteccionElegidaA = rango.ProteccionA;
-                corregidos = true;
+                cambiados |= c.CriterioProteccion != CriterioDeProteccion.Manual;
+                if (c.CriterioProteccion != CriterioDeProteccion.Manual)
+                    c.CriterioProteccion = CriterioDeProteccion.Automatico;
+                continue;
             }
-        if (corregidos)
+            if (c.CriterioProteccion == CriterioDeProteccion.Manual)
+            {
+                if (rango.PedidaA is not { } pedida)
+                    continue;
+                c.CriterioProteccion = CriterioDeProteccion.Automatico;
+                c.ProteccionElegidaA = null;
+                c.HuellaDelFijado = null;
+                cambiados = true;
+                avisos.Add($"El circuito {c.Espacio} trae {pedida:0.##} A de protección, fuera de su rango " +
+                           $"({rango.MinimoA:0.##} a {rango.MaximoA:0.##} A en «{cuadro.Datos.SerieInterruptores.Nombre()}», {rango.Regla}); " +
+                           "se abrió con la calculada.");
+                continue;
+            }
+            var guardada = rango.ProteccionA;
+            var fijar = guardada != cuadro.ProteccionConCriterio(c, CriterioDeProteccion.Automatico);
+            c.CriterioProteccion = fijar ? CriterioDeProteccion.Manual : CriterioDeProteccion.Automatico;
+            c.ProteccionElegidaA = fijar ? guardada : null;
+            c.HuellaDelFijado = null;
+            cambiados = true;
+        }
+        if (cambiados)
             cuadro.Recalcular();
+        cuadro.TomarProteccionesQueRegresaron();
         return new Apertura(cuadro, null, avisos);
     }
 

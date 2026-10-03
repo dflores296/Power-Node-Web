@@ -92,7 +92,7 @@ public class ProteccionDeMotoresPorRangoTests
         Assert.Equal("14", r.CalibreTierra.Designacion);
         Assert.True(r.Rango!.ProtegeAlConductor);
         Assert.False(r.Rango.EsElMaximo);
-        Assert.Contains(r.Citas, x => x.Referencia == "240-4" && x.Descripcion.Contains("prioridad al conductor"));
+        Assert.Contains(r.Citas, x => x.Referencia == "240-4" && x.Descripcion.StartsWith("Calculada: 15 A, el mayor valor del rango que protege"));
         // No la elige por el arranque: lo dice — 430-52(b).
         Assert.Contains(r.Citas, x => x.Referencia == "430-52(b)" && x.Descripcion.Contains("25 A"));
     }
@@ -450,7 +450,7 @@ public class ProteccionDeMotoresPorRangoTests
     }
 
     [Fact]
-    public void M20_LaMemoriaDiceElRangoElCriterioYElArranque()
+    public void M20_LaMemoriaDiceElRangoLaCalculadaYElArranque()
     {
         var cuadro = Nuevo();
         var c = ConMotor(cuadro, 1, 0.5m);
@@ -460,23 +460,26 @@ public class ProteccionDeMotoresPorRangoTests
 
         Assert.StartsWith("25 A, el valor inmediato superior", renglones["Máximo del rango — 430-52(c)(1) Excepción 1"]);
         Assert.StartsWith("15 A (≥ 125 % de la FLC = 11.13 A) a 25 A", renglones["Rango permitido — 430-52(c)(1)"]);
-        Assert.Contains("Automático: 1/2 HP, 1 HP o menos", renglones["Criterio"]);
-        Assert.Contains("protege a 14 AWG (15 A)", renglones["Criterio"]);
-        Assert.Equal("15 A — protege a 14 AWG (15.00 A)", renglones["Protección seleccionada — 240-4"]);
+        // I-182: «calculada», con su porqué; ya no «Criterio».
+        Assert.Equal("15 A, el mayor que protege a 14 AWG (15 A) — 240-4; criterio para motores de 1 HP o menos",
+            renglones["Protección calculada — 240-4"]);
+        Assert.DoesNotContain(renglones.Keys, k => k.StartsWith("Criterio"));
         Assert.Contains(equipo.Notas, n => n.StartsWith("Arranque — 430-52(b)") && n.Contains("subir hasta 25 A"));
         Assert.Contains(equipo.Notas, n => n.Contains("además al conductor según su ampacidad — 240-4"));
+        // I-183: la sobrecarga, dicha según el equipo.
+        Assert.Contains(equipo.Notas, n => n.StartsWith("Protección contra sobrecarga — 430-32(b): Requerida aparte del interruptor"));
 
-        // Con el máximo, la memoria de siempre, con el rango y el criterio.
-        c.CriterioProteccion = CriterioDeProteccion.Maximo430_52;
-        cuadro.Recalcular();
+        // Fijada en el máximo: arriba de la ampacidad, por la sobrecarga de 430-32.
+        cuadro.FijarProteccion(c, 25m);
         var conMaximo = MemoriaDeCalculo.DeCircuito(cuadro, c).Equipo!;
-        Assert.Contains(conMaximo.Proteccion, r => r.Rotulo == "Protección seleccionada — 430-52(c)(1) Excepción 1");
-        Assert.Contains(conMaximo.Proteccion, r => r.Rotulo == "Criterio" && r.Valor.StartsWith("Máximo 430-52"));
+        Assert.Contains(conMaximo.Proteccion, r => r.Rotulo == "Máximo del rango — 430-52(c)(1) Excepción 1");
+        Assert.Contains(conMaximo.Proteccion, r => r.Rotulo == "Protección fijada por el proyectista — 240-4(g)"
+            && r.Valor.StartsWith("25 A, dentro del rango; arriba de la ampacidad de 14 AWG: la sobrecarga del motor y del conductor la da la protección que exige 430-32"));
         Assert.DoesNotContain(conMaximo.Notas, n => n.StartsWith("Arranque"));
     }
 
     [Fact]
-    public void M20_ElDesgloseDiceElRangoYElCriterio()
+    public void M20_ElDesgloseDiceElRangoYLaCalculada()
     {
         var cuadro = Nuevo();
         var c = ConMotor(cuadro, 1, 0.5m);
@@ -485,20 +488,21 @@ public class ProteccionDeMotoresPorRangoTests
 
         Assert.Contains(lineas, l => l.StartsWith("Máximo del rango: 25 A"));
         Assert.Contains(lineas, l => l.StartsWith("Rango: 15 a 25 A"));
-        Assert.Contains(lineas, l => l.StartsWith("Criterio: Automático"));
-        Assert.Contains(lineas, l => l == "Protección: 15 A");
+        Assert.Contains(lineas, l => l == "Calculada: 15 A, el mayor que protege a 14 AWG (15 A) — 240-4; criterio para motores de 1 HP o menos");
+        Assert.DoesNotContain(lineas, l => l.StartsWith("Criterio"));
         Assert.Contains(lineas, l => l.StartsWith("Arranque:") && l.EndsWith("430-52(b)"));
+        Assert.Contains(lineas, l => l.StartsWith("Sobrecarga: Requerida aparte del interruptor") && l.Contains("— 430-32(b). El interruptor protege además al conductor — 240-4"));
     }
 
     // ---- El archivo: formato 12 ---------------------------------------------------------------------
 
     [Fact]
-    public void M20_ElCriterioYElValorFijoSeGuardanYSeAbren()
+    public void M20_ElValorFijoSeGuardaYSeAbre_YUnCondDeFormato12AbreFijado()
     {
         var cuadro = Nuevo();
         var fijo = ConMotor(cuadro, 1, 1m);
-        fijo.CriterioProteccion = CriterioDeProteccion.Manual;
-        fijo.ProteccionElegidaA = 30m;
+        cuadro.FijarProteccion(fijo, 30m);
+        // Un «cond.» de M-20, como lo guardaba la pantalla de antes.
         var conductor = ConMotor(cuadro, 3, 5m, 3);
         conductor.CriterioProteccion = CriterioDeProteccion.Conductor;
         var automatico = ConMotor(cuadro, 9, 0.5m);
@@ -514,10 +518,15 @@ public class ProteccionDeMotoresPorRangoTests
         var abierto = apertura.Cuadro!;
         Assert.Equal(30m, abierto.Circuitos[0].Resultado!.ProteccionA);
         Assert.Equal(CriterioDeProteccion.Manual, abierto.Circuitos[0].CriterioProteccion);
+        // I-182: el «cond.» abre fijado con el valor que daba (20 A; la calculada da 40 A).
+        Assert.Equal(CriterioDeProteccion.Manual, abierto.Circuitos[2].CriterioProteccion);
+        Assert.Equal(20m, abierto.Circuitos[2].ProteccionElegidaA);
         Assert.Equal(20m, abierto.Circuitos[2].Resultado!.ProteccionA);
         Assert.Equal(CriterioDeProteccion.Automatico, abierto.Circuitos[8].CriterioProteccion);
         Assert.Equal(15m, abierto.Circuitos[8].Resultado!.ProteccionA);
-        Assert.Equal(ArchivoDelCuadro.Huella(cuadro), ArchivoDelCuadro.Huella(abierto));
+        Assert.Empty(abierto.TomarProteccionesQueRegresaron());
+        // Guardado otra vez, ya no dice «Conductor».
+        Assert.DoesNotContain("\"Conductor\"", ArchivoDelCuadro.Guardar(abierto, DateTimeOffset.Now));
     }
 
     [Fact]
@@ -541,17 +550,21 @@ public class ProteccionDeMotoresPorRangoTests
 
         Assert.Null(apertura.Error);
         var cuadro = apertura.Cuadro!;
-        Assert.Equal(CriterioDeProteccion.Maximo430_52, cuadro.Circuitos[0].CriterioProteccion);
+        // I-182: el máximo abre fijado (la calculada de ½ HP da 15 A).
+        Assert.Equal(CriterioDeProteccion.Manual, cuadro.Circuitos[0].CriterioProteccion);
+        Assert.Equal(25m, cuadro.Circuitos[0].ProteccionElegidaA);
         Assert.Equal(25m, cuadro.Circuitos[0].Resultado!.ProteccionA);
         Assert.Equal(CriterioDeProteccion.Automatico, cuadro.Circuitos[2].CriterioProteccion);
-        // Guardado otra vez, ya dice el criterio.
-        Assert.Contains("\"criterioProteccion\": \"Maximo430_52\"", ArchivoDelCuadro.Guardar(cuadro, DateTimeOffset.Now));
+        // Guardado otra vez, ya dice el valor fijado.
+        var otraVez = ArchivoDelCuadro.Guardar(cuadro, DateTimeOffset.Now);
+        Assert.Contains("\"criterioProteccion\": \"Manual\"", otraVez);
+        Assert.Contains("\"proteccionElegida\": 25", otraVez);
     }
 
     [Fact]
-    public void M20_UnValorFijoFueraDelRangoAbreConElMasCercanoYAvisa()
+    public void M20_UnValorFijoFueraDelRangoAbreCalculadoYAvisa()
     {
-        // Riel DIN, 1 HP: el rango es 20, 25 y 32 A. Un archivo con 35 A abre con 32 A y lo dice.
+        // Riel DIN, 1 HP: el rango es 20, 25 y 32 A. Un archivo con 35 A abre con la calculada (20 A) y lo dice.
         const string texto = """
             {
               "formato": "power-node/cuadro-de-carga",
@@ -568,12 +581,12 @@ public class ProteccionDeMotoresPorRangoTests
 
         Assert.Null(apertura.Error);
         var cuadro = apertura.Cuadro!;
-        Assert.Equal(32m, cuadro.Circuitos[0].Resultado!.ProteccionA);
-        Assert.Equal(32m, cuadro.Circuitos[0].ProteccionElegidaA);
-        Assert.Null(cuadro.Circuitos[0].Resultado!.Rango!.PedidaA);
-        Assert.Contains(apertura.Avisos, a => a.StartsWith("El circuito 1 trae 35 A de protección") && a.Contains("20 a 32 A") && a.EndsWith("se abrió con 32 A."));
-        // «Manual» sin valor: el máximo, y se dice.
-        Assert.Equal(CriterioDeProteccion.Maximo430_52, cuadro.Circuitos[2].CriterioProteccion);
+        Assert.Equal(CriterioDeProteccion.Automatico, cuadro.Circuitos[0].CriterioProteccion);
+        Assert.Null(cuadro.Circuitos[0].ProteccionElegidaA);
+        Assert.Equal(20m, cuadro.Circuitos[0].Resultado!.ProteccionA);
+        Assert.Contains(apertura.Avisos, a => a.StartsWith("El circuito 1 trae 35 A de protección") && a.Contains("20 a 32 A") && a.EndsWith("se abrió con la calculada."));
+        // «Manual» sin valor: el máximo, fijado, y se dice.
+        Assert.Equal(CriterioDeProteccion.Manual, cuadro.Circuitos[2].CriterioProteccion);
         Assert.Equal(32m, cuadro.Circuitos[2].Resultado!.ProteccionA);
         Assert.Contains(apertura.Avisos, a => a.StartsWith("El circuito 3 trae la protección del motor en «manual» sin el valor"));
     }
@@ -690,12 +703,11 @@ public class ProteccionDeMotoresPorRangoTests
         Assert.Equal(40m, cuadro.ProteccionConCriterio(c, CriterioDeProteccion.Automatico));
         Assert.Equal(30m, cuadro.ProteccionConCriterio(c, CriterioDeProteccion.Conductor));
 
-        c.CriterioProteccion = CriterioDeProteccion.Conductor;
-        cuadro.Recalcular();
+        cuadro.FijarProteccion(c, 30m);
         Assert.Equal(30m, c.Resultado!.ProteccionA);
         Assert.Contains(c.Resultado.Citas, x => x.Referencia == "110-3(b)" && x.Descripcion.Contains("instrucciones del variador"));
         Assert.Contains(cuadro.Desglose(c)!.Proteccion, l => l.StartsWith("Máximo del rango: 40 A"));
-        Assert.Contains(cuadro.Desglose(c)!.Proteccion, l => l == "Protección: 30 A");
+        Assert.Contains(cuadro.Desglose(c)!.Proteccion, l => l == "Fijada por el proyectista: 30 A, dentro del rango");
     }
 
     [Fact]
@@ -705,8 +717,8 @@ public class ProteccionDeMotoresPorRangoTests
         var aire = Aire(cuadro, 1, 20m);
         var variador = Variador(cuadro, 5, 20m, 40m);
 
-        Assert.StartsWith("Automático: equipo de A/C, el máximo de 440-22(a)", cuadro.CriterioDeLaProteccion(aire));
-        Assert.StartsWith("Automático: variador, la máxima del fabricante", cuadro.CriterioDeLaProteccion(variador));
+        Assert.Equal("Calculada: 35 A, el máximo de 440-22(a), pensado para el arranque del motocompresor", cuadro.CriterioDeLaProteccion(aire));
+        Assert.Equal("Calculada: 40 A, la máxima que marca el fabricante del variador — 110-3(b)", cuadro.CriterioDeLaProteccion(variador));
     }
 
     [Fact]
@@ -714,16 +726,15 @@ public class ProteccionDeMotoresPorRangoTests
     {
         var cuadro = Nuevo();
         var c = Aire(cuadro, 1, 20m);
-        c.CriterioProteccion = CriterioDeProteccion.Conductor;
-        cuadro.Recalcular();
+        cuadro.FijarProteccion(c, 30m);
 
         var equipo = MemoriaDeCalculo.DeCircuito(cuadro, c).Equipo!;
         var renglones = equipo.Proteccion.ToDictionary(r => r.Rotulo, r => r.Valor);
 
         Assert.StartsWith("35 A", renglones["Máximo del rango — 440-22(a)"]);
         Assert.StartsWith("25 A (≥ 125 % de la corriente = 25 A) a 35 A", renglones["Rango permitido — 440-22(a)"]);
-        Assert.StartsWith("Prioridad al conductor", renglones["Criterio"]);
-        Assert.Equal("30 A — protege a 10 AWG (30.00 A)", renglones["Protección seleccionada — 240-4"]);
+        Assert.Equal("30 A, dentro del rango; protege a 10 AWG (30.00 A)", renglones["Protección fijada por el proyectista — 240-4"]);
+        Assert.Contains(equipo.Notas, n => n.StartsWith("Protección contra sobrecarga — 440-52: De fábrica"));
         Assert.Contains(equipo.Notas, n => n.StartsWith("Arranque — 440-22(a)") && n.Contains("subir hasta 35 A"));
     }
 
@@ -746,11 +757,9 @@ public class ProteccionDeMotoresPorRangoTests
     {
         var cuadro = Nuevo();
         var aire = Aire(cuadro, 1, 20m);
-        aire.CriterioProteccion = CriterioDeProteccion.Manual;
-        aire.ProteccionElegidaA = 25m;
+        cuadro.FijarProteccion(aire, 25m);
         var variador = Variador(cuadro, 5, 20m, 40m);
-        variador.CriterioProteccion = CriterioDeProteccion.Conductor;
-        cuadro.Recalcular();
+        cuadro.FijarProteccion(variador, 30m);
 
         var abierto = ArchivoDelCuadro.Abrir(ArchivoDelCuadro.Guardar(cuadro, DateTimeOffset.Now), Motor).Cuadro!;
 
