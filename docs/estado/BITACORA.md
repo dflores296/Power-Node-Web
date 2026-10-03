@@ -4,6 +4,15 @@ Registro de acciones por sesión, con hallazgo y commit.
 
 ## 2026-10-03
 
+**I-182: el selector de la protección, solo con el rango** (David: «auto», «cond.» y «máx.» se entienden
+por ser el desarrollador) — propuesta, sin implementar; solo documentos:
+
+- Medido en el navegador qué separa «Criterio» de «Valor fijo»: el mismo número hoy; al cambiar el circuito
+  (bomba de 1/2 a 1 1/2 HP) el criterio se recalcula (45, 30, 45 A) y el fijo se queda, o salta en silencio al
+  más cercano si se sale del rango (15 → 25 A).
+- Propuesta en la decisión de M-20, como el tamaño del tubo (I-44): solo el rango, calculado o fijado (acento y
+  ↺), el porqué en la ayuda, aviso si un fijado se sale del rango. Dos preguntas para David.
+
 **El automático de A/C y variador (el máximo), CONFIRMADO por David** («confírmala»), después de revisarlo contra
 el texto de la NOM a su pedido. Solo documentos, sin cambio de cálculo:
 

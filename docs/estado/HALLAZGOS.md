@@ -207,6 +207,7 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-179 · La barra de ayuda decía «!» en vez del nombre de algunos campos | P3 | **Cerrado** | `4f3b49a`, `c053993` |
 | I-180 · El icono de «Conductor» parecía la llave del SIM | P3 | **Cerrado** | `544e083`, `d1f023f` |
 | I-181 · En el alimentador, cajitas de color en lugar de un icono del conductor (pedido de David) | P3 | **Cerrado** | `c572985`, `22589e0`, `30f6332` |
+| I-182 · El selector de la protección (M-20) habla como el programador: «auto», «cond.», «máx.» y dos grupos con los mismos números (pedido de David) | P3 | Propuesta, por decidir (David) | — |
 | M-14 · Sin el mínimo de alumbrado general por superficie (220-12) en el alimentador; en vivienda, contactos de uso general sumados aparte (220-14(j)) | P1 | **Cerrado** | `71abc56` |
 | M-15 · Motor: la Excepción 1 de 430-52(c)(1) redondeaba dentro de la serie (35 → 40 A en riel DIN) y se citaba sin redondeo; sin Excepción 2 | P1 | **Cerrado** | `8b4d893`, `60a4f91` |
 | M-16 · «Húmedo o mojado» en una opción: XHHW mojado a 90 °C (conductor de menos); RHH y XHH aceptados en mojado | P1 | **Cerrado** | `a3fded5` |
@@ -959,6 +960,14 @@ CONFIRMADA por David (2026-10-03), sin llevar por ahora al escritorio. Fase 2, a
 variador (`7bf7bf2`): el mismo rango de 440-22(a) (125 % a 175 % o 225 %), 440-4(b) (MCA a MOCP) y 110-3(b)
 (125 % de la entrada a la máxima del fabricante); el automático es el máximo (CONFIRMADO por David, 2026-10-03); grupos
 de motores fuera. Pruebas: `M20F2_…` (8); en el navegador.
+
+**I-182** — David (2026-10-03), sobre el selector de la celda «Protec. (A)»: «entiendo el auto, cond. y máx.,
+pero creo que lo entiendo por ser el desarrollador»; pide que el desplegable traiga solo el rango permitido.
+Los dos grupos dan el mismo número hoy y se separan al cambiar el circuito: con la bomba pasada de 1/2 a
+1 1/2 HP, «auto» da 45 A, «cond.» 30 A, «máx.» 45 A y un 15 fijo salta en silencio a 25 A. Propuesta (como
+el tamaño del tubo, I-44): solo los valores del rango, llega con el calculado y escoger otro lo fija, en el
+acento y con ↺; el porqué, en la ayuda. Un fijado que se sale del rango regresa al calculado con aviso. El
+motor de cálculo no cambia. [`../decisiones/proteccion-de-motores-por-rango.md`](../decisiones/proteccion-de-motores-por-rango.md#la-celda-protec-a-segunda-versión-solo-el-rango).
 
 ### «Pendiente de probar» de la auditoría, 2026-09-30
 

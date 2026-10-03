@@ -397,6 +397,92 @@ ampacidad del conductor:
 
 Pendiente menor, sin cambiar el cálculo: la cita 240-4(g) del variador podría nombrar el camino por 430-120.
 
+## La celda «Protec. (A)», segunda versión: solo el rango
+
+**PROPUESTA · Claude · 2026-10-03** — I-182, pedida por David. Cambia lo que se implementó para la
+pregunta 3 (opción B): la celda sigue siendo el selector, pero cambia lo que trae.
+
+### Lo que no funciona
+
+Hoy el selector trae dos grupos con los mismos números: **Criterio** («15 auto», «15 cond.», «25 máx.»)
+y **Valor fijo** (15, 20, 25). David: «entiendo el auto, cond. y máx., pero creo que lo entiendo por ser
+el desarrollador»; los nombres son de quien hizo el programa, no de quien lo usa. Además, desde la
+pantalla no se ve por qué hay dos grupos.
+
+### La diferencia entre los dos grupos
+
+El número de hoy es el mismo. Cambia lo que pasa **cuando se modifica el circuito**:
+
+- Un **criterio** es una regla, y el número se vuelve a calcular.
+- Un **valor fijo** se queda donde se puso, mientras quepa en el rango.
+
+Medido en el navegador con la bomba de David: 1/2 HP a 127 V, y luego la misma bomba cambiada a 1 1/2 HP:
+
+| Escogido | 1/2 HP (rango 15–25 A, 14 AWG) | Cambiada a 1 1/2 HP (rango 25–45 A, 10 AWG) |
+|---|---|---|
+| «auto» | 15 | **45**: pasó de 1 HP, así que usa el máximo |
+| «cond.» | 15 | **30**: el mayor que protege al 10 AWG |
+| «máx.» | 25 | **45** |
+| Fijo 15 | 15 | **25**: se salió del rango y saltó, sin avisar, al más cercano |
+| Fijo 25 | 25 | 25: sigue en el rango y se queda |
+
+### La propuesta: como el tamaño del tubo
+
+La app ya resuelve el mismo caso en el tamaño de la canalización (I-44) y en los conductores por fase
+del alimentador (I-162). Llega con lo calculado; si el ingeniero escoge otro valor, queda **fijado**, se
+pinta en el color de acento y aparece ↺ para regresar al cálculo. Aquí sería igual:
+
+1. **El desplegable trae solo el rango**: `15 · 20 · 25`. Sin grupos y sin «auto», «cond.» ni «máx.».
+2. **Llega con el calculado**, con la regla confirmada (pregunta 1): un motor de 1 HP o menos lleva el
+   mayor que protege al conductor; arriba de 1 HP, un A/C o un variador llevan el máximo. Se ve en
+   color normal y se recalcula si cambia el circuito.
+3. **Escoger otro número lo fija**: color de acento (clase `fijado`) y ↺ con el título «Regresar al
+   cálculo: 15 A». Escoger el número que da el cálculo lo regresa al cálculo, como `FijarTamano`.
+4. **El porqué, en la ayuda de la celda**, en palabras llanas:
+   > Se permite de 15 a 25 A: 430-52(c)(1) solo pone el techo.
+   > Calculado: 15 A, el mayor que protege al 14 AWG (motor de 1 HP o menos).
+   > 25 A es el máximo de la Tabla 430-52. Con menos, verificar que el interruptor soporte el arranque (430-52(b)).
+   > Escoger otro valor para fijarlo.
+5. **Si un valor fijado se sale del rango** (cambió el motor o la placa), regresa al calculado y el
+   aviso del renglón lo dice: «La protección fijada, 15 A, quedó fuera del rango (25 a 45 A): regresó al
+   calculado, 45 A». Hoy salta en silencio al valor más cercano.
+6. **La memoria y el desglose** dicen «15 A, calculada: el mayor que protege al 14 AWG» o «20 A,
+   fijada por el proyectista», siempre con el rango. Ya no aparece «Criterio: Prioridad al conductor».
+7. **El encabezado «Protec. (A)»**: su ayuda se acorta y deja de nombrar auto, cond. y máx.
+
+```
+Calculado (color normal)        Fijado (acento, con ↺)
+┌──────────┐                    ┌──────────┐
+│ 15     ▾ │                    │ 20     ▾ │ ↺
+└──────────┘                    └──────────┘
+   15
+   20
+   25
+```
+
+### Lo que se pierde
+
+- **«cond.» y «máx.» como reglas que siguen al circuito.** Quien quiera siempre el máximo lo escoge, y
+  si cambia el motor lo vuelve a escoger. Es lo mismo que pasa con el tubo, y lo que se ve en la celda
+  es lo que se instala.
+- **El cálculo no cambia.** El motor (`CriterioProteccionMotor`: conductor, máximo, manual) se queda
+  como está. La web solo deja de ofrecer dos de sus criterios: el calculado usa «conductor» o «máximo»
+  según la regla, y el fijado usa «manual».
+
+### Archivo
+
+- Un archivo de formato 12 que guardó «cond.» o «máx.» se abre como fijado, con el valor que daba. Si
+  ese valor es igual al calculado, se abre como calculado. Al abrir se ve lo mismo que antes.
+- Se escribe solo calculado o fijado, con los mismos campos. Un formato 12 lo lee bien, así que no hace
+  falta un formato nuevo.
+
+### Preguntas para David
+
+| # | Pregunta | Opciones | Recomendación |
+|---|---|---|---|
+| 1 | Un valor fijado que se sale del rango | **A.** Regresa al calculado, con aviso · **B.** Salta al más cercano, con aviso | **A**: el valor fijo era para otro equipo; la app no debe inventar otro valor fijo |
+| 2 | ¿Se marca en la lista cuál es el calculado? | **A.** No, como en el tubo; lo dicen el color y ↺ · **B.** «15 · calculado» | **A**: lo que pidió David, solo el rango |
+
 ## Preguntas para David, con opciones
 
 Revisadas contra el texto de la NOM (`dflores296/NOM-001-SEDE-2012`, corpus del DOF) el 2026-10-03.
