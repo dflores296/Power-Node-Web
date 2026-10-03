@@ -1,4 +1,4 @@
-﻿@page "/"
+@page "/"
 @inject ProyectoActual Proyecto
 @inject MotorNom Motor
 @inject NavigationManager Navegacion
@@ -1085,7 +1085,7 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
                 </div>
                 <div class="cable">
                     <span class="muestras grande"><i class="color-tierra"></i></span>
-                    <span class="rotulo"><span class="ayuda" title="Consultar el conductor de puesta a tierra de equipos — Tabla 250-122. Verde, o verde con franjas amarillas — 250-119. En paralelo, uno en cada canalización — 250-122(f).">Puesta a tierra</span></span>
+                    <span class="rotulo"><span class="ayuda" title="Consultar el conductor de puesta a tierra de equipos — Tabla 250-122. Verde, o verde con franjas amarillas — 250-119. En paralelo, uno en cada canalización; si van todos en la misma, basta uno — 250-122(f).">Puesta a tierra</span></span>
                     @* En paralelo, uno por canalización: «3 × 300 kcmil», no «300 kcmil» (auditoría del 2026-09-29, riesgo 4). *@
                     <span class="calibre">@ConHilos(a.CalibreTierra, a.NumeroConductoresParalelo)<small>@a.CalibreTierra.AreaMm2.ToString("N2") mm²@(a.NumeroConductoresParalelo > 1 ? " · uno por canalización" : "")</small></span>
                 </div>
@@ -1101,7 +1101,7 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
                 <label class="suelto opcion-neutro">
                     <input type="checkbox" class="casilla" id="campo-neutro-reducido" checked="@(Datos.NeutroReducido220_61 && noSeReduce is null)" disabled="@(noSeReduce is not null)"
                            @onchange="e => { Datos.NeutroReducido220_61 = e.Value is true; Recalcular(); }" />
-                    <span class="ayuda" title="Marcar para dimensionar el neutro con la mayor carga entre el neutro y una fase, y no con la de la fase — 220-61(a). Lo que pase de 200 A, al 70 % — 220-61(b)(2). No menor que la tierra de equipos de 250-122; en paralelo, con el área del juego y cada uno de 1/0 AWG o mayor — 215-2(a)(2), 310-10(h)(1); ni que el conductor del electrodo en un equipo de acometida. La caída de tensión se calcula con el neutro que resulta. No se permite en 2 fases + neutro de estrella (220-61(c)(1)) ni con carga no lineal (220-61(c)(2)). Sin marcar: igual que la fase, del lado seguro.">Reducir el neutro a su carga de desbalance — 220-61</span>
+                    <span class="ayuda" title="Marcar para dimensionar el neutro con la mayor carga entre el neutro y una fase, y no con la de la fase — 220-61(a). Lo que pase de 200 A, al 70 % — 220-61(b)(2). No menor que la tierra de equipos de 250-122; en paralelo, con el área del juego y cada uno de 1/0 AWG o mayor — 215-2(a)(2), 310-10(h)(1); ni, en un equipo de acometida, que la Tabla 250-66 y el 12.5 % del área de las fases arriba de 1100 kcmil — 250-24(c)(1) y (c)(2). La caída de tensión se calcula con el neutro que resulta. No se permite en 2 fases + neutro de estrella (220-61(c)(1)) ni con carga no lineal (220-61(c)(2)). Sin marcar: igual que la fase, del lado seguro.">Reducir el neutro a su carga de desbalance — 220-61</span>
                 </label>
                 @if (noSeReduce is not null)
                 {
@@ -1241,7 +1241,7 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
         var deAuto = opciones.FirstOrDefault(o => o.EsAutomatico);
         <div class="conductores-por-fase">
             <label class="suelto opcion-paralelo">
-                <span class="ayuda" title="Consultar cuántos conductores van en paralelo por fase — 310-10(h)(1). Automático: el número más chico que cumple la ampacidad, 240-4 y la caída de tensión. Elegir un número para fijarlo; por ejemplo, 3 × 400 kcmil en vez de 2 × 900 kcmil. En paralelo: 1/0 AWG o mayor y todos iguales — 310-10(h)(2); cada canalización con su juego completo y su tierra — 250-122(f).">Conductores por fase</span>
+                <span class="ayuda" title="Consultar cuántos conductores van en paralelo por fase — 310-10(h)(1). Automático: el número más chico que cumple la ampacidad, 240-4 y la caída de tensión. Elegir un número para fijarlo; por ejemplo, 3 × 400 kcmil en vez de 2 × 900 kcmil. En paralelo: 1/0 AWG o mayor — 310-10(h)(1), y todos iguales — 310-10(h)(2); cada canalización con su juego completo — 300-3(b)(1), y su tierra — 250-122(f).">Conductores por fase</span>
                 <span class="fila-n">
                     <select id="campo-conductores-por-fase" class="@(fijado is null ? null : "fijado")" value="@(fijado?.ToString() ?? "")"
                             @onchange="e => FijarConductoresPorFase(int.TryParse(e.Value?.ToString(), out var n) ? n : null)">
@@ -1269,7 +1269,7 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
                         <table class="opciones-paralelo">
                             <thead>
                                 <tr>
-                                    <th class="izq">Por fase</th><th>Fase</th><th>Tierra</th>
+                                    <th class="izq">Por fase</th><th>Fase</th>@if (Cuadro.SistemaConNeutro) {<th title="Con «Reducir el neutro — 220-61», el de cada opción.">Neutro</th>}<th>Tierra</th>
                                     <th title="Ampacidad del juego: la de un conductor, corregida, por el número en paralelo.">Ampacidad</th>
                                     <th title="Caída de tensión de la peor fase — Tabla 9.">e %</th>
                                     <th>Canalización</th>
@@ -1284,6 +1284,10 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
                                     <tr @key="o.PorFase" class="@(elegida ? "elegida" : null)">
                                         <td class="izq">@o.PorFase@if (o.EsAutomatico) {<span class="pastilla">automático</span>}</td>
                                         <td>@o.Fase.DesignacionConUnidad</td>
+                                        @if (Cuadro.SistemaConNeutro)
+                                        {
+                                            <td>@o.Neutro.DesignacionConUnidad</td>
+                                        }
                                         <td>@o.Tierra.DesignacionConUnidad</td>
                                         <td>@o.AmpacidadA.ToString("N0") A</td>
                                         <td>@o.CaidaPct.ToString("N2")</td>

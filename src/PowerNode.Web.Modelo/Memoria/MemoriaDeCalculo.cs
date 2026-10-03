@@ -499,7 +499,9 @@ public static class MemoriaDeCalculo
             MotoresQueGobiernan: cuadro.Alimentador.Gobierna?.Motores ?? default,
             Techo430_62A: r.TechoProteccion430_62A,
             TierraDeAcometida: cuadro.TierraDeAcometida,
-            ImpedanciaNeutro: cuadro.NeutroReducido?.Impedancia);
+            ImpedanciaNeutro: cuadro.NeutroReducido?.Impedancia,
+            CalibreImpedanciaNeutro: cuadro.NeutroReducido is { CalibreDeLaImpedancia: { } zc, Calibre: { } nc } && zc.Designacion != nc.Designacion
+                ? zc.Designacion : null);
     }
 
     /// <summary>«Estufa: 1 × 3,000 W = 3,000 VA · no continua · F.P. 1.00». Un renglón por aparato — I-35.</summary>
@@ -751,7 +753,8 @@ public static class MemoriaDeCalculo
                 $"Z = ( {d.ResistenciaOhmKm:N2} + j {d.ReactanciaOhmKm:N2} ) Ω/km × {hoja.LongitudM:N2} m ÷ 1000 / {hoja.ConductoresPorFase}",
             };
             if (zn is { } z)
-                formulasFase.Add($"Z_N = ( {z.ROhmKm:N2} + j {z.XOhmKm:N2} ) Ω/km × {hoja.LongitudM:N2} m ÷ 1000 / {hoja.ConductoresPorFase}   (neutro de {hoja.ConductorNeutro})");
+                formulasFase.Add($"Z_N = ( {z.ROhmKm:N2} + j {z.XOhmKm:N2} ) Ω/km × {hoja.LongitudM:N2} m ÷ 1000 / {hoja.ConductoresPorFase}   (neutro de {hoja.ConductorNeutro}" +
+                    (hoja.CalibreImpedanciaNeutro is { } deOtro ? $"; la Tabla 9 no lo trae: R y X de {deOtro}, el menor con datos, del lado seguro)" : ")"));
             if (hoja.CorrienteNeutro is { } iN)
                 formulasFase.Add($"I_N = {iN.Magnitud:N2} A ∠ {iN.AnguloGrados:N1}°");
             formulasFase.AddRange(porFase.Select(f =>

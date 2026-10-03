@@ -1,4 +1,4 @@
-﻿using PowerNode.DesignSuite.Calculo.TablasNom;
+using PowerNode.DesignSuite.Calculo.TablasNom;
 
 namespace PowerNode.Web.Modelo;
 

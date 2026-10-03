@@ -641,4 +641,45 @@ public class Auditoria20261002Tests
         cuadro.Recalcular();
         Assert.Equal("1/0", cuadro.Alimentador.Resultado!.CalibreNeutro.Designacion);
     }
+
+    // ---- Revisión de cabos sueltos del 2026-10-03 ---------------------------------------------------
+
+    /// <summary>
+    /// Equipo de acometida con el neutro reducido: 2 × 900 kcmil = 912 mm² pasa de 557 mm² (1100 kcmil), así
+    /// que el neutro no baja del 12.5 %: 114 mm² → 250 kcmil (127 mm²) cada uno — 250-24(c)(1) y (c)(2). Antes
+    /// salía 2 × 3/0 (solo la Tabla 250-66). Es el mismo mínimo que el puente de unión principal.
+    /// </summary>
+    [Fact]
+    public void Cabo1_EnAcometidaElNeutroNoBajaDel12_5PorCiento()
+    {
+        var cuadro = De708A();
+        cuadro.Datos.EsEquipoDeAcometida = true;
+        cuadro.Datos.NeutroReducido220_61 = true;
+        cuadro.Recalcular();
+
+        var r = cuadro.Alimentador.Resultado!;
+        Assert.Equal(2, r.NumeroConductoresParalelo);
+        Assert.Equal("900", r.CalibreFase.Designacion);
+        Assert.Equal("250", cuadro.TierraDeAcometida!.PuenteDeUnion.Designacion);
+        Assert.Equal("250", r.CalibreNeutro.Designacion);
+        var cita = Assert.Single(r.Citas, x => x.Referencia == "220-61");
+        Assert.Contains("12.5 %", cita.Descripcion);
+        Assert.Contains("250-24(c)(2)", cita.Descripcion);
+    }
+
+    /// <summary>Por debajo de 1100 kcmil manda la Tabla 250-66, como antes: 415.5 A en un conductor.</summary>
+    [Fact]
+    public void Cabo1_AbajoDe1100KcmilMandaLaTabla250_66()
+    {
+        var cuadro = De415A();
+        cuadro.Datos.EsEquipoDeAcometida = true;
+        cuadro.Datos.NeutroReducido220_61 = true;
+        cuadro.Recalcular();
+
+        var r = cuadro.Alimentador.Resultado!;
+        var t = cuadro.TierraDeAcometida!;
+        Assert.False(t.PuentePorPorcentaje);
+        Assert.True(r.CalibreNeutro.AreaMm2 >= t.ConductorElectrodo.AreaMm2);
+        Assert.Contains("Tabla 250-66", Assert.Single(r.Citas, x => x.Referencia == "220-61").Descripcion);
+    }
 }

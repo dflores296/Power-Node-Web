@@ -165,8 +165,8 @@ public static class SeleccionConductor
                 citas.Insert(0, new Cita("310-10(h)(1)",
                     $"Con {nParaleloMinimo} conductor(es) por fase, ni el calibre más grande del catálogo tenía la ampacidad para " +
                     $"{capacidadMinConductorA:0.##} A{(proteccionA is decimal pr ? $" ni quedaba protegido por {pr} A (240-4)" : "")} -- se sube " +
-                    $"automáticamente a {nParalelo} conductores en paralelo por fase, de {calibreFinal} (1/0 AWG o mayor). Cada canalización " +
-                    "lleva su juego completo y su conductor de tierra (250-122(f)). Si se capturó otro N, actualízalo a éste."));
+                    $"automáticamente a {nParalelo} conductores en paralelo por fase, de {calibreFinal} (1/0 AWG o mayor). En canalizaciones " +
+                    "distintas, cada una lleva su juego completo (300-3(b)(1)) y su conductor de tierra (250-122(f)). Si se capturó otro N, actualízalo a éste."));
             else if (nParalelo > nParaleloMinimo)
                 citas.Insert(0, new Cita("310-10(h)(1)",
                     $"Con {nParaleloMinimo} conductor(es) por fase, ni el calibre más grande del catálogo bajaba la caída de tensión a " +

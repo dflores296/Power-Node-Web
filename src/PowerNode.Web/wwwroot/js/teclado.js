@@ -273,10 +273,14 @@
     let pulsando = false;
     let pendiente = false;
     document.addEventListener('pointerdown', () => { pulsando = true; }, true);
-    addEventListener('pointerup', () => {
+    // pointercancel: en pantalla táctil, un deslizamiento cancela el toque sin pointerup; sin esto la barra se
+    // quedaba puesta hasta el siguiente toque — revisión de cabos sueltos del 2026-10-03.
+    const alSoltar = () => {
         pulsando = false;
         setTimeout(() => { if (pendiente) ocultarAyuda(); });
-    }, true);
+    };
+    addEventListener('pointerup', alSoltar, true);
+    addEventListener('pointercancel', alSoltar, true);
 
     function ocultarAyuda() {
         pendiente = pulsando;

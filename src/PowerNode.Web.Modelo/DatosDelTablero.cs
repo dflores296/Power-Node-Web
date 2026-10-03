@@ -1,4 +1,4 @@
-﻿using PowerNode.DesignSuite.Calculo.Canalizaciones;
+using PowerNode.DesignSuite.Calculo.Canalizaciones;
 using PowerNode.DesignSuite.Calculo.Tableros;
 using PowerNode.DesignSuite.Calculo.Unidades;
 

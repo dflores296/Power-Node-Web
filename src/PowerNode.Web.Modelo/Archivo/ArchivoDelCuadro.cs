@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using PowerNode.DesignSuite.Calculo.Canalizaciones;
 using PowerNode.DesignSuite.Calculo.Casos;
 using PowerNode.DesignSuite.Calculo.Unidades;
