@@ -4,6 +4,22 @@ Registro de acciones por sesión, con hallazgo y commit.
 
 ## 2026-10-03
 
+**Protección del derivado de motor por rango** (caso de David: bomba de cisterna de 1/2 HP a 127 V con 25 A
+sobre 14 AWG; en campo, 15 A) — propuesta M-20, sin implementar; solo documentos:
+
+- La propuesta entra a `docs/decisiones/proteccion-de-motores-por-rango.md` (PROPUESTA · Claude): rango de
+  ≥ 125 % de la FLC al techo de 430-52, tres criterios (prioridad al conductor, máximo 430-52, manual),
+  formato 12 con el máximo si falta el campo.
+- Verificada contra `CalculadoraCircuitoDerivadoMotor` en `e0eb887`: los cinco ejemplos, la tierra del
+  100 HP y los dos casos de agrupamiento cuadran.
+- Dos correcciones al algoritmo: en riel DIN, un motor de FLC ≤ 6 A tenía Pmín 16 A sobre un techo de 15 A
+  (ahora Pmín ≤ Pmáx); la iteración de terminales oscilaba con 30 HP a 220 V (1 AWG con 110 A ↔ 3 AWG con
+  100 A; ahora P ≤ 100 A con la columna de 60 °C). De ahí, la pregunta 5 para David.
+- M-20 en HALLAZGOS (P2, por decidir); TABLERO, índice y POR-VERIFICAR al día. P-5 de `requisitos.md` no se
+  toca hasta que David decida.
+
+Pruebas: sin cambio — 519 en `PowerNode.Web.Tests`, 52 en `PowerNode.Normativa.Tests`.
+
 **El conductor visto de frente** (pedido de David) — `c572985`, I-181: en el alimentador, en lugar de las cajitas de
 color; forro de la NOM y 7 hilos, de aluminio si el conductor lo es, y la tierra sin forro si va desnuda.
 Luego, a pedido de David, las fases lado a lado y con brillo, cobre o aluminio — `22589e0`.

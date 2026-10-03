@@ -213,6 +213,7 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | M-17 · Un calibre sin R ni X en la Tabla 9 se contaba como si fallara la caída, y subía la tierra | P2 | **Cerrado** | `751b3a1` |
 | M-18 · Equipo de acometida sin conductor del electrodo (Tabla 250-66) ni puente de unión principal (250-28(d)(1)) | P3 | **Cerrado** | `a600dc9` |
 | M-19 · El alimentador no subía a conductores en paralelo cuando la ampacidad no alcanzaba: «No hay calibre en el catálogo…» | P2 | **Cerrado** | `4fad887` |
+| M-20 · Motor: la protección del derivado es siempre el máximo de la Tabla 430-52, presentado como la seleccionada; no se puede escoger dentro del rango (bomba de 1/2 HP: 25 A sobre 14 AWG) | P2 | Propuesta, por decidir (David) | — |
 | R-01 · Caída del alimentador fija en 5 %, sin verificar la combinada — 215-2(a)(4) NOTA 2 | P1 | **Cerrado** | `2a973ea` |
 | R-02 · Caída del alimentador sin la caída del neutro | P2 | **Cerrado** | `d6cd1c6` |
 | R-03 · La publicación no corre `PowerNode.Web.Tests` | P1 | **Cerrado** | `986c9d7` |
@@ -928,6 +929,20 @@ encimados?», «se ven planos»): las fases lado a lado y cada hilo con su brill
 los cinco: el neutro, con su línea gris, «se ve raro comparado con sus compañeros» — `30f6332`. Prueba: hoja de contacto a
 88 y 26 px (a 22 px y con forro grueso el cobre se empastaba); navegador, claro y oscuro, con cobre y con
 aluminio y tierra desnuda.
+
+### Protección del derivado de motor, 2026-10-03
+
+**M-20** — Caso de David: bomba de cisterna de 1/2 HP, 1 polo, 127 V, 15 m. FLC 8.90 A, 14 AWG
+(125 % = 11.13 A) y **25 A**, el máximo de la Tabla 430-52 (250 % = 22.25 A → Excepción 1); en campo se
+pone 15 A. Los 25 A cumplen, pero la app los presenta como *la* protección: se leen como mínimo, dejan
+el 14 AWG sin protección contra sobrecarga si el motor no trae relevador ni protector térmico (240-4(g),
+430-32), y suben la tierra (250-122(d)(1)), el techo del principal (430-62(a)) y el aviso A-4.
+430-52(c)(1) dice «no exceda»: es un techo. Propuesta: rango de Pmín (≥ 125 % de la FLC) a Pmáx, con
+tres criterios (prioridad al conductor, máximo 430-52, manual), formato 12 y, ausente, el máximo de hoy
+— [`../decisiones/proteccion-de-motores-por-rango.md`](../decisiones/proteccion-de-motores-por-rango.md).
+Verificada contra el motor en `e0eb887`; al verificarla salieron dos correcciones al algoritmo (Pmín
+podía pasar de Pmáx en riel DIN; la iteración de terminales no terminaba con 30 HP a 220 V), ya en el
+documento. Cambia P-5: por decidir (cinco preguntas).
 
 ### «Pendiente de probar» de la auditoría, 2026-09-30
 
