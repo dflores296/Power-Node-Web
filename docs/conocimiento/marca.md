@@ -173,7 +173,8 @@ papel y una línea abajo; 64 px de alto (56 hasta I-59).
     tres barras; escudo con gota (gabinete NEMA: el grado de protección); medidor de aguja (capacidad de
     barra); interruptor (familia); casa (inmueble); área con cotas; tabla (uso, Tabla 220-12); **medidor**
     (equipo de acometida).
-  - Condiciones: cable con el conductor desnudo; corte del aislamiento; terminal de ojillo; gota (lugar);
+  - Condiciones: el cable que sube y dobla, con el aislamiento cortado y dos hilos desnudos (I-180: el
+    primero, una cápsula con una varilla, parecía la llave del SIM); corte del aislamiento; terminal de ojillo; gota (lugar);
     termómetro; onda con armónicas (carga no lineal); la caída desde el punto de derivación y desde la
     barra (e% máx.); Ø (diámetro del fabricante).
 
