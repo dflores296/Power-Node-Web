@@ -4,6 +4,16 @@ Registro de acciones por sesión, con hallazgo y commit.
 
 ## 2026-10-03
 
+**El automático de A/C y variador (el máximo), CONFIRMADO por David** («confírmala»), después de revisarlo contra
+el texto de la NOM a su pedido. Solo documentos, sin cambio de cálculo:
+
+- A/C: 440-52(a) exige sobrecarga en **todo** motocompresor y 440-52(b) protege con ella al conductor; la Tabla
+  240-4(g) nombra 440 Partes C y F. No hay el hueco del motor de 1 HP o menos (430-32(d)(2)a.).
+- Variador: el techo es 110-3(b); pasar la ampacidad llega a 240-4(g) por 430-120 (Parte D), porque la tabla no
+  nombra la Parte J y la NOM 2012 no trae 430-130. Anotado en la decisión.
+- Antes, `claude/new-session-jmt82u` (M-20 y su fase 2) a `main` a pedido de David, en avance rápido: build sin
+  advertencias, 52 + 563 pruebas y el selector visto en el navegador (bomba de 1/2 HP: «15 auto», 15/20/25).
+
 **M-20: CONFIRMADA por David y fase 2 con A/C y variador** («confirma»; «rífate la fase 2 con A/C y
 variador»; lo del escritorio, «omítelo por ahora») — `0ec17fe`, `7bf7bf2` y el commit de docs:
 
@@ -12,7 +22,7 @@ variador»; lo del escritorio, «omítelo por ahora») — `0ec17fe`, `7bf7bf2` 
 - A/C por corriente nominal: de 125 % (440-32) al de 175 % o 225 % (440-22(a)); por placa, de la MCA a la
   MOCP (440-4(b)). Variador: de 125 % de la entrada a la máxima del fabricante (110-3(b)). Habitación y
   grupos de motores, sin rango.
-- Su automático es el máximo: decisión de Claude, anotada en POR-VERIFICAR para que David la revise.
+- Su automático es el máximo: decisión de Claude, anotada en POR-VERIFICAR para que David la revise (la confirmó el mismo día).
 - 430-62(a) con el máximo permitido también para A/C y variador.
 - Visto en el navegador, claro y oscuro: cuatro selectores (motor, dos A/C, variador), ninguno en el de
   habitación.

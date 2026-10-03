@@ -3,7 +3,7 @@
 **CONFIRMADA · David · 2026-10-03** («confirma») — propuesta por Claude el mismo día, implementada en
 `3b1b689`. Hallazgo **M-20**, de la auditoría NOM del 2026-10-02/03. David contestó las preguntas 1, 2, 3, 5
 y 6 ([abajo](#respuestas-de-david-2026-10-03-y-lo-implementado)); de la 4 (fase 2) pidió A/C y variador,
-sin grupos de motores. No se lleva por ahora a PowerNode-DesignSuite (David). Cambia P-5 de [`../conocimiento/requisitos.md`](../conocimiento/requisitos.md). Verificada contra el motor en `e0eb887`; dos correcciones al algoritmo (pasos 2,
+sin grupos de motores; el automático de la fase 2 (el máximo), CONFIRMADO también, el mismo día ([Fase 2](#fase-2-ac-y-variador)). No se lleva por ahora a PowerNode-DesignSuite (David). Cambia P-5 de [`../conocimiento/requisitos.md`](../conocimiento/requisitos.md). Verificada contra el motor en `e0eb887`; dos correcciones al algoritmo (pasos 2,
 7 y 8) — ver [Verificación](#verificación-contra-el-código-claude--2026-10-03). Revisada contra el texto
 de la NOM a pedido de David: 430-62(a) corregido y opciones para cada pregunta — ver
 [Preguntas](#preguntas-para-david-con-opciones).
@@ -348,8 +348,9 @@ el mínimo). Implementada en `7bf7bf2`.
 
 - **Con el 225 % declarado** el rango empieza arriba de lo que da el 175 %, como con la Excepción 2 del
   motor.
-- **El automático de A/C y variador es el máximo** — decisión de Claude al implementar, **por revisar
-  (David)**. El corte de 1 HP es de 430-32, de motores; el 175 % de 440-22(a) está pensado para que arranque
+- **El automático de A/C y variador es el máximo** — propuesto por Claude al implementar; **CONFIRMADO ·
+  David · 2026-10-03** («confírmala»), después de revisarlo contra el texto ([abajo](#el-automático-de-ac-y-variador-contra-el-texto-claude--2026-10-03)).
+  El corte de 1 HP es de 430-32, de motores; el 175 % de 440-22(a) está pensado para que arranque
   el motocompresor, y la MOCP y la máxima del variador las marca el fabricante. El selector deja escoger
   «cond.» o un valor fijo, como en el motor.
 - **La lógica es una sola**: el rango, prioridad al conductor (con el tope de 100 A) y las citas salen del
@@ -359,6 +360,42 @@ el mínimo). Implementada en `7bf7bf2`.
   habitación. El variador en «cond.»: 30 A sobre 10 AWG. La memoria, con el rango de 440-22(a), 440-4(b) y
   110-3(b).
 - Pruebas: `M20F2_…` (8) en `ProteccionDeMotoresPorRangoTests`.
+
+### El automático de A/C y variador, contra el texto (Claude · 2026-10-03)
+
+A pedido de David, antes de confirmarlo. Texto de `dflores296/NOM-001-SEDE-2012` (`data/corpus.json`).
+
+**A/C: el máximo es el automático que corresponde.** En el motor, el automático usa «cond.» hasta 1 HP
+porque abajo de 1 HP puede no haber otra sobrecarga: 430-32(d)(2)a. deja que la dé el interruptor del
+derivado. En el A/C ese hueco no existe:
+
+| Sección | Texto | Consecuencia |
+|---|---|---|
+| 440-52(a) | «**Todos** los motocompresores deben estar protegidos contra sobrecargas y fallas al arrancar» | Sin corte de HP: siempre hay protector |
+| 440-52(b) | Los conductores del derivado se protegen contra sobrecarga con ese mismo dispositivo | El conductor queda cubierto aunque el interruptor pase su ampacidad |
+| Tabla 240-4(g) | A/C y refrigeración: «440, Partes C y F» | El permiso de pasar la ampacidad es explícito |
+| 440-22(a) | El interruptor «**debe** ser capaz de conducir la corriente de arranque»; el 175 % es lo que se permite | La obligación es el arranque; abajo del máximo no hay piso que la app verifique |
+| 440-4(b) | La placa marca la MCA y la protección máxima | El valor que el fabricante probó con el equipo |
+| 440-54(b), 440-55(c) | En 15 o 20 A, el interruptor «debe tener un retardo de tiempo suficiente» para el arranque | La norma cuida el arranque también en los equipos chicos |
+
+En la práctica, la protección máxima de la placa es lo más común en las condensadoras. En un minisplit
+inverter, el instructivo suele dar un interruptor; si da uno menor que la máxima, se pone como valor fijo
+(110-3(b)).
+
+**Variador: también, pero con una base menos directa.** El techo sí es claro: la protección máxima del
+fabricante, por 110-3(b). Lo que se apoya en una lectura es que el interruptor pueda quedar arriba de la
+ampacidad del conductor:
+
+- La Tabla 240-4(g) nombra el Art. 430 «Partes C, D, E, F y G», no la J, que es la del variador.
+- El permiso llega por 430-120: las Partes A a I se aplican al variador salvo lo que cambie la J, y la
+  protección del derivado es la Parte D, que sí está en la tabla.
+- La NOM 2012 no trae 430-130 (I-132), que en el NEC 2011 lo dice directo.
+- En la práctica se pone lo que marca el fabricante. El variador limita su corriente de entrada y da la
+  sobrecarga del motor (430-124(a)), así que el conductor al 125 % de la entrada no se sobrecarga.
+- El argumento del arranque no aplica: el variador arranca suave. Por eso «cond.» casi siempre le sirve, y
+  se ofrece en la celda.
+
+Pendiente menor, sin cambiar el cálculo: la cita 240-4(g) del variador podría nombrar el camino por 430-120.
 
 ## Preguntas para David, con opciones
 

@@ -957,7 +957,7 @@ motor de formato 11 abre en el máximo. La bomba de David: 15 A sobre 14 AWG. Pr
 
 CONFIRMADA por David (2026-10-03), sin llevar por ahora al escritorio. Fase 2, a pedido de David, con A/C y
 variador (`7bf7bf2`): el mismo rango de 440-22(a) (125 % a 175 % o 225 %), 440-4(b) (MCA a MOCP) y 110-3(b)
-(125 % de la entrada a la máxima del fabricante); el automático es el máximo (por revisar, David); grupos
+(125 % de la entrada a la máxima del fabricante); el automático es el máximo (CONFIRMADO por David, 2026-10-03); grupos
 de motores fuera. Pruebas: `M20F2_…` (8); en el navegador.
 
 ### «Pendiente de probar» de la auditoría, 2026-09-30
