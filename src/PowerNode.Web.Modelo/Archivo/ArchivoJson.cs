@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 using PowerNode.DesignSuite.Calculo.Canalizaciones;
 using PowerNode.DesignSuite.Calculo.Casos;
@@ -74,6 +74,7 @@ public sealed class DatosJson
     public bool? TerminalesMarcadas75C { get; set; }
     public decimal? TemperaturaAmbienteC { get; set; }
     public bool? CargaNoLineal { get; set; }
+    public bool? NeutroReducido220_61 { get; set; }
     public Dictionary<string, decimal>? DiametrosFabricante { get; set; }
     public TipoTuboConduit? TuboAlNacer { get; set; }
 

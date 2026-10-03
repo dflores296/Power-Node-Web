@@ -1,4 +1,4 @@
-using PowerNode.DesignSuite.Calculo.TablasNom;
+﻿using PowerNode.DesignSuite.Calculo.TablasNom;
 
 namespace PowerNode.Web.Modelo;
 
@@ -35,6 +35,20 @@ public static class SeriesDeInterruptores
 
     /// <summary>El mayor interruptor de riel DIN. Arriba de él, se usa el siguiente de la NOM y se avisa.</summary>
     public const decimal MaximoRielDinA = 125m;
+
+    /// <summary>
+    /// <b>El mayor interruptor de 1 polo de centro de carga</b>, por lo común: los enchufables y
+    /// atornillables de 1 polo llegan a 70 A. No es de la NOM ni de un catálogo; es el tope que se
+    /// avisa — I-160 (auditoría del 2026-10-02, aceptado por David).
+    /// </summary>
+    public const decimal MaximoUnPoloCentroDeCargaA = 70m;
+
+    /// <summary>
+    /// Hasta cuánto llega un interruptor de 1 polo en la serie: 70 A en centro de carga, 125 A en riel
+    /// DIN y con la lista completa (el mayor de las dos familias).
+    /// </summary>
+    public static decimal MaximoUnPolo(this SerieDeInterruptores serie) =>
+        serie == SerieDeInterruptores.CentroDeCargaNema ? MaximoUnPoloCentroDeCargaA : MaximoRielDinA;
 
     public static bool Admite(this SerieDeInterruptores serie, decimal amperes) => serie switch
     {

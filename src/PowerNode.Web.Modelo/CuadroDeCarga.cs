@@ -134,6 +134,12 @@ public sealed record CorrienteDeFase(char Fase, decimal ContinuaA, decimal NoCon
 /// El F.P. <b>de las cargas de la fase que gobierna</b>, combinado con su factor de demanda y el
 /// mínimo de 220-52: el de la corriente con la que se calcula la caída de tensión del alimentador.
 /// </param>
+/// <summary>
+/// El neutro del alimentador reducido por 220-61 — I-161: la fase de mayor carga al neutro, esa carga, la
+/// corriente con la que se eligió (con el 70 % arriba de 200 A si aplicó) y el calibre.
+/// </summary>
+public sealed record NeutroDe220_61(char Fase, decimal DesbalanceA, decimal CorrienteA, Calibre Calibre, bool Con70Pct);
+
 public sealed record RenglonDelAlimentador(
     ResultadoAlimentador? Resultado,
     string? Error,
@@ -219,7 +225,10 @@ public sealed class CuadroDeCarga
     /// (auditoría del 2026-09-29, P3-3).
     /// </summary>
     public ResultadoTierraDeAcometida? TierraDeAcometida =>
-        Datos.EsEquipoDeAcometida && Alimentador.Resultado is { } a
+        Alimentador.Resultado is { } a ? TierraDeAcometidaDe(a) : null;
+
+    private ResultadoTierraDeAcometida? TierraDeAcometidaDe(ResultadoAlimentador a) =>
+        Datos.EsEquipoDeAcometida
             ? PuestaTierraDeAcometida.Calcular(_motor.ElectrodoTierra, _motor.Calibres, a.CalibreFase, a.NumeroConductoresParalelo, Datos.MaterialConductor)
             : null;
 
@@ -1768,9 +1777,15 @@ public sealed class CuadroDeCarga
     /// </summary>
     private IReadOnlyList<ReglaDeClase> ReglasDeClase(CircuitoDelCuadro c)
     {
-        if (c.Resultado is not { } r || c.ClaseDelCircuito is not { } clase || clase == ClaseDeCircuito.Alimentador || c.EsGrupoDeMotores)
+        if (c.Resultado is not { } r || c.ClaseDelCircuito is not { } clase)
             return [];
+        // I-160: el tope de 1 polo de la familia vale para cualquier clase, también para un subtablero.
+        var unPolo = ReglaDeUnPolo(c, r.ProteccionA);
+        if (clase == ClaseDeCircuito.Alimentador || c.EsGrupoDeMotores)
+            return unPolo is null ? [] : [unPolo];
         var reglas = new List<ReglaDeClase>(ReglasDe210_8(c, r.ProteccionA));
+        if (unPolo is not null)
+            reglas.Add(unPolo);
         if (ReglaDe210_6(c) is { } tension)
             reglas.Add(tension);
         var tipos = c.TiposDeSusCargas;
@@ -1893,6 +1908,23 @@ public sealed class CuadroDeCarga
         return Datos.Inmueble.EsVivienda()
             ? new("210-6(a)(2)", $"En vivienda, los contactos para cargas con cordón y clavija de 1440 VA o menos no pasan de 120 V entre conductores; este circuito queda a {tension:N0} V.", true)
             : new("210-6(c)(6)", $"Contactos a {tension:N0} V a tierra: se permiten para equipo de utilización con cordón y clavija de esa tensión; no son contactos de uso general de 127 V.", false);
+    }
+
+    /// <summary>
+    /// <b>Un interruptor de 1 polo más grande que los de su familia</b> — I-160 (auditoría del 2026-10-02):
+    /// un subtablero de 225 A en 1 polo calcula bien, pero ese interruptor no existe. En centro de carga,
+    /// arriba de 70 A; con la lista completa, arriba de 125 A. En riel DIN ya lo dice el aviso del tablero
+    /// (más de 125 A). Criterio del proyectista, no de la NOM: aviso.
+    /// </summary>
+    private ReglaDeClase? ReglaDeUnPolo(CircuitoDelCuadro c, decimal proteccionA)
+    {
+        var serie = Datos.SerieInterruptores;
+        if (c.Polos != 1 || serie == SerieDeInterruptores.RielDinIec || proteccionA <= serie.MaximoUnPolo())
+            return null;
+        var familia = serie == SerieDeInterruptores.CentroDeCargaNema ? "en centro de carga" : "en centro de carga y en riel DIN";
+        return new("serie de interruptores",
+            $"Interruptor de 1 polo de {proteccionA:N0} A: {familia} los de 1 polo llegan, por lo común, a {serie.MaximoUnPolo():N0} A. " +
+            "Pasar el circuito a 2 o 3 polos, o confirmar que la familia que se instala tiene ese tamaño. Criterio del proyectista, no de la NOM.", true);
     }
 
     /// <summary>«3 salidas», o «varias salidas» si es carga total sin desglose.</summary>
@@ -2707,6 +2739,12 @@ public sealed class CuadroDeCarga
                 juegos = enUno;
             }
 
+            // 220-61: el neutro a su carga de desbalance, si se pidió y se permite — I-161. Antes de
+            // dimensionar la canalización, que lleva el neutro que se instala.
+            NeutroReducido = null;
+            if (Datos.NeutroReducido220_61 && PorQueNoSeReduceElNeutro is null)
+                (resultado, NeutroReducido) = ReducirNeutro(resultado);
+
             var n = resultado.NumeroConductoresParalelo;
             canal.CanalizacionesIguales = canal.JuegosEnUnTubo ? 1 : n;
             Dimensionar(canal,
@@ -2722,6 +2760,91 @@ public sealed class CuadroDeCarga
         {
             Alimentador = new RenglonDelAlimentador(null, ex.Message, [], polos, fases, gobierna, fpAlimentador);
         }
+    }
+
+    /// <summary>La reducción del neutro del alimentador por 220-61, si se aplicó. Null sin ella — I-161.</summary>
+    public NeutroDe220_61? NeutroReducido { get; private set; }
+
+    /// <summary>
+    /// Por qué no se ofrece reducir el neutro del alimentador, o null si se puede — 220-61(c), I-161. Solo
+    /// en 3F-4H y 1F-3H: en 1F-2H el neutro lleva la corriente de la fase; en 2F-3H de estrella lo prohíbe
+    /// (c)(1); con carga no lineal, (c)(2).
+    /// </summary>
+    public string? PorQueNoSeReduceElNeutro => Configuracion switch
+    {
+        ConfiguracionTablero.TresFasesTresHilos => "3F-3H: el alimentador no lleva neutro.",
+        ConfiguracionTablero.UnaFaseDosHilos => "1F-2H: el neutro lleva la misma corriente que la fase.",
+        ConfiguracionTablero.DosFasesDeEstrella => "2 fases + neutro de una estrella: el neutro lleva ≈ la corriente de fase y no se reduce — 220-61(c)(1).",
+        _ when Datos.CargaNoLineal => "Con carga no lineal, esa parte del neutro no se reduce — 220-61(c)(2).",
+        _ => null,
+    };
+
+    /// <summary>
+    /// <b>El neutro a su carga de desbalance</b> — 220-61(a): la mayor carga neta entre el neutro y cualquier
+    /// fase. Cada circuito que lleva neutro cuenta su corriente demandada en cada fase que toca (un motor,
+    /// su FLC); el mínimo de 220-12, parejo. Lo que pasa de 200 A, al 70 % — 220-61(b)(2), salvo lo de los
+    /// circuitos de 2 polos con neutro en 3F-4H, que no se reduce — (c)(1). El calibre: la menor ampacidad
+    /// utilizable que lleva esa corriente por conductor (mismos factores y columna que la fase); no menor
+    /// que la tierra de equipos (criterio), ni que el conductor del electrodo en un equipo de acometida
+    /// (250-24(c)(1)), ni de 1/0 AWG en paralelo (310-10(h)(1)); nunca mayor que la fase.
+    /// </summary>
+    private (ResultadoAlimentador, NeutroDe220_61?) ReducirNeutro(ResultadoAlimentador r)
+    {
+        if (r.Detalle is not { } d)
+            return (r, null);
+        var vfn = Datos.TensionFaseNeutroV;
+        var reducible = Datos.Barras.ToDictionary(b => b, _ => 0m);
+        var fija = Datos.Barras.ToDictionary(b => b, _ => 0m);
+        foreach (var c in _circuitos.Where(c => c.TieneCarga && c.LlevaNeutro))
+        {
+            var divisor = TensionDeCalculo.Divisor(c.Polos, vfn, Datos.TensionFaseFaseV);
+            var i = c.EsMotor && !c.EsGrupo ? c.CorrienteDeMotorA : Demandada(c) / divisor;
+            var destino = c.Polos == 2 && Configuracion == ConfiguracionTablero.TresFasesCuatroHilos ? fija : reducible;
+            foreach (var f in c.Fases)
+                destino[f] += i;
+        }
+        var (supC, supN) = SuperficiePorBarra();
+        foreach (var b in Datos.Barras)
+            reducible[b] += supC + supN;
+
+        decimal Efectiva(char b) => fija[b] + (reducible[b] > 200m ? 200m + 0.7m * (reducible[b] - 200m) : reducible[b]);
+        var fase = Datos.Barras.Aggregate((m, b) => Efectiva(b) > Efectiva(m) ? b : m);
+        var desbalance = reducible[fase] + fija[fase];
+        var corriente = Efectiva(fase);
+        var con70 = reducible[fase] > 200m;
+
+        var n = r.NumeroConductoresParalelo;
+        var tAisl = (TemperaturaAislamiento)d.TemperaturaAislamientoC;
+        var tTerm = (TemperaturaAislamiento)d.TemperaturaTerminalesC;
+        var metodo = MetodoInstalacion.CanalizacionOCable;
+        decimal? Util(Calibre cal)
+        {
+            if (_motor.Ampacidad.Ampacidad(cal, Datos.MaterialConductor, tAisl, metodo) is not decimal propia)
+                return null;
+            var corregida = propia * d.FactorTemperatura * d.FactorAgrupamiento;
+            return tAisl == tTerm ? corregida
+                : _motor.Ampacidad.Ampacidad(cal, Datos.MaterialConductor, tTerm, metodo) is decimal tope ? Math.Min(corregida, tope) : null;
+        }
+        var pisos = new List<Calibre> { r.CalibreTierra };
+        if (TierraDeAcometidaDe(r) is { } acometida)
+            pisos.Add(acometida.ConductorElectrodo);
+        var calibre = _motor.Calibres.Listar().OrderBy(c => c.AreaMm2).FirstOrDefault(c =>
+            Util(c) is decimal u && u * n >= corriente
+            && pisos.All(p => c.AreaMm2 >= p.AreaMm2)
+            && (n == 1 || c.PermiteParalelo)) ?? r.CalibreFase;
+        if (calibre.AreaMm2 >= r.CalibreFase.AreaMm2)
+            calibre = r.CalibreFase;
+
+        var porConductor = n > 1 ? $" ({corriente / n:N2} A por conductor, {n} en paralelo)" : "";
+        var cita = new Cita("220-61",
+            $"Neutro a su carga de desbalance: la mayor entre el neutro y una fase es la de la fase {fase}, {desbalance:N2} A" +
+            (con70 ? $"; lo que pasa de 200 A, al 70 % — 220-61(b)(2): {corriente:N2} A" : "") +
+            (fija[fase] > 0m ? $" (los circuitos de 2 polos con neutro, {fija[fase]:N2} A, sin reducir — 220-61(c)(1))" : "") +
+            $" -> neutro {calibre}{porConductor}, no menor que la tierra de equipos (criterio del proyectista)" +
+            (pisos.Count > 1 ? " ni que el conductor del electrodo — 250-24(c)(1)" : "") +
+            (calibre.Designacion == r.CalibreFase.Designacion ? "; queda igual que la fase." : "."));
+        return (r with { CalibreNeutro = calibre, Citas = [.. r.Citas, cita] },
+            new NeutroDe220_61(fase, desbalance, corriente, calibre, con70));
     }
 
     /// <summary>

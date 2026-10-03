@@ -189,4 +189,142 @@ public class Auditoria20261002Tests
         Assert.Equal(225m, c.Resultado!.ProteccionA);
         Assert.Contains(cuadro.Alimentador.Avisos, x => x.StartsWith("En riel DIN no hay interruptores de más de 125 A") && x.Contains("circuito 1 (225 A)"));
     }
+
+    // ---- I-160 · Interruptor de 1 polo arriba de la familia (aceptado por David) --------------------
+
+    /// <summary>El subtablero de la auditoría (225 A en 1 polo) en centro de carga: arriba de 70 A, aviso en el renglón.</summary>
+    [Fact]
+    public void I160_UnSubtableroDe225AEnUnPoloAvisaEnCentroDeCarga()
+    {
+        var cuadro = Nuevo();
+        var c = Espacio(cuadro, 1);
+        c.Categoria = CategoriaDeCarga.Tablero;
+        c.Continua = 10000m;
+        c.NoContinua = 15000m;
+        cuadro.Recalcular();
+
+        Assert.Equal(225m, c.Resultado!.ProteccionA);
+        var regla = Assert.Single(c.ReglasDeClase, x => x.Referencia == "serie de interruptores");
+        Assert.True(regla.Aviso);
+        Assert.StartsWith("Interruptor de 1 polo de 225 A: en centro de carga los de 1 polo llegan, por lo común, a 70 A.", regla.Texto);
+        Assert.Contains(cuadro.AvisosDe(c), x => x.Contains("1 polo de 225 A"));
+        Assert.Contains(cuadro.AvisosDeCircuitos, x => x.StartsWith("Circuito 1: Interruptor de 1 polo de 225 A"));
+    }
+
+    [Theory]
+    [InlineData(1, 8000, true)]    // 62.99 A → 70 A: el tope, sin aviso.
+    [InlineData(1, 10000, false)]  // 78.73 A → 80 A: arriba de 70 A.
+    [InlineData(2, 20000, true)]   // 2 polos: no aplica.
+    public void I160_ElTopeDe70AEsDeUnPolo(int polos, decimal va, bool sinAviso)
+    {
+        var cuadro = Nuevo();
+        var c = Carga(cuadro, 1, CategoriaDeCarga.Equipo, SubtipoDeCarga.OtraCargaEspecifica, polos, 1, va, continua: false);
+
+        Assert.Equal(sinAviso, !c.ReglasDeClase.Any(x => x.Referencia == "serie de interruptores"));
+    }
+
+    [Fact]
+    public void I160_ConLaListaCompletaElTopeEs125A()
+    {
+        var cuadro = Nuevo();
+        cuadro.Datos.SerieInterruptores = SerieDeInterruptores.NomCompleta;
+        var c = Carga(cuadro, 1, CategoriaDeCarga.Equipo, SubtipoDeCarga.OtraCargaEspecifica, 1, 1, 12000m, continua: false);
+        Assert.Equal(100m, c.Resultado!.ProteccionA);
+        Assert.DoesNotContain(c.ReglasDeClase, x => x.Referencia == "serie de interruptores");
+
+        var d = Carga(cuadro, 2, CategoriaDeCarga.Equipo, SubtipoDeCarga.OtraCargaEspecifica, 1, 1, 18000m, continua: false);
+        Assert.True(d.Resultado!.ProteccionA > 125m);
+        Assert.Contains(d.ReglasDeClase, x => x.Referencia == "serie de interruptores" && x.Texto.Contains("en centro de carga y en riel DIN") && x.Texto.Contains("125 A"));
+    }
+
+    // ---- I-161 · El neutro del alimentador por 220-61 (aceptado por David) -------------------------
+
+    /// <summary>
+    /// 3 × 14 000 VA de 1 polo en la fase A (espacios 1, 2 y 7): 3 × 110.22 = 330.66 A. Sin marcar, el
+    /// neutro es igual que la fase. Marcado: lo que pasa de 200 A al 70 % — 220-61(b)(2): 200 + 0.7 ×
+    /// 130.66 = 291.46 A → 350 kcmil (310 A a 75 °C), contra la fase de 400 kcmil (335 A).
+    /// </summary>
+    [Fact]
+    public void I161_ElNeutroSeReduceConEl70ArribaDe200A()
+    {
+        var cuadro = Nuevo();
+        foreach (var espacio in new[] { 1, 2, 7 })
+            Carga(cuadro, espacio, CategoriaDeCarga.Equipo, SubtipoDeCarga.OtraCargaEspecifica, 1, 1, 14000m, continua: false);
+        var r = cuadro.Alimentador.Resultado!;
+        Assert.Equal(r.CalibreFase, r.CalibreNeutro);
+        Assert.Null(cuadro.NeutroReducido);
+        Assert.Null(cuadro.PorQueNoSeReduceElNeutro);
+
+        cuadro.Datos.NeutroReducido220_61 = true;
+        cuadro.Recalcular();
+
+        r = cuadro.Alimentador.Resultado!;
+        var nr = cuadro.NeutroReducido!;
+        Assert.Equal('A', nr.Fase);
+        Assert.Equal(330.66m, Math.Round(nr.DesbalanceA, 2));
+        Assert.Equal(291.46m, Math.Round(nr.CorrienteA, 2));
+        Assert.True(nr.Con70Pct);
+        Assert.Equal("400", r.CalibreFase.Designacion);
+        Assert.Equal("350", r.CalibreNeutro.Designacion);
+        Assert.Contains(r.Citas, x => x.Referencia == "220-61" && x.Descripcion.Contains("220-61(b)(2)"));
+    }
+
+    /// <summary>
+    /// 150 kVA trifásicos sin neutro y 2 × 3 000 VA de 1 polo en A: el neutro lleva 47.24 A → 8 AWG por
+    /// ampacidad, pero no menor que la tierra de equipos de la protección (Tabla 250-122).
+    /// </summary>
+    [Fact]
+    public void I161_ElNeutroNoBajaDeLaTierraDeEquipos()
+    {
+        var cuadro = Nuevo();
+        Carga(cuadro, 1, CategoriaDeCarga.Equipo, SubtipoDeCarga.OtraCargaEspecifica, 3, 1, 150000m, continua: true);
+        Assert.False(Espacio(cuadro, 1).LlevaNeutro);
+        Carga(cuadro, 2, CategoriaDeCarga.Equipo, SubtipoDeCarga.OtraCargaEspecifica, 1, 1, 3000m, continua: false);
+        Carga(cuadro, 8, CategoriaDeCarga.Equipo, SubtipoDeCarga.OtraCargaEspecifica, 1, 1, 3000m, continua: false);
+        cuadro.Datos.NeutroReducido220_61 = true;
+        cuadro.Recalcular();
+
+        var r = cuadro.Alimentador.Resultado!;
+        var nr = cuadro.NeutroReducido!;
+        Assert.Equal(47.24m, Math.Round(nr.DesbalanceA, 2));
+        Assert.False(nr.Con70Pct);
+        Assert.Equal(r.CalibreTierra.Designacion, r.CalibreNeutro.Designacion);
+        Assert.True(r.CalibreNeutro.AreaMm2 < r.CalibreFase.AreaMm2);
+    }
+
+    [Fact]
+    public void I161_En2FasesDeEstrellaYConCargaNoLinealNoSeReduce()
+    {
+        var cuadro = Nuevo();
+        cuadro.Datos.Fases = 2;
+        cuadro.Datos.Hilos = 3;
+        cuadro.Recalcular();
+        Carga(cuadro, 1, CategoriaDeCarga.Equipo, SubtipoDeCarga.OtraCargaEspecifica, 1, 1, 3000m, continua: false);
+        cuadro.Datos.NeutroReducido220_61 = true;
+        cuadro.Recalcular();
+        Assert.Contains("220-61(c)(1)", cuadro.PorQueNoSeReduceElNeutro);
+        Assert.Null(cuadro.NeutroReducido);
+        Assert.Equal(cuadro.Alimentador.Resultado!.CalibreFase, cuadro.Alimentador.Resultado.CalibreNeutro);
+
+        var otro = Nuevo();
+        Carga(otro, 1, CategoriaDeCarga.Equipo, SubtipoDeCarga.OtraCargaEspecifica, 1, 1, 3000m, continua: false);
+        otro.Datos.CargaNoLineal = true;
+        otro.Datos.NeutroReducido220_61 = true;
+        otro.Recalcular();
+        Assert.Contains("220-61(c)(2)", otro.PorQueNoSeReduceElNeutro);
+        Assert.Null(otro.NeutroReducido);
+    }
+
+    [Fact]
+    public void I161_LaOpcionSeGuardaEnElArchivo()
+    {
+        var cuadro = Nuevo();
+        Carga(cuadro, 1, CategoriaDeCarga.Equipo, SubtipoDeCarga.OtraCargaEspecifica, 1, 1, 3000m, continua: false);
+        cuadro.Datos.NeutroReducido220_61 = true;
+        cuadro.Recalcular();
+
+        var abierto = PowerNode.Web.Modelo.Archivo.ArchivoDelCuadro.Abrir(
+            PowerNode.Web.Modelo.Archivo.ArchivoDelCuadro.Guardar(cuadro, DateTimeOffset.Now), Motor);
+        Assert.True(abierto.Cuadro!.Datos.NeutroReducido220_61);
+    }
 }

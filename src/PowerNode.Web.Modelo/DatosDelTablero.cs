@@ -1,4 +1,4 @@
-using PowerNode.DesignSuite.Calculo.Canalizaciones;
+﻿using PowerNode.DesignSuite.Calculo.Canalizaciones;
 using PowerNode.DesignSuite.Calculo.Tableros;
 using PowerNode.DesignSuite.Calculo.Unidades;
 
@@ -495,6 +495,14 @@ public sealed class DatosDelTablero
     /// 3F-4H el neutro lleva armónicas y cuenta como portador — 310-15(b)(5)(3).
     /// </summary>
     public bool CargaNoLineal { get; set; }
+
+    /// <summary>
+    /// <b>Reducir el neutro del alimentador a su carga de desbalance</b> — 220-61, I-161. Sin marcar, el
+    /// neutro es del calibre de la fase (conservador). Marcado, sale de la mayor carga entre el neutro y
+    /// una fase, con el 70 % de lo que pase de 200 A (220-61(b)(2)); no se permite en 2F-3H de estrella
+    /// (220-61(c)(1)) ni con carga no lineal (220-61(c)(2)).
+    /// </summary>
+    public bool NeutroReducido220_61 { get; set; }
 
     /// <summary>
     /// Diámetro exterior del fabricante, en mm, por aislamiento y calibre («THW-LS|12»). Solo para

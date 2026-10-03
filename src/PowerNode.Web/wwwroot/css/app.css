@@ -631,6 +631,9 @@ select.tipo { width: 108px; padding: 2px 2px 2px 5px; border-radius: var(--radio
 label.suelto { display: flex; align-items: center; justify-content: space-between;
                gap: 8px; font-size: 11px; color: var(--tenue); margin-bottom: 10px; }
 label.suelto input { width: 90px; }
+/* I-161: la casilla del neutro reducido, junto a su rótulo y no al otro extremo. */
+label.suelto.opcion-neutro { justify-content: flex-start; gap: .5rem; }
+label.suelto.opcion-neutro input { width: auto; }
 
 /* Alimentador: primero la protección, luego los cables con su color, luego el cálculo. */
 .alimentador .seleccion { display: flex; flex-direction: column; gap: 2px; padding: 12px 16px;

@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using PowerNode.DesignSuite.Calculo.Canalizaciones;
 using PowerNode.DesignSuite.Calculo.Casos;
 using PowerNode.DesignSuite.Calculo.Unidades;
@@ -155,7 +155,7 @@ public static class ArchivoDelCuadro
                     .ToDictionary(j => j.Key.AlArchivo(), j => j.Value),
                 MaterialConductor = d.MaterialConductor, TipoAislamiento = d.TipoAislamiento, Lugar = d.Lugar,
                 TerminalesMarcadas75C = d.TerminalesMarcadas75C, TemperaturaAmbienteC = d.TemperaturaAmbienteC,
-                CargaNoLineal = d.CargaNoLineal,
+                CargaNoLineal = d.CargaNoLineal, NeutroReducido220_61 = d.NeutroReducido220_61,
                 DiametrosFabricante = d.DiametrosFabricante.Count == 0 ? null : new Dictionary<string, decimal>(d.DiametrosFabricante),
                 TuboAlNacer = d.TuboAlNacer,
                 CaidaMaxDerivadoPct = d.CaidaMaxDerivadoPct, CaidaMaxAlimentadorPct = d.CaidaMaxAlimentadorPct,
@@ -279,6 +279,7 @@ public static class ArchivoDelCuadro
             d.TerminalesMarcadas75C = a.TerminalesMarcadas75C ?? d.TerminalesMarcadas75C;
             d.TemperaturaAmbienteC = a.TemperaturaAmbienteC ?? d.TemperaturaAmbienteC;
             d.CargaNoLineal = a.CargaNoLineal ?? d.CargaNoLineal;
+            d.NeutroReducido220_61 = a.NeutroReducido220_61 ?? d.NeutroReducido220_61;
             foreach (var (clave, mm) in a.DiametrosFabricante ?? [])
                 d.DiametrosFabricante[clave] = mm;
             d.TuboAlNacer = a.TuboAlNacer ?? d.TuboAlNacer;

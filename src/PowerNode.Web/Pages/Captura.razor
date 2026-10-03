@@ -1,4 +1,4 @@
-@page "/"
+﻿@page "/"
 @inject ProyectoActual Proyecto
 @inject MotorNom Motor
 @inject NavigationManager Navegacion
@@ -1090,6 +1090,25 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
                     <span class="calibre">@ConHilos(a.CalibreTierra, a.NumeroConductoresParalelo)<small>@a.CalibreTierra.AreaMm2.ToString("N2") mm²@(a.NumeroConductoresParalelo > 1 ? " · uno por canalización" : "")</small></span>
                 </div>
             </div>
+
+            @* I-161: el neutro a su carga de desbalance, junto al neutro que cambia. Sin marcar, igual que la fase. *@
+            @if (Cuadro.SistemaConNeutro)
+            {
+                var noSeReduce = Cuadro.PorQueNoSeReduceElNeutro;
+                <label class="suelto opcion-neutro">
+                    <input type="checkbox" class="casilla" id="campo-neutro-reducido" checked="@(Datos.NeutroReducido220_61 && noSeReduce is null)" disabled="@(noSeReduce is not null)"
+                           @onchange="e => { Datos.NeutroReducido220_61 = e.Value is true; Recalcular(); }" />
+                    <span class="ayuda" title="Marcar para dimensionar el neutro con la mayor carga entre el neutro y una fase, y no con la de la fase — 220-61(a). Lo que pase de 200 A, al 70 % — 220-61(b)(2). No menor que la tierra de equipos, ni que el conductor del electrodo en un equipo de acometida. No se permite en 2 fases + neutro de estrella (220-61(c)(1)) ni con carga no lineal (220-61(c)(2)). Sin marcar: igual que la fase, del lado seguro.">Reducir el neutro a su carga de desbalance — 220-61</span>
+                </label>
+                @if (noSeReduce is not null)
+                {
+                    <p class="derivado">@noSeReduce</p>
+                }
+                else if (Cuadro.NeutroReducido is { } nr)
+                {
+                    <p class="derivado">Desbalance máximo: fase <strong>@nr.Fase</strong>, @nr.DesbalanceA.ToString("N2") A@(nr.Con70Pct ? $" (al 70 % arriba de 200 A: {nr.CorrienteA:N2} A)" : "") → neutro <strong>@ConHilos(nr.Calibre, a.NumeroConductoresParalelo)</strong>@(nr.Calibre.Designacion == a.CalibreFase.Designacion ? ", igual que la fase" : $"; la fase es {ConHilos(a.CalibreFase, a.NumeroConductoresParalelo)}").</p>
+                }
+            }
 
             <p class="derivado">Canalización: <strong>@Datos.CanalizacionAlimentador.Rotulo · @Datos.CanalizacionAlimentador.TamanoRotulo</strong> · @(Datos.CanalizacionAlimentador.Conteo?.Portadores) portadores — ver «Canalizaciones».</p>
             @* Equipo de acometida: el conductor del electrodo y el puente de unión principal (auditoría del 2026-09-29, P3-3). *@
