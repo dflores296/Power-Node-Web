@@ -4,6 +4,21 @@ Registro de acciones por sesión, con hallazgo y commit.
 
 ## 2026-10-03
 
+**M-20: CONFIRMADA por David y fase 2 con A/C y variador** («confirma»; «rífate la fase 2 con A/C y
+variador»; lo del escritorio, «omítelo por ahora») — `0ec17fe`, `7bf7bf2` y el commit de docs:
+
+- La lógica del rango sale del derivado del motor a `ProteccionDentroDelRango`; la usan el motor, el A/C
+  y el variador.
+- A/C por corriente nominal: de 125 % (440-32) al de 175 % o 225 % (440-22(a)); por placa, de la MCA a la
+  MOCP (440-4(b)). Variador: de 125 % de la entrada a la máxima del fabricante (110-3(b)). Habitación y
+  grupos de motores, sin rango.
+- Su automático es el máximo: decisión de Claude, anotada en POR-VERIFICAR para que David la revise.
+- 430-62(a) con el máximo permitido también para A/C y variador.
+- Visto en el navegador, claro y oscuro: cuatro selectores (motor, dos A/C, variador), ninguno en el de
+  habitación.
+
+Pruebas: 563 en `PowerNode.Web.Tests` (8 nuevas), 52 en `PowerNode.Normativa.Tests`.
+
 **M-20 implementado** (David contestó: 1C, 2A, 3B solo en motores y explicando por qué, 5 y 6 las
 recomendadas) — `3b1b689` y el commit de docs:
 

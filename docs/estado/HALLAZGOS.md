@@ -213,7 +213,7 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | M-17 · Un calibre sin R ni X en la Tabla 9 se contaba como si fallara la caída, y subía la tierra | P2 | **Cerrado** | `751b3a1` |
 | M-18 · Equipo de acometida sin conductor del electrodo (Tabla 250-66) ni puente de unión principal (250-28(d)(1)) | P3 | **Cerrado** | `a600dc9` |
 | M-19 · El alimentador no subía a conductores en paralelo cuando la ampacidad no alcanzaba: «No hay calibre en el catálogo…» | P2 | **Cerrado** | `4fad887` |
-| M-20 · Motor: la protección del derivado es siempre el máximo de la Tabla 430-52, presentado como la seleccionada; no se puede escoger dentro del rango (bomba de 1/2 HP: 25 A sobre 14 AWG) | P2 | **Cerrado** (fase 2 por decidir) | `3b1b689` |
+| M-20 · Motor: la protección del derivado es siempre el máximo de la Tabla 430-52, presentado como la seleccionada; no se puede escoger dentro del rango (bomba de 1/2 HP: 25 A sobre 14 AWG) | P2 | **Cerrado** (con la fase 2: A/C y variador) | `3b1b689`, `7bf7bf2` |
 | R-01 · Caída del alimentador fija en 5 %, sin verificar la combinada — 215-2(a)(4) NOTA 2 | P1 | **Cerrado** | `2a973ea` |
 | R-02 · Caída del alimentador sin la caída del neutro | P2 | **Cerrado** | `d6cd1c6` |
 | R-03 · La publicación no corre `PowerNode.Web.Tests` | P1 | **Cerrado** | `986c9d7` |
@@ -954,6 +954,11 @@ un motor solo es un selector («15 auto», «25 máx.», valores fijos); desglos
 criterio y la nota de arranque (430-52(b)); 430-62(a) con el máximo permitido; archivo de formato 12, y un
 motor de formato 11 abre en el máximo. La bomba de David: 15 A sobre 14 AWG. Pruebas:
 `ProteccionDeMotoresPorRangoTests` (36); en el navegador, claro, oscuro y 390 px.
+
+CONFIRMADA por David (2026-10-03), sin llevar por ahora al escritorio. Fase 2, a pedido de David, con A/C y
+variador (`7bf7bf2`): el mismo rango de 440-22(a) (125 % a 175 % o 225 %), 440-4(b) (MCA a MOCP) y 110-3(b)
+(125 % de la entrada a la máxima del fabricante); el automático es el máximo (por revisar, David); grupos
+de motores fuera. Pruebas: `M20F2_…` (8); en el navegador.
 
 ### «Pendiente de probar» de la auditoría, 2026-09-30
 

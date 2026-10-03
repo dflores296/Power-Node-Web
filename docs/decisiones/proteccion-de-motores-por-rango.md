@@ -338,7 +338,27 @@ Lo que se agregó al implementar, sin pregunta:
 Pedida por David el 2026-10-03 («rífate la fase 2 con A/C y variador»): el mismo rango y el mismo selector
 para el equipo de A/C por corriente nominal (440-22(a)), el de A/C por placa (MCA y MOCP, 440-4(b)) y el
 variador (110-3(b)). Fuera: grupos de motores (430-53(c)(4)) y acondicionador de habitación (440-62, ya es
-el mínimo). En curso.
+el mínimo). Implementada en `7bf7bf2`.
+
+| Equipo | Piso del rango | Techo | Máximo para 430-62(a) | Qué verificar abajo del máximo |
+|---|---|---|---|---|
+| A/C por corriente nominal | 125 % de la corriente — 440-32 | El mayor estándar ≤ 175 % (225 % declarado), no menos de 15 A — 440-22(a) | El mayor de la lista de 240-6(a) ≤ ese porcentaje, no menos de 15 A | Que conduzca el arranque del motocompresor — 440-22(a) |
+| A/C por placa | La MCA — 440-4(b) | El mayor estándar ≤ la MOCP — 440-4(b) | La MOCP | Que conduzca el arranque del equipo — 440-22(b) |
+| Variador | 125 % de la entrada — 430-122(a) | El mayor estándar ≤ la máxima del fabricante — 110-3(b) | La máxima del fabricante | Que le sirva al variador, según sus instrucciones — 110-3(b) |
+
+- **Con el 225 % declarado** el rango empieza arriba de lo que da el 175 %, como con la Excepción 2 del
+  motor.
+- **El automático de A/C y variador es el máximo** — decisión de Claude al implementar, **por revisar
+  (David)**. El corte de 1 HP es de 430-32, de motores; el 175 % de 440-22(a) está pensado para que arranque
+  el motocompresor, y la MOCP y la máxima del variador las marca el fabricante. El selector deja escoger
+  «cond.» o un valor fijo, como en el motor.
+- **La lógica es una sola**: el rango, prioridad al conductor (con el tope de 100 A) y las citas salen del
+  derivado del motor a `ProteccionDentroDelRango`, que usan los tres; la pantalla, el desglose y la memoria,
+  igual. Cada regla trae su porqué en la ayuda de la celda.
+- **Visto en el navegador** (claro y oscuro): selector en el motor, los dos A/C y el variador; no en el de
+  habitación. El variador en «cond.»: 30 A sobre 10 AWG. La memoria, con el rango de 440-22(a), 440-4(b) y
+  110-3(b).
+- Pruebas: `M20F2_…` (8) en `ProteccionDeMotoresPorRangoTests`.
 
 ## Preguntas para David, con opciones
 
