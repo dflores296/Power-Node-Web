@@ -538,6 +538,75 @@ Calculado (color normal)        Fijado (acento, con ↺)
 | 1 | Cuando cambia lo que define el rango, el valor fijado… | **A.** Se borra siempre, con aviso · **B.** Se queda si cabe en el nuevo rango; si no, regresa al calculado, con aviso | **A** (David preguntó por qué quedaría fuera: solo cuando cambia el equipo, y entonces el valor era para otro equipo; con A, «fuera de rango» desaparece) |
 | 2 | ¿Se marca en la lista cuál es el calculado? | **A.** No, como en el tubo; lo dicen el color y ↺ · **B.** «15 · calculado» | **A**: lo que pidió David, solo el rango |
 
+## La sobrecarga (OL) se especifica, no se pregunta
+
+**PROPUESTA · Claude · 2026-10-03** — I-183, a partir de la clasificación de motores del Art. 430 que
+pidió David (uso general y velocidad ajustable; sin motores de aparatos ni motocompresores).
+
+### Lo que dice la clasificación
+
+En cada circuito de motor que calcula la app (motor fijo, con su circuito en el tablero), la NOM exige
+una protección contra sobrecarga, aparte del interruptor o en su lugar:
+
+| Equipo en la app | Quién da la sobrecarga | Artículo |
+|---|---|---|
+| Motor de más de 1 HP, servicio continuo | Relevador en el arrancador (125 % de la corriente de placa con F.S. ≥ 1.15 o elevación ≤ 40 °C; 115 % los demás) o motor «Protegido térmicamente» | 430-32(a) |
+| Motor de 1 HP o menos con arranque automático (flotador, presostato) o instalado fijo | Lo mismo, o «protegido por impedancia» | 430-32(b), 430-32(d)(1) |
+| Motor de servicio no continuo (Tabla 430-22(e)) | Puede darla el mismo interruptor, que no pasa la Tabla 430-52; o un relevador | 430-33 |
+| Variador | El variador, si está marcado así; si no, un relevador. Si el motor no aguanta su corriente nominal a baja velocidad, además protección contra sobretemperatura | 430-124(a), 430-126 |
+| Grupo de motores | Cada motor con la suya | 430-53 |
+
+El único caso sin sobrecarga aparte es un motor portátil de 1 HP o menos, de arranque manual y a la vista
+(430-32(d)(2)a.). Ese motor se conecta a un contacto, no a un circuito de motor de la app. Fuera de ese
+caso, solo la bomba contra incendio va sin sobrecarga (430-31, Art. 695).
+
+**Consecuencia.** Preguntar «¿tiene OL?» solo admite una respuesta que cumpla. Contestar «no» no lleva a
+otro cálculo, sino a una instalación que no cumple. El problema no es que la app no pregunte, sino que **no
+lo dice**: la sobrecarga queda en una nota de la memoria, y el electricista que lee el cuadro impreso ve
+«25 A» sin saber que el arrancador es parte del diseño. Ahí está el caso de campo: una bomba chica con
+flotador y sin relevador, que solo cumple si su motor es «Protegido térmicamente».
+
+### La propuesta
+
+Como el ICFT de 210-8 (`c2ba046`): es un requisito, no un incumplimiento. Va como regla del circuito.
+
+1. **En el renglón, «OL» junto a la clase** de todo circuito con motor, A/C con motocompresor o variador:
+   «Individual · OL». El título dice quién la da, según la tabla de arriba.
+2. **En el desglose, la memoria y el documento**, el texto según la clase:
+   - Más de 1 HP: «Sobrecarga requerida — 430-32(a): relevador en el arrancador a no más de 125 % de la
+     corriente de placa (115 % si el F.S. es menor de 1.15 y la elevación mayor de 40 °C), o motor
+     marcado "Protegido térmicamente"».
+   - 1 HP o menos: lo mismo con 430-32(b). En una bomba chica suele venir en el motor; verificar la placa.
+   - Servicio no continuo: «La puede dar este interruptor — 430-33».
+   - Variador: «La da el variador si está marcado así — 430-124(a); si el motor trabaja a baja velocidad
+     sin ventilación propia, protección contra sobretemperatura — 430-126».
+3. **El 240-4(g) se apoya en esa regla**: «pasa la ampacidad: lo permite 240-4(g) con la sobrecarga que
+   exige 430-32 (arriba)». En el variador, nombrar el camino por 430-120.
+4. **Corregir el porqué del automático.** Hoy dice «1 HP o menos (430-32(b)), prioridad al conductor», como
+   si la NOM lo mandara. 430-32(b) también exige sobrecarga. El corte de 1 HP es criterio (confirmado,
+   pregunta 1), no norma: en un motor chico, el interruptor que protege al conductor suele dejarlo arrancar,
+   y el conductor queda con doble protección. Texto: «Calculado: 15 A, el mayor que protege al 14 AWG
+   (criterio para motores de 1 HP o menos)».
+5. **Decir el alcance donde se captura el motor.** En la ayuda de «Motores · Uso general» y en la guía:
+   monofásico o trifásico de jaula de ardilla. No se calculan aquí rotor devanado ni c.c. (150 % en la
+   Tabla 430-52), síncrono, alto par, baja velocidad, velocidades múltiples, estrella-delta, devanado
+   dividido, variador con bypass ni bomba contra incendio, que va sin sobrecarga y la app se la pediría.
+
+### Lo que no se hace (y por qué)
+
+- **Preguntar la OL por motor**: ver arriba; solo «sí» cumple.
+- **Un techo por tipo de motor de la Tabla 430-52**: fuera del alcance v1. Se dice en la ayuda (punto 5) y
+  ya está en POR-VERIFICAR.
+- **Verificar el arranque con la letra de código** (Tabla 430-7(b)) **y la Tabla 430-251**: necesita la
+  curva del interruptor, y el repo no lleva catálogo. Sigue en POR-VERIFICAR como «a futuro».
+
+### Preguntas para David
+
+| # | Pregunta | Opciones | Recomendación |
+|---|---|---|---|
+| 1 | ¿La sobrecarga se especifica sin preguntarla? | **A.** Sí, como regla del circuito · **B.** Preguntarla por motor | **A** |
+| 2 | ¿«OL» en el renglón de todo motor, o solo cuando el interruptor pasa la ampacidad del conductor? | **A.** Siempre · **B.** Solo arriba de la ampacidad | **A**: la NOM la exige siempre, y lo lee quien instala |
+
 ## Preguntas para David, con opciones
 
 Revisadas contra el texto de la NOM (`dflores296/NOM-001-SEDE-2012`, corpus del DOF) el 2026-10-03.

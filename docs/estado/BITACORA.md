@@ -4,6 +4,14 @@ Registro de acciones por sesión, con hallazgo y commit.
 
 ## 2026-10-03
 
+**I-183: la sobrecarga del motor se especifica, no se pregunta** — propuesta, sin implementar; solo documentos:
+
+- David pidió la clasificación de motores del Art. 430 (uso general y velocidad ajustable), sacada del texto de
+  la NOM (corpus de `NOM-001-SEDE-2012`): por potencia y arranque (430-32), por servicio (430-22(e), 430-33),
+  por tipo (Tabla 430-52), construcciones especiales (430-4, 430-6, 430-22), Parte J y los casos sin sobrecarga.
+- De ahí la propuesta: todo circuito de motor de la app exige sobrecarga, así que se dice como regla del circuito
+  (como el ICFT). También el porqué del automático de 1 HP (es criterio) y el alcance de motores en la ayuda.
+
 **I-182, a pregunta de David: para qué es el rango y por qué un fijado quedaría fuera** — solo documentos:
 
 - La física del rango, en la decisión de M-20: en el motor el relevador da la sobrecarga y el interruptor solo

@@ -208,6 +208,7 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-180 · El icono de «Conductor» parecía la llave del SIM | P3 | **Cerrado** | `544e083`, `d1f023f` |
 | I-181 · En el alimentador, cajitas de color en lugar de un icono del conductor (pedido de David) | P3 | **Cerrado** | `c572985`, `22589e0`, `30f6332` |
 | I-182 · El selector de la protección (M-20) habla como el programador: «auto», «cond.», «máx.» y dos grupos con los mismos números (pedido de David) | P3 | Propuesta, por decidir (David) | — |
+| I-183 · La app da por hecha la protección contra sobrecarga del motor (430-32) y no la dice donde se lee: con el interruptor arriba de la ampacidad, el conductor depende de un dispositivo que el cuadro no menciona | P2 | Propuesta, por decidir (David) | — |
 | M-14 · Sin el mínimo de alumbrado general por superficie (220-12) en el alimentador; en vivienda, contactos de uso general sumados aparte (220-14(j)) | P1 | **Cerrado** | `71abc56` |
 | M-15 · Motor: la Excepción 1 de 430-52(c)(1) redondeaba dentro de la serie (35 → 40 A en riel DIN) y se citaba sin redondeo; sin Excepción 2 | P1 | **Cerrado** | `8b4d893`, `60a4f91` |
 | M-16 · «Húmedo o mojado» en una opción: XHHW mojado a 90 °C (conductor de menos); RHH y XHH aceptados en mojado | P1 | **Cerrado** | `a3fded5` |
@@ -969,6 +970,15 @@ el tamaño del tubo, I-44): solo los valores del rango, llega con el calculado y
 acento y con ↺; el porqué, en la ayuda. Un fijado se borra, con aviso, si cambia lo que define el rango (el
 equipo, la Excepción 2 o la serie): así nunca queda fuera del rango (pregunta de David). El
 motor de cálculo no cambia. [`../decisiones/proteccion-de-motores-por-rango.md`](../decisiones/proteccion-de-motores-por-rango.md#la-celda-protec-a-segunda-versión-solo-el-rango).
+
+**I-183** — David (2026-10-03): «la NOM permite un interruptor más grande pero supone que hay otro dispositivo
+de protección como una OL; ¿el programa distingue eso?». No lo distingue: lo supone (POR-VERIFICAR, `d2eabdc`)
+y solo lo dice en una nota de la memoria. Con la clasificación del Art. 430, todo circuito de motor que calcula
+la app exige sobrecarga (430-32(a), (b), (d)(1); 430-33 en servicio no continuo; 430-124(a) en variador). Solo
+el portátil de 1 HP o menos a la vista (430-32(d)(2)a.) y la bomba contra incendio (430-31) van sin ella.
+Propuesta: especificarla, no preguntarla, como el ICFT de 210-8: «OL» junto a la clase en el renglón y el texto
+por clase en desglose, memoria y documento. También el porqué del automático de 1 HP (criterio, no 430-32(b))
+y el alcance de motores en la ayuda. [`../decisiones/proteccion-de-motores-por-rango.md`](../decisiones/proteccion-de-motores-por-rango.md#la-sobrecarga-ol-se-especifica-no-se-pregunta).
 
 ### «Pendiente de probar» de la auditoría, 2026-09-30
 
