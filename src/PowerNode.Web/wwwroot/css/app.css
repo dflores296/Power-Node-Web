@@ -1287,7 +1287,9 @@ h1:focus { outline: none; }
 #barra-ayuda .campo { margin-right: 8px; }
 #barra-ayuda .teclas { color: var(--tenue); white-space: nowrap; font-size: 11px; }
 /* El alto real de la barra lo pone teclado.js en --alto-ayuda: con 72 px fijos, una ayuda larga tapaba
-   la última línea del pie (I-88). */
+   la última línea del pie (I-88). Registrada sin herencia (I-188): solo la usa el <body>, y heredada, cada vez
+   que cambiaba se recalculaba el estilo de toda la página (~60 ms con 42 espacios). */
+@property --alto-ayuda { syntax: '<length>'; inherits: false; initial-value: 64px; }
 body.con-ayuda { padding-bottom: calc(var(--alto-ayuda, 64px) + 8px); }
 /* Hasta 1100 px la leyenda de teclas en una línea apretaba la ayuda en una columna de ~120 px (I-88):
    ayuda arriba a todo lo ancho, teclas abajo. */
@@ -1448,9 +1450,12 @@ body.arrastrando-principal .zona-zocalo .al-arrastrar { display: inline; }
        y al enfocarse la línea se marca (Linear: «border brightens»). Las celdas de la cuadrícula siguen
        invisibles hasta enfocarse, también al pasar el cursor: input.desc e input.va (0,1,1) les ganan a
        estas reglas, por eso el :not() va dentro de :where() — con él a la vista, (0,2,1), les ganaba. */
+    /* Sin transición al enfocar ni al pasar el cursor (I-188): la página es una sola capa de miles de píxeles, y
+       los 120 ms de la transición la volvían a pintar entera en cada cuadro — unas 10 veces por cada Tab, ~70 ms.
+       El borde se marca igual, sin el fundido. */
     select, input:where(:not([type="checkbox"]):not([type="radio"])) {
         border: 1px solid var(--campo-borde); background-color: var(--campo-fondo); color: var(--tinta);
-        border-radius: var(--radio-sm); transition: border-color .12s, box-shadow .12s;
+        border-radius: var(--radio-sm);
     }
     :where(select, input:not([type="checkbox"]):not([type="radio"])):hover { border-color: var(--linea-fuerte); }
     :where(select, input:not([type="checkbox"]):not([type="radio"])):focus,
@@ -1470,7 +1475,7 @@ body.arrastrando-principal .zona-zocalo .al-arrastrar { display: inline; }
                             color: var(--sobre-accion); filter: none; }
     .boton.primario:active { background: var(--accion); box-shadow: none; }
     @media (prefers-reduced-motion: reduce) {
-        .boton, select, input { transition: none; }
+        .boton { transition: none; }
     }
 
     /* La barra superior, translúcida sobre el lienzo, con su línea de 1 px. */

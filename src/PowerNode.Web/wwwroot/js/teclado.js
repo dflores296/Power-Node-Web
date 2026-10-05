@@ -261,10 +261,17 @@
         reservarAlto();
     }
 
-    // El pie de la página se recorre hasta arriba de la barra, mida lo que mida — I-88.
+    // El pie de la página se recorre hasta arriba de la barra, mida lo que mida — I-88. Solo si cambió (I-188):
+    // se escribía en cada cambio de campo, y escribirla en el <body> recalculaba el estilo de toda la página.
+    let altoReservado = '';
     function reservarAlto() {
-        if (barra && !barra.hidden)
-            document.body.style.setProperty('--alto-ayuda', `${barra.offsetHeight}px`);
+        if (!barra || barra.hidden)
+            return;
+        const alto = `${barra.offsetHeight}px`;
+        if (alto === altoReservado)
+            return;
+        altoReservado = alto;
+        document.body.style.setProperty('--alto-ayuda', alto);
     }
 
     // Con el botón del ratón abajo, la barra se quita hasta soltarlo — I-162. Al quitarla se quita también
