@@ -245,6 +245,8 @@
                 decisión que el exportador de escritorio, tomada con esta misma queja: antes decía
                 "↳ ocupado por el circuito 1" en cada espacio, y eso se LEE en vez de VERSE.
             *@
+            @* I-188: lo del tablero que leen todos los renglones, una vez por dibujo. *@
+            @{ var firmaDelTablero = FirmaDeDibujo.De(Datos); }
             @foreach (var (lado, indice) in Lados.Select((b, i) => (b, i)))
             {
                 @if (indice > 0)
@@ -269,6 +271,10 @@
                         }
                         continue;
                     }
+                    @* UN RENGLÓN QUE SOLO SE DIBUJA SI CAMBIÓ (I-188, dibujo-por-renglon.md): el marcado es el de siempre;
+                       RenglonMemorizado compara la firma del circuito y la del tablero con las del último dibujo. Si el
+                       renglón enseña algo nuevo, va también en FirmaDeDibujo (FirmaDeDibujoTests lo exige). *@
+                    <RenglonMemorizado Firma="@FirmaDeDibujo.De(c)" Tablero="@firmaDelTablero" Abierto="@Abierto(c)">
                     <tr class="@(c.Resultado is null ? "vacio" : null) @(LlevaNotas(c) ? "con-nota" : null) @(c.Polos == 2 ? "dos-polos" : null)" data-espacio="@c.Espacio">
                         <td class="num @(c.TieneCaptura ? "asa" : null)" data-destino="@c.Espacio" data-arrastre="@(c.TieneCaptura ? c.Espacio : null)" data-etiqueta="@EtiquetaDeArrastre(c)" title="@(c.TieneCaptura ? "Arrastrar para mover el circuito a otro espacio" : null)">@NumeroConFase(c.Espacio)</td>
                         <td rowspan="@c.Polos">
@@ -816,6 +822,7 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
                             </td>
                         </tr>
                     }
+                    </RenglonMemorizado>
                 }
             }
         </tbody>
