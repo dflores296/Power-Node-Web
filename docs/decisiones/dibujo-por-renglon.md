@@ -137,3 +137,50 @@ desmarcada, quitar líneas, renombrar y cambiar canalización, optimizar y desha
 tensión, fases, «Nuevo» y volver a abrir el mismo archivo, editar después de reabrir). En la versión anterior y en
 esta: idénticos. El teclado (Enter, flechas, Esc, Ctrl+Enter, Alt+2) y la barra de ayuda, iguales.
 
+## El riesgo de datos rezagados (2026-10-05)
+
+David: «¿hay forma de que se queden datos rezagados en un análisis de instalación usando el programa?». Hay dos
+cosas recordadas, con riesgos distintos:
+
+| Qué se recuerda | Dónde | Si fallara, qué se vería |
+|---|---|---|
+| El resultado de cada derivado (I-97, desde 2026-09) y del alimentador (I-188) | El cálculo | Un resultado que no corresponde a lo capturado: en la captura, en el cuadro impreso y en la memoria |
+| El dibujo de cada renglón cerrado y del gabinete (I-188) | Solo la pantalla de captura | Un renglón de la captura sin actualizar. El cuadro de carga y la memoria son otras páginas y se dibujan completas; el archivo guarda lo capturado y se recalcula al abrir |
+
+**El cálculo.** Cada cambio recalcula el tablero entero; lo recordado solo evita repetir un cálculo cuya entrada
+es *igual* a una ya calculada. La llave es la entrada completa (un `record` de puros valores) y la serie de
+interruptores; las calculadoras dependen solo de su entrada y de las tablas de la norma, que no cambian. Si a una
+entrada se le agrega una lista, se compara por referencia: nunca acierta y se recalcula (pierde rapidez, no
+exactitud). Medido con `LoRecordadoTests`: 5 secuencias de 120 cambios al azar (longitudes, líneas, motores, polos,
+protección fijada, Excepción 2, mover, canalizaciones, temperatura, serie, tensión, alimentador, neutro, inmueble).
+Después de cada cambio, todo lo que el tablero entrega (memoria de cálculo completa, alimentador, resumen, cada
+renglón con su desglose y su ayuda) es idéntico a lo que sale borrando lo recordado y calculando de cero, y a
+recalcular otra vez. La prueba se probó rompiendo la llave a propósito: sin la longitud del alimentador, o sin la
+serie en los derivados, el dato rezagado aparece en las 5 secuencias, entre el cambio 11 y el 74.
+
+**La pantalla.** Un renglón cerrado se salta si su firma no cambió. Tres defensas:
+
+1. `FirmaDeDibujoTests`: la firma lleva todas las propiedades del circuito, de sus líneas y del tablero; la prueba
+   cambia cada una por reflexión y exige que la firma cambie.
+2. `LoQueLeeElDibujoTests`: lee el marcado del renglón cerrado y del gabinete, y falla si empiezan a leer algo de
+   `Cuadro`, `Datos` o `CuadroDeCarga` fuera de su lista.
+3. Medido en el navegador: 3 secuencias de 200 acciones de usuario al azar (600; 525 con efecto: longitudes,
+   protecciones, casillas, desplegables, líneas agregadas y quitadas, polos, canalizaciones, descripción, arrastre,
+   optimizar y deshacer, temperatura, tensión, serie, «Nuevo» y reabrir), en la versión anterior y en esta, con la
+   página completa comparada después de cada paso: idénticas en los 600. La comparación se probó con una versión
+   rota a propósito (la firma sin el tamaño de la canalización): en el paso 58 una longitud subió el calibre, el
+   tubo compartido creció de 16 a 21 mm y el otro circuito del tubo seguía diciendo 16 mm; 11 de 200 pasos
+   distintos.
+
+**Lo que queda.** Ninguna de las defensas cubre todo:
+
+- Un *helper* de la página (un método de `Captura.razor`) que empiece a leer algo nuevo del cuadro: la guarda 2 solo
+  ve lo que el marcado lee directo. Al tocar el renglón, revisar la firma.
+- Una calculadora copiada del escritorio que empiece a leer algo fuera de su entrada (hoy ninguna): `LoRecordadoTests`
+  lo encuentra solo si sus cambios al azar tocan ese dato.
+- Los guiones de Playwright (la comparación en el navegador) viven fuera del repo y no corren en la publicación; las
+  pruebas 1 y 2 y `LoRecordadoTests`, sí.
+
+En todos los casos, un error se vería en la captura y no en lo que se entrega: el cuadro de carga y la memoria se
+dibujan completos desde el cálculo, y el cálculo está cubierto por `LoRecordadoTests`.
+

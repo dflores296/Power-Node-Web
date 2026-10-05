@@ -67,7 +67,7 @@ Ejecutar en el navegador (Blazor WebAssembly), sin servidor, publicado en GitHub
   [`../decisiones/proteccion-de-motores-por-rango.md`](../decisiones/proteccion-de-motores-por-rango.md).
 - Rapidez (I-188): cada renglón del cuadro y el gabinete se dibujan solo si cambiaron (`RenglonMemorizado`,
   `FirmaDeDibujo`); el alimentador se recuerda por su entrada.
-- Pruebas: 604 en `PowerNode.Web.Tests` (6 de la firma de los renglones; 17 de la auditoría de motores del 2026-10-03; 44 de M-20 y su fase 2; 18 de I-182 e I-183; 35 de la auditoría del 2026-10-02, sus rondas 3 y 4 y la revisión de cabos sueltos; 20 del documento de pruebas del 2026-09-23; 30 de la auditoría NOM
+- Pruebas: 611 en `PowerNode.Web.Tests` (13 de la rapidez: la firma de los renglones, lo recordado contra calcular de cero y lo que lee el dibujo; 17 de la auditoría de motores del 2026-10-03; 44 de M-20 y su fase 2; 18 de I-182 e I-183; 35 de la auditoría del 2026-10-02, sus rondas 3 y 4 y la revisión de cabos sueltos; 20 del documento de pruebas del 2026-09-23; 30 de la auditoría NOM
   del 2026-09-29, 21 de su «Lo que ya cumple» y 34 de su «Pendiente de probar»).
 
 Requisitos con su referencia NOM y su prueba: [`../conocimiento/requisitos.md`](../conocimiento/requisitos.md).

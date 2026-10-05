@@ -1071,6 +1071,12 @@ una longitud, de 329 a 158 ms; ocho seguidas, de 2.9 a 1.3 s; lo que queda es de
 ~60 ms de dibujo). Lo que se ve, idéntico a `39a28d2` en 32 pasos con Playwright; el teclado, igual. Pruebas:
 `FirmaDeDibujoTests` (6).
 
+El riesgo de datos rezagados, medido a pregunta de David (`e3dcde1`): con lo recordado y calculando de cero, el
+mismo resultado en 600 cambios al azar (`LoRecordadoTests`, que encuentra una llave rota en las 5 secuencias); la
+pantalla, idéntica a la versión anterior en 600 acciones de usuario al azar (una firma rota se ve en el paso 58);
+y una guarda de lo que lee el marcado (`LoQueLeeElDibujoTests`). El cuadro de carga y la memoria no pasan por la
+firma del dibujo. Lo que queda, en la decisión: [`../decisiones/dibujo-por-renglon.md`](../decisiones/dibujo-por-renglon.md#el-riesgo-de-datos-rezagados-2026-10-05).
+
 **I-189** (AM-11) — Minisplit, motocompresor y variador nacen en 1 polo (127 V); el minisplit de 1 TR de la
 auditoría dio 12 AWG por caída hasta pasarlo a 2 polos. Propuesta, por decidir: **A.** nacer en 2 polos (220 V)
 en un tablero con F-F de 208 a 240 V, si los espacios están libres (un minisplit de 127 V se baja a 1 polo); **B.**

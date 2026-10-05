@@ -21,6 +21,18 @@ y este commit:
 
 Pruebas: 604 en `PowerNode.Web.Tests` (6 nuevas, `FirmaDeDibujoTests`), 52 en `PowerNode.Normativa.Tests`.
 
+**El riesgo de datos rezagados, medido** (David: «¿hay forma de que se queden datos rezagados en un análisis de
+instalación?») — `e3dcde1` y este commit:
+
+- El cálculo: `LoRecordadoTests`, 600 cambios al azar; después de cada uno, lo recordado contra calcular de cero:
+  idéntico. Probada rompiendo la llave del alimentador y la de los derivados: las dos se detectan.
+- La pantalla: 600 acciones de usuario al azar en la versión anterior y en esta, la página comparada paso a paso:
+  idénticas. Probada con una firma rota (sin el tamaño de la canalización): se ve en el paso 58.
+- `LoQueLeeElDibujoTests`, guarda de lo que lee el marcado del renglón y del gabinete.
+- El cuadro de carga y la memoria no pasan por la firma del dibujo. Lo que queda, en `dibujo-por-renglon.md`.
+
+Pruebas: 611 en `PowerNode.Web.Tests` (7 nuevas), 52 en `PowerNode.Normativa.Tests`.
+
 ## 2026-10-03
 
 **A `main` y el cambio estructural explicado** (David: «haz merge a main de los bugs que corregiste… explícame el
