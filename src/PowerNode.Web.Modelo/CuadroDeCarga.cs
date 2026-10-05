@@ -1843,6 +1843,57 @@ public sealed class CuadroDeCarga
         return r.Resultado!;
     }
 
+    // ---- EL ALIMENTADOR, TAMBIÉN (I-188) ------------------------------------------------------------
+    // Se calcula siete veces por recálculo: el resultado y la comparación de 1 a 6 conductores por fase
+    // (I-162). Cambiar la longitud de un derivado o abrir un desplegable no le cambia la entrada. Su entrada
+    // es de puros valores salvo la lista de corrientes por fase, que se compara elemento por elemento.
+
+    private readonly Dictionary<LlaveDelAlimentador, (ResultadoAlimentador? Resultado, Exception? Error)> _alimentadoresRecordados = [];
+    private const int MaximoAlimentadoresRecordados = 200;
+
+    private readonly record struct LlaveDelAlimentador(SerieDeInterruptores Serie, DatosEntradaAlimentador Entrada, CorrientesComparables Corrientes);
+
+    /// <summary>Las corrientes por fase, comparadas por su contenido: la lista se compararía por referencia.</summary>
+    private readonly struct CorrientesComparables(IReadOnlyList<CorrienteDeFaseAlimentador>? lista) : IEquatable<CorrientesComparables>
+    {
+        private readonly IReadOnlyList<CorrienteDeFaseAlimentador>? _lista = lista;
+
+        public bool Equals(CorrientesComparables otra) =>
+            _lista is null ? otra._lista is null : otra._lista is not null && _lista.SequenceEqual(otra._lista);
+
+        public override bool Equals(object? obj) => obj is CorrientesComparables otra && Equals(otra);
+
+        public override int GetHashCode()
+        {
+            var h = new HashCode();
+            foreach (var x in _lista ?? [])
+                h.Add(x);
+            return h.ToHashCode();
+        }
+    }
+
+    private ResultadoAlimentador AlimentadorRecordado(DatosEntradaAlimentador entrada)
+    {
+        var llave = new LlaveDelAlimentador(Datos.SerieInterruptores, entrada with { CorrientesPorFase = null }, new CorrientesComparables(entrada.CorrientesPorFase));
+        if (!_alimentadoresRecordados.TryGetValue(llave, out var r))
+        {
+            if (_alimentadoresRecordados.Count >= MaximoAlimentadoresRecordados)
+                _alimentadoresRecordados.Clear();
+            try
+            {
+                r = (_motor.Alimentador(Datos.SerieInterruptores).Calcular(entrada), null);
+            }
+            catch (Exception ex)
+            {
+                r = (null, ex);
+            }
+            _alimentadoresRecordados[llave] = r;
+        }
+        if (r.Error is { } error)
+            System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw(error);
+        return r.Resultado!;
+    }
+
     private void CalcularCircuitos()
     {
         _desgloses.Clear();
@@ -2922,7 +2973,7 @@ public sealed class CuadroDeCarga
         //
         // N: el automático empieza en 1 y sube hasta el tope; fijado, va de N a N, exacto — I-162.
         // R4-3: con N fijado de 2 o más, 1/0 AWG de piso (310-10(h)(1)) en vez de rechazar el N.
-        ResultadoAlimentador Calcular(CanalizacionDelTablero canal, int n, int tope, bool pisoDeParalelo = false) => _motor.Alimentador(Datos.SerieInterruptores).Calcular(new DatosEntradaAlimentador(
+        ResultadoAlimentador Calcular(CanalizacionDelTablero canal, int n, int tope, bool pisoDeParalelo = false) => AlimentadorRecordado(new DatosEntradaAlimentador(
                 // Ya con el factor de demanda de cada tipo (R-17): por eso el motor va con F.D. 1 abajo.
                 CargaContinuaVA: Resumen.ContinuaDemandadaVA + (Resumen.Superficie?.ContinuaDemandadaVA ?? 0m),
                 CargaNoContinuaVA: Resumen.NoContinuaDemandadaVA + Resumen.Minimo220_52DemandadoVA + (Resumen.Superficie?.NoContinuaDemandadaVA ?? 0m),

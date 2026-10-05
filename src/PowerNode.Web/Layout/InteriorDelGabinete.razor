@@ -273,6 +273,37 @@ else
 
     private DatosDelTablero Datos => Cuadro.Datos;
 
+    // ---- SE DIBUJA SOLO SI CAMBIÓ LO QUE ENSEÑA (I-188) ---------------------------------------------
+    // La captura se vuelve a dibujar con cada cambio; el gabinete casi nunca cambia (una longitud, una
+    // temperatura o un desplegable no lo mueven) y dibujarlo eran ~23 ms en .NET más lo del navegador. La
+    // firma lleva todo lo que el dibujo lee: si se agrega algo al dibujo, va también aquí.
+
+    private string? _firma;
+
+    protected override bool ShouldRender()
+    {
+        var firma = Firma();
+        if (firma == _firma)
+            return false;
+        _firma = firma;
+        return true;
+    }
+
+    private string Firma()
+    {
+        var s = new System.Text.StringBuilder();
+        s.Append(Cuadro.AvisoDelPrincipal).Append('|').Append(Cuadro.UnaSolaBarra).Append('|')
+         .Append(Datos.UsaInterruptorPrincipal).Append('|').Append(Datos.PrincipalEnEspacios).Append('|')
+         .Append(Datos.NumeroEspacios).Append('|').Append(Datos.PolosDelPrincipal).Append('|')
+         .Append(Datos.Sistema).Append('|').AppendJoin(',', Datos.Barras).Append('|')
+         .Append(Cuadro.InterruptorPrincipalA).Append('|').AppendJoin(',', Cuadro.EspaciosDelPrincipal);
+        foreach (var b in Cuadro.Gabinete)
+            s.Append('\n').Append(b.Circuito.Espacio).Append('|').Append(b.Fila).Append('|').Append(b.Columna).Append('|')
+             .Append(b.Espacios).Append('|').Append(b.Numeros).Append('|').Append(b.Barras).Append('|')
+             .Append(b.EsPrincipal).Append('|').Append(b.Ocupado).Append('|').Append(Nombre(b)).Append('|').Append(Amperes(b));
+        return s.ToString();
+    }
+
     /// <summary>Un renglón del gabinete: un polo del QO a 1.2 (20 × 1.2).</summary>
     private const int Renglon = 24;
 
