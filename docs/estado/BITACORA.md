@@ -29,7 +29,7 @@ AM-5: B … AM-7: A2 … P-1: sí · P-2: aceptar · P-3: 1») — en este orden
   y [`../decisiones/descarga-en-brotli.md`](../decisiones/descarga-en-brotli.md), CONFIRMADAS · David.
 
 Pruebas: 641 en `PowerNode.Web.Tests` (30 nuevas, `CriterioDeMotores20261005Tests`), 52 en `PowerNode.Normativa.Tests`.
-Lo de criterio y P-3 están en la rama; a `main`, cuando David lo diga.
+A `main` en avance rápido (`6d7de14..a6cab41`, David: «quiero todo en main»), con build y las pruebas en Release antes.
 
 **I-188, el cambio estructural** (David: «sí, las dos fases juntas; por ahora») — `02a71ca`, `71ecdab`, `b49763f`
 y este commit:
