@@ -247,7 +247,9 @@ memoria y guía, en claro y en oscuro).
   (`backdrop-filter`). Los títulos de tarjeta, en minúsculas y en tinta; las mayúsculas quedan para
   encabezados de tabla y subtítulos.
 - **El foco** del teclado, gris (tinta en claro, Mist en oscuro), ya no del azul. El campo enfocado
-  marca su línea, como en Linear.
+  marca su línea, como en Linear. **Sin fundido** (2026-10-05, I-188): la transición de 120 ms repintaba la
+  página entera en cada cuadro (una sola capa de ~5000 px con 42 espacios), ~70 ms por cada Tab. Los botones
+  la conservan.
 
 **Dos trampas que costaron tiempo:**
 

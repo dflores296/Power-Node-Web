@@ -213,7 +213,7 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-185 · Quitar la única carga dejaba una «carga total» fantasma con sus VA, su protección y las reglas de otra clase: la lavadora de 20 A, en 15 A (AM-2, AM-3) | P1 | **Cerrado** | `585a857` |
 | I-186 · Sin «Tablero nuevo»: empezar de cero pedía otra pestaña (AM-8) | P2 | **Cerrado** | `585a857` |
 | I-187 · Carga inicial de 40 s a 3 min por pestaña (AM-9) | P3 | **Cerrado** (el mensaje; la descarga sigue en I-152) | `585a857` |
-| I-188 · La página se congeló (> 45 s) al capturar varios campos seguidos (AM-10) | P2 | Propuesta, por decidir (David): [`dibujo-por-renglon.md`](../decisiones/dibujo-por-renglon.md) | — |
+| I-188 · La página se congeló (> 45 s) al capturar varios campos seguidos (AM-10) | P2 | **Cerrado** (cada cambio, de ~330 a ~160 ms; juntar ráfagas y AOT, después): [`dibujo-por-renglon.md`](../decisiones/dibujo-por-renglon.md) | `02a71ca`, `71ecdab`, `b49763f` |
 | I-189 · Minisplit, motocompresor y variador arrancan en 1 polo (127 V) (AM-11) | P3 | Propuesta, por decidir (David) | — |
 | I-190 · La lista de HP repetía «1/2 HP — 8.90 A» y «1/2 HP — 4.90 A»; solo el grupo decía la tensión (AM-12) | P3 | **Cerrado** | `585a857` |
 | I-191 · La columna Descripción decía «—» con la carga capturada con nombre (AM-13) | P3 | **Cerrado** | `585a857` |
@@ -1060,6 +1060,16 @@ el recálculo ~50 ms (el alimentador, 20–40, porque se calcula siete veces), e
 gabinete ~23 ms en .NET, y el navegador ~100 ms, sobre todo por esas dos. Sin tabla ni gabinete, el cambio baja de
 ~240 a ~115 ms. La propuesta pasa a dos fases (recordar el alimentador y el gabinete; luego un componente por
 renglón), con B y C para después: [`../decisiones/dibujo-por-renglon.md`](../decisiones/dibujo-por-renglon.md).
+
+David contestó (2026-10-05): las dos fases juntas; B y C, por ahora no. Corrección: fase 1 (`02a71ca`), el
+alimentador recordado por su entrada y el gabinete con `ShouldRender`; fase 2 (`71ecdab`), `RenglonMemorizado` por
+circuito con `FirmaDeDibujo`, que lleva todas las propiedades del circuito y sus líneas (`FirmaDeDibujoTests` cambia
+cada una por reflexión). Al medir la fase 2 salió lo que más pesaba, y no era el cálculo (`b49763f`): `teclado.js`
+escribía `--alto-ayuda` en el `<body>` en cada cambio de campo y la página entera recalculaba su estilo (~60 ms),
+y la transición de 120 ms del borde de los campos repintaba la página entera ~10 veces por Tab (~70 ms). Con todo:
+una longitud, de 329 a 158 ms; ocho seguidas, de 2.9 a 1.3 s; lo que queda es de .NET (~55 ms de recálculo y
+~60 ms de dibujo). Lo que se ve, idéntico a `39a28d2` en 32 pasos con Playwright; el teclado, igual. Pruebas:
+`FirmaDeDibujoTests` (6).
 
 **I-189** (AM-11) — Minisplit, motocompresor y variador nacen en 1 polo (127 V); el minisplit de 1 TR de la
 auditoría dio 12 AWG por caída hasta pasarlo a 2 polos. Propuesta, por decidir: **A.** nacer en 2 polos (220 V)

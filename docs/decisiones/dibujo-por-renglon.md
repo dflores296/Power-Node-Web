@@ -1,8 +1,10 @@
 # Rapidez de la captura: recalcular y dibujar solo lo que cambió
 
 **PROPUESTA · Claude · 2026-10-03** — hallazgo **I-188** (auditoría de motores del 2026-10-03, AM-10: la
-página se congeló cuatro veces, más de 45 s, al capturar varios campos seguidos). No implementada: falta que
-David decida. No cambia ningún número: es cómo se dibuja la pantalla.
+página se congeló cuatro veces, más de 45 s, al capturar varios campos seguidos). David contestó el
+2026-10-05 («sí, las dos fases juntas; por ahora»): implementada en `02a71ca` (fase 1), `71ecdab` (fase 2) y
+`b49763f` (lo del navegador, que salió al medir) — ver [Lo implementado](#lo-implementado-2026-10-05). No cambia
+ningún número: es cómo se dibuja la pantalla.
 
 ## El problema
 
@@ -88,3 +90,50 @@ enseña no entra en su firma, ese renglón se queda con el valor viejo. Para evi
 1. ¿Fase 1 y fase 2 juntas, o la fase 1 primero y medir? **Recomendación: juntas**, en una sola rama, cada fase
    en su commit y medida por separado.
 2. ¿Lo de juntar ráfagas y lo de AOT se quedan para después, como dice arriba? **Recomendación: sí.**
+
+## Respuestas de David (2026-10-05)
+
+«sí, las dos fases juntas; por ahora»: las dos fases en una rama, cada una en su commit; juntar ráfagas y AOT
+se quedan para después.
+
+## Lo implementado (2026-10-05)
+
+| Commit | Qué |
+|---|---|
+| `02a71ca` | Fase 1. `CuadroDeCarga.AlimentadorRecordado`: el cálculo del alimentador se recuerda por su entrada, como los derivados; la lista de corrientes por fase se compara por contenido. `InteriorDelGabinete.ShouldRender` con una firma de todo lo que dibuja. |
+| `71ecdab` | Fase 2. `RenglonMemorizado` envuelve el marcado de cada circuito sin cambiarlo; `FirmaDeDibujo` (en el modelo) lleva todas las propiedades del circuito y de sus líneas, y los datos del tablero salvo la identificación. `FirmaDeDibujoTests` cambia cada propiedad por reflexión y exige que la firma cambie; se probó quitando propiedades a propósito. Con el desplegable abierto, el renglón se dibuja siempre. |
+| `b49763f` | Lo del navegador (abajo): `--alto-ayuda` solo si cambió y registrada sin herencia; sin transición en los campos. |
+
+**Lo que salió al medir.** Con la fase 2, al cambiar una longitud se dibuja 1 renglón de 42 y el dibujo en .NET
+baja de ~96 a ~59 ms (las firmas cuestan ~11 ms), pero el total casi no se movía. Una traza de Chrome mostró que
+el navegador gastaba más que .NET, y no por el cálculo:
+
+- **Un recálculo de estilos de toda la página, ~60 ms, en cada cambio de campo.** `teclado.js` escribía
+  `--alto-ayuda` en el `<body>` cada vez que mostraba la ayuda; una variable de CSS se hereda, así que la página
+  entera (~6 600 elementos) recalculaba su estilo. Pasaba también al moverse con Tab sin cambiar nada.
+- **La página entera repintada unas 10 veces por cambio, ~70 ms.** La transición de 120 ms del borde de los
+  campos (I-176) pinta en cada cuadro, y la página es una sola capa de ~5 000 px: cada cuadro la repintaba toda.
+
+Corregidos los dos, por un cambio de longitud: estilos ~1 ms, un pintado de ~7 ms.
+
+**Medido** con el mismo tablero (42 espacios, 26 circuitos) y el mismo guion, publicación en Release, mediana de 9
+(la ráfaga, una corrida):
+
+| Cambio | Antes (`39a28d2`) | Fase 1 | Fases 1 y 2 | Con lo del navegador |
+|---|---|---|---|---|
+| Longitud de un circuito | 329 ms | 272 ms | 272 ms | **158 ms** |
+| Temperatura ambiente (todo se recalcula) | 274 ms | 220 ms | 287 ms | **192 ms** |
+| Abrir o cerrar un desplegable | 186 ms | 172 ms | 185 ms | **112 ms** |
+| Carga de una línea del desplegable | 277 ms | 251 ms | 299 ms | **181 ms** |
+| Ráfaga de 8 longitudes | 2.9 s | 3.0 s | 3.1 s | **1.3 s** |
+
+Las variaciones de ±30 ms entre corridas son ruido de la máquina; lo que se mantiene es la última columna, cerca
+de la mitad. Lo que queda es de .NET: ~55 ms de recálculo y ~60 ms de dibujo por cambio. Bajarlo más es juntar
+ráfagas o AOT, que se quedaron para después.
+
+**Lo que se ve, igual.** Un guion de Playwright guarda el HTML de la captura y lo que enseña cada campo después de
+32 pasos (abrir un archivo, longitud, descripción, temperatura, desplegables, motor con la Excepción 2 marcada y
+desmarcada, quitar líneas, renombrar y cambiar canalización, optimizar y deshacer, arrastrar un circuito, serie,
+tensión, fases, «Nuevo» y volver a abrir el mismo archivo, editar después de reabrir). En la versión anterior y en
+esta: idénticos. El teclado (Enter, flechas, Esc, Ctrl+Enter, Alt+2) y la barra de ayuda, iguales.
+

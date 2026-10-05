@@ -2,6 +2,25 @@
 
 Registro de acciones por sesión, con hallazgo y commit.
 
+## 2026-10-05
+
+**I-188, el cambio estructural** (David: «sí, las dos fases juntas; por ahora») — `02a71ca`, `71ecdab`, `b49763f`
+y este commit:
+
+- Antes de tocar nada, una línea base con dos guiones de Playwright sobre la publicación en Release: tiempos por
+  tipo de cambio con un tablero de 42 espacios, y el HTML y los valores de la captura después de 32 pasos.
+- Fase 1: el alimentador recordado por su entrada (se calculaba siete veces por recálculo) y el gabinete que solo
+  se dibuja si cambia. Fase 2: `RenglonMemorizado` y `FirmaDeDibujo`; al cambiar una longitud se dibuja 1 renglón
+  de 42.
+- La fase 2 casi no movía el total. Una traza de Chrome mostró el porqué: `--alto-ayuda` escrita en el `<body>` en
+  cada cambio de campo (recálculo de estilos de toda la página, ~60 ms) y la transición del borde de los campos
+  (la página repintada ~10 veces por Tab, ~70 ms). Corregidos los dos.
+- Una longitud, de 329 a 158 ms; ocho seguidas, de 2.9 a 1.3 s. Lo que se ve, idéntico a la base en los 32 pasos;
+  el teclado (Enter, flechas, Esc, Ctrl+Enter, Alt+2) y la barra de ayuda, iguales; el foco, visto en oscuro.
+- El fundido del borde de los campos se quitó (piel Linear, I-176): anotado en `marca.md`.
+
+Pruebas: 604 en `PowerNode.Web.Tests` (6 nuevas, `FirmaDeDibujoTests`), 52 en `PowerNode.Normativa.Tests`.
+
 ## 2026-10-03
 
 **A `main` y el cambio estructural explicado** (David: «haz merge a main de los bugs que corregiste… explícame el
