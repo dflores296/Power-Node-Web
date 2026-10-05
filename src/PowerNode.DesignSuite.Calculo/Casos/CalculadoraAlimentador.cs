@@ -253,12 +253,30 @@ public class CalculadoraAlimentador(
         var techo = proteccion.TechoProteccion430_62A;
         var excedeTecho = proteccion.ProteccionExcedeTecho430_62;
 
+        //
+        // M-22 (Power Node Web, AM-5, CONFIRMADA · David · 2026-10-05): la lectura literal se queda, y
+        // la cita dice además las dos cosas que la sostienen: que el conductor queda protegido (240-4) y,
+        // cuando es el caso, que no había un tamaño estándar entre la capacidad mínima y el techo — el
+        // anterior queda debajo de lo que pide 430-24, así que no hay principal más chico que escoger.
         if (excedeTecho && seleccion.AmpacidadUtilizableTotalA > capacidadMin && breaker <= seleccion.AmpacidadUtilizableTotalA)
         {
+            var conductor = $"{Calibre.UnidadDe(calibreFinal.Designacion)}{(nParalelo > 1 ? $" x{nParalelo}" : "")}";
+            var ampacidad = seleccion.AmpacidadUtilizableTotalA;
+            var protegido = breaker == ampacidad
+                ? $"{breaker} A = ampacidad del {conductor}: el conductor queda protegido — 240-4."
+                : $"{breaker} A < {ampacidad:0.##} A, la ampacidad del {conductor}: el conductor queda protegido — 240-4.";
+            var anterior = techo is { } t ? proteccionEstandar.AnteriorEstandar(t) : null;
+            var sinTamanoIntermedio = techo is { } maximo && (anterior is null || anterior < capacidadMin)
+                ? $" No hay tamaño estándar entre {capacidadMin:0.##} A y el techo de {maximo:0.##} A: " +
+                  (anterior is { } previo
+                      ? $"el anterior, {previo} A, queda debajo de la capacidad que pide 430-24."
+                      : "ninguno cabe debajo del techo.")
+                : "";
             citas.Add(new Cita("430-62(b)",
-                $"El conductor instalado ({calibreFinal}{(nParalelo > 1 ? $" x{nParalelo}" : "")}) tiene una ampacidad de " +
-                $"{seleccion.AmpacidadUtilizableTotalA:0.##} A, mayor que los {capacidadMin:0.##} A que exigía 430-24, así que se permite basar " +
-                $"la protección en la ampacidad del conductor: los {breaker} A quedan permitidos aunque excedan el techo de 430-62(a)."));
+                $"El conductor instalado ({conductor}) tiene una ampacidad de " +
+                $"{ampacidad:0.##} A, mayor que los {capacidadMin:0.##} A que exigía 430-24, así que se permite basar " +
+                $"la protección en la ampacidad del conductor: los {breaker} A quedan permitidos aunque excedan el techo de 430-62(a). " +
+                protegido + sinTamanoIntermedio));
             excedeTecho = false;
         }
 
