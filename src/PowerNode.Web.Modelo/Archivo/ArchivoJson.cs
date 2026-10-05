@@ -122,6 +122,8 @@ public sealed class CircuitoJson
     // Formato 13 — M-23: los HP del motor del variador y el bypass (430-122(b)).
     public decimal? HpMotorVariador { get; set; }
     public bool? ConBypass { get; set; }
+    // Formato 13 — I-189: la tensión de placa de un equipo de A/C o la de entrada de un variador.
+    public TensionDePlaca? TensionDePlaca { get; set; }
     // Formato 10: el nombre del equipo del renglón, aparte del del espacio (David, 2026-09-30).
     public string? DescripcionDelEquipo { get; set; }
     // Formato 4 — I-120, I-121: el servicio de un motor y el par no simultáneo.
@@ -161,6 +163,7 @@ public sealed class CircuitoJson
         ProteccionMaximaVariador = c.ProteccionMaximaVariadorA == 0m ? null : c.ProteccionMaximaVariadorA,
         HpMotorVariador = c.HpMotorDelVariador,
         ConBypass = c.VariadorConBypass ? true : null,
+        TensionDePlaca = c.TensionDePlaca,
         DescripcionDelEquipo = string.IsNullOrWhiteSpace(c.DescripcionDelEquipo) ? null : c.DescripcionDelEquipo,
         Servicio = c.Servicio,
         EspecificacionServicio = c.EspecificacionServicio == PowerNode.DesignSuite.Calculo.TablasNom.EspecificacionDeTiempo.Continuo ? null : c.EspecificacionServicio,
@@ -212,6 +215,7 @@ public sealed class CircuitoJson
         c.ProteccionMaximaVariadorA = ProteccionMaximaVariador is >= 0m ? ProteccionMaximaVariador.Value : c.ProteccionMaximaVariadorA;
         c.HpMotorDelVariador = HpMotorVariador is > 0m ? HpMotorVariador : null;
         c.VariadorConBypass = ConBypass ?? c.VariadorConBypass;
+        c.TensionDePlaca = TensionDePlaca is { } placa && Enum.IsDefined(placa) ? placa : null;
         c.DescripcionDelEquipo = DescripcionDelEquipo ?? c.DescripcionDelEquipo;
         c.Servicio = Servicio;
         c.EspecificacionServicio = EspecificacionServicio ?? c.EspecificacionServicio;
@@ -255,6 +259,16 @@ public sealed class CircuitoJson
         {
             avisos.Add($"El circuito {Espacio} trae la protección del motor en «manual» sin el valor; se abrió con el máximo de 430-52.");
             c.CriterioProteccion = CriterioDeProteccion.Maximo430_52;
+        }
+
+        // I-189. ANTES DEL FORMATO 13 NO HABÍA TENSIÓN DE PLACA: se toma la de los polos con que se guardó, para que
+        // el tablero abra y calcule igual, y se avisa para que se verifique con la placa.
+        if (version < 13 && c.PideTensionDePlaca && c.TieneCarga && c.TensionDePlaca is null
+            && TensionesDePlaca.ConPolos(datos, c.Polos) is { } dePolos)
+        {
+            c.TensionDePlaca = dePolos;
+            avisos.Add($"El circuito {Espacio} no traía la tensión de placa (archivo de formato {version}): se tomó la de sus " +
+                       $"{c.Polos} {(c.Polos == 1 ? "polo" : "polos")}, {dePolos.Texto()}. Verifícala con la placa del equipo.");
         }
     }
 
@@ -331,6 +345,8 @@ public sealed class AparatoJson
     // Formato 13 — M-23: los HP del motor del variador y el bypass, guardados para cuando regrese a su renglón.
     public decimal? HpMotorVariador { get; set; }
     public bool? ConBypass { get; set; }
+    // Formato 13 — I-189: la tensión de placa, guardada para cuando el equipo regrese a su renglón.
+    public TensionDePlaca? TensionDePlaca { get; set; }
 
     public static AparatoJson De(CargaDelCircuito a) => new()
     {
@@ -350,6 +366,7 @@ public sealed class AparatoJson
         ProteccionMaxima = a.Clase == ClaseDeAparato.Variador && a.ProteccionMaximaA > 0m ? a.ProteccionMaximaA : null,
         HpMotorVariador = a.Clase == ClaseDeAparato.Variador ? a.HpMotorDelVariador : null,
         ConBypass = a.Clase == ClaseDeAparato.Variador && a.ConBypass ? true : null,
+        TensionDePlaca = a.TensionDePlaca,
     };
 
     internal CargaDelCircuito Crear(string quien, List<string> avisos)
@@ -384,6 +401,7 @@ public sealed class AparatoJson
             a.HpMotorDelVariador = HpMotorVariador is > 0m ? HpMotorVariador : null;
             a.ConBypass = ConBypass ?? a.ConBypass;
         }
+        a.TensionDePlaca = TensionDePlaca is { } placa && Enum.IsDefined(placa) ? placa : null;
         return a;
     }
 }

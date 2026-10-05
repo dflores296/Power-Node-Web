@@ -94,6 +94,7 @@ public class PendientesDeProbar20260930Tests
         c.CorrientePlacaA = rla;
         if (polos > 1)
             Assert.Null(cuadro.CambiarPolos(c, polos));
+        cuadro.ConSuTension(c);
         cuadro.Recalcular();
         return c;
     }
@@ -107,6 +108,7 @@ public class PendientesDeProbar20260930Tests
         c.ProteccionMaximaA = mop;
         if (polos > 1)
             Assert.Null(cuadro.CambiarPolos(c, polos));
+        cuadro.ConSuTension(c);
         cuadro.Recalcular();
         return c;
     }

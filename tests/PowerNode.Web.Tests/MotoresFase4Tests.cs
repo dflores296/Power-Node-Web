@@ -54,6 +54,7 @@ public class MotoresFase4Tests
         c.CapturaMotor = CapturaDeMotor.Variador;
         c.CorrienteEntradaVariadorA = 20m;
         c.ProteccionMaximaVariadorA = 40m;
+        cuadro.ConSuTension(c);
         cuadro.Recalcular();
 
         Assert.Null(c.Error);
@@ -79,6 +80,7 @@ public class MotoresFase4Tests
         var c = Trifasico(cuadro, 1);
         c.CapturaMotor = CapturaDeMotor.Variador;
         c.CorrienteEntradaVariadorA = 20m;
+        cuadro.ConSuTension(c);
         cuadro.Recalcular();
         Assert.Contains("110-3(b)", c.Error);
 
@@ -179,6 +181,7 @@ public class MotoresFase4Tests
         aire.ProteccionMaximaA = 15m;
         calefaccion.NoSimultaneoCon = 3;
         aire.NoSimultaneoCon = 1;
+        cuadro.ConSuTension(aire);
         cuadro.Recalcular();
         Assert.True(aire.OmitidoPorNoSimultaneo); // 1270 VA contra 3000 VA
 
@@ -222,6 +225,8 @@ public class MotoresFase4Tests
         cuarto.Categoria = CategoriaDeCarga.AireAcondicionado;
         cuarto.PlacaAire = PlacaDeAireAcondicionado.Habitacion;
         cuarto.CorrientePlacaA = 10m;
+        cuadro.ConSuTension(aire);
+        cuadro.ConSuTension(cuarto);
         cuadro.Recalcular();
 
         Assert.Contains("Medio de desconexión — 430-110(a): 115 % × 15.20 A = 17.48 A", Memoria(cuadro, motor));

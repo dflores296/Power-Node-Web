@@ -204,6 +204,7 @@ public class RegresionAuditoria20260929Tests
         c.PlacaAire = PlacaDeAireAcondicionado.CorrienteNominal;
         c.CorrientePlacaA = 16m;
         Assert.Null(cuadro.CambiarPolos(c, 2));
+        cuadro.ConSuTension(c);
         cuadro.Recalcular();
 
         var r = c.Resultado!;
@@ -246,6 +247,7 @@ public class RegresionAuditoria20260929Tests
         c.CorrienteEntradaVariadorA = 30m;
         c.ProteccionMaximaVariadorA = 50m;
         Assert.Null(cuadro.CambiarPolos(c, 3));
+        cuadro.ConSuTension(c);
         cuadro.Recalcular();
 
         var r = c.Resultado!;

@@ -814,7 +814,43 @@ public sealed class CuadroDeCarga
             return motivo;
 
         circuito.Polos = circuito.PolosElegidos = polos;
+        // I-189: en un equipo con tensión de placa, los polos y la tensión van juntos. Sin ella, sigue faltando.
+        if (circuito.TensionDePlaca is { } placa && placa.Polos() != polos)
+            circuito.TensionDePlaca = TensionesDePlaca.ConPolos(Datos, polos);
         Recalcular();
+        return null;
+    }
+
+    /// <summary>
+    /// <b>Escoge la tensión de placa</b> de un equipo de A/C o de la entrada de un variador, y con ella los polos —
+    /// I-189. Si los polos no se pueden cambiar, no se cambia nada y se devuelve el motivo. <c>null</c>: la quita
+    /// (el circuito queda pidiéndola).
+    /// </summary>
+    public string? CambiarTensionDePlaca(CircuitoDelCuadro circuito, TensionDePlaca? tension)
+    {
+        if (tension is { } t && t.Polos() != circuito.Polos && CambiarPolos(circuito, t.Polos()) is { } motivo)
+            return motivo;
+        circuito.TensionDePlaca = tension;
+        Recalcular();
+        return null;
+    }
+
+    /// <summary>
+    /// Lo que falta o no cuadra de la tensión de placa de un equipo que la pide — I-189. <c>null</c> si está bien.
+    /// </summary>
+    private string? ErrorDeTensionDePlaca(CircuitoDelCuadro c)
+    {
+        if (!c.PideTensionDePlaca)
+            return null;
+        var cual = c.EsVariador ? "la tensión de entrada del variador" : "la tensión de placa del equipo";
+        if (c.TensionDePlaca is not { } t)
+            return $"Falta {cual}: escógela en el desplegable (la flecha junto a la descripción). De ella salen los polos del circuito.";
+        if (!t.EsDe(Datos))
+            return $"La tensión de placa ({t.Texto()}) no es de este tablero ({Datos.EtiquetaSistema}, {Datos.TensionFaseFaseV:0.##} V): " +
+                   "escoge otra, o revisa el equipo.";
+        if (t.Polos() != c.Polos)
+            return $"La tensión de placa ({t.Texto()}) va con {t.Polos()} {(t.Polos() == 1 ? "polo" : "polos")} y el circuito tiene {c.Polos}: " +
+                   "escoge la tensión de nuevo, o cambia los polos.";
         return null;
     }
 
@@ -2445,6 +2481,11 @@ public sealed class CuadroDeCarga
     /// </summary>
     private void CalcularVariador(CircuitoDelCuadro c, CanalizacionDelTablero canal)
     {
+        if (ErrorDeTensionDePlaca(c) is { } sinTension)
+        {
+            c.Error = sinTension;
+            return;
+        }
         // M-23 (AM-7): con bypass, el motor con su FLC de tabla a la tensión del circuito y su Tabla 430-52.
         DesviacionDelVariador? bypass = null;
         if (c.VariadorConBypass)
@@ -2519,6 +2560,11 @@ public sealed class CuadroDeCarga
     /// </summary>
     private void CalcularAireAcondicionado(CircuitoDelCuadro c, CanalizacionDelTablero canal)
     {
+        if (ErrorDeTensionDePlaca(c) is { } sinTension)
+        {
+            c.Error = sinTension;
+            return;
+        }
         var porPlaca = c.PlacaAire == PlacaDeAireAcondicionado.AmpacidadYProteccion;
         var deHabitacion = c.PlacaAire == PlacaDeAireAcondicionado.Habitacion;
         var entrada = new DatosEntradaCircuitoDerivado440(

@@ -45,8 +45,9 @@ public static class ArchivoDelCuadro
     /// 2026-09-29, P1-2), y el motor que no arranca con la Tabla 430-52 (P1-1); la 10 leería todo como
     /// seco y perdería la Excepción 2. 12: el criterio de la protección del motor y su valor fijo (M-20); la
     /// 11 abriría todo en el máximo. Un motor de la 11 o anterior abre en el máximo: lo de antes. 13: el motor
-    /// de diseño B a E con arrancador marcado 75 °C (M-21) y el variador con bypass y los HP de su motor (M-23); la
-    /// 12 los perdería.
+    /// de diseño B a E con arrancador marcado 75 °C (M-21), el variador con bypass y los HP de su motor (M-23) y la
+    /// tensión de placa de los equipos de A/C y de los variadores (I-189); la 12 los perdería. Un equipo de A/C o un
+    /// variador de la 12 o anterior abre con la tensión de sus polos, y se avisa.
     /// </summary>
     public const int Version = 13;
 

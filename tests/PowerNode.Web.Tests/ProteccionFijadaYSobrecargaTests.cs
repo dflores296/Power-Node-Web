@@ -280,6 +280,7 @@ public class ProteccionFijadaYSobrecargaTests
         c.CapturaMotor = CapturaDeMotor.Variador;
         c.CorrienteEntradaVariadorA = 20m;
         c.ProteccionMaximaVariadorA = 40m;
+        cuadro.ConSuTension(c);
         cuadro.Recalcular();
 
         Assert.Equal("430-124(a), 430-126", c.Sobrecarga!.Referencia);
@@ -300,6 +301,8 @@ public class ProteccionFijadaYSobrecargaTests
         cuarto.Categoria = CategoriaDeCarga.AireAcondicionado;
         cuarto.PlacaAire = PlacaDeAireAcondicionado.Habitacion;
         cuarto.CorrientePlacaA = 10m;
+        cuadro.ConSuTension(aire);
+        cuadro.ConSuTension(cuarto);
         cuadro.Recalcular();
 
         Assert.Equal("440-52", aire.Sobrecarga!.Referencia);

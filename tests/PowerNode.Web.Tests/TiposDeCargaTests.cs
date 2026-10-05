@@ -39,6 +39,8 @@ public class TiposDeCargaTests
         placa(c);
         if (polos > 1)
             Assert.Null(cuadro.CambiarPolos(c, polos));
+        if (c.PideTensionDePlaca)
+            cuadro.ConSuTension(c);
         cuadro.Recalcular();
         return c;
     }
@@ -251,6 +253,7 @@ public class TiposDeCargaTests
         c.Categoria = CategoriaDeCarga.AireAcondicionado;
         c.AmpacidadMinimaA = 10m;
         c.ProteccionMaximaA = 15m;
+        cuadro.ConSuTension(c);
         cuadro.Recalcular();
 
         Assert.False(c.TieneDesglose);           // los aparatos se conservan, no cuentan
@@ -277,6 +280,7 @@ public class TiposDeCargaTests
         c.Categoria = CategoriaDeCarga.AireAcondicionado;
         c.AmpacidadMinimaA = 18m;
         c.ProteccionMaximaA = 30m;
+        cuadro.ConSuTension(c);
         cuadro.Recalcular();
 
         Assert.Single(c.Cargas);

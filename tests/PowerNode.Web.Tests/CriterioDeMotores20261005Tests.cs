@@ -1,6 +1,7 @@
 using PowerNode.DesignSuite.Calculo.Casos;
 using PowerNode.Web.Modelo;
 using PowerNode.Web.Modelo.Archivo;
+using PowerNode.Web.Modelo.Memoria;
 
 namespace PowerNode.Web.Tests;
 
@@ -144,7 +145,7 @@ public class CriterioDeMotores20261005Tests
         c.ProteccionMaximaVariadorA = maximaA;
         c.HpMotorDelVariador = hp;
         c.VariadorConBypass = bypass;
-        Assert.Null(cuadro.CambiarPolos(c, 3));
+        Assert.Null(cuadro.CambiarTensionDePlaca(c, TensionDePlaca.V440a460Trifasica));
         cuadro.Recalcular();
         return (cuadro, c);
     }
@@ -268,6 +269,200 @@ public class CriterioDeMotores20261005Tests
         Assert.Contains(c.Resultado!.Citas, x => x.Referencia == "430-122(b)");
     }
 
+    // ---- AM-11 · I-189: la tensión de placa ----------------------------------------------------------
+
+    /// <summary>El minisplit de 1 TR del caso A: MCA 10.5 A, MOCP 15 A, a 20 m, en un tablero 3F-4H 220/127 V.</summary>
+    private static (CuadroDeCarga Cuadro, CircuitoDelCuadro Minisplit) UnMinisplit()
+    {
+        var cuadro = Nuevo();
+        var c = Espacio(cuadro, 1);
+        c.Categoria = CategoriaDeCarga.AireAcondicionado;
+        c.PlacaAire = PlacaDeAireAcondicionado.AmpacidadYProteccion;
+        c.AmpacidadMinimaA = 10.5m;
+        c.ProteccionMaximaA = 15m;
+        c.LongitudM = 20m;
+        cuadro.Recalcular();
+        return (cuadro, c);
+    }
+
+    /// <summary>
+    /// Sin valor por omisión: un equipo de A/C sin tensión de placa no se calcula y la pide, como la MOCP. Antes
+    /// nacía en 1 polo y se calculaba a 127 V sin que nadie lo decidiera.
+    /// </summary>
+    [Fact]
+    public void I189_SinTensionDePlacaNoSeCalculaYLaPide()
+    {
+        var (_, c) = UnMinisplit();
+        Assert.True(c.PideTensionDePlaca);
+        Assert.Null(c.TensionDePlaca);
+        Assert.Null(c.Resultado);
+        Assert.Equal("Falta la tensión de placa del equipo: escógela en el desplegable (la flecha junto a la descripción). " +
+                     "De ella salen los polos del circuito.", c.Error);
+    }
+
+    /// <summary>
+    /// El minisplit de la auditoría: a 127 V (1 polo) la caída lo subía a 12 AWG; con su placa de 208/230 V el circuito
+    /// pasa a 2 polos y queda en 14 AWG.
+    /// </summary>
+    [Fact]
+    public void I189_LosPolosSalenDeLaTensionDePlaca()
+    {
+        var (cuadro, c) = UnMinisplit();
+        Assert.Null(cuadro.CambiarTensionDePlaca(c, TensionDePlaca.V127Monofasica));
+        Assert.Equal(1, c.Polos);
+        Assert.Equal("12", c.Resultado!.CalibreFase.Designacion);
+
+        Assert.Null(cuadro.CambiarTensionDePlaca(c, TensionDePlaca.V208a230Monofasica));
+        Assert.Equal(2, c.Polos);
+        Assert.Null(c.Error);
+        Assert.Equal("14", c.Resultado!.CalibreFase.Designacion);
+        Assert.Equal(15m, c.Resultado.ProteccionA);
+    }
+
+    /// <summary>Al cambiar los polos en la columna P, la tensión los sigue; sin tensión capturada, sigue faltando.</summary>
+    [Fact]
+    public void I189_LaTensionSigueALosPolos()
+    {
+        var (cuadro, c) = UnMinisplit();
+        Assert.Null(cuadro.CambiarPolos(c, 2));
+        Assert.Null(c.TensionDePlaca); // no la inventa
+
+        Assert.Null(cuadro.CambiarTensionDePlaca(c, TensionDePlaca.V208a230Monofasica));
+        Assert.Null(cuadro.CambiarPolos(c, 3));
+        Assert.Equal(TensionDePlaca.V220Trifasica, c.TensionDePlaca);
+        Assert.Null(cuadro.CambiarPolos(c, 1));
+        Assert.Equal(TensionDePlaca.V127Monofasica, c.TensionDePlaca);
+        Assert.Null(c.Error);
+    }
+
+    /// <summary>Si los polos no caben, la tensión no cambia y se dice por qué.</summary>
+    [Fact]
+    public void I189_SiNoCabenLosPolosNoCambia()
+    {
+        var (cuadro, c) = UnMinisplit();
+        Assert.Null(cuadro.CambiarTensionDePlaca(c, TensionDePlaca.V127Monofasica));
+        var vecino = Espacio(cuadro, 3);
+        vecino.Categoria = CategoriaDeCarga.Alumbrado;
+        vecino.NoContinua = 500m;
+        cuadro.Recalcular();
+
+        Assert.NotNull(cuadro.CambiarTensionDePlaca(c, TensionDePlaca.V208a230Monofasica));
+        Assert.Equal(TensionDePlaca.V127Monofasica, c.TensionDePlaca);
+        Assert.Equal(1, c.Polos);
+    }
+
+    /// <summary>Solo las que el tablero alimenta: 127 V con neutro; 208/230 V entre fases; trifásica en uno trifásico.</summary>
+    [Theory]
+    [InlineData(3, 4, 220, "127 V 1F|208/230 V 1F|220 V 3F")]
+    [InlineData(3, 3, 220, "208/230 V 1F|220 V 3F")]
+    [InlineData(2, 3, 220, "127 V 1F|208/230 V 1F")]
+    [InlineData(1, 3, 240, "127 V 1F|208/230 V 1F")]
+    [InlineData(3, 3, 440, "440/460 V 3F")]
+    [InlineData(3, 4, 480, "440/460 V 3F")]
+    public void I189_LasOpcionesSonLasDelTablero(int fases, int hilos, int tension, string opciones)
+    {
+        var cuadro = Nuevo(tension, fases, hilos);
+        Assert.Equal(opciones, string.Join("|", TensionesDePlaca.De(cuadro.Datos).Select(t => t.Texto())));
+    }
+
+    /// <summary>
+    /// El variador pide su tensión de entrada; el acondicionador de habitación, la suya. Si el tablero cambia y la
+    /// placa ya no es de él, se dice.
+    /// </summary>
+    [Fact]
+    public void I189_VariadorYHabitacionTambienYLaPlacaDeOtroTablero()
+    {
+        var cuadro = Nuevo();
+        var variador = Espacio(cuadro, 1);
+        variador.Categoria = CategoriaDeCarga.Motor;
+        variador.CapturaMotor = CapturaDeMotor.Variador;
+        variador.CorrienteEntradaVariadorA = 20m;
+        variador.ProteccionMaximaVariadorA = 40m;
+        var cuarto = Espacio(cuadro, 2);
+        cuarto.Categoria = CategoriaDeCarga.AireAcondicionado;
+        cuarto.PlacaAire = PlacaDeAireAcondicionado.Habitacion;
+        cuarto.CorrientePlacaA = 10m;
+        cuadro.Recalcular();
+        Assert.StartsWith("Falta la tensión de entrada del variador:", variador.Error);
+        Assert.StartsWith("Falta la tensión de placa del equipo:", cuarto.Error);
+
+        Assert.Null(cuadro.CambiarTensionDePlaca(cuarto, TensionDePlaca.V127Monofasica));
+        Assert.Null(cuarto.Error);
+        cuadro.Datos.TensionFaseFaseV = 440m;
+        cuadro.Recalcular();
+        Assert.StartsWith("La tensión de placa (127 V 1F) no es de este tablero", cuarto.Error);
+    }
+
+    /// <summary>
+    /// Un archivo de antes (formato 12) no traía la tensión: abre con la de sus polos, calcula igual y avisa. La de
+    /// formato 13 se guarda y se abre.
+    /// </summary>
+    [Fact]
+    public void I189_UnArchivoAnteriorAbreConLaTensionDeSusPolosYAvisa()
+    {
+        var (cuadro, c) = UnMinisplit();
+        Assert.Null(cuadro.CambiarTensionDePlaca(c, TensionDePlaca.V208a230Monofasica));
+        var texto = ArchivoDelCuadro.Guardar(cuadro, DateTimeOffset.Now);
+        Assert.Contains("\"tensionDePlaca\": \"V208a230Monofasica\"", texto);
+        Assert.Equal(TensionDePlaca.V208a230Monofasica, Espacio(ArchivoDelCuadro.Abrir(texto, Motor).Cuadro!, 1).TensionDePlaca);
+
+        var anterior = texto.Replace("\"version\": 13", "\"version\": 12").Replace("\"tensionDePlaca\": \"V208a230Monofasica\",", "");
+        Assert.DoesNotContain("tensionDePlaca", anterior);
+        var apertura = ArchivoDelCuadro.Abrir(anterior, Motor);
+        var abierto = Espacio(apertura.Cuadro!, 1);
+        Assert.Equal(TensionDePlaca.V208a230Monofasica, abierto.TensionDePlaca);
+        Assert.Null(abierto.Error);
+        Assert.Equal("14", abierto.Resultado!.CalibreFase.Designacion);
+        Assert.Contains("El circuito 1 no traía la tensión de placa (archivo de formato 12): se tomó la de sus 2 polos, 208/230 V 1F. " +
+                        "Verifícala con la placa del equipo.", apertura.Avisos);
+    }
+
+    /// <summary>La tensión pasa con el equipo al desplegable y de regreso.</summary>
+    [Fact]
+    public void I189_LaTensionNoSePierdeEnElDesplegable()
+    {
+        var cuadro = Nuevo();
+        var c = Espacio(cuadro, 1);
+        c.Categoria = CategoriaDeCarga.AireAcondicionado;
+        c.PlacaAire = PlacaDeAireAcondicionado.CorrienteNominal;
+        c.CorrientePlacaA = 12m;
+        Assert.Null(cuadro.CambiarTensionDePlaca(c, TensionDePlaca.V208a230Monofasica));
+
+        var luz = c.AgregarCarga();
+        luz.Subtipo = SubtipoDeCarga.Luminarias;
+        luz.CargaUnitaria = 100m;
+        cuadro.Recalcular();
+        Assert.Equal(TensionDePlaca.V208a230Monofasica, Assert.Single(c.Cargas, a => a.Clase == ClaseDeAparato.Motocompresor).TensionDePlaca);
+        Assert.False(c.PideTensionDePlaca); // el grupo va a la de su circuito
+
+        c.QuitarCarga(luz);
+        cuadro.Recalcular();
+        Assert.True(c.PideTensionDePlaca);
+        Assert.Equal(TensionDePlaca.V208a230Monofasica, c.TensionDePlaca);
+        Assert.Null(c.Error);
+    }
+
+    /// <summary>La memoria dice la tensión de placa del equipo y, en el variador, el bypass con su motor.</summary>
+    [Fact]
+    public void I189_M23_LaMemoriaDiceLaTensionDePlacaYElBypass()
+    {
+        var (cuadro, minisplit) = UnMinisplit();
+        Assert.Null(cuadro.CambiarTensionDePlaca(minisplit, TensionDePlaca.V208a230Monofasica));
+        Assert.StartsWith("Motocompresor hermético · 208/230 V 1F · placa:", MemoriaDeCalculo.DeCircuito(cuadro, minisplit).Equipo!.Descripcion);
+
+        var (otro, variador) = UnVariador(42m, 70m, hp: 30m, bypass: true);
+        var hoja = MemoriaDeCalculo.DeCircuito(otro, variador);
+        Assert.Equal("Variador de velocidad · entrada 440/460 V 3F · 42.00 A, protección máxima del fabricante 70 A · con bypass: motor de 30 HP, " +
+                     "FLC 40.00 A — 430 Parte J", hoja.Equipo!.Descripcion);
+        var renglones = MemoriaDeCalculo.Secciones(hoja).SelectMany(x => x.Renglones).Select(x => $"{x.Rotulo}: {x.Valor}").ToList();
+        Assert.Contains("Capacidad mínima del conductor — 430-122(a), 430-122(b): el mayor de 125 % × 42.00 A = 52.50 A (entrada) y " +
+                        "125 % × 40.00 A = 50.00 A (FLC del motor, por el bypass): 52.50 A", renglones);
+        Assert.Contains(renglones, x => x.StartsWith("Protección máxima con bypass — 430-52(c)(1), 430-120: 250 % × 40.00 A = 100", StringComparison.Ordinal));
+        Assert.Contains("Medio de desconexión — 430-128, 430-110(a): 115 % × 42.00 A = 48.30 A como mínimo: la mayor de la corriente de entrada " +
+                        "del variador y la corriente a plena carga del motor, porque el bypass lo conecta directo", renglones);
+        Assert.Contains(hoja.Equipo.Notas, x => x.StartsWith("Con bypass, el motor también trabaja y arranca directo de la línea", StringComparison.Ordinal));
+    }
+
     // ---- AM-5 · M-22: 430-62(b) con el conductor mínimo -------------------------------------------------
 
     /// <summary>
@@ -303,6 +498,7 @@ public class CriterioDeMotores20261005Tests
             minisplit.PlacaAire = PlacaDeAireAcondicionado.AmpacidadYProteccion;
             minisplit.AmpacidadMinimaA = mca;
             minisplit.ProteccionMaximaA = mocp;
+            Assert.Null(cuadro.CambiarTensionDePlaca(minisplit, TensionDePlaca.V127Monofasica));
         }
         var refrigerador = Espacio(cuadro, 15);
         refrigerador.Categoria = CategoriaDeCarga.Contactos;

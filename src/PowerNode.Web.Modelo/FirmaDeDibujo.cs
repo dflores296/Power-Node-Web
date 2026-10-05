@@ -25,7 +25,7 @@ public static class FirmaDeDibujo
          .Add(c.Uso).Add(c.UsoEfectivo).Add(c.Unidad).Add(c.CapturaMotor).Add(c.Hp).Add(c.CorrientePlacaA)
          .Add(c.CorrienteSeleccionA).Add(c.ArranqueAl225).Add(c.NoArrancaConLaTabla).Add(c.MotorYArrancadorMarcados75C).Add(c.CriterioProteccion)
          .Add(c.ProteccionElegidaA).Add(c.HuellaDelFijado).Add(c.PlacaAire).Add(c.AmpacidadMinimaA).Add(c.ProteccionMaximaA)
-         .Add(c.CorrienteEntradaVariadorA).Add(c.ProteccionMaximaVariadorA).Add(c.HpMotorDelVariador).Add(c.VariadorConBypass)
+         .Add(c.CorrienteEntradaVariadorA).Add(c.ProteccionMaximaVariadorA).Add(c.HpMotorDelVariador).Add(c.VariadorConBypass).Add(c.TensionDePlaca)
          .Add(c.Servicio).Add(c.EspecificacionServicio)
          .Add(c.CorrientePlacaServicioA).Add(c.CorrienteDeServicioA).Add(c.NoSimultaneoCon).Add(c.OmitidoPorNoSimultaneo)
          .Add(c.CorrienteDeMotorA).Add(c.MotorVA).Add(c.Continua).Add(c.NoContinua).Add(c.ContinuaVA).Add(c.NoContinuaVA)
@@ -50,7 +50,7 @@ public static class FirmaDeDibujo
         {
             t.Add("línea").Add(a.Descripcion).Add(a.Cantidad).Add(a.Unidad).Add(a.CargaUnitaria).Add(a.Continua).Add(a.NoContinua)
              .Add(a.FactorPotencia).Add(a.TotalVA).Add(a.Clase).Add(a.Subtipo).Add(a.ReferenciaMinimo).Add(a.ReferenciaContinua)
-             .Add(a.ProteccionMaximaA).Add(a.HpMotorDelVariador).Add(a.ConBypass).Add(a.CapturaMotor).Add(a.Hp).Add(a.CorrientePlacaA).Add(a.CorrienteSeleccionA)
+             .Add(a.ProteccionMaximaA).Add(a.HpMotorDelVariador).Add(a.ConBypass).Add(a.TensionDePlaca).Add(a.CapturaMotor).Add(a.Hp).Add(a.CorrientePlacaA).Add(a.CorrienteSeleccionA)
              .Add(a.CorrienteUnitariaA).Add(a.Error);
             objetos.Add(a);
             objetos.Add(a.MotorEnAmperes);

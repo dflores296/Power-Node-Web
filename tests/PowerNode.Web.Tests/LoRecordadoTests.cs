@@ -163,7 +163,7 @@ public class LoRecordadoTests
                 c.ProteccionMaximaVariadorA = c.CorrienteEntradaVariadorA * 2m;
                 c.HpMotorDelVariador = HpTrifasicos[azar.Next(HpTrifasicos.Length)];
                 c.VariadorConBypass = azar.Next(2) == 0;
-                var motivo = cuadro.CambiarPolos(c, 3);
+                var motivo = cuadro.CambiarTensionDePlaca(c, TensionDePlaca.V220Trifasica);
                 return $"variador de {c.CorrienteEntradaVariadorA} A en {c.Espacio}, bypass {c.VariadorConBypass}{(motivo is null ? "" : " (no cupo)")}";
             }
             default:

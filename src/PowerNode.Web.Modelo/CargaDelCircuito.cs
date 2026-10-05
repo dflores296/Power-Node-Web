@@ -132,6 +132,13 @@ public sealed class CargaDelCircuito
     /// <inheritdoc cref="HpMotorDelVariador"/>
     public bool ConBypass { get; set; }
 
+    /// <summary>
+    /// La tensión de placa de un motocompresor, un acondicionador de habitación o un variador — I-189. En el
+    /// desplegable no se pide (el grupo va a la tensión de su circuito): se guarda para cuando el equipo regrese
+    /// solo a su renglón.
+    /// </summary>
+    public TensionDePlaca? TensionDePlaca { get; set; }
+
     /// <summary>Un motor se captura en HP o en amperes — 430-6(a)(1). Solo HP o amperes, nunca «Varios».</summary>
     public CapturaDeMotor CapturaMotor { get; set; } = CapturaDeMotor.Hp;
 

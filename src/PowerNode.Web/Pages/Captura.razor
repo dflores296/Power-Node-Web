@@ -769,6 +769,24 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
                                                         title="@(VaSolo(c) is { } solo ? $"{solo} va solo en su circuito: no admite otra carga." : SoloTableros(c) ? "Agregar otro tablero al mismo alimentador: se suman sus cargas — 215-2(a)(1). Cada tablero, protegido a no más de su capacidad — 408-36." : c.SubtipoDelRenglon is not null ? "Agregar otra carga: el equipo pasa a ser la primera línea, y el circuito se calcula como grupo — 430-53, 440-22(b)." : "Agregar una salida o una carga al circuito.")"><Icono Nombre="agregar" Tamano="14" />@(SoloTableros(c) ? "Agregar tablero" : "Agregar carga")</button>
                                             </td>
                                             <td colspan="9" class="num">
+                                                @* I-189 (AM-11): la tensión de placa, sin valor por omisión; de ella salen los polos. En rojo mientras falte. *@
+                                                @if (c.PideTensionDePlaca)
+                                                {
+                                                    var tensiones = TensionesDePlaca.De(Datos);
+                                                    <label class="arranque-225 tension-placa" title="@(c.EsVariador ? "La tensión nominal de entrada que marca la placa del variador." : "La tensión que marca la placa del equipo.") De ella salen los polos del circuito: 127 V 1F, 1 polo (fase a neutro); 208/230 V 1F, 2 polos (entre fases); trifásica, 3 polos. Solo se ofrecen las que este tablero alimenta.">@(c.EsVariador ? "Tensión de entrada" : "Tensión de placa")
+                                                        <select class="@(c.TensionDePlaca is null ? "falta" : null)" aria-label="Circuito @c.Espacio · @(c.EsVariador ? "Tensión de entrada del variador" : "Tensión de placa")" aria-invalid="@(c.TensionDePlaca is null ? "true" : null)"
+                                                                value="@(c.TensionDePlaca?.ToString() ?? "")" @onchange="e => CambiarTensionDePlaca(c, e.Value?.ToString())">
+                                                            <option @key="@("ninguna")" value="">— escoger —</option>
+                                                            @foreach (var t in tensiones)
+                                                            {
+                                                                <option @key="t" value="@t">@t.Texto()</option>
+                                                            }
+                                                            @if (c.TensionDePlaca is { } fuera && !tensiones.Contains(fuera))
+                                                            {
+                                                                <option @key="fuera" value="@fuera">@fuera.Texto() (no es de este tablero)</option>
+                                                            }
+                                                        </select></label>
+                                                }
                                                 @* NO SIMULTÁNEO (David, 2026-09-30): abajo, junto a la suma, y solo donde aplica —
                                                    motores, A/A, calefacción o aparatos, con otro así con quien formar el par. *@
                                                 @if (MuestraNoSimultaneo(c))
@@ -2326,6 +2344,23 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
             exPar.NoSimultaneoCon = null;
         if (c.NoSimultaneoCon is { } nuevo && Cuadro.Circuitos.FirstOrDefault(x => x.Espacio == nuevo) is { } par)
             par.NoSimultaneoCon = c.Espacio;
+        Recalcular();
+    }
+
+    /// <summary>
+    /// La tensión de placa, y con ella los polos — I-189. Si los polos no se pueden cambiar, no se cambia nada y el
+    /// motivo sale en el aviso flotante, como con la columna P.
+    /// </summary>
+    private async Task CambiarTensionDePlaca(CircuitoDelCuadro c, string? valor)
+    {
+        TensionDePlaca? tension = Enum.TryParse<TensionDePlaca>(valor, out var t) && Enum.IsDefined(t) ? t : null;
+        if (Cuadro.CambiarTensionDePlaca(c, tension) is { } motivo)
+        {
+            Avisar($"El circuito {c.Espacio} no puede pasar a {tension!.Value.Polos()} polos para {tension.Value.Texto()}. {motivo}", bien: false);
+            var etiqueta = c.EsVariador ? "Tensión de entrada del variador" : "Tensión de placa";
+            await Restablecer($"[aria-label=\"Circuito {c.Espacio} · {etiqueta}\"]", c.TensionDePlaca?.ToString() ?? "");
+            return;
+        }
         Recalcular();
     }
 

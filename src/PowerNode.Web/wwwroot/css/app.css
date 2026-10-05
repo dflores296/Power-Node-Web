@@ -1190,6 +1190,8 @@ polygon.riel-a { fill: var(--barra-a); } polygon.riel-b { fill: var(--barra-b); 
 .cuadro table.desglose tfoot label.no-simultaneo select { height: 26px; font-size: 12px; }
 .cuadro table.desglose tfoot .nota-opcion { font-style: italic; margin-right: 16px; }
 .cuadro table.desglose tfoot label.arranque-225 { display: inline-flex; align-items: center; gap: 5px; margin-right: 16px; }
+/* I-189: la tensión de placa que falta, en rojo como el error del renglón. */
+.cuadro table.desglose tfoot select.falta { border-color: var(--alerta); color: var(--alerta); }
 
 /* ------------------------------------------------------------------------------------------------
    CANALIZACIONES — decisión canalizaciones-y-agrupamiento (2026-09-24).

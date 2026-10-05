@@ -390,6 +390,8 @@ public class ProteccionDeMotoresPorRangoTests
         var alumbrado = cuadro.Circuitos.Single(x => x.Espacio == 9);
         alumbrado.Categoria = CategoriaDeCarga.Alumbrado;
         alumbrado.NoContinua = 900m;
+        cuadro.ConSuTension(aire);
+        cuadro.ConSuTension(variador);
         cuadro.Recalcular();
 
         // Fase 2 (David, 2026-10-03): A/C y variador, sí; grupos de motores, no.
@@ -610,6 +612,7 @@ public class ProteccionDeMotoresPorRangoTests
         c.PlacaAire = PlacaDeAireAcondicionado.CorrienteNominal;
         c.CorrientePlacaA = nominal;
         c.ArranqueAl225 = arranque;
+        cuadro.ConSuTension(c);
         cuadro.Recalcular();
         return c;
     }
@@ -622,6 +625,7 @@ public class ProteccionDeMotoresPorRangoTests
         c.PlacaAire = PlacaDeAireAcondicionado.AmpacidadYProteccion;
         c.AmpacidadMinimaA = mca;
         c.ProteccionMaximaA = mocp;
+        cuadro.ConSuTension(c);
         cuadro.Recalcular();
         return c;
     }
@@ -634,6 +638,7 @@ public class ProteccionDeMotoresPorRangoTests
         c.CapturaMotor = CapturaDeMotor.Variador;
         c.CorrienteEntradaVariadorA = entrada;
         c.ProteccionMaximaVariadorA = maxima;
+        cuadro.ConSuTension(c);
         cuadro.Recalcular();
         return c;
     }

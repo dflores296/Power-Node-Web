@@ -184,6 +184,18 @@ public sealed class CircuitoDelCuadro
     public decimal ProteccionMaximaVariadorA { get; set; }
 
     /// <summary>
+    /// <b>La tensión de placa</b> de un equipo de A/C, o la de entrada de un variador — I-189 (AM-11, David,
+    /// 2026-10-05). Sin valor por omisión: si falta, el circuito no se calcula. Los polos salen de ella.
+    /// </summary>
+    public TensionDePlaca? TensionDePlaca { get; set; }
+
+    /// <summary>
+    /// El equipo del renglón pide la tensión de placa (<see cref="TensionDePlaca"/>): un equipo de A/C (con
+    /// ampacidad de placa, motocompresor o de habitación) o un variador. Un grupo no: va a la de su circuito.
+    /// </summary>
+    public bool PideTensionDePlaca => !EsGrupo && (EsVariador || (EsAireAcondicionado && PlacaAire != PlacaDeAireAcondicionado.Grupo));
+
+    /// <summary>
     /// Motor con variador: los HP de placa del motor, opcionales; con bypass, obligatorios — M-23 (AM-7, David,
     /// 2026-10-05). Su FLC es la de tabla a la tensión del circuito: con el bypass el motor va directo a la línea.
     /// </summary>
@@ -488,6 +500,7 @@ public sealed class CircuitoDelCuadro
                 ProteccionMaximaA = ProteccionMaximaVariadorA,
                 HpMotorDelVariador = HpMotorDelVariador,
                 ConBypass = VariadorConBypass,
+                TensionDePlaca = TensionDePlaca,
                 FactorPotencia = FactorPotencia,
             });
         else if (EsAireAcondicionado && PlacaAire == PlacaDeAireAcondicionado.CorrienteNominal && CorrientePlacaA > 0m)
@@ -495,6 +508,7 @@ public sealed class CircuitoDelCuadro
             {
                 Descripcion = nombre ?? "Motocompresor",
                 Subtipo = SubtipoDeCarga.Motocompresor,
+                TensionDePlaca = TensionDePlaca,
                 CorrientePlacaA = CorrientePlacaA,
                 CorrienteSeleccionA = CorrienteSeleccionA,
                 FactorPotencia = FactorPotencia,
@@ -504,6 +518,7 @@ public sealed class CircuitoDelCuadro
             {
                 Descripcion = nombre ?? "Aire de habitación",
                 Subtipo = SubtipoDeCarga.AireDeHabitacion,
+                TensionDePlaca = TensionDePlaca,
                 CorrientePlacaA = CorrientePlacaA,
                 FactorPotencia = FactorPotencia,
             });
@@ -565,6 +580,9 @@ public sealed class CircuitoDelCuadro
             default:
                 return false;
         }
+        // I-189: la tensión de placa regresa con su equipo; la de un motor no se usa (sus polos salen de sus HP).
+        if (subtipo != SubtipoDeCarga.MotorUsoGeneral)
+            TensionDePlaca = linea.TensionDePlaca;
         FactorPotencia = linea.FactorPotencia;
         DescripcionDelEquipo = linea.Descripcion;
         Cargas.Clear();
@@ -876,6 +894,7 @@ public sealed class CircuitoDelCuadro
         ProteccionMaximaVariadorA = 0m;
         HpMotorDelVariador = null;
         VariadorConBypass = false;
+        TensionDePlaca = null;
         Continua = 0m;
         NoContinua = 0m;
         Servicio = null;

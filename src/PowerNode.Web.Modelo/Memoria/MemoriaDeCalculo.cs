@@ -161,24 +161,38 @@ public static class MemoriaDeCalculo
     /// </summary>
     private static EquipoDeLaHoja DelVariador(CuadroDeCarga cuadro, CircuitoDelCuadro c, ResultadoCircuitoDerivado r)
     {
-        var tipo = c.Polos == 3 ? "trifásico" : "monofásico";
+        // I-189: la tensión de entrada de la placa; M-23: el bypass, con el motor que mueve.
+        var tipo = c.TensionDePlaca?.Texto() ?? (c.Polos == 3 ? "trifásico" : "monofásico");
         var entrada = c.CorrienteEntradaVariadorA;
+        var bypass = (c.EntradaDeLaProteccion as DatosEntradaCircuitoDerivadoVariador)?.Bypass;
+        List<RenglonMemoria> proteccion =
+        [
+            new("Corriente — 430-122(a)", $"{entrada:N2} A, la nominal de entrada del variador"),
+            bypass is null
+                ? new("Capacidad mínima del conductor — 430-122(a)", $"125 % × {entrada:N2} A = {1.25m * entrada:N2} A")
+                : new("Capacidad mínima del conductor — 430-122(a), 430-122(b)",
+                    $"el mayor de 125 % × {entrada:N2} A = {1.25m * entrada:N2} A (entrada) y 125 % × {bypass.FlcMotorA:N2} A = " +
+                    $"{1.25m * bypass.FlcMotorA:N2} A (FLC del motor, por el bypass): {Math.Max(entrada, bypass.FlcMotorA) * 1.25m:N2} A"),
+            new("Protección máxima — 110-3(b)", $"{c.ProteccionMaximaVariadorA:N0} A, la que marca el fabricante del variador"),
+        ];
+        if (bypass is not null)
+            proteccion.Add(new("Protección máxima con bypass — 430-52(c)(1), 430-120",
+                $"{bypass.PorcentajeTabla430_52:0} % × {bypass.FlcMotorA:N2} A = {bypass.Tabla430_52.Explicacion()}: con el bypass el motor arranca directo de la línea"));
+        proteccion.Add(new($"{RotuloDelMaximo(r)} — {(bypass is null ? "110-3(b)" : CalculadoraCircuitoDerivadoVariador.ReglaConBypass)}",
+            bypass is not null ? $"{MaximoDelRango(r):N0} A, el menor de los dos"
+            : MaximoDelRango(r) == c.ProteccionMaximaVariadorA ? $"{MaximoDelRango(r):N0} A"
+            : $"{MaximoDelRango(r):N0} A, el mayor tamaño estándar que no excede la máxima del fabricante"));
         return new EquipoDeLaHoja(
             Rotulo: "Motor con variador",
-            Descripcion: $"Variador de velocidad · {tipo} · entrada {entrada:N2} A, protección máxima del fabricante {c.ProteccionMaximaVariadorA:N0} A — 430 Parte J",
-            Proteccion: ConElRango(cuadro, c, r,
-            [
-                new("Corriente — 430-122(a)", $"{entrada:N2} A, la nominal de entrada del variador"),
-                new("Capacidad mínima del conductor — 430-122(a)", $"125 % × {entrada:N2} A = {1.25m * entrada:N2} A"),
-                new("Protección máxima — 110-3(b)", $"{c.ProteccionMaximaVariadorA:N0} A, la que marca el fabricante del variador"),
-                new($"{RotuloDelMaximo(r)} — 110-3(b)", MaximoDelRango(r) == c.ProteccionMaximaVariadorA
-                    ? $"{MaximoDelRango(r):N0} A"
-                    : $"{MaximoDelRango(r):N0} A, el mayor tamaño estándar que no excede la máxima del fabricante"),
-            ]),
+            Descripcion: $"Variador de velocidad · entrada {tipo} · {entrada:N2} A, protección máxima del fabricante {c.ProteccionMaximaVariadorA:N0} A" +
+                         (bypass is null ? "" : $" · con bypass: motor de {MotoresEnHp.Texto(bypass.Hp)} HP, FLC {bypass.FlcMotorA:N2} A") + " — 430 Parte J",
+            Proteccion: ConElRango(cuadro, c, r, proteccion),
             Notas: ConElArranque(r,
             [
-                "Con variador, la corriente del circuito es la de entrada del variador: la FLC del motor y la Tabla 430-52 no se " +
-                "usan. " + LaProteccionYElConductor(r),
+                (bypass is null
+                    ? "Con variador, la corriente del circuito es la de entrada del variador: la FLC del motor y la Tabla 430-52 no se usan. "
+                    : "Con bypass, el motor también trabaja y arranca directo de la línea: el conductor cubre además el 125 % de su FLC " +
+                      "(430-122(b)) y la protección no excede la de la Tabla 430-52 para él (430-120 lleva a la Parte D). ") + LaProteccionYElConductor(r),
                 DeLaSobrecarga(c, "La sobrecarga del motor la da el variador si así lo marca; si no, va aparte — 430-124(a)."),
             ]),
             Corriente: "corriente de entrada");
@@ -299,7 +313,8 @@ public static class MemoriaDeCalculo
     /// </summary>
     private static EquipoDeLaHoja DelAireAcondicionado(CuadroDeCarga cuadro, CircuitoDelCuadro c, ResultadoCircuitoDerivado r)
     {
-        var tipo = c.Polos == 3 ? "trifásico" : "monofásico";
+        // I-189: la tensión de la placa, de la que salen los polos.
+        var tipo = c.TensionDePlaca?.Texto() ?? (c.Polos == 3 ? "trifásico" : "monofásico");
         List<RenglonMemoria> proteccion;
         string descripcion;
         if (c.PlacaAire == PlacaDeAireAcondicionado.Habitacion)

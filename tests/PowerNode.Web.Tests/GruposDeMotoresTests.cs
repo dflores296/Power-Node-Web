@@ -530,6 +530,7 @@ public class GruposDeMotoresTests
             Assert.Null(cuadro.CambiarPolos(c, polos));
         c.PlacaAire = PlacaDeAireAcondicionado.Habitacion;
         c.CorrientePlacaA = corriente;
+        cuadro.ConSuTension(c);
         cuadro.Recalcular();
         return c;
     }
