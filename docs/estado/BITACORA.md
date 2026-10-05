@@ -4,6 +4,33 @@ Registro de acciones por sesión, con hallazgo y commit.
 
 ## 2026-10-05
 
+**Las decisiones de David sobre la auditoría de motores y los tres puntos de proyecto** («AM-11: B … AM-4: B …
+AM-5: B … AM-7: A2 … P-1: sí · P-2: aceptar · P-3: 1») — en este orden:
+
+- P-1: `main` en avance rápido a `6d7de14` (la rapidez, I-188), con build y pruebas antes; publicación y CI en verde.
+- AM-5 (M-22), `3ff5157`: la cita de 430-62(b) dice que los 70 A son la ampacidad del 4 AWG y lo protegen (240-4) y
+  que no hay tamaño estándar entre 60.93 y 69.21 A. El caso A de la auditoría, armado como prueba: 60.93 A, 69.21 A,
+  70 A, 4 AWG, igual que ella.
+- AM-4 (M-21), `b78b251`: la columna del motor, la más baja de las dos terminales, con la casilla «Motor diseño B a E y
+  arrancador marcado 75 °C». 25 HP a 220 V y 50 HP a 440 V, 3 AWG; 100 HP a 440 V, 2/0. Cambian, por la misma regla,
+  el 5 HP con tablero marcado (de 14 a 12 AWG) y el 30 HP con prioridad al conductor y tablero marcado (1 AWG con
+  110 A). En el navegador, 3 → 4 → 3 AWG con la casilla.
+- AM-7 (M-23), `72a2d48`: el variador con bypass: conductor con los dos 125 %, el rango topado con la Tabla 430-52
+  del motor, aviso si queda vacío, «OL» por 430-124(b), desconexión al 115 % de la mayor. 30 HP a 440 V: sin cambio.
+- AM-11 (I-189), `93951eb`: la tensión de placa obligatoria en A/C y variador, sin valor por omisión; los polos salen
+  de ella; los archivos anteriores abren con la de sus polos y avisan. las 36 pruebas anteriores que armaban un A/C o un variador
+  ahora escogen la tensión de sus polos (`Placas.cs`). Agregada 575/600 V 3F para los tableros de 600 V, a confirmar.
+  En el mismo commit, la hoja de la memoria del variador con bypass, que faltaba en `72a2d48`.
+- P-3 (I-152), `ef26a2f`: los `.br` con el decodificador de Brotli, verificando el hash. Medido con «Slow 4G» por
+  HTTPS: la primera carga, de 54.2 a 24.7 s (8.35 → 3.30 MB); la recarga y la red sin límite, iguales. El respaldo
+  (`.br` faltante o con otro hash) y el avance de la pantalla de carga, probados.
+- P-2: aceptado el borde de los campos sin fundido (`marca.md`).
+- Decisiones: [`../decisiones/criterio-de-la-auditoria-de-motores.md`](../decisiones/criterio-de-la-auditoria-de-motores.md)
+  y [`../decisiones/descarga-en-brotli.md`](../decisiones/descarga-en-brotli.md), CONFIRMADAS · David.
+
+Pruebas: 641 en `PowerNode.Web.Tests` (30 nuevas, `CriterioDeMotores20261005Tests`), 52 en `PowerNode.Normativa.Tests`.
+Lo de criterio y P-3 están en la rama; a `main`, cuando David lo diga.
+
 **I-188, el cambio estructural** (David: «sí, las dos fases juntas; por ahora») — `02a71ca`, `71ecdab`, `b49763f`
 y este commit:
 

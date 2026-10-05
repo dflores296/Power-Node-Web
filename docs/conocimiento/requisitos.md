@@ -35,6 +35,7 @@ Cada requisito se relaciona con su referencia normativa y con su verificación e
 | C-15 | Anotar que requieren ICFT los contactos de baño (210-8(a)(1) en vivienda, (b)(1) fuera) y los de la cubierta del mueble de cocina en vivienda ((a)(6)); en vivienda popular, con su excepción. 210-12 (ICFA) es «se podrán»: no se anota. | 210-8 | `P3_4_…` |
 | C-16 | Contactos de 1 polo a 277 V: nota de 210-6(c)(6); en vivienda, aviso de 210-6(a)(2). | 210-6 | `R6_…` |
 | C-17 | Quitar la única carga de un circuito lo deja vacío, como uno nuevo (sin VA, sin clase, sin tipo); la descripción del espacio, los polos, la longitud y la canalización se quedan. Un equipo solo que queda regresa al renglón. | Art. 100 | `I185_…` |
+| C-18 | Pedir la tensión de placa de un equipo de A/C (con MCA y MOCP, motocompresor o de habitación) y la de entrada de un variador, sin valor por omisión: sin ella el circuito no se calcula. Ofrecer las del tablero (127 V 1F, 208/230 V 1F, 220 V 3F, 440/460 V 3F, 575/600 V 3F); los polos salen de ella, y cambiar los polos la cambia. Un archivo anterior abre con la de sus polos y avisa. | 110-3(b), 440-4(b), 430-122 | `I189_…` (I-189) |
 | C-9 | Capturar un equipo de A/C por su placa: ampacidad mínima y protección máxima (MCA, MOCP), o la corriente de carga nominal y la de selección del circuito, la mayor. | 440-4(b), 440-6(a) y su Excepción 1 | `I74_…` |
 
 ## Protección
@@ -55,7 +56,7 @@ Cada requisito se relaciona con su referencia normativa y con su verificación e
 |---|---|---|---|
 | K-1 | Seleccionar la columna de ampacidad por aislamiento y lugar de instalación (seco, húmedo o mojado): la temperatura, de la fila de la Tabla 310-104(a) para ese lugar; el permiso, de 310-10(b) y 310-10(c)(2). | Tabla 310-104(a), 310-10, Tabla 310-15(b)(16) | `Aislamiento_…`, `Tabla310_104a_SecoHumedoYMojado`, `P1_2_…` |
 | K-2 | Aplicar los factores por temperatura ambiente y por agrupamiento en la columna del aislamiento. | 310-15(b)(2)(a), 310-15(b)(3)(a) | `DosRevisiones_…` |
-| K-3 | Limitar la ampacidad a la temperatura de la terminal: 60 °C hasta 100 A, 75 °C arriba de 100 A, o 75 °C con equipo marcado. | 110-14(c)(1) | `Terminales_…` |
+| K-3 | Limitar la ampacidad a la temperatura de la terminal: 60 °C hasta 100 A, 75 °C arriba de 100 A, o 75 °C con equipo marcado. En un motor, la más baja entre la del interruptor y la del motor y su arrancador: 60 °C con conductor de 14 a 1 AWG, 75 °C mayor que 1 AWG (con 1/0 AWG de mínimo en esa columna), o 75 °C si se declara motor de diseño B a E con arrancador marcado 75 °C. | 110-14(c), 110-14(c)(1), a.(3), a.(4) | `Terminales_…`, `M21_…` (M-21) |
 | K-4 | Verificar el 125 % contra la ampacidad de tabla sin factores y la carga al 100 % contra la ampacidad corregida. | 210-19(a)(1), 215-2(a)(1) | `DosRevisiones_…` |
 | K-5 | Proteger el conductor según su ampacidad; permitir el estándar inmediato superior salvo en circuitos de contactos. | 240-4, 240-4(b) | `Excepcion240_4b_…`, `R16_…` |
 | K-6 | Limitar la protección de 14, 12 y 10 AWG de cobre a 15, 20 y 30 A. | 240-4(d) | `Serie_EnRielDinNoHay15A_…` |
@@ -73,7 +74,7 @@ Cada requisito se relaciona con su referencia normativa y con su verificación e
 | K-18 | Un aparato con motor fijo en su sitio (HP, o A de placa) junto con otras cargas: el motor mayor de más de ⅛ hp al 125 %, lo demás al 100 %. Un circuito de carga que solo alimenta motores se rechaza: va por el Art. 430. | 220-18(a), 430-6(a)(1) Exc. 3 | `I118_…` |
 | K-19 | Varios motocompresores, o motocompresor y otros motores o cargas, sin MCA de conjunto: conductor por 440-33/440-34; protección por 440-22(b)(1) si el motocompresor es la carga más grande, si no por 440-22(b)(2); un solo motocompresor, 440-32 y 440-22(a). | 440-33, 440-34, 440-22(b) | `I116_…` |
 | K-20 | Acondicionador de habitación con cordón y clavija en su circuito: conductor al 125 %, circuito que deja su corriente en 80 %, protección que no pasa la ampacidad del conductor; rechazar trifásico, > 250 V o > 40 A. En un circuito con otras cargas, avisar si pasa del 50 %; solo, del 80 %. | 440-60, 440-62 | `I117_…` |
-| K-21 | Motor con variador: conductor al 125 % de la corriente de entrada del variador; protección dentro del rango de 125 % de la entrada al mayor tamaño estándar que no excede la máxima del fabricante, escogida como en P-5 (el automático es el máximo); 430-62(a) con la máxima del fabricante. | 430-122(a), 110-3(b), 240-4 | `I119_…`, `M20F2_…` (M-20) |
+| K-21 | Motor con variador: conductor al 125 % de la corriente de entrada del variador; protección dentro del rango de 125 % de la entrada al mayor tamaño estándar que no excede la máxima del fabricante, escogida como en P-5 (el automático es el máximo); 430-62(a) con la máxima del fabricante. Con bypass (y los HP del motor): conductor al mayor de 125 % de la entrada y 125 % de la FLC; el máximo, el menor de la del fabricante y la de la Tabla 430-52 del motor, y avisar si ningún tamaño queda entre el piso y él; «OL» por 430-124(b); desconexión, 115 % de la mayor de las dos. | 430-122(a), 430-122(b), 110-3(b), 430-52(c)(1), 430-120, 430-124(b), 430-128, 430-110(a), 240-4 | `I119_…`, `M20F2_…` (M-20), `M23_…` (M-23) |
 | K-22 | Motor de servicio no continuo: conductor al porcentaje de la Tabla 430-22(e) sobre la corriente de placa; protección por 430-52 con la FLC de tabla. | 430-22(e), Tabla 430-22(e) | `I120_…` |
 
 ## Alimentador
@@ -96,6 +97,7 @@ Cada requisito se relaciona con su referencia normativa y con su verificación e
 | A-15 | Si el tablero es equipo de acometida, dar el conductor del electrodo de puesta a tierra (Tabla 250-66, con el área equivalente de los conductores en paralelo) y el puente de unión principal (la misma tabla, o 12.5 % del área arriba de 1100 kcmil de cobre). | 250-66, 250-66(a), 250-28(d)(1) | `Tabla250_66_…`, `P3_3_…` |
 | A-14 | De un par de circuitos que no funcionan a la vez, al alimentador va el mayor (su carga con F.D.); avisar cuál se omite, y si el par no tiene carga. | 220-60, 430-24 Excepción 3, 440-33 Excepción 1 | `I121_…` |
 | A-16 | Fuera de vivienda, avisar si el F.D. de aparatos deja el equipo de cocina abajo de la suma de los dos equipos más grandes, con el factor que lo cumple; no con la Tabla 220-88. | 220-56 | `I155_…` |
+| A-17 | Si la protección del alimentador pasa del máximo de 430-62(a) y el conductor instalado tiene más ampacidad que la de 430-24, permitirla por 430-62(b) y decir que la protección no pasa la ampacidad del conductor (240-4) y, si es el caso, que no hay tamaño estándar entre la capacidad mínima y el máximo. | 430-62(b), 240-4 | `M22_…` (M-22) |
 
 ## Entregable
 

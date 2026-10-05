@@ -53,6 +53,8 @@ Solo David confirma una decisión.
 | [`decisiones/neutro-del-alimentador-por-220-61.md`](decisiones/neutro-del-alimentador-por-220-61.md) | CONFIRMADA · David · 2026-10-03 (opción; en paralelo, área del juego; en acometida, 250-24(c)) |
 | [`decisiones/neutro-de-acometida-en-paralelo-250-24-c-2.md`](decisiones/neutro-de-acometida-en-paralelo-250-24-c-2.md) | CONFIRMADA · David · 2026-10-03 (12.5 % del área total, lectura literal) |
 | [`decisiones/dibujo-por-renglon.md`](decisiones/dibujo-por-renglon.md) | PROPUESTA · Claude · 2026-10-03 (I-188; David contestó el 2026-10-05: las dos fases, implementadas) |
+| [`decisiones/criterio-de-la-auditoria-de-motores.md`](decisiones/criterio-de-la-auditoria-de-motores.md) | CONFIRMADA · David · 2026-10-05 (AM-4 terminales del motor, AM-5 430-62(b), AM-7 variador con bypass, AM-11 tensión de placa) |
+| [`decisiones/descarga-en-brotli.md`](decisiones/descarga-en-brotli.md) | CONFIRMADA · David · 2026-10-05 (P-3, I-152: los `.br` con su decodificador, sin InvariantGlobalization) |
 
 ## `conocimiento/` — referencia técnica
 

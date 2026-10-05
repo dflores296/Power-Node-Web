@@ -249,7 +249,7 @@ memoria y guía, en claro y en oscuro).
 - **El foco** del teclado, gris (tinta en claro, Mist en oscuro), ya no del azul. El campo enfocado
   marca su línea, como en Linear. **Sin fundido** (2026-10-05, I-188): la transición de 120 ms repintaba la
   página entera en cada cuadro (una sola capa de ~5000 px con 42 espacios), ~70 ms por cada Tab. Los botones
-  la conservan.
+  la conservan. **Aceptado así (David, 2026-10-05, P-2).**
 
 **Dos trampas que costaron tiempo:**
 

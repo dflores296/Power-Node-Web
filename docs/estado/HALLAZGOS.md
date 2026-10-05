@@ -177,7 +177,7 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-149 · F.P. de 0.90 por omisión en cargas resistivas: +11 % de corriente | P2 | Propuesta, por decidir (David) | — |
 | I-150 · Factores de demanda del Art. 220 sin sugerencia; F.D. manual sin referencia a la tabla | P3 | Propuesta, por decidir (David) | — |
 | I-151 · Sin capacidad interruptiva ni corriente de falla — 110-9, 110-10 | P3 | Propuesta, por decidir (David) | — |
-| I-152 · Descarga de 9.9 MB sin comprimir en GitHub Pages | P3 | Propuesta, abajo | — |
+| I-152 · Descarga de 9.9 MB sin comprimir en GitHub Pages | P3 | **Cerrado** (los `.br` con su decodificador: con Slow 4G, de 54 a 25 s): [`descarga-en-brotli.md`](../decisiones/descarga-en-brotli.md) | `ef26a2f` |
 | I-153 · Alumbrado «no continuo» por omisión fuera de vivienda | P3 | Propuesta, por decidir (David) | — |
 | I-154 · El aviso de principal menor que un motor citaba 430-53(c)(4) para un motor solo capturado en el desplegable | P3 | **Cerrado** | `4caba1f` |
 | I-155 · Sin el piso de 220-56: el F.D. dejaba el equipo de cocina abajo de los dos equipos más grandes | P2 | **Cerrado** (aviso) | `4caba1f` |
@@ -212,9 +212,9 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-184 · Al desmarcar la Excepción 2 (100 HP a 440 V), la celda «Protec. (A)» decía 175 A con el cálculo en 350 A (AM-1) | P1 | **Cerrado** | `585a857` |
 | I-185 · Quitar la única carga dejaba una «carga total» fantasma con sus VA, su protección y las reglas de otra clase: la lavadora de 20 A, en 15 A (AM-2, AM-3) | P1 | **Cerrado** | `585a857` |
 | I-186 · Sin «Tablero nuevo»: empezar de cero pedía otra pestaña (AM-8) | P2 | **Cerrado** | `585a857` |
-| I-187 · Carga inicial de 40 s a 3 min por pestaña (AM-9) | P3 | **Cerrado** (el mensaje; la descarga sigue en I-152) | `585a857` |
+| I-187 · Carga inicial de 40 s a 3 min por pestaña (AM-9) | P3 | **Cerrado** (el mensaje; la descarga, en I-152) | `585a857`, `ef26a2f` |
 | I-188 · La página se congeló (> 45 s) al capturar varios campos seguidos (AM-10) | P2 | **Cerrado** (cada cambio, de ~330 a ~160 ms; juntar ráfagas y AOT, después): [`dibujo-por-renglon.md`](../decisiones/dibujo-por-renglon.md) | `02a71ca`, `71ecdab`, `b49763f` |
-| I-189 · Minisplit, motocompresor y variador arrancan en 1 polo (127 V) (AM-11) | P3 | Propuesta, por decidir (David) | — |
+| I-189 · Minisplit, motocompresor y variador arrancan en 1 polo (127 V) (AM-11) | P3 | **Cerrado** (B: la tensión de placa, obligatoria; de ella salen los polos): [`criterio-de-la-auditoria-de-motores.md`](../decisiones/criterio-de-la-auditoria-de-motores.md) | `93951eb` |
 | I-190 · La lista de HP repetía «1/2 HP — 8.90 A» y «1/2 HP — 4.90 A»; solo el grupo decía la tensión (AM-12) | P3 | **Cerrado** | `585a857` |
 | I-191 · La columna Descripción decía «—» con la carga capturada con nombre (AM-13) | P3 | **Cerrado** | `585a857` |
 | I-192 · 440 V con «Centro de carga (NEMA)», sin aviso (AM-14) | P3 | **Cerrado** (aviso) | `585a857` |
@@ -230,9 +230,9 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | M-18 · Equipo de acometida sin conductor del electrodo (Tabla 250-66) ni puente de unión principal (250-28(d)(1)) | P3 | **Cerrado** | `a600dc9` |
 | M-19 · El alimentador no subía a conductores en paralelo cuando la ampacidad no alcanzaba: «No hay calibre en el catálogo…» | P2 | **Cerrado** | `4fad887` |
 | M-20 · Motor: la protección del derivado es siempre el máximo de la Tabla 430-52, presentado como la seleccionada; no se puede escoger dentro del rango (bomba de 1/2 HP: 25 A sobre 14 AWG) | P2 | **Cerrado** (con la fase 2: A/C y variador) | `3b1b689`, `7bf7bf2` |
-| M-21 · La columna de terminales sale de la protección escogida, no del conductor: 25 HP a 220 V, 4 AWG con 175 A y 3 AWG con 100 A; la cita no decía el inciso (AM-4) | P3 | **Cerrado** (la cita); el criterio, por decidir (David) | `585a857` |
-| M-22 · 430-62(b) acepta un principal arriba del techo de 430-62(a) con el conductor mínimo (caso A: techo 69.21 A, principal 70 A con 4 AWG) (AM-5) | P3 | Propuesta, por decidir (David) | — |
-| M-23 · El variador no captura los HP del motor ni el bypass — 430-122(b) (AM-7) | P3 | Propuesta, por decidir (David) | — |
+| M-21 · La columna de terminales sale de la protección escogida, no del conductor: 25 HP a 220 V, 4 AWG con 175 A y 3 AWG con 100 A; la cita no decía el inciso (AM-4) | P3 | **Cerrado** (la cita; el criterio, B: la más baja de las dos terminales, con casilla por motor): [`criterio-de-la-auditoria-de-motores.md`](../decisiones/criterio-de-la-auditoria-de-motores.md) | `585a857`, `b78b251` |
+| M-22 · 430-62(b) acepta un principal arriba del techo de 430-62(a) con el conductor mínimo (caso A: techo 69.21 A, principal 70 A con 4 AWG) (AM-5) | P3 | **Cerrado** (B: la cita dice 240-4 y que no hay tamaño intermedio): [`criterio-de-la-auditoria-de-motores.md`](../decisiones/criterio-de-la-auditoria-de-motores.md) | `3ff5157` |
+| M-23 · El variador no captura los HP del motor ni el bypass — 430-122(b) (AM-7) | P3 | **Cerrado** (A2: el bypass limita el rango con la Tabla 430-52): [`criterio-de-la-auditoria-de-motores.md`](../decisiones/criterio-de-la-auditoria-de-motores.md) | `72a2d48`, `93951eb` |
 | R-01 · Caída del alimentador fija en 5 %, sin verificar la combinada — 215-2(a)(4) NOTA 2 | P1 | **Cerrado** | `2a973ea` |
 | R-02 · Caída del alimentador sin la caída del neutro | P2 | **Cerrado** | `d6cd1c6` |
 | R-03 · La publicación no corre `PowerNode.Web.Tests` | P1 | **Cerrado** | `986c9d7` |
@@ -707,7 +707,10 @@ ICU (0.55–1.1 MB según el idioma del navegador). No se pudo medir si GitHub P
 (el entorno no llega a github.io). Propuesta: (1) servir los `.br` que ya genera la publicación con
 `loadBootResource` y el decodificador de Brotli, el camino documentado para hospedajes sin compresión;
 (2) `InvariantGlobalization` para no bajar ICU — cambia la cultura de toda la app (formatos, orden de
-cadenas) y pide revisarla. Por decidir.
+cadenas) y pide revisarla. **Decidido (David, 2026-10-05): la 1, sin InvariantGlobalization** (`ef26a2f`). Medido
+en Release, servido por HTTPS sin compresión, con «Slow 4G»: la primera carga, de 54.2 s y 8.35 MB a 24.7 s y
+3.30 MB; la recarga, igual (3.8 s). Falta ver en la versión publicada que Pages mande los `.br` sin
+`Content-Encoding` y si ya comprimía los `.wasm`: [`../decisiones/descarga-en-brotli.md`](../decisiones/descarga-en-brotli.md).
 
 **I-153** (riesgo 3) — Luminarias «continua» por omisión fuera de vivienda: en la misma propuesta que
 I-149.
@@ -1082,7 +1085,10 @@ auditoría dio 12 AWG por caída hasta pasarlo a 2 polos. Propuesta, por decidir
 en un tablero con F-F de 208 a 240 V, si los espacios están libres (un minisplit de 127 V se baja a 1 polo); **B.**
 pedir la tensión de placa en la línea y que los polos salgan de ella; **C.** dejarlo así y decir «127 V» junto a
 la placa. Recomendación: **B** (la placa trae la tensión; es el dato y no un supuesto), o **A** si se quiere sin
-campo nuevo.
+campo nuevo. **Decidido (David, 2026-10-05): B, sin valor por omisión** — la tensión de placa (en un variador,
+la de entrada; también en el de habitación) es obligatoria; sin ella el circuito no se calcula, como sin la
+MOCP. Opciones según el tablero; los polos salen de ella; un archivo anterior abre con la de sus polos y avisa
+(`93951eb`). Detalle en [`../decisiones/criterio-de-la-auditoria-de-motores.md`](../decisiones/criterio-de-la-auditoria-de-motores.md#am-11--i-189--la-tensión-de-placa).
 
 **I-190** (AM-12) — Cada opción con su tensión: «1/2 HP · 127 V — 8.90 A» y «1/2 HP · 220 V — 4.90 A».
 
@@ -1125,6 +1131,10 @@ diseño B, C, D o E» por motor, que permite 75 °C hasta 100 A — 110-14(c)(1)
 motor (la del interruptor sigue en a.(3), la casilla «Terminales marcadas 75 °C» que ya existe); **C.** calcular el
 conductor con la columna de la protección más chica del rango, para que no dependa de la escogida (más cobre).
 Recomendación: **A**, como la pregunta 5 de M-20; la memoria ya dice la salida de 75 °C. Prueba: `M21_…`.
+**Decidido (David, 2026-10-05): B, con su regla** — la columna es la más baja entre la terminal del interruptor
+y la del motor y su arrancador (60 °C con conductor de 14 a 1 AWG, 75 °C mayor que 1 AWG; 75 °C con la casilla
+«Motor diseño B a E y arrancador marcado 75 °C») — 110-14(c), a.(3), a.(4). 25 HP a 220 V y 50 HP a 440 V, 3 AWG;
+100 HP a 440 V, 2/0 sin cambio (`b78b251`). Detalle en [`../decisiones/criterio-de-la-auditoria-de-motores.md`](../decisiones/criterio-de-la-auditoria-de-motores.md#am-4--m-21--la-columna-es-la-más-baja-de-las-dos-terminales).
 
 **M-22** (AM-5) — Caso A: alimentador de 60.93 A, 4 AWG (70 A a 60 °C), techo de 430-62(a) 69.21 A, principal
 70 A; la app avisa y lo acepta por 430-62(b), que deja basar la protección en la ampacidad del conductor cuando
@@ -1132,12 +1142,19 @@ pasa de la que pide 430-24: 70 A pasa de 60.93 A. La auditoría lee 430-62(b) pa
 mínimo. Por decidir: **A.** dejarlo (lectura literal; ya avisa); **B.** ofrecer, en el aviso, el tamaño que sí
 cabe bajo el techo (60 A), sin cambiar el calculado; **C.** aplicar 430-62(b) solo si el conductor pasa del
 mínimo por otra razón (caída, fijado). Recomendación: **B**: el ingeniero ve la opción conservadora y decide.
+*Corregida antes de decidir (2026-10-05):* no hay tamaño estándar entre 60.93 y 69.21 A (60 A queda debajo de
+430-24), así que B pasó a ser «A, y decir que no hay tamaño que quepa». **Decidido (David, 2026-10-05): B, y
+la cita dice además «70 A = ampacidad del 4 AWG: el conductor queda protegido — 240-4»** (`3ff5157`).
 
 **M-23** (AM-7) — El variador se calcula con su corriente de entrada (430-122(a)) y su protección máxima (110-3(b)).
 Con bypass, 430-122(b) pide además 125 % de la FLC del motor, y la app no captura los HP del motor ni el bypass.
 Por decidir: **A.** campo opcional de HP del motor y casilla «con bypass» (con bypass, el conductor es el mayor de
 los dos 125 %; formato de archivo 13); **B.** solo una nota en la memoria de que sin bypass no aplica 430-122(b).
-Recomendación: **A**.
+Recomendación: **A**. **Decidido (David, 2026-10-05): A2, como límite del rango** — con bypass, el conductor
+es el mayor de los dos 125 %, la protección va del 125 % de la entrada a la menor de la máxima del fabricante y
+la de la Tabla 430-52 del motor (rango vacío: aviso), «OL» por 430-124(b) y desconexión al 115 % de la mayor de
+las dos corrientes (430-128, 430-110(a)). 30 HP a 440 V, entrada 42 A, máxima 70 A: sin cambio (`72a2d48`; la
+hoja de la memoria, `93951eb`).
 
 ### «Pendiente de probar» de la auditoría, 2026-09-30
 
