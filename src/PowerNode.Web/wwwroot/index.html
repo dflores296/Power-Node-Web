@@ -170,7 +170,56 @@
             }
         })();
     </script>
-    <script src="_framework/blazor.webassembly.js"></script>
+    <!--
+      LA DESCARGA EN BROTLI (P-3, I-152; David, 2026-10-05). GitHub Pages no sirve los .br que deja la
+      publicación: sin esto bajan 9.9 MB tal cual. La página pide cada binario con «.br» y lo descomprime con
+      js/brotli.js, el camino que documenta Microsoft para Blazor WebAssembly en un hospedaje sin compresión.
+
+      - Solo los binarios: ensamblados, dotnet.native.wasm, los datos de idioma. Los módulos de JS (dotnet.js y
+        compañía) y blazor.boot.json, como siempre: .NET solo acepta una URL para ellos.
+      - .NET busca primero en su caché y lo que se le entrega lo guarda ahí con el hash del recurso. Por eso lo
+        descomprimido se compara con ese hash (SHA-256) antes de entregarlo: un .br viejo se quedaría guardado.
+      - Si el .br no está, no se descomprime o no coincide, el recurso normal, como lo pediría .NET: la página
+        nunca se queda sin arrancar por esto.
+      - En localhost no: «dotnet run» no genera los .br.
+    -->
+    <script src="_framework/blazor.webassembly.js" autostart="false"></script>
+    <script src="js/brotli.js"></script>
+    <script>
+        (() => {
+            const BINARIOS = new Set(['assembly', 'pdb', 'dotnetwasm', 'globalization']);
+            const local = ['localhost', '127.0.0.1', '[::1]'].includes(location.hostname);
+
+            async function coincide(datos, integridad) {
+                if (!integridad?.startsWith('sha256-') || !globalThis.crypto?.subtle)
+                    return true; // sin hash que comparar (o fuera de https, donde .NET tampoco guarda nada)
+                const hash = new Uint8Array(await crypto.subtle.digest('SHA-256', datos));
+                let texto = '';
+                for (const b of hash) texto += String.fromCharCode(b);
+                return btoa(texto) === integridad.slice('sha256-'.length);
+            }
+
+            async function comprimido(tipo, uri, integridad) {
+                try {
+                    const r = await fetch(uri + '.br', { cache: 'no-cache' });
+                    if (!r.ok)
+                        throw new Error(`${r.status} ${uri}.br`);
+                    const datos = BrotliDecode(new Int8Array(await r.arrayBuffer()));
+                    if (!await coincide(datos, integridad))
+                        throw new Error(`${uri}.br no coincide con su hash`);
+                    return new Response(datos, { headers: { 'content-type': tipo === 'dotnetwasm' ? 'application/wasm' : 'application/octet-stream' } });
+                } catch (e) {
+                    console.warn('Brotli: se descarga sin comprimir.', e);
+                    return fetch(uri, integridad ? { cache: 'no-cache', integrity: integridad } : { cache: 'no-cache' });
+                }
+            }
+
+            Blazor.start({
+                loadBootResource: (tipo, nombre, uri, integridad) =>
+                    local || !BINARIOS.has(tipo) || typeof BrotliDecode !== 'function' ? null : comprimido(tipo, uri, integridad),
+            });
+        })();
+    </script>
     <!-- El teclado de la captura: Enter, flechas, Esc, atajos, barra de ayuda — I-55, I-56. -->
     <script src="js/teclado.js"></script>
     <!-- Arrastrar circuitos en el cuadro y en el gabinete — I-69. -->
