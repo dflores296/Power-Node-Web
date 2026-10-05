@@ -126,6 +126,14 @@ public sealed class CircuitoDelCuadro
     public bool NoArrancaConLaTabla { get; set; }
 
     /// <summary>
+    /// Motor solo (HP o A): el proyectista declara que el motor es de diseño B, C, D o E y su arrancador está
+    /// marcado 75 °C — 110-14(c)(1)a.(3) y a.(4). Sin la declaración, con conductor de 14 a 1 AWG la terminal
+    /// del motor es de 60 °C y, por ser la más baja (110-14(c)), manda la columna — M-21 (AM-4, David,
+    /// 2026-10-05).
+    /// </summary>
+    public bool MotorYArrancadorMarcados75C { get; set; }
+
+    /// <summary>
     /// <b>La protección dentro de su rango: calculada o fijada</b> — M-20, I-182. Calculada
     /// (<see cref="CriterioDeProteccion.Automatico"/>, por omisión) o un valor fijo que escogió el proyectista
     /// (<see cref="CriterioDeProteccion.Manual"/>). Solo cuenta donde hay rango (<see cref="ProteccionEscogible"/>).
@@ -853,6 +861,7 @@ public sealed class CircuitoDelCuadro
         NoContinua = 0m;
         Servicio = null;
         NoArrancaConLaTabla = false;
+        MotorYArrancadorMarcados75C = false;
         CriterioProteccion = CriterioDeProteccion.Automatico;
         ProteccionElegidaA = null;
         HuellaDelFijado = null;

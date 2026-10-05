@@ -802,6 +802,9 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
                                                 {
                                                     <label class="arranque-225" title="Marcar solo si el motor no arranca con la protección de la Tabla 430-52 (ni con la de su Excepción 1): el interruptor de tiempo inverso puede subir sin exceder 400 % de la FLC, o 300 % si la FLC pasa de 100 A — 430-52(c)(1) Excepción 2(3).">
                                                         <input type="checkbox" aria-label="Circuito @c.Espacio · El motor no arranca con la Tabla 430-52" checked="@c.NoArrancaConLaTabla" @onchange="e => { c.NoArrancaConLaTabla = e.Value is true; Recalcular(); }" />No arranca con la Tabla 430-52: hasta @(c.FlcA > 100m ? "300" : "400") %</label>
+                                                    @* M-21 (AM-4): la terminal del otro extremo. Sin marcar, con conductor de 14 a 1 AWG es de 60 °C. *@
+                                                    <label class="arranque-225" title="Marcar solo si el motor es de diseño B, C, D o E y su arrancador está marcado 75 °C: la terminal del motor se toma de 75 °C — 110-14(c)(1)a.(3) y a.(4). Sin marcar, con conductor de 14 a 1 AWG se toma de 60 °C, y el conductor va con la más baja de las terminales del circuito — 110-14(c).">
+                                                        <input type="checkbox" aria-label="Circuito @c.Espacio · Motor diseño B a E y arrancador marcado 75 °C" checked="@c.MotorYArrancadorMarcados75C" @onchange="e => { c.MotorYArrancadorMarcados75C = e.Value is true; Recalcular(); }" />Motor diseño B a E y arrancador marcado 75 °C</label>
                                                 }
                                                 @if (c.TieneCargasCombinadas)
                                                 {

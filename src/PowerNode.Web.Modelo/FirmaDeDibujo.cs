@@ -23,7 +23,7 @@ public static class FirmaDeDibujo
         var t = new Texto();
         t.Add(c.Espacio).Add(c.Descripcion).Add(c.DescripcionDelEquipo).Add(c.Categoria).Add(c.TipoElegido).Add(c.SinTipo)
          .Add(c.Uso).Add(c.UsoEfectivo).Add(c.Unidad).Add(c.CapturaMotor).Add(c.Hp).Add(c.CorrientePlacaA)
-         .Add(c.CorrienteSeleccionA).Add(c.ArranqueAl225).Add(c.NoArrancaConLaTabla).Add(c.CriterioProteccion)
+         .Add(c.CorrienteSeleccionA).Add(c.ArranqueAl225).Add(c.NoArrancaConLaTabla).Add(c.MotorYArrancadorMarcados75C).Add(c.CriterioProteccion)
          .Add(c.ProteccionElegidaA).Add(c.HuellaDelFijado).Add(c.PlacaAire).Add(c.AmpacidadMinimaA).Add(c.ProteccionMaximaA)
          .Add(c.CorrienteEntradaVariadorA).Add(c.ProteccionMaximaVariadorA).Add(c.Servicio).Add(c.EspecificacionServicio)
          .Add(c.CorrientePlacaServicioA).Add(c.CorrienteDeServicioA).Add(c.NoSimultaneoCon).Add(c.OmitidoPorNoSimultaneo)

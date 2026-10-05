@@ -133,7 +133,7 @@ public class ArchivoDelCuadroTests
         var texto = ArchivoDelCuadro.Guardar(TableroCompleto(), Cuando);
 
         Assert.Contains("\"formato\": \"power-node/cuadro-de-carga\"", texto);
-        Assert.Contains("\"version\": 12", texto); // 12, M-20: el criterio de la protección del motor; 11: lugar seco, húmedo o mojado; 10: el nombre del equipo del renglón; 9: el variador en el desplegable; 8: varios tableros, cada uno con su no continua; 7: subtipos de uso de vivienda; 6, M-14: área servida (5: I-123, subtipo y Tablero; 4: I-116, I-117; 3: I-115; 2: I-74)
+        Assert.Contains("\"version\": 13", texto); // 13, M-21: el motor de diseño B a E y arrancador a 75 °C; 12, M-20: el criterio de la protección del motor; 11: lugar seco, húmedo o mojado; 10: el nombre del equipo del renglón; 9: el variador en el desplegable; 8: varios tableros, cada uno con su no continua; 7: subtipos de uso de vivienda; 6, M-14: área servida (5: I-123, subtipo y Tablero; 4: I-116, I-117; 3: I-115; 2: I-74)
         Assert.Contains("\"guardado\": \"2026-09-25T18:30:00-06:00\"", texto);
         Assert.Contains("\"ubicacion\": \"Cocina y baño, planta baja\"", texto); // sin \u00F1
         Assert.Contains("\"justificacionOtra\": {", texto);

@@ -373,7 +373,7 @@ public sealed record DesgloseDeSeleccion(IReadOnlyList<string> Proteccion, IRead
 
         var conductor = new List<string>
         {
-            $"{datos.TipoAislamiento} {d.TemperaturaAislamientoC} °C · terminal {d.TemperaturaTerminalesC} °C " + PorQueLaTerminal(proteccionA, datos.TerminalesMarcadas75C, d.TemperaturaTerminalesC),
+            $"{datos.TipoAislamiento} {d.TemperaturaAislamientoC} °C · terminal {d.TemperaturaTerminalesC} °C " + PorQueLaTerminal(proteccionA, datos.TerminalesMarcadas75C, d.TemperaturaTerminalesC, d.TemperaturaAislamientoC),
         };
 
         if (deTablaAislamiento is { } a)
@@ -408,8 +408,11 @@ public sealed record DesgloseDeSeleccion(IReadOnlyList<string> Proteccion, IRead
         }
     }
 
-    private static string PorQueLaTerminal(decimal proteccionA, bool marcadas75C, int terminalC) =>
-        proteccionA > 100m ? "(protección > 100 A) — 110-14(c)(1)b."
+    private static string PorQueLaTerminal(decimal proteccionA, bool marcadas75C, int terminalC, int aislamientoC) =>
+        // Más baja que la del interruptor: la del motor y su arrancador, con conductor de 14 a 1 AWG — M-21.
+        terminalC < (int)TemperaturaTerminales.Para(proteccionA, marcadas75C, (TemperaturaAislamiento)aislamientoC)
+            ? "(el motor y su arrancador, con conductor de 14 a 1 AWG: la más baja de las terminales) — 110-14(c)(1)a., 110-14(c)"
+        : proteccionA > 100m ? "(protección > 100 A) — 110-14(c)(1)b."
         : !marcadas75C ? "(protección ≤ 100 A) — 110-14(c)(1)a."
         : terminalC == 75 ? "(equipo marcado 75 °C) — 110-14(c)(1)a.(3)"
         : "(conductor de 60 °C con equipo marcado 75 °C) — 110-14(c)(1)a.(1)";

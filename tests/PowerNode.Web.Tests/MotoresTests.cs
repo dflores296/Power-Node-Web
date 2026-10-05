@@ -131,8 +131,16 @@ public class MotoresTests
         cuadro.Datos.TerminalesMarcadas75C = true;
         var c = ConMotor(cuadro, 1, 5m, 3);
 
-        // 19 A: 14 AWG da 20 A a 75 °C — 110-14(c)(1)a.(3). Antes el derivado de motor la ignoraba.
+        // 19 A: la terminal del interruptor es de 75 °C — 110-14(c)(1)a.(3). La del motor, con conductor de 14 a
+        // 1 AWG y sin marcado, de 60 °C: manda la más baja — 110-14(c), M-21. 12 AWG (25 A a 60 °C).
+        Assert.Equal("12", c.Resultado!.CalibreFase.Designacion);
+        Assert.Equal(60, c.Resultado.Detalle!.TemperaturaTerminalesC);
+
+        // Con el motor de diseño B a E y el arrancador marcados 75 °C, las dos a 75 °C: 14 AWG da 20 A.
+        c.MotorYArrancadorMarcados75C = true;
+        cuadro.Recalcular();
         Assert.Equal("14", c.Resultado!.CalibreFase.Designacion);
+        Assert.Equal(75, c.Resultado.Detalle!.TemperaturaTerminalesC);
     }
 
     [Fact]

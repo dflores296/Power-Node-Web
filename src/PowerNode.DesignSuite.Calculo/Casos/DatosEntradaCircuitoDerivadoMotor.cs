@@ -78,7 +78,16 @@ public sealed record DatosEntradaCircuitoDerivadoMotor(
     /// Con <see cref="CriterioProteccionMotor.Manual"/>: la que escogió el proyectista. Si no está en el
     /// rango, se usa la más cercana que sí (Power Node Web, M-20).
     /// </summary>
-    decimal? ProteccionElegidaA = null)
+    decimal? ProteccionElegidaA = null,
+
+    /// <summary>
+    /// <b>El motor es de diseño B, C, D o E y su arrancador está marcado 75 °C</b> — Power Node Web, M-21
+    /// (AM-4, CONFIRMADA · David · 2026-10-05). La columna del conductor es la más baja de las terminales del
+    /// circuito (110-14(c)), y en el otro extremo están el motor y su arrancador: sin esta declaración, con
+    /// conductor de 14 a 1 AWG se toman de 60 °C (110-14(c)(1)a.); con ella, de 75 °C — 110-14(c)(1)a.(3) y
+    /// a.(4). Falso por omisión.
+    /// </summary>
+    bool MotorYArrancadorMarcados75C = false)
 {
     /// <summary>1 (monofásico o CD), 2 o 3 -- deriva de TipoAlimentacion, no se captura aparte.</summary>
     public int NumeroFases => TipoAlimentacion switch

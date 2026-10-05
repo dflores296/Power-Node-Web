@@ -107,6 +107,8 @@ public sealed class CircuitoJson
     public bool? ArranqueAl225 { get; set; }
     // Formato 11 — P1-1: el motor no arranca con la Tabla 430-52 (430-52(c)(1) Excepción 2).
     public bool? NoArrancaConLaTabla { get; set; }
+    // Formato 13 — M-21: motor de diseño B a E y arrancador marcados 75 °C (110-14(c)(1)a.(3) y a.(4)).
+    public bool? MotorYArrancador75C { get; set; }
     // Formato 12 — M-20: cómo se escoge la protección del motor y, si es manual, cuál. Sin el campo, un
     // motor de formato 11 o anterior abre en el máximo (lo de antes); uno de formato 12, en automático.
     public CriterioDeProteccion? CriterioProteccion { get; set; }
@@ -146,6 +148,7 @@ public sealed class CircuitoJson
         CorrienteSeleccion = c.CorrienteSeleccionA,
         ArranqueAl225 = c.ArranqueAl225 ? true : null,
         NoArrancaConLaTabla = c.NoArrancaConLaTabla ? true : null,
+        MotorYArrancador75C = c.MotorYArrancadorMarcados75C ? true : null,
         CriterioProteccion = c.CriterioProteccion == CriterioDeProteccion.Automatico ? null : c.CriterioProteccion,
         ProteccionElegida = c.CriterioProteccion == CriterioDeProteccion.Manual ? c.ProteccionElegidaA : null,
         PlacaAire = c.PlacaAire == PlacaDeAireAcondicionado.AmpacidadYProteccion ? null : c.PlacaAire,
@@ -196,6 +199,7 @@ public sealed class CircuitoJson
         c.CorrienteSeleccionA = CorrienteSeleccion is > 0m ? CorrienteSeleccion : null;
         c.ArranqueAl225 = ArranqueAl225 ?? c.ArranqueAl225;
         c.NoArrancaConLaTabla = NoArrancaConLaTabla ?? c.NoArrancaConLaTabla;
+        c.MotorYArrancadorMarcados75C = MotorYArrancador75C ?? c.MotorYArrancadorMarcados75C;
         c.PlacaAire = PlacaAire ?? c.PlacaAire;
         c.AmpacidadMinimaA = AmpacidadMinima is >= 0m ? AmpacidadMinima.Value : c.AmpacidadMinimaA;
         c.ProteccionMaximaA = ProteccionMaxima is >= 0m ? ProteccionMaxima.Value : c.ProteccionMaximaA;

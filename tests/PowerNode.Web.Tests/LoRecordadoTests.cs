@@ -117,6 +117,11 @@ public class LoRecordadoTests
                 return $"protección de {c.Espacio} = {v}";
             }
             case 9 when c.EsMotorSolo:
+                if (azar.Next(2) == 0)
+                {
+                    c.MotorYArrancadorMarcados75C = !c.MotorYArrancadorMarcados75C;
+                    return $"motor y arrancador a 75 °C en {c.Espacio} = {c.MotorYArrancadorMarcados75C}";
+                }
                 c.NoArrancaConLaTabla = !c.NoArrancaConLaTabla;
                 return $"Excepción 2 de {c.Espacio} = {c.NoArrancaConLaTabla}";
             case 10:

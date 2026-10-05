@@ -129,10 +129,7 @@ public class CalculadoraCircuitoDerivadoMotor(
 
         // 5. Factores de corrección -- 310-15(b)(2)(a)/(3)(a). Se corrige en la columna del
         // AISLAMIENTO -- 110-14(c)(1)a.(2)/b.(2): SeleccionConductor topa el resultado a la terminal.
-        // (Fuera de v1: 110-14(c)(1)a.(4), la variante específica para motores con letra de diseño
-        // B/C/D/E, que permite 75°C o más incluso en circuitos <=100A -- requiere capturar la letra
-        // de diseño, que hoy no se modela; el crédito general de (c)(1)a.(2)/b.(2) ya cubre el caso
-        // común de todas formas.)
+        // 110-14(c)(1)a.(4) —el motor de diseño B, C, D o E— entra en el paso 5.5, con la terminal del motor.
         var factorTemp = correccionTemperatura.Factor(d.TemperaturaAmbienteC, tempAislamiento)
             ?? throw new InvalidOperationException($"La Tabla 310-15(b)(2)(a) no cubre {d.TemperaturaAmbienteC}°C para la columna de {(int)tempAislamiento}°C.");
         var factorAgrup = agrupamiento.Factor(d.NumeroConductoresAgrupados);
@@ -157,7 +154,10 @@ public class CalculadoraCircuitoDerivadoMotor(
         //
         // Sin protección, como siempre: el conductor de un motor va por 430-22 y la protección por 430-52
         // (240-4(g)). Con una protección, además queda protegido por ella según 240-4 — M-20.
-        SeleccionConductor.Resultado Seleccionar(decimal? protegidoPorA) => SeleccionConductor.Seleccionar(
+        // El mínimo lo pone la terminal del motor (paso 5.5).
+        Calibre? minimoPorElMotor = null;
+        SeleccionConductor.Resultado Seleccionar(decimal? protegidoPorA) => SeleccionarCon(tempTerminales, protegidoPorA, minimoPorElMotor);
+        SeleccionConductor.Resultado SeleccionarCon(TemperaturaAislamiento terminales, decimal? protegidoPorA, Calibre? minimoBase) => SeleccionConductor.Seleccionar(
             catalogo, ampacidad, impedancia,
             capacidadMinConductorA: capacidadMinConductor,
             corrienteParaCaidaA: flc,
@@ -167,7 +167,7 @@ public class CalculadoraCircuitoDerivadoMotor(
             materialConductor: d.MaterialConductor,
             materialCanalizacion: d.MaterialCanalizacion,
             tempAislamiento: tempAislamiento,
-            tempTerminales: tempTerminales,
+            tempTerminales: terminales,
             longitudM: d.LongitudM,
             factorPotencia: d.FactorPotencia,
             numeroFases: numeroFases,
@@ -179,17 +179,65 @@ public class CalculadoraCircuitoDerivadoMotor(
             // Un motor es un circuito de una sola carga: califica para 240-4(b)(1).
             permiteExcepcion2404b: true,
             metodoInstalacion: d.MetodoInstalacion,
-            maxNParaleloAutoResuelto: d.MaxConductoresParaleloAutomatico);
+            maxNParaleloAutoResuelto: d.MaxConductoresParaleloAutomatico,
+            calibreMinimoBase: minimoBase);
 
-        // PRIORIDAD AL CONDUCTOR — M-20: ver ProteccionDentroDelRango.Escoger.
+        // 5.5. LA TERMINAL DEL MOTOR Y DEL ARRANCADOR — Power Node Web, M-21 (AM-4, CONFIRMADA · David ·
+        // 2026-10-05). La columna es la más baja de las terminales del circuito: «la temperatura nominal de
+        // operación del conductor … debe seleccionarse … de manera que no exceda la temperatura nominal más baja
+        // de cualquier terminación» — 110-14(c). En un extremo está el interruptor (paso 4); en el otro, el motor
+        // y su arrancador, cuyo marcado no se conoce: con conductor de 14 a 1 AWG, 60 °C (110-14(c)(1)a.); mayor
+        // que 1 AWG, 75 °C (110-14(c)(1)b.). Si el proyectista declara un motor de diseño B, C, D o E con
+        // arrancador marcado 75 °C, 75 °C — a.(3) y a.(4). Solo cambia algo con la terminal del interruptor en
+        // 75 °C: en 60 °C ya manda ella.
+        //
+        // EL CALIBRE DECIDE LA TERMINAL Y LA TERMINAL EL CALIBRE: se resuelve con el conductor que pide la
+        // ampacidad en la columna de 60 °C. Si es de 1 AWG o menor, la terminal del motor es de 60 °C y ese es
+        // el conductor. Si pasa de 1 AWG, la terminal es de 75 °C, y en esa columna el conductor no puede bajar
+        // de 1/0 AWG: con 1 AWG o menos volvería a ser de 60 °C, y no alcanzaría.
+        var terminalDelInterruptor = tempTerminales;
+        Cita? citaDelMotor = null;
+        if (terminalDelInterruptor == TemperaturaAislamiento.T75 && d.MotorYArrancadorMarcados75C)
+            citaDelMotor = new Cita("110-14(c)(1)a.(4)",
+                "Terminal del motor y del arrancador: motor de diseño B, C, D o E y arrancador marcado 75°C -> 75°C " +
+                "(110-14(c)(1)a.(3) y a.(4)). Las dos terminales del circuito, a 75°C.");
+        else if (terminalDelInterruptor == TemperaturaAislamiento.T75)
+        {
+            var unoCero = catalogo.Listar().Single(c => c.Designacion == "1/0");
+            var a60 = SeleccionarCon(TemperaturaAislamiento.T60, null, null).CalibreBase;
+            if (a60.AreaMm2 < unoCero.AreaMm2)
+            {
+                tempTerminales = TemperaturaAislamiento.T60;
+                citaDelMotor = new Cita("110-14(c)",
+                    $"Terminal del motor y del arrancador: con {a60.DesignacionConUnidad} (de 14 a 1 AWG) y sin marcado de 75°C, 60°C " +
+                    "(110-14(c)(1)a.). Manda la más baja de las terminales del circuito: el conductor va en la columna de 60°C. " +
+                    "Con un motor de diseño B, C, D o E y el arrancador marcado 75°C se permite 75°C — 110-14(c)(1)a.(3) y a.(4).");
+            }
+            else
+            {
+                minimoPorElMotor = unoCero;
+                citaDelMotor = new Cita("110-14(c)",
+                    $"Terminal del motor y del arrancador: en la columna de 60°C el conductor sería {a60.DesignacionConUnidad}, mayor que " +
+                    "1 AWG, y con conductor mayor que 1 AWG la terminal es de 75°C (110-14(c)(1)b.). Las dos terminales del circuito, " +
+                    "a 75°C, con 1/0 AWG como mínimo: con 1 AWG o menos la del motor sería de 60°C.");
+            }
+        }
+        else if (d.MotorYArrancadorMarcados75C)
+            citaDelMotor = new Cita("110-14(c)",
+                "El motor y el arrancador están marcados 75°C, pero la terminal del interruptor es de 60°C: manda la más baja.");
+
+        // PRIORIDAD AL CONDUCTOR — M-20: ver ProteccionDentroDelRango.Escoger. El tope de 100 A es el de la
+        // terminal del interruptor (paso 8 de M-20); la ampacidad, la de la columna que quedó.
         var escogida = ProteccionDentroDelRango.Escoger(
-            criterio, inicial, minimo, valores, tempTerminales, proteccionEstandar, d.MaterialConductor, Seleccionar,
+            criterio, inicial, minimo, valores, terminalDelInterruptor, proteccionEstandar, d.MaterialConductor, Seleccionar,
             c => SeleccionConductor.AmpacidadUtilizable(ampacidad, c, d.MaterialConductor, tempAislamiento, tempTerminales, factorTemp, factorAgrup, d.MetodoInstalacion));
         var seleccion = escogida.Seleccion;
         var breaker = escogida.ProteccionA;
         citas.AddRange(seleccion.Citas);
 
-        citas.Insert(indiceDeTerminales, new Cita("110-14(c)(1)", TemperaturaTerminales.Explicacion(breaker, d.TerminalesMarcadas75C, tempTerminales)));
+        citas.Insert(indiceDeTerminales, new Cita("110-14(c)(1)", TemperaturaTerminales.Explicacion(breaker, d.TerminalesMarcadas75C, terminalDelInterruptor)));
+        if (citaDelMotor is not null)
+            citas.Insert(indiceDeTerminales + 1, citaDelMotor);
 
         var rango = ProteccionDentroDelRango.Armar(
             regla: "430-52(c)(1)",

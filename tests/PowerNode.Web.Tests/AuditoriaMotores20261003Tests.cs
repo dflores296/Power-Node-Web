@@ -209,9 +209,10 @@ public class AuditoriaMotores20261003Tests
 
     /// <summary>
     /// El molino de 25 HP a 220 V: FLC 68 A, 125 % = 85 A, rango de 90 a 175 A. Con 175 A (la calculada, el
-    /// máximo arriba de 1 HP) el circuito es de más de 100 A: 75 °C y 4 AWG (85 A) — 110-14(c)(1)b. Fijada en
-    /// 100 A: 60 °C y 3 AWG (85 A) — 110-14(c)(1)a. Correcto por la letra; la cita ahora dice el inciso. Si
-    /// el conductor debe salir del motor y no de la protección es criterio: por decidir (David).
+    /// máximo arriba de 1 HP) el circuito es de más de 100 A: la terminal del interruptor, 75 °C — 110-14(c)(1)b.;
+    /// fijada en 100 A, 60 °C — 110-14(c)(1)a. La cita dice el inciso. Desde la decisión de David (2026-10-05) la
+    /// columna es además la más baja con la del motor: 3 AWG en los dos casos (ver
+    /// <c>CriterioDeMotores20261005Tests</c>).
     /// </summary>
     [Fact]
     public void M21_LaCitaDeTerminalesDiceElInciso()
@@ -224,7 +225,7 @@ public class AuditoriaMotores20261003Tests
         cuadro.Recalcular();
         Assert.Equal(68m, c.FlcA);
         Assert.Equal(175m, c.Resultado!.ProteccionA);
-        Assert.Equal("4", c.Resultado.CalibreFase.Designacion);
+        Assert.Equal("3", c.Resultado.CalibreFase.Designacion);
         Assert.Contains(c.Resultado.Citas, x => x.Referencia == "110-14(c)(1)" && x.Descripcion.EndsWith("terminales a 75°C (110-14(c)(1)b.)", StringComparison.Ordinal));
 
         cuadro.FijarProteccion(c, 100m);

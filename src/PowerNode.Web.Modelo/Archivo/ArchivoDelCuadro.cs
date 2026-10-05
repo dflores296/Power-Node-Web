@@ -44,9 +44,10 @@ public static class ArchivoDelCuadro
     /// aparte del del espacio; la 9 lo perdería. 11: el lugar seco, húmedo o mojado (auditoría del
     /// 2026-09-29, P1-2), y el motor que no arranca con la Tabla 430-52 (P1-1); la 10 leería todo como
     /// seco y perdería la Excepción 2. 12: el criterio de la protección del motor y su valor fijo (M-20); la
-    /// 11 abriría todo en el máximo. Un motor de la 11 o anterior abre en el máximo: lo de antes.
+    /// 11 abriría todo en el máximo. Un motor de la 11 o anterior abre en el máximo: lo de antes. 13: el motor
+    /// de diseño B a E con arrancador marcado 75 °C (M-21); la 12 lo perdería y lo calcularía a 60 °C.
     /// </summary>
-    public const int Version = 12;
+    public const int Version = 13;
 
     /// <summary>El archivo, listo para escribirse.</summary>
     public static string Guardar(CuadroDeCarga cuadro, DateTimeOffset cuando) =>

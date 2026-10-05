@@ -2337,6 +2337,7 @@ public sealed class CuadroDeCarga
             Lugar: Datos.Lugar,
             TerminalesMarcadas75C: Datos.TerminalesMarcadas75C,
             NoArrancaConLaTabla: c.NoArrancaConLaTabla,
+            MotorYArrancadorMarcados75C: c.MotorYArrancadorMarcados75C,
             // M-20: la calculada, por los HP — la mayor que protege al conductor hasta 1 HP (criterio, I-183).
             CriterioProteccion: c.CriterioProteccion.ParaElCalculo(hp, c.NoArrancaConLaTabla),
             ProteccionElegidaA: c.CriterioProteccion == CriterioDeProteccion.Manual ? c.ProteccionElegidaA : null);

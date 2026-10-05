@@ -131,7 +131,10 @@ public static class SeleccionConductor
         // La caída en volts para un calibre (R y X en ohm/km, conductores por fase), cuando la
         // fórmula k·L·I·(R cosθ + X senθ) / N no alcanza: un alimentador con neutro y fases
         // desbalanceadas — CaidaPorFase, R-02. Null = la fórmula de siempre.
-        Func<decimal, decimal, int, decimal>? caidaVoltsPorImpedancia = null)
+        Func<decimal, decimal, int, decimal>? caidaVoltsPorImpedancia = null,
+        // El calibre por ampacidad no baja de éste: la terminal del motor de 75 °C pide conductor mayor que
+        // 1 AWG — Power Node Web, M-21. Null = sin mínimo, como siempre.
+        Calibre? calibreMinimoBase = null)
     {
         // Un tope por debajo del N capturado dejaría el bucle sin una sola vuelta y tiraría una
         // excepción de caída de tensión donde el problema es el tope. El N capturado manda.
@@ -151,7 +154,7 @@ public static class SeleccionConductor
                 nParalelo, factorTemp, factorAgrup, materialConductor, materialCanalizacion, tempAislamiento, tempTerminales,
                 longitudM, factorPotencia, senTheta, k, tensionEfectivaV, caidaTensionMaxPct, pisoPracticoCalibreMm2,
                 proteccionEstandar, proteccionA, permiteExcepcion2404b, metodoInstalacion, cargaAl100PctA,
-                caidaVoltsPorImpedancia, out ultimoAgotoPorAmpacidad);
+                caidaVoltsPorImpedancia, calibreMinimoBase, out ultimoAgotoPorAmpacidad);
 
             if (intento is null)
             {
@@ -209,7 +212,7 @@ public static class SeleccionConductor
         decimal tensionEfectivaV, decimal caidaTensionMaxPct, decimal? pisoPracticoCalibreMm2,
         ITablaProteccionEstandar? proteccionEstandar, decimal? proteccionA, bool permiteExcepcion2404b,
         MetodoInstalacion metodoInstalacion, decimal? cargaAl100PctA,
-        Func<decimal, decimal, int, decimal>? caidaVoltsPorImpedancia, out bool agotoPorAmpacidad)
+        Func<decimal, decimal, int, decimal>? caidaVoltsPorImpedancia, Calibre? calibreMinimoBase, out bool agotoPorAmpacidad)
     {
         agotoPorAmpacidad = false;
 
@@ -223,7 +226,7 @@ public static class SeleccionConductor
         if (DeterminarCalibreBase(
                 catalogo, ampacidad, proteccionEstandar, capacidadMinConductorA, proteccionA, permiteExcepcion2404b,
                 nParalelo, factorTemp, factorAgrup, materialConductor, tempAislamiento, tempTerminales, metodoInstalacion,
-                cargaAl100PctA) is not { } deAmpacidad)
+                cargaAl100PctA, calibreMinimoBase) is not { } deAmpacidad)
         {
             agotoPorAmpacidad = true;
             return null;
@@ -388,7 +391,7 @@ public static class SeleccionConductor
         decimal capacidadMinConductorA, decimal? proteccionA, bool permiteExcepcion2404b,
         int nParalelo, decimal factorTemp, decimal factorAgrup, MaterialConductor materialConductor,
         TemperaturaAislamiento tempAislamiento, TemperaturaAislamiento tempTerminales, MetodoInstalacion metodoInstalacion,
-        decimal? cargaAl100PctA)
+        decimal? cargaAl100PctA, Calibre? calibreMinimoBase)
     {
         var objetivoPorCarga = capacidadMinConductorA / nParalelo;
         var calibrePorCarga = cargaAl100PctA is decimal carga
@@ -399,6 +402,8 @@ public static class SeleccionConductor
                 catalogo, ampacidad, objetivoPorCarga, materialConductor, tempAislamiento, tempTerminales, factorTemp, factorAgrup, metodoInstalacion);
         if (calibrePorCarga is null)
             return null;
+        if (calibreMinimoBase is { } minimo && calibrePorCarga.AreaMm2 < minimo.AreaMm2)
+            calibrePorCarga = minimo;
 
         if (proteccionA is not decimal breaker || proteccionEstandar is null)
             return (calibrePorCarga, null); // fuera de alcance de 240-4 (Motor, que se rige por 430-52).

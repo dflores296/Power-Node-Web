@@ -25,7 +25,7 @@ public class ProteccionDeMotoresPorRangoTests
         decimal hp, int polos, decimal tensionMotorV, CriterioProteccionMotor criterio,
         SerieDeInterruptores serie = SerieDeInterruptores.CentroDeCargaNema, decimal? elegida = null,
         int agrupados = 3, decimal temperaturaC = 30m, bool noArranca = false, bool marcadas75 = false,
-        decimal? flcEnAmperes = null, decimal longitudM = 5m)
+        decimal? flcEnAmperes = null, decimal longitudM = 5m, bool motor75 = false)
     {
         var vff = tensionMotorV > 300m ? 480m : 220m;
         var vfn = tensionMotorV > 300m ? 277m : 127m;
@@ -50,7 +50,8 @@ public class ProteccionDeMotoresPorRangoTests
             FlcMarcadaEnAmperesA: flcEnAmperes,
             NoArrancaConLaTabla: noArranca,
             CriterioProteccion: criterio,
-            ProteccionElegidaA: elegida));
+            ProteccionElegidaA: elegida,
+            MotorYArrancadorMarcados75C: motor75));
     }
 
     [Theory]
@@ -191,11 +192,19 @@ public class ProteccionDeMotoresPorRangoTests
         Assert.Contains(r.Citas, x => x.Referencia == "240-4" && x.Descripcion.Contains("110-14(c)(1)a."));
         Assert.Equal(60, r.Detalle!.TemperaturaTerminalesC);
 
-        // Con terminales marcadas 75 °C (110-14(c)(1)a.(3)), la salida: 3 AWG con 100 A.
+        // Con el tablero marcado 75 °C (110-14(c)(1)a.(3)), el interruptor ya no topa en 100 A, pero el motor y su
+        // arrancador, con 1 AWG y sin marcado, siguen en 60 °C, la más baja — M-21: 1 AWG (110 A) con 110 A.
         var marcadas = Calcular(30m, 3, 220m, CriterioProteccionMotor.Conductor, marcadas75: true);
-        Assert.Equal(100m, marcadas.ProteccionA);
-        Assert.Equal("3", marcadas.CalibreFase.Designacion);
+        Assert.Equal(110m, marcadas.ProteccionA);
+        Assert.Equal("1", marcadas.CalibreFase.Designacion);
+        Assert.Equal(60, marcadas.Detalle!.TemperaturaTerminalesC);
         Assert.False(marcadas.Rango!.TopadoEn100A);
+
+        // Con el motor de diseño B a E y el arrancador marcados 75 °C también, la salida: 3 AWG con 100 A.
+        var todo75 = Calcular(30m, 3, 220m, CriterioProteccionMotor.Conductor, marcadas75: true, motor75: true);
+        Assert.Equal(100m, todo75.ProteccionA);
+        Assert.Equal("3", todo75.CalibreFase.Designacion);
+        Assert.False(todo75.Rango!.TopadoEn100A);
     }
 
     [Fact]
