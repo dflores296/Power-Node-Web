@@ -18,7 +18,7 @@ AM-5: B … AM-7: A2 … P-1: sí · P-2: aceptar · P-3: 1») — en este orden
 - AM-7 (M-23), `72a2d48`: el variador con bypass: conductor con los dos 125 %, el rango topado con la Tabla 430-52
   del motor, aviso si queda vacío, «OL» por 430-124(b), desconexión al 115 % de la mayor. 30 HP a 440 V: sin cambio.
 - AM-11 (I-189), `93951eb`: la tensión de placa obligatoria en A/C y variador, sin valor por omisión; los polos salen
-  de ella; los archivos anteriores abren con la de sus polos y avisan. las 36 pruebas anteriores que armaban un A/C o un variador
+  de ella; los archivos anteriores abren con la de sus polos y avisan. Las 36 pruebas anteriores que armaban un A/C o un variador
   ahora escogen la tensión de sus polos (`Placas.cs`). Agregada 575/600 V 3F para los tableros de 600 V, a confirmar.
   En el mismo commit, la hoja de la memoria del variador con bypass, que faltaba en `72a2d48`.
 - P-3 (I-152), `ef26a2f`: los `.br` con el decodificador de Brotli, verificando el hash. Medido con «Slow 4G» por
