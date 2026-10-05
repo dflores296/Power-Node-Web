@@ -44,6 +44,11 @@ public sealed record SobrecargaRequerida(string Referencia, string Texto, bool A
                 new("430-32(a)", DeUnMotor, true),
             DatosEntradaCircuitoDerivadoMotor => new("430-32(b)",
                 DeUnMotor + ". En una bomba o un motor chico suele venir en el motor: verificarlo en la placa", true),
+            // M-23: con bypass, el motor también va directo a la línea, y ese circuito lleva la suya — 430-124(b).
+            DatosEntradaCircuitoDerivadoVariador { Bypass: not null } => new("430-124(a), 430-124(b), 430-126",
+                "En el bypass, la del motor: relevador en el arrancador del circuito de desviación (430-124(b)). En el variador, la da él si " +
+                "está marcado así; si no, un relevador aparte. Si el motor trabaja a baja velocidad sin ventilación propia, además protección " +
+                "contra sobretemperatura (430-126)", true),
             DatosEntradaCircuitoDerivadoVariador => new("430-124(a), 430-126",
                 "La da el variador si está marcado así; si no, un relevador aparte. Si el motor trabaja a baja velocidad sin " +
                 "ventilación propia, además protección contra sobretemperatura (430-126)", true),

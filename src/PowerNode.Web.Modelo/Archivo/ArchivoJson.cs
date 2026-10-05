@@ -119,6 +119,9 @@ public sealed class CircuitoJson
     // Formato 4 — I-119: el motor con variador.
     public decimal? CorrienteEntradaVariador { get; set; }
     public decimal? ProteccionMaximaVariador { get; set; }
+    // Formato 13 — M-23: los HP del motor del variador y el bypass (430-122(b)).
+    public decimal? HpMotorVariador { get; set; }
+    public bool? ConBypass { get; set; }
     // Formato 10: el nombre del equipo del renglón, aparte del del espacio (David, 2026-09-30).
     public string? DescripcionDelEquipo { get; set; }
     // Formato 4 — I-120, I-121: el servicio de un motor y el par no simultáneo.
@@ -156,6 +159,8 @@ public sealed class CircuitoJson
         ProteccionMaxima = c.ProteccionMaximaA == 0m ? null : c.ProteccionMaximaA,
         CorrienteEntradaVariador = c.CorrienteEntradaVariadorA == 0m ? null : c.CorrienteEntradaVariadorA,
         ProteccionMaximaVariador = c.ProteccionMaximaVariadorA == 0m ? null : c.ProteccionMaximaVariadorA,
+        HpMotorVariador = c.HpMotorDelVariador,
+        ConBypass = c.VariadorConBypass ? true : null,
         DescripcionDelEquipo = string.IsNullOrWhiteSpace(c.DescripcionDelEquipo) ? null : c.DescripcionDelEquipo,
         Servicio = c.Servicio,
         EspecificacionServicio = c.EspecificacionServicio == PowerNode.DesignSuite.Calculo.TablasNom.EspecificacionDeTiempo.Continuo ? null : c.EspecificacionServicio,
@@ -205,6 +210,8 @@ public sealed class CircuitoJson
         c.ProteccionMaximaA = ProteccionMaxima is >= 0m ? ProteccionMaxima.Value : c.ProteccionMaximaA;
         c.CorrienteEntradaVariadorA = CorrienteEntradaVariador is >= 0m ? CorrienteEntradaVariador.Value : c.CorrienteEntradaVariadorA;
         c.ProteccionMaximaVariadorA = ProteccionMaximaVariador is >= 0m ? ProteccionMaximaVariador.Value : c.ProteccionMaximaVariadorA;
+        c.HpMotorDelVariador = HpMotorVariador is > 0m ? HpMotorVariador : null;
+        c.VariadorConBypass = ConBypass ?? c.VariadorConBypass;
         c.DescripcionDelEquipo = DescripcionDelEquipo ?? c.DescripcionDelEquipo;
         c.Servicio = Servicio;
         c.EspecificacionServicio = EspecificacionServicio ?? c.EspecificacionServicio;
@@ -321,6 +328,9 @@ public sealed class AparatoJson
     public decimal? NoContinua { get; set; }
     // Formato 9: un variador en el desplegable — su protección máxima (110-3(b)).
     public decimal? ProteccionMaxima { get; set; }
+    // Formato 13 — M-23: los HP del motor del variador y el bypass, guardados para cuando regrese a su renglón.
+    public decimal? HpMotorVariador { get; set; }
+    public bool? ConBypass { get; set; }
 
     public static AparatoJson De(CargaDelCircuito a) => new()
     {
@@ -338,6 +348,8 @@ public sealed class AparatoJson
         Subtipo = a.Subtipo,
         NoContinua = a.EsTablero ? a.NoContinua : null,
         ProteccionMaxima = a.Clase == ClaseDeAparato.Variador && a.ProteccionMaximaA > 0m ? a.ProteccionMaximaA : null,
+        HpMotorVariador = a.Clase == ClaseDeAparato.Variador ? a.HpMotorDelVariador : null,
+        ConBypass = a.Clase == ClaseDeAparato.Variador && a.ConBypass ? true : null,
     };
 
     internal CargaDelCircuito Crear(string quien, List<string> avisos)
@@ -367,7 +379,11 @@ public sealed class AparatoJson
         if (a.EsTablero)
             a.NoContinua = CircuitoJson.NoNegativo(NoContinua, a.NoContinua, $"{quien}, en la no continua,", avisos);
         if (a.Clase == ClaseDeAparato.Variador)
+        {
             a.ProteccionMaximaA = CircuitoJson.NoNegativo(ProteccionMaxima, a.ProteccionMaximaA, $"{quien}, en la protección máxima,", avisos);
+            a.HpMotorDelVariador = HpMotorVariador is > 0m ? HpMotorVariador : null;
+            a.ConBypass = ConBypass ?? a.ConBypass;
+        }
         return a;
     }
 }

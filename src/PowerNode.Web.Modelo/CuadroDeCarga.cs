@@ -466,7 +466,8 @@ public sealed class CuadroDeCarga
             return DesgloseDeSeleccion.DeVariador(
                 _motor.Ampacidad, Datos, c.CorrienteEntradaVariadorA, c.ProteccionMaximaVariadorA,
                 r.ProteccionA, r.CalibreFase, r.NumeroConductoresParalelo, detalle, r.Citas,
-                rango: r.Rango, criterio: CriterioDeLaProteccion(c), sobrecarga: c.Sobrecarga);
+                rango: r.Rango, criterio: CriterioDeLaProteccion(c), sobrecarga: c.Sobrecarga,
+                bypass: (c.EntradaDeLaProteccion as DatosEntradaCircuitoDerivadoVariador)?.Bypass);
 
         if (c.EsMotor)
             return DesgloseDeSeleccion.DeMotor(
@@ -1521,11 +1522,30 @@ public sealed class CuadroDeCarga
         .. c.ReglasDeClase.Where(x => x.Aviso).Select(x => $"{x.Texto.TrimEnd('.')} — {x.Referencia}."),
         .. c.AvisoCaidaCombinada is { } caida ? [caida] : Array.Empty<string>(),
         .. c.AvisoAireDeHabitacion is { } habitacion ? [habitacion] : Array.Empty<string>(),
+        .. AvisosDelBypass(c),
         // R4-1: su canalización no cabe en ningún tubo de la Tabla 4.
         .. c.CanalizacionEfectiva is { NingunTamanoAlcanza: true } k
             ? [$"Ningún tubo de la Tabla 4 admite los conductores de su canalización ({NombreDe(k)}) — Capítulo 10, Tabla 1. Reparte los circuitos en más canalizaciones o cambia a ducto o charola."]
             : Array.Empty<string>(),
     ];
+
+    /// <summary>
+    /// <b>Lo que hay que revisar del bypass de un variador</b> — M-23: que ningún tamaño quede entre el 125 % de la
+    /// entrada y el máximo (la menor de la del fabricante y la de la Tabla 430-52 del motor); o un variador con
+    /// bypass en un grupo, donde 430-53 lo cuenta con su corriente de entrada.
+    /// </summary>
+    private static IEnumerable<string> AvisosDelBypass(CircuitoDelCuadro c)
+    {
+        if (c.EntradaDeLaProteccion is DatosEntradaCircuitoDerivadoVariador { Bypass: { } b } && c.Resultado?.Rango is { } r
+            && r.MaximoA < r.CapacidadMinimaA)
+            yield return $"Con el bypass, ningún tamaño queda entre el 125 % de la entrada del variador ({r.CapacidadMinimaA:N2} A) y el máximo " +
+                         $"({r.MaximoA:N0} A, el menor de la máxima del fabricante y la de la Tabla 430-52 para el motor de {MotoresEnHp.Texto(b.Hp)} HP): " +
+                         "se usa el máximo. Revisar con el fabricante del conjunto variador y bypass — 430-122(b), 110-3(b).";
+        if (c.EsGrupo)
+            foreach (var a in c.Cargas.Where(a => a.Clase == ClaseDeAparato.Variador && a.ConBypass))
+                yield return $"{NombreDeMaquina(c, a)}: el bypass no entra al cálculo del grupo, que lo cuenta con su corriente de entrada — 430-53. " +
+                             "430-122(b) se aplica con el variador solo en su circuito.";
+    }
 
     /// <summary>Los avisos de los circuitos que no son de caída: por ahora, 440-62 (I-117).</summary>
     public IEnumerable<string> AvisosDeCircuitos =>
@@ -2425,6 +2445,24 @@ public sealed class CuadroDeCarga
     /// </summary>
     private void CalcularVariador(CircuitoDelCuadro c, CanalizacionDelTablero canal)
     {
+        // M-23 (AM-7): con bypass, el motor con su FLC de tabla a la tensión del circuito y su Tabla 430-52.
+        DesviacionDelVariador? bypass = null;
+        if (c.VariadorConBypass)
+        {
+            var hp = c.HpMotorDelVariador ?? 0m;
+            var flc = hp > 0m ? FlcDe(hp, c.Polos) : 0m;
+            if (flc <= 0m)
+            {
+                c.Error = hp > 0m
+                    ? $"430-122(b): la tabla no trae un motor de {MotoresEnHp.Texto(hp)} HP {AlimentacionDelMotor(c.Polos)}. Escoge los HP del motor que mueve el variador."
+                    : "430-122(b): con bypass el conductor lleva también el 125 % de la corriente del motor. Escoge los HP del motor que mueve " +
+                      "el variador, en el desplegable (la flecha junto a la descripción).";
+                return;
+            }
+            var porcentaje = PorcentajeProteccionMotor(c);
+            bypass = new DesviacionDelVariador(hp, flc, porcentaje, CalculadoraCircuitoDerivadoMotor.ProteccionDeLaTabla430_52(
+                new ProteccionEstandarDeLaSerie(_motor.ProteccionEstandar, Datos.SerieInterruptores), flc * porcentaje / 100m));
+        }
         var entrada = new DatosEntradaCircuitoDerivadoVariador(
             CorrienteEntradaA: c.CorrienteEntradaVariadorA,
             ProteccionMaximaA: c.ProteccionMaximaVariadorA,
@@ -2444,7 +2482,8 @@ public sealed class CuadroDeCarga
             TerminalesMarcadas75C: Datos.TerminalesMarcadas75C,
             // M-20, fase 2: el automático de un variador es la máxima del fabricante.
             CriterioProteccion: c.CriterioProteccion.ParaElCalculo(),
-            ProteccionElegidaA: c.CriterioProteccion == CriterioDeProteccion.Manual ? c.ProteccionElegidaA : null);
+            ProteccionElegidaA: c.CriterioProteccion == CriterioDeProteccion.Manual ? c.ProteccionElegidaA : null,
+            Bypass: bypass);
         c.EntradaDeLaProteccion = entrada;
         c.Resultado = Recordado(entrada);
     }

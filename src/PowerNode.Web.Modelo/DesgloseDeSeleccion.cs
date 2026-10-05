@@ -211,7 +211,8 @@ public sealed record DesgloseDeSeleccion(IReadOnlyList<string> Proteccion, IRead
         IReadOnlyList<Cita> citas,
         RangoDeProteccion? rango = null,
         string? criterio = null,
-        SobrecargaRequerida? sobrecarga = null)
+        SobrecargaRequerida? sobrecarga = null,
+        DesviacionDelVariador? bypass = null)
     {
         // M-20, fase 2: abajo del máximo, el renglón del máximo lo dice, y la escogida va aparte.
         var maximoA = rango?.MaximoA ?? proteccionA;
@@ -219,17 +220,23 @@ public sealed record DesgloseDeSeleccion(IReadOnlyList<string> Proteccion, IRead
         {
             $"Corriente = {entradaA:N2} A, la nominal de entrada del variador — 430-122(a)",
             $"Protección máxima del fabricante: {maximaA:N0} A — 110-3(b)",
-            $"{(rango is not null ? "Máximo del rango" : "Protección")}: {maximoA:N0} A, " +
-                (maximoA == maximaA ? "la máxima del fabricante" : "el mayor tamaño estándar que no la excede") +
-                $" en «{datos.SerieInterruptores.Nombre()}»",
         };
+        // M-23: con bypass, la Tabla 430-52 del motor también pone techo, y manda el menor.
+        if (bypass is not null)
+            proteccion.Add($"Con bypass, la de la Tabla 430-52 para el motor de {MotoresEnHp.Texto(bypass.Hp)} HP: {bypass.PorcentajeTabla430_52:0} % × " +
+                           $"{bypass.FlcMotorA:N2} A = {bypass.Tabla430_52.Explicacion()} — 430-52(c)(1), 430-120");
+        proteccion.Add($"{(rango is not null ? "Máximo del rango" : "Protección")}: {maximoA:N0} A, " +
+            (bypass is not null ? "el menor de los dos" : maximoA == maximaA ? "la máxima del fabricante" : "el mayor tamaño estándar que no la excede") +
+            $" en «{datos.SerieInterruptores.Nombre()}»");
         AgregarRango(proteccion, rango, criterio);
         proteccion.Add(LineaDeSobrecarga(sobrecarga, "Sobrecarga del motor: la da el variador si así lo marca — 430-124(a)"));
 
         var conductor = LineasDelConductor(ampacidad, datos, proteccionA, calibre, conductoresPorFase, d);
-        conductor.Add(
-            $"Con factores: {d.AmpacidadConductorA:N2} A ≥ 125 % × {entradaA:N2} A = {d.CapacidadMinimaA:N2} A " +
-            $"{(d.AmpacidadConductorA >= d.CapacidadMinimaA ? "✔" : "✘")} — 430-122(a)");
+        conductor.Add(bypass is null
+            ? $"Con factores: {d.AmpacidadConductorA:N2} A ≥ 125 % × {entradaA:N2} A = {d.CapacidadMinimaA:N2} A " +
+              $"{(d.AmpacidadConductorA >= d.CapacidadMinimaA ? "✔" : "✘")} — 430-122(a)"
+            : $"Con factores: {d.AmpacidadConductorA:N2} A ≥ {d.CapacidadMinimaA:N2} A, el mayor de 125 % × {entradaA:N2} A (entrada) y " +
+              $"125 % × {bypass.FlcMotorA:N2} A (FLC del motor, por el bypass) {(d.AmpacidadConductorA >= d.CapacidadMinimaA ? "✔" : "✘")} — 430-122(a), 430-122(b)");
         conductor.AddRange(PorQueCrecio(citas, proteccionA, d));
         return new DesgloseDeSeleccion(proteccion, conductor);
     }

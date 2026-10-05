@@ -131,6 +131,143 @@ public class CriterioDeMotores20261005Tests
         Assert.Contains(r.Citas, x => x.Referencia == "110-14(c)" && x.Descripcion.Contains("con 1/0 AWG como mínimo"));
     }
 
+    // ---- AM-7 · M-23: el variador con bypass ---------------------------------------------------------
+
+    /// <summary>Un variador trifásico a 440 V en el espacio 1, como en el caso C2 de la auditoría.</summary>
+    private static (CuadroDeCarga Cuadro, CircuitoDelCuadro Variador) UnVariador(decimal entradaA, decimal maximaA, decimal? hp = null, bool bypass = false)
+    {
+        var cuadro = Nuevo(440m, 3, 3);
+        var c = Espacio(cuadro, 1);
+        c.Categoria = CategoriaDeCarga.Motor;
+        c.CapturaMotor = CapturaDeMotor.Variador;
+        c.CorrienteEntradaVariadorA = entradaA;
+        c.ProteccionMaximaVariadorA = maximaA;
+        c.HpMotorDelVariador = hp;
+        c.VariadorConBypass = bypass;
+        Assert.Null(cuadro.CambiarPolos(c, 3));
+        cuadro.Recalcular();
+        return (cuadro, c);
+    }
+
+    /// <summary>
+    /// La prueba de la decisión: bomba de 30 HP a 440 V, entrada 42 A, máxima del fabricante 70 A. Sin bypass:
+    /// 52.5 A → 6 AWG, de 60 a 70 A. Con bypass: 125 % de la FLC (40 A, columna de 460 V) = 50 A, menos que 52.5 A; la
+    /// Tabla 430-52 permite 250 % × 40 = 100 A, más que 70 A. Sin cambio: 6 AWG, de 60 a 70 A. El bypass pide además
+    /// su relevador de sobrecarga (430-124(b)) y la desconexión, 115 % × 42 A = 48.30 A (430-128, 430-110(a)).
+    /// </summary>
+    [Fact]
+    public void M23_ElCasoDeLaAuditoriaNoCambiaConBypass()
+    {
+        var (_, sin) = UnVariador(42m, 70m);
+        var (cuadro, con) = UnVariador(42m, 70m, hp: 30m, bypass: true);
+        foreach (var c in new[] { sin, con })
+        {
+            Assert.Null(c.Error);
+            Assert.Equal("6", c.Resultado!.CalibreFase.Designacion);
+            Assert.Equal([60m, 70m], c.Resultado.Rango!.Valores);
+            Assert.Equal(70m, c.Resultado.ProteccionA);
+            Assert.Equal(52.5m, c.Resultado.Detalle!.CapacidadMinimaA);
+        }
+        var citas = con.Resultado!.Citas;
+        Assert.Contains(citas, x => x.Referencia == "430-122(b)" && x.Descripcion.Contains("(30 HP, 40 A) = 50 A. Manda el mayor: 52.5 A"));
+        Assert.Contains(citas, x => x.Referencia == "430-52(c)(1)" && x.Descripcion.Contains("250% x 40 A"));
+        Assert.Contains(citas, x => x.Referencia == "430-122(b)" && x.Descripcion.StartsWith("Máximo del circuito: 70 A", StringComparison.Ordinal));
+        Assert.Contains(citas, x => x.Referencia == "430-128" && x.Descripcion.Contains("= 48.3 A — 430-128, 430-110(a)"));
+        Assert.Equal("430-124(a), 430-124(b), 430-126", con.Sobrecarga!.Referencia);
+        Assert.True(con.Sobrecarga.Aparte);
+        Assert.Empty(cuadro.AvisosDe(con));
+    }
+
+    /// <summary>Con un variador de entrada menor que la FLC del motor, el conductor sale del motor: 125 % × 40 A = 50 A → 6 AWG (antes 8 AWG).</summary>
+    [Fact]
+    public void M23_ConBypassElConductorEsElMayorDeLosDos125()
+    {
+        var (_, sin) = UnVariador(30m, 60m, hp: 30m);
+        var (_, con) = UnVariador(30m, 60m, hp: 30m, bypass: true);
+        Assert.Equal(37.5m, sin.Resultado!.Detalle!.CapacidadMinimaA);
+        Assert.Equal("8", sin.Resultado.CalibreFase.Designacion);
+        Assert.Equal(50m, con.Resultado!.Detalle!.CapacidadMinimaA);
+        Assert.Equal("6", con.Resultado.CalibreFase.Designacion);
+        // El piso de la protección sigue en el 125 % de la entrada: 40 A.
+        Assert.Equal(40m, con.Resultado.Rango!.MinimoA);
+    }
+
+    /// <summary>
+    /// La Tabla 430-52 limita el rango: motor de 5 HP a 440 V, FLC 7.6 A, 250 % = 19 A → 20 A (Excepción 1). Un
+    /// variador de 8 A de entrada y 30 A de máxima: sin bypass, de 15 a 30 A; con bypass, de 15 a 20 A.
+    /// </summary>
+    [Fact]
+    public void M23_ConBypassLaTabla430_52LimitaElMaximo()
+    {
+        var (_, sin) = UnVariador(8m, 30m, hp: 5m);
+        var (cuadro, con) = UnVariador(8m, 30m, hp: 5m, bypass: true);
+        Assert.Equal(30m, sin.Resultado!.Rango!.MaximoA);
+        Assert.Equal(20m, con.Resultado!.Rango!.MaximoA);
+        Assert.Equal([15m, 20m], con.Resultado.Rango.Valores);
+        Assert.Equal(20m, con.Resultado.ProteccionA);
+        Assert.Equal(20m, con.Resultado.Rango.MaximoPermitidoA); // el que entra a 430-62(a)
+        Assert.Contains("la menor de la máxima del fabricante del variador y la de la Tabla 430-52",
+            CriteriosDeProteccion.PorQueLaCalculada(con.Resultado.Rango, con.Resultado.CalibreFase.DesignacionConUnidad, esMotor: false, noArrancaConLaTabla: false));
+        Assert.Contains(cuadro.Desglose(con)!.Proteccion, x => x.StartsWith("Con bypass, la de la Tabla 430-52 para el motor de 5 HP", StringComparison.Ordinal));
+    }
+
+    /// <summary>
+    /// Rango vacío: 18 A de entrada (125 % = 22.5 A → 25 A) y el mismo motor de 5 HP (20 A): ningún tamaño queda entre
+    /// los dos. Se usa el máximo, 20 A, y se avisa.
+    /// </summary>
+    [Fact]
+    public void M23_SinTamanoEntreElPisoYElMaximoAvisa()
+    {
+        var (cuadro, c) = UnVariador(18m, 30m, hp: 5m, bypass: true);
+        Assert.Null(c.Error);
+        Assert.Equal(20m, c.Resultado!.ProteccionA);
+        Assert.Contains(c.Resultado.Citas, x => x.Referencia == "430-122(b)" && x.Descripcion.StartsWith("⚠ Ningún tamaño", StringComparison.Ordinal));
+        var aviso = Assert.Single(cuadro.AvisosDe(c));
+        Assert.StartsWith("Con el bypass, ningún tamaño queda entre el 125 % de la entrada del variador (22.50 A) y el máximo (20 A", aviso);
+    }
+
+    /// <summary>Con bypass y sin los HP del motor no se calcula: falta un dato de la placa.</summary>
+    [Fact]
+    public void M23_ConBypassSinHpPideLosHp()
+    {
+        var (_, c) = UnVariador(42m, 70m, bypass: true);
+        Assert.Null(c.Resultado);
+        Assert.StartsWith("430-122(b): con bypass el conductor lleva también el 125 % de la corriente del motor.", c.Error);
+    }
+
+    /// <summary>
+    /// El bypass y los HP se guardan en el archivo (formato 13) y pasan con el variador al desplegable y de regreso;
+    /// en un grupo no entran al cálculo, y se avisa.
+    /// </summary>
+    [Fact]
+    public void M23_ElBypassSeGuardaYNoSePierdeEnElDesplegable()
+    {
+        var (cuadro, c) = UnVariador(42m, 70m, hp: 30m, bypass: true);
+        var texto = ArchivoDelCuadro.Guardar(cuadro, DateTimeOffset.Now);
+        Assert.Contains("\"conBypass\": true", texto);
+        var abierto = Espacio(ArchivoDelCuadro.Abrir(texto, Motor).Cuadro!, 1);
+        Assert.True(abierto.VariadorConBypass);
+        Assert.Equal(30m, abierto.HpMotorDelVariador);
+
+        // Otra línea: el variador pasa a su línea, con su bypass, y el grupo lo avisa.
+        var luz = c.AgregarCarga();
+        luz.Subtipo = SubtipoDeCarga.Luminarias;
+        luz.CargaUnitaria = 300m;
+        cuadro.Recalcular();
+        var variador = Assert.Single(c.Cargas, a => a.Clase == ClaseDeAparato.Variador);
+        Assert.True(variador.ConBypass);
+        Assert.Equal(30m, variador.HpMotorDelVariador);
+        Assert.Contains(cuadro.AvisosDe(c), x => x.Contains("el bypass no entra al cálculo del grupo"));
+
+        // Se quita la otra: regresa al renglón con su bypass.
+        c.QuitarCarga(luz);
+        cuadro.Recalcular();
+        Assert.True(c.EsVariador);
+        Assert.True(c.VariadorConBypass);
+        Assert.Equal(30m, c.HpMotorDelVariador);
+        Assert.Contains(c.Resultado!.Citas, x => x.Referencia == "430-122(b)");
+    }
+
     // ---- AM-5 · M-22: 430-62(b) con el conductor mínimo -------------------------------------------------
 
     /// <summary>

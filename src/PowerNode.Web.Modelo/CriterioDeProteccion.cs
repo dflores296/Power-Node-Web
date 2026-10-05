@@ -89,6 +89,8 @@ public static class CriteriosDeProteccion
             _ when !esMotor => r.Regla switch
             {
                 "110-3(b)" => "la máxima que marca el fabricante del variador — 110-3(b)",
+                CalculadoraCircuitoDerivadoVariador.ReglaConBypass =>
+                    "la menor de la máxima del fabricante del variador y la de la Tabla 430-52 para el motor, por el bypass — 110-3(b), 430-52(c)(1)",
                 "440-4(b)" => "la máxima que marca la placa — 440-4(b)",
                 _ => $"el máximo de {r.Regla}, pensado para el arranque del motocompresor",
             },
@@ -100,6 +102,7 @@ public static class CriteriosDeProteccion
     public static string DeDondeElMaximo(RangoDeProteccion r) => r.Regla switch
     {
         "110-3(b)" => "que marca el fabricante del variador (110-3(b))",
+        CalculadoraCircuitoDerivadoVariador.ReglaConBypass => "que permiten el fabricante del variador y, por el bypass, la Tabla 430-52 (110-3(b), 430-52(c)(1))",
         "440-4(b)" => "que marca la placa (440-4(b))",
         "440-22(a)" => "de 440-22(a)",
         _ => "de la Tabla 430-52",

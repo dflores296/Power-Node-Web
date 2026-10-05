@@ -183,6 +183,19 @@ public sealed class CircuitoDelCuadro
     /// <summary>Motor con variador: la protección máxima que marca su fabricante — 110-3(b), I-119.</summary>
     public decimal ProteccionMaximaVariadorA { get; set; }
 
+    /// <summary>
+    /// Motor con variador: los HP de placa del motor, opcionales; con bypass, obligatorios — M-23 (AM-7, David,
+    /// 2026-10-05). Su FLC es la de tabla a la tensión del circuito: con el bypass el motor va directo a la línea.
+    /// </summary>
+    public decimal? HpMotorDelVariador { get; set; }
+
+    /// <summary>
+    /// Motor con variador y dispositivo de desviación (bypass): el conductor lleva además el 125 % de la FLC del
+    /// motor (430-122(b)), la protección no pasa la de la Tabla 430-52 para él, el bypass lleva su sobrecarga
+    /// (430-124(b)) y la desconexión es de 115 % de la mayor de las dos corrientes (430-128, 430-110(a)) — M-23.
+    /// </summary>
+    public bool VariadorConBypass { get; set; }
+
     /// <summary>Un motor con variador de velocidad — 430 Parte J, I-119.</summary>
     public bool EsVariador => EsMotor && CapturaMotor == CapturaDeMotor.Variador;
 
@@ -473,6 +486,8 @@ public sealed class CircuitoDelCuadro
                 Subtipo = SubtipoDeCarga.MotorVelocidadAjustable,
                 CorrientePlacaA = CorrienteEntradaVariadorA,
                 ProteccionMaximaA = ProteccionMaximaVariadorA,
+                HpMotorDelVariador = HpMotorDelVariador,
+                ConBypass = VariadorConBypass,
                 FactorPotencia = FactorPotencia,
             });
         else if (EsAireAcondicionado && PlacaAire == PlacaDeAireAcondicionado.CorrienteNominal && CorrientePlacaA > 0m)
@@ -544,6 +559,8 @@ public sealed class CircuitoDelCuadro
                 CapturaMotor = CapturaDeMotor.Variador;
                 CorrienteEntradaVariadorA = linea.CorrientePlacaA;
                 ProteccionMaximaVariadorA = linea.ProteccionMaximaA;
+                HpMotorDelVariador = linea.HpMotorDelVariador;
+                VariadorConBypass = linea.ConBypass;
                 break;
             default:
                 return false;
@@ -857,6 +874,8 @@ public sealed class CircuitoDelCuadro
         ProteccionMaximaA = 0m;
         CorrienteEntradaVariadorA = 0m;
         ProteccionMaximaVariadorA = 0m;
+        HpMotorDelVariador = null;
+        VariadorConBypass = false;
         Continua = 0m;
         NoContinua = 0m;
         Servicio = null;

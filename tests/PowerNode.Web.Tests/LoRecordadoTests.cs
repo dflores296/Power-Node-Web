@@ -73,7 +73,7 @@ public class LoRecordadoTests
         var d = cuadro.Datos;
         var libres = cuadro.Circuitos.Where(c => !c.EsContinuacion && !c.EsDelPrincipal).ToList();
         var c = libres[azar.Next(libres.Count)];
-        switch (azar.Next(18))
+        switch (azar.Next(19))
         {
             case 0 or 1:
                 c.LongitudM = azar.Next(3, 90);
@@ -153,6 +153,19 @@ public class LoRecordadoTests
                 d.NeutroReducido220_61 = !d.NeutroReducido220_61;
                 d.CargaNoLineal = azar.Next(2) == 0;
                 return $"neutro 220-61 = {d.NeutroReducido220_61}, no lineal = {d.CargaNoLineal}";
+            case 17:
+            {
+                // Un variador, con o sin bypass (M-23).
+                c.QuitarEquipo();
+                c.Categoria = CategoriaDeCarga.Motor;
+                c.CapturaMotor = CapturaDeMotor.Variador;
+                c.CorrienteEntradaVariadorA = azar.Next(5, 60);
+                c.ProteccionMaximaVariadorA = c.CorrienteEntradaVariadorA * 2m;
+                c.HpMotorDelVariador = HpTrifasicos[azar.Next(HpTrifasicos.Length)];
+                c.VariadorConBypass = azar.Next(2) == 0;
+                var motivo = cuadro.CambiarPolos(c, 3);
+                return $"variador de {c.CorrienteEntradaVariadorA} A en {c.Espacio}, bypass {c.VariadorConBypass}{(motivo is null ? "" : " (no cupo)")}";
+            }
             default:
                 d.Inmueble = Enum.GetValues<TipoDeInmueble>()[azar.Next(Enum.GetValues<TipoDeInmueble>().Length)];
                 d.EsEquipoDeAcometida = azar.Next(2) == 0;

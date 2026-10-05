@@ -38,7 +38,28 @@ public sealed record DatosEntradaCircuitoDerivadoVariador(
     CriterioProteccionMotor CriterioProteccion = CriterioProteccionMotor.Maximo430_52,
 
     /// <summary>Con <see cref="CriterioProteccionMotor.Manual"/>: la que escogió el proyectista (M-20).</summary>
-    decimal? ProteccionElegidaA = null);
+    decimal? ProteccionElegidaA = null,
+
+    /// <summary>
+    /// <b>El dispositivo de desviación (bypass)</b>, con el motor que mueve — 430-122(b); Power Node Web, M-23.
+    /// <c>null</c>: sin bypass, como antes.
+    /// </summary>
+    DesviacionDelVariador? Bypass = null);
+
+/// <summary>
+/// <b>El dispositivo de desviación (bypass) de un variador</b> — Power Node Web, M-23 (AM-7, CONFIRMADA · David ·
+/// 2026-10-05). Con él el motor también trabaja y arranca directo de la línea. El conductor lleva además el 125 %
+/// de la FLC del motor — 430-122(b). La NOM-001-SEDE-2012 no trae una regla propia para la protección del
+/// conjunto, y 430-120 lleva a la Parte D: la protección tampoco excede la de la Tabla 430-52 para ese motor.
+/// </summary>
+/// <param name="Hp">Los HP de placa del motor, para las citas.</param>
+/// <param name="FlcMotorA">La FLC del motor, de tabla — 430-6(a).</param>
+/// <param name="PorcentajeTabla430_52">El de la Tabla 430-52 para ese motor y el interruptor de tiempo inverso.</param>
+/// <param name="Tabla430_52">
+/// La protección máxima de 430-52(c)(1) para ese motor, con su Excepción 1, y el mayor tamaño de la serie que no
+/// la excede (<see cref="CalculadoraCircuitoDerivadoMotor.ProteccionDeLaTabla430_52"/>).
+/// </param>
+public sealed record DesviacionDelVariador(decimal Hp, decimal FlcMotorA, decimal PorcentajeTabla430_52, ProteccionDeMotor Tabla430_52);
 
 /// <summary>
 /// <b>El derivado de un variador</b> — 430-122(a), 110-3(b). La corriente es la de entrada del variador,
@@ -48,8 +69,10 @@ public sealed record DatosEntradaCircuitoDerivadoVariador(
 /// para terminales, aislamiento, factores, conductor, caída y tierra.
 ///
 /// <para>
-/// <b>Fuera</b>: el dispositivo de desviación (430-122(b)) —con él, el conductor también cubre el 125 %
-/// de la FLC del motor— y los variadores con valores de entrada múltiples.
+/// <b>Con dispositivo de desviación</b> (<see cref="DesviacionDelVariador"/>, M-23): el conductor, el mayor de
+/// los dos 125 % (430-122(b)); la protección, entre el 125 % de la entrada y la menor de la máxima del fabricante y
+/// la de la Tabla 430-52 para el motor; la desconexión, 115 % de la mayor de las dos corrientes (430-128,
+/// 430-110(a)). <b>Fuera</b>: los variadores con valores de entrada múltiples.
 /// </para>
 /// </summary>
 public class CalculadoraCircuitoDerivadoVariador(
@@ -62,6 +85,9 @@ public class CalculadoraCircuitoDerivadoVariador(
     ITablaImpedancia impedancia,
     ITablaAislamiento aislamiento)
 {
+    /// <summary>La regla del rango con bypass: la máxima del fabricante y la Tabla 430-52 del motor — M-23.</summary>
+    public const string ReglaConBypass = "110-3(b), 430-52(c)(1)";
+
     public ResultadoCircuitoDerivado Calcular(DatosEntradaCircuitoDerivadoVariador d)
     {
         var citas = new List<Cita>();
@@ -72,11 +98,22 @@ public class CalculadoraCircuitoDerivadoVariador(
             throw new InvalidOperationException(
                 "110-3(b): falta la protección máxima que marca el fabricante del variador. Sin ella no se sabe qué interruptor lo protege.");
 
-        // 1. Conductor — 430-122(a): 125 % de la corriente de entrada.
-        var capacidadMinConductor = 1.25m * entrada;
+        // 1. Conductor — 430-122(a): 125 % de la corriente de entrada. Con bypass, también el 125 % de la FLC del
+        // motor, y manda el mayor — 430-122(b).
+        var bypass = d.Bypass;
+        var alEntrada = 1.25m * entrada;
+        var capacidadMinConductor = alEntrada;
         citas.Add(new Cita("430-122(a)",
-            $"Conductores del variador: 125 % de su corriente nominal de entrada, {entrada:0.##} A = {capacidadMinConductor:0.##} A. " +
-            "La FLC del motor y la Tabla 430-52 no se usan: la corriente del circuito es la del variador."));
+            $"Conductores del variador: 125 % de su corriente nominal de entrada, {entrada:0.##} A = {alEntrada:0.##} A." +
+            (bypass is null ? " La FLC del motor y la Tabla 430-52 no se usan: la corriente del circuito es la del variador." : "")));
+        if (bypass is not null)
+        {
+            var alMotor = 1.25m * bypass.FlcMotorA;
+            capacidadMinConductor = Math.Max(alEntrada, alMotor);
+            citas.Add(new Cita("430-122(b)",
+                $"Con dispositivo de desviación (bypass) el motor también trabaja directo de la línea: el conductor lleva además el 125 % " +
+                $"de su FLC ({bypass.Hp:0.##} HP, {bypass.FlcMotorA:0.##} A) = {alMotor:0.##} A. Manda el mayor: {capacidadMinConductor:0.##} A."));
+        }
 
         // 2. Protección — 110-3(b): la que marca el fabricante; «no exceda», el mayor estándar que no la pasa.
         var breaker = proteccionEstandar.AnteriorEstandar(d.ProteccionMaximaA)
@@ -91,11 +128,35 @@ public class CalculadoraCircuitoDerivadoVariador(
                 ? $"Máximo: {breaker:0.##} A, la protección máxima que marca el fabricante del variador."
                 : $"Máximo: {breaker:0.##} A, el mayor tamaño estándar que no excede la máxima del fabricante ({d.ProteccionMaximaA:0.##} A)."));
 
-        // 2.5. EL RANGO — M-20, fase 2: la máxima del fabricante es un techo («no exceda»); cualquiera del
-        // rango cumple. Ver ProteccionDentroDelRango.
+        // 2.2. CON BYPASS, TAMPOCO LA TABLA 430-52 DEL MOTOR — M-23: el motor arranca directo de la línea, y la
+        // NOM-2012 no trae una regla propia para el conjunto (no tiene 430-130); 430-120 lleva a la Parte D. El
+        // máximo es el menor de los dos. Si ningún tamaño queda entre el 125 % de la entrada y él, se usa él y se
+        // avisa: el rango vacío no es un error de captura, es algo que revisar con el fabricante del conjunto.
         var maximo = breaker;
+        var maximoPermitido = d.ProteccionMaximaA;
+        var rangoVacio = false;
+        if (bypass is not null)
+        {
+            var t = bypass.Tabla430_52;
+            citas.Add(new Cita("430-52(c)(1)",
+                $"Con el bypass el motor arranca directo de la línea, y para el conjunto 430-120 lleva a la Parte D: la protección " +
+                $"tampoco excede la de la Tabla 430-52 para el motor, {bypass.PorcentajeTabla430_52:0}% x {bypass.FlcMotorA:0.##} A = {t.Explicacion()}."));
+            maximo = Math.Min(breaker, t.SeleccionadaA);
+            maximoPermitido = Math.Min(d.ProteccionMaximaA, t.MaximoA);
+            citas.Add(new Cita("430-122(b)",
+                $"Máximo del circuito: {maximo:0.##} A, el menor de la máxima del fabricante ({breaker:0.##} A) y la de la Tabla 430-52 " +
+                $"para el motor ({t.SeleccionadaA:0.##} A)."));
+            rangoVacio = maximo < alEntrada;
+            if (rangoVacio)
+                citas.Add(new Cita("430-122(b)",
+                    $"⚠ Ningún tamaño de la serie queda entre el 125 % de la entrada ({alEntrada:0.##} A) y el máximo ({maximo:0.##} A): " +
+                    $"se usa {maximo:0.##} A, que no lleva el 125 % de la entrada. Revisar con el fabricante del conjunto variador y bypass."));
+        }
+
+        // 2.5. EL RANGO — M-20, fase 2: la máxima del fabricante es un techo («no exceda»); cualquiera del
+        // rango cumple. Ver ProteccionDentroDelRango. El piso, el 125 % de la entrada (también con bypass).
         var criterio = d.CriterioProteccion;
-        var (minimo, valores) = ProteccionDentroDelRango.Rango(proteccionEstandar, capacidadMinConductor, maximo);
+        var (minimo, valores) = ProteccionDentroDelRango.Rango(proteccionEstandar, alEntrada, maximo);
         (breaker, var paraLaColumna) = ProteccionDentroDelRango.Inicial(criterio, d.ProteccionElegidaA, minimo, maximo, valores);
         var indiceDelRango = citas.Count;
 
@@ -159,12 +220,17 @@ public class CalculadoraCircuitoDerivadoVariador(
         citas.AddRange(seleccion.Citas);
 
         var rango = ProteccionDentroDelRango.Armar(
-            "110-3(b)", $"la protección máxima del fabricante ({d.ProteccionMaximaA:0.##} A)",
-            $"125 % de la corriente de entrada = {capacidadMinConductor:0.##} A",
-            "la sobrecarga del motor la da el variador si así lo marca (430-124(a)); el permiso llega por 430-120 a la Parte D, que la Tabla 240-4(g) nombra",
-            capacidadMinConductor, minimo, maximo,
-            // 430-62(a): la que marca el fabricante.
-            d.ProteccionMaximaA, valores, criterio, d.ProteccionElegidaA, null, escogida, proteccionEstandar, d.MaterialConductor,
+            bypass is null ? "110-3(b)" : ReglaConBypass,
+            bypass is null
+                ? $"la protección máxima del fabricante ({d.ProteccionMaximaA:0.##} A)"
+                : $"la menor de la máxima del fabricante ({d.ProteccionMaximaA:0.##} A) y la de la Tabla 430-52 para el motor ({bypass.Tabla430_52.MaximoA:0.##} A)",
+            $"125 % de la corriente de entrada = {alEntrada:0.##} A",
+            "la sobrecarga del motor la da el variador si así lo marca (430-124(a))" +
+                (bypass is null ? "" : " y, en el bypass, el relevador de su arrancador (430-124(b))") +
+                "; el permiso llega por 430-120 a la Parte D, que la Tabla 240-4(g) nombra",
+            alEntrada, minimo, maximo,
+            // 430-62(a): la que marca el fabricante; con bypass, también la de la Tabla 430-52.
+            maximoPermitido, valores, criterio, d.ProteccionElegidaA, null, escogida, proteccionEstandar, d.MaterialConductor,
             (p, max) => new Cita("110-3(b)",
                 $"El fabricante marca la protección máxima; con {p:0.##} A, menos que ella, verificar en las instrucciones del variador que el " +
                 $"interruptor le sirve (que no dispare al energizarlo); si no, subir hasta {max:0.##} A."));
@@ -180,8 +246,12 @@ public class CalculadoraCircuitoDerivadoVariador(
             calibreFaseFinal: seleccion.CalibreFase,
             nParalelo: seleccion.NumeroConductoresParalelo);
         citas.AddRange(citasTierra);
-        citas.Add(new Cita("430-128",
-            $"Medio de desconexión en la entrada del variador: no menos de 115 % × {entrada:0.##} A = {1.15m * entrada:0.##} A."));
+        citas.Add(bypass is null
+            ? new Cita("430-128",
+                $"Medio de desconexión en la entrada del variador: no menos de 115 % × {entrada:0.##} A = {1.15m * entrada:0.##} A.")
+            : new Cita("430-128",
+                $"Medio de desconexión en la entrada del conjunto: no menos de 115 % de la mayor de la corriente de entrada ({entrada:0.##} A) " +
+                $"y la FLC del motor ({bypass.FlcMotorA:0.##} A) = {1.15m * Math.Max(entrada, bypass.FlcMotorA):0.##} A — 430-128, 430-110(a)."));
 
         var nParalelo = seleccion.NumeroConductoresParalelo;
         return new ResultadoCircuitoDerivado(

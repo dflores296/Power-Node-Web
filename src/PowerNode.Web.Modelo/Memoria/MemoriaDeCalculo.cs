@@ -262,6 +262,10 @@ public static class MemoriaDeCalculo
             return new($"{Rotulo} — {(c.EsAireAcondicionado ? "440-12(b)(2)" : "430-110(c)(2)")}",
                 Minimo(suma, "la suma de las corrientes a plena carga del grupo, las otras cargas incluidas"));
         }
+        // M-23: con bypass, el medio de desconexión también conecta el motor directo — 430-110(a).
+        if (c.EntradaDeLaProteccion is DatosEntradaCircuitoDerivadoVariador { Bypass: { } bypass })
+            return new($"{Rotulo} — 430-128, 430-110(a)", Minimo(Math.Max(c.CorrienteEntradaVariadorA, bypass.FlcMotorA),
+                "la mayor de la corriente de entrada del variador y la corriente a plena carga del motor, porque el bypass lo conecta directo"));
         if (c.EsVariador)
             return new($"{Rotulo} — 430-128", Minimo(c.CorrienteEntradaVariadorA, "la corriente nominal de entrada del variador, en su línea de entrada"));
         if (c.EsMotor)
