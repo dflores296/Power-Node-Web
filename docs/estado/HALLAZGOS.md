@@ -225,6 +225,7 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-197 · La memoria de 430-62(a) decía «la mayor protección de derivado» y usa la máxima permitida, no la instalada (AM-6) | P3 | **Cerrado** | `585a857` |
 | I-198 · En el desplegable, «Carga c/u» y «Servicio» ocupaban mucho más que su campo; los anchos, del peor caso | P3 | **Cerrado** | `15c2f1b` |
 | I-199 · La tensión de placa, en el pie del desplegable y no en la línea del equipo; sin scroll, las columnas se apretaban | P3 | **Cerrado** | `c21d2af` |
+| I-200 · La descripción del desplegable terminaba más a la derecha que la del circuito | P3 | **Cerrado** | `6fff8a6` |
 | M-14 · Sin el mínimo de alumbrado general por superficie (220-12) en el alimentador; en vivienda, contactos de uso general sumados aparte (220-14(j)) | P1 | **Cerrado** | `71abc56` |
 | M-15 · Motor: la Excepción 1 de 430-52(c)(1) redondeaba dentro de la serie (35 → 40 A en riel DIN) y se citaba sin redondeo; sin Excepción 2 | P1 | **Cerrado** | `8b4d893`, `60a4f91` |
 | M-16 · «Húmedo o mojado» en una opción: XHHW mojado a 90 °C (conductor de menos); RHH y XHH aceptados en mojado | P1 | **Cerrado** | `a3fded5` |
@@ -1147,6 +1148,17 @@ y el desplegable con su propio scroll de lado: la tabla no baja de la suma de su
 descripción. Navegador, en 15 estados: a 1920, sin scroll y la descripción en 410 px (398 con HP y placa); a 1440,
 scroll en variador, motocompresor, carga combinada, motor con placa y grupo, con la descripción en 298; ningún campo
 ni nota fuera de su celda; sin errores en la consola.
+
+**I-200** — Hecho (David, 2026-10-07: «el borde lateral derecho [de la descripción de las salidas] está desfasado con
+respecto del borde del nombre del circuito… la tabla está sumergida porque es un desplegable, así que quiero que la
+hagas más chica… eso le dará un poco más de espacio al resto de columnas»): la descripción del desplegable medía el
+25 % y terminaba 35 a 65 px más a la derecha que la del cuadro. Corrección: `js/desglose.js` mide la columna
+«Descripción» del cuadro —la reparte el navegador según lo capturado y la ventana; CSS no la conoce— y deja la
+fracción del desplegable que le toca (`--desc-fraccion`). Fracción y no píxeles: con `table-layout: fixed`, el
+ancho que sobra se reparte entre las columnas con ancho en píxeles, y en píxeles la descripción se pasaba 13 a 65 px
+de la línea. Lo que se quitó a la descripción lo ganan las demás: a 1440, ninguno de los 15 estados de I-199
+necesita ya scroll. Navegador: a 1920, 1680, 1440 y 1280, vacía, alumbrado, variador y con una descripción larga, las
+dos líneas a 0.2 px o menos; al ir al cuadro de carga y regresar, se desconecta y se vuelve a medir; sin errores.
 
 **M-21** (AM-4) — 25 HP a 220 V: FLC 68 A, 125 % = 85 A, rango de 90 a 175 A. Con 175 A (la calculada) el
 circuito es de más de 100 A y va a 75 °C: 4 AWG (85 A) — 110-14(c)(1)b.; fijada en 100 A, a 60 °C: 3 AWG

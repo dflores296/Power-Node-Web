@@ -12,6 +12,7 @@ Registro de acciones por sesión, con hallazgo y commit.
 - I-198, `15c2f1b`: el desplegable reparte el ancho según lo que lleva cada circuito; la descripción, fija en 25 %.
 - I-199, `c21d2af`: la tensión de placa, en su columna de la línea (estaba en el pie); el desplegable, con su propio
   scroll de lado en lugar de apretar columnas.
+- I-200, `6fff8a6`: la descripción del desplegable termina en la misma línea que la del circuito (`js/desglose.js`).
 
 Pruebas: 641 en `PowerNode.Web.Tests` y 52 en `PowerNode.Normativa.Tests`, sin cambio.
 
