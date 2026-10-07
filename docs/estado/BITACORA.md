@@ -2,6 +2,17 @@
 
 Registro de acciones por sesión, con hallazgo y commit.
 
+## 2026-10-07
+
+**Estado del repo y observaciones visuales** (David):
+
+- Revisión del rojo en `main` («3 / 6»): los dos checks cancelados de `088c5c9` nunca tuvieron máquina (cancelados a
+  los 15 min, sin pasos); el CI del mismo commit y la publicación relanzada a mano, en verde. Corre además «pages
+  build and deployment» (Jekyll) en cada push: revisar que Pages publique desde «GitHub Actions».
+- I-198, `15c2f1b`: el desplegable reparte el ancho según lo que lleva cada circuito; la descripción, fija en 25 %.
+
+Pruebas: 641 en `PowerNode.Web.Tests` y 52 en `PowerNode.Normativa.Tests`, sin cambio.
+
 ## 2026-10-05
 
 **Las decisiones de David sobre la auditoría de motores y los tres puntos de proyecto** («AM-11: B … AM-4: B …

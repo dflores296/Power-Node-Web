@@ -1,6 +1,6 @@
 # Tablero
 
-**Actualizado:** 2026-10-05.
+**Actualizado:** 2026-10-07.
 
 ## Alcance
 

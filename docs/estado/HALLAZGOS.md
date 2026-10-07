@@ -223,6 +223,7 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-195 · Identificación y Sistema sin nombre accesible para el lector de pantalla (AM-17) | P3 | **Cerrado** | `585a857` |
 | I-196 · A 600 V el rótulo decía «Tabla 430-250» y se leía la columna de 575 V sin decirlo (AM-18) | P3 | **Cerrado** | `585a857` |
 | I-197 · La memoria de 430-62(a) decía «la mayor protección de derivado» y usa la máxima permitida, no la instalada (AM-6) | P3 | **Cerrado** | `585a857` |
+| I-198 · En el desplegable, «Carga c/u» y «Servicio» ocupaban mucho más que su campo; los anchos, del peor caso | P3 | **Cerrado** | `15c2f1b` |
 | M-14 · Sin el mínimo de alumbrado general por superficie (220-12) en el alimentador; en vivienda, contactos de uso general sumados aparte (220-14(j)) | P1 | **Cerrado** | `71abc56` |
 | M-15 · Motor: la Excepción 1 de 430-52(c)(1) redondeaba dentro de la serie (35 → 40 A en riel DIN) y se citaba sin redondeo; sin Excepción 2 | P1 | **Cerrado** | `8b4d893`, `60a4f91` |
 | M-16 · «Húmedo o mojado» en una opción: XHHW mojado a 90 °C (conductor de menos); RHH y XHH aceptados en mojado | P1 | **Cerrado** | `a3fded5` |
@@ -1121,6 +1122,20 @@ I-114 (`MotoresTests`).
 pero la cita, la memoria y el aviso decían «la mayor protección de derivado». Ahora: «la máxima que permiten
 430-52 o 440-22(a) al mayor derivado del grupo, no la instalada». Solo texto; en el motor de cálculo, anotado en
 [`../conocimiento/motor-copiado.md`](../conocimiento/motor-copiado.md). Prueba: `I197_…`.
+
+**I-198** — Hecho (David, 2026-10-07: «la tabla principal tiene un reparto muy bueno de espacio entre columnas, pero
+en la tabla de salidas carga C/U ocupa muchísimo espacio igual que servicio… si el contenido es dinámico hay que
+repartirlo igual»): desde I-140, cada columna del desplegable medía lo que pedía su campo más ancho con cualquier
+tipo de carga, así que una carga en VA quedaba con un campo de 80 px en una columna de 272, y «No continua» (128) en
+una de 212. Corrección: la descripción, siempre el 25 % (lo que pedía I-140: no cambia con el tipo); las demás, lo
+que pide el campo más ancho de las líneas de ese circuito («Carga c/u» 140 en VA, 172 con dos campos, 234 con HP,
+310 con HP y la corriente de placa; «Servicio» 148, o 208 con el servicio del motor), con `:has` sobre el cuerpo de
+la tabla —no el pie: su «HP del motor» del variador ensanchaba la carga—; lo que sobra, repartido en proporción; cada
+campo llena su celda, como en el renglón. Navegador, con Playwright, a 1920 y 1440 en 14 estados (vacío, alumbrado,
+anuncios, contactos, motor en HP, con servicio, variador, motocompresor, carga combinada, de habitación, tablero,
+calefacción, grupo de motores): a 1920 la descripción mide 410 px en todos salvo el motor en HP con corriente de
+placa (398); a 1440, donde el cuadro ya se recorre de lado, baja a 313 y 237 en esos dos; ningún campo ni nota fuera
+de su celda; sin errores en la consola.
 
 **M-21** (AM-4) — 25 HP a 220 V: FLC 68 A, 125 % = 85 A, rango de 90 a 175 A. Con 175 A (la calculada) el
 circuito es de más de 100 A y va a 75 °C: 4 AWG (85 A) — 110-14(c)(1)b.; fijada en 100 A, a 60 °C: 3 AWG
