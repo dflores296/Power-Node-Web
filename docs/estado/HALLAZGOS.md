@@ -224,6 +224,7 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-196 · A 600 V el rótulo decía «Tabla 430-250» y se leía la columna de 575 V sin decirlo (AM-18) | P3 | **Cerrado** | `585a857` |
 | I-197 · La memoria de 430-62(a) decía «la mayor protección de derivado» y usa la máxima permitida, no la instalada (AM-6) | P3 | **Cerrado** | `585a857` |
 | I-198 · En el desplegable, «Carga c/u» y «Servicio» ocupaban mucho más que su campo; los anchos, del peor caso | P3 | **Cerrado** | `15c2f1b` |
+| I-199 · La tensión de placa, en el pie del desplegable y no en la línea del equipo; sin scroll, las columnas se apretaban | P3 | **Cerrado** | `c21d2af` |
 | M-14 · Sin el mínimo de alumbrado general por superficie (220-12) en el alimentador; en vivienda, contactos de uso general sumados aparte (220-14(j)) | P1 | **Cerrado** | `71abc56` |
 | M-15 · Motor: la Excepción 1 de 430-52(c)(1) redondeaba dentro de la serie (35 → 40 A en riel DIN) y se citaba sin redondeo; sin Excepción 2 | P1 | **Cerrado** | `8b4d893`, `60a4f91` |
 | M-16 · «Húmedo o mojado» en una opción: XHHW mojado a 90 °C (conductor de menos); RHH y XHH aceptados en mojado | P1 | **Cerrado** | `a3fded5` |
@@ -1136,6 +1137,16 @@ anuncios, contactos, motor en HP, con servicio, variador, motocompresor, carga c
 calefacción, grupo de motores): a 1920 la descripción mide 410 px en todos salvo el motor en HP con corriente de
 placa (398); a 1440, donde el cuadro ya se recorre de lado, baja a 313 y 237 en esos dos; ningún campo ni nota fuera
 de su celda; sin errores en la consola.
+
+**I-199** — Hecho (David, 2026-10-07: «¿por qué el combo de tensión de entrada del variador está en otro renglón?»;
+y: «no se trata de atiborrar todo en los píxeles que tenemos, existe el scroll»): la tensión de placa de I-189 se
+puso en el pie del desplegable, junto al bypass y al 225 %, aunque la opción B decía «en la línea»; ninguna
+decisión lo pedía. Corrección: una columna, «Tensión de placa» («Tensión de entrada» en un variador), entre la
+unidad y las corrientes, que solo aparece cuando el equipo la pide (`PideTensionDePlaca`), en rojo mientras falte;
+y el desplegable con su propio scroll de lado: la tabla no baja de la suma de sus columnas más 300 px de
+descripción. Navegador, en 15 estados: a 1920, sin scroll y la descripción en 410 px (398 con HP y placa); a 1440,
+scroll en variador, motocompresor, carga combinada, motor con placa y grupo, con la descripción en 298; ningún campo
+ni nota fuera de su celda; sin errores en la consola.
 
 **M-21** (AM-4) — 25 HP a 220 V: FLC 68 A, 125 % = 85 A, rango de 90 a 175 A. Con 175 A (la calculada) el
 circuito es de más de 100 A y va a 75 °C: 4 AWG (85 A) — 110-14(c)(1)b.; fijada en 100 A, a 60 °C: 3 AWG

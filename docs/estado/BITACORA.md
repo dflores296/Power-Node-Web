@@ -10,6 +10,8 @@ Registro de acciones por sesión, con hallazgo y commit.
   los 15 min, sin pasos); el CI del mismo commit y la publicación relanzada a mano, en verde. Corre además «pages
   build and deployment» (Jekyll) en cada push: revisar que Pages publique desde «GitHub Actions».
 - I-198, `15c2f1b`: el desplegable reparte el ancho según lo que lleva cada circuito; la descripción, fija en 25 %.
+- I-199, `c21d2af`: la tensión de placa, en su columna de la línea (estaba en el pie); el desplegable, con su propio
+  scroll de lado en lugar de apretar columnas.
 
 Pruebas: 641 en `PowerNode.Web.Tests` y 52 en `PowerNode.Normativa.Tests`, sin cambio.
 
