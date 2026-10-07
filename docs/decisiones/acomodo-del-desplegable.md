@@ -90,4 +90,8 @@ que hay que decidir:
 - **D13.** El orden de las columnas (R2).
 - **D14 a D19.** El mínimo de 220-14 en «Carga c/u»: llenarlo al escoger el subtipo; qué pasa si se escribe
   menos; W o A; la secadora al cambiar el inmueble; anuncios (mínimo por circuito); archivos con 0.
+- **Los avisos de la tabla:** el texto final de cada uno, aprobado por David (2026-10-07), por verificar
+  con un agente que haga de usuario en el navegador —
+  [`../conocimiento/avisos-de-la-captura.md`](../conocimiento/avisos-de-la-captura.md). Falta la segunda entrega
+  (el resto de la página de captura).
 - **El scroll del desplegable:** David lo probó y está mal; se ve después del acomodo.

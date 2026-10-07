@@ -3,8 +3,11 @@
 Cada aviso y cada ayuda de la tabla de captura (el cuadro y su desplegable), con su texto final según la
 guía de David: [`../decisiones/redaccion-de-avisos.md`](../decisiones/redaccion-de-avisos.md). Sacado del
 código el 2026-10-07 (`Pages/Captura.razor`, `CuadroDeCarga.cs`, `CircuitoDelCuadro.cs`, y los mensajes del
-motor de cálculo que llegan a un circuito). **Propuesta de Claude: falta que David la revise.** Nada está
-implementado.
+motor de cálculo que llegan a un circuito). Nada está implementado.
+
+**APROBADA · David · 2026-10-07 — por verificar.** David: «lo apruebo todo, pero falta revisar los casos; ya
+lo haremos con un agente automático más adelante que haga de usuario y directo abra en el navegador. Lo
+apruebo, déjalo por verificar.» Cada caso se verifica provocándolo en el navegador, después de implementar.
 
 El resto de la página de captura (ficha, canalizaciones, resumen, alimentador, tarjeta «Avisos», avisos
 flotantes que no son de la tabla) va en una segunda entrega: alcance B de la guía.

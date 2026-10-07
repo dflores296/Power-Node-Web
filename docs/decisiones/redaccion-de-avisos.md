@@ -81,7 +81,7 @@ Convierten el aviso en un comentario de desarrollo.
 
 David, sobre las acciones: «estandarizar las recomendaciones igual que todos los avisos».
 
-## Las acciones, estandarizadas (propuesta de Claude, 2026-10-07)
+## Las acciones, estandarizadas (propuesta de Claude; aprobada por David el 2026-10-07)
 
 Cada acción empieza con uno de estos verbos, en imperativo y de tú, y dice dónde se hace si no es en el mismo
 renglón.
