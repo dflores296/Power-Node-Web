@@ -113,6 +113,25 @@ reemplazan.
 - **D10:** «Arranque 225 %», columna del bloque del motocompresor; en un grupo, solo activa en el renglón del
   mayor (440-22(b)(1)); en los demás, apagada: «Solo en el motocompresor mayor.».
 
+## D11 a D19 — CONTESTADAS (David, 2026-10-07: «Sí a todo»): las recomendaciones de Claude
+
+- **D11 · «No simultáneo con»:** una columna en el cuadro principal, en el renglón del circuito (es dato del
+  circuito, no de una carga). Sale del pie del desplegable.
+- **D12 · Los textos fijos de «Servicio»** («Continuo» en los motores de un grupo, «motor mayor · 125 %»,
+  «variador»): se quedan.
+- **D13 · El orden de las columnas:** el del mockup. Descripción · Tipo · Subtipo · Cant. · [las del bloque,
+  de lo general a lo específico: tensión, unidad, carga o HP, corrientes, protección máxima, servicio, casillas
+  del equipo] · F.P. · Total · quitar.
+- **D14 · El mínimo de 220-14 en «Carga c/u»:** se llena al escoger el subtipo, y no se puede dejar debajo.
+- **D15 · Si se escribe menos:** sube solo al mínimo, con un aviso: «Contacto: no menos de 180 VA.»
+- **D16 · W o A:** contactos, portalámparas de servicio pesado y ensamble de salidas, solo en VA; la secadora
+  deja escoger y el mínimo se convierte.
+- **D17 · La secadora y el inmueble:** si su carga sigue siendo el mínimo que se llenó solo, se actualiza al
+  cambiar el inmueble; si se escribió otra, no se toca.
+- **D18 · Anuncios (mínimo por circuito):** se llena con 1,200 VA si es la única línea de anuncios del circuito;
+  con varias, no se llena y queda el piso del cálculo.
+- **D19 · Archivos con la carga en 0:** al abrirlos, el campo enseña el mínimo; el resultado no cambia.
+
 ## R3 · Los artículos en la tabla — REEMPLAZADA por la guía de David
 
 David escribió cómo se redactan los avisos: [`redaccion-de-avisos.md`](redaccion-de-avisos.md) (2026-10-07).
@@ -138,15 +157,6 @@ tabla. Los estados de error y advertencia: [`../conocimiento/estados-de-aviso.md
 
 ## Pendientes, en orden
 
-Detalle de cada una (cómo está hoy, opciones, recomendación) en la conversación del 2026-10-07; aquí, lo
-que hay que decidir:
-
-- **D11.** «No simultáneo con» (es del circuito, no de una carga): ¿columna del cuadro, primera línea del
-  desplegable, o banda encima?
-- **D12.** Los textos fijos de «Servicio» («motor mayor · 125 %», «440-62», «—»): ¿se quedan?
-- **D13.** El orden de las columnas (R2).
-- **D14 a D19.** El mínimo de 220-14 en «Carga c/u»: llenarlo al escoger el subtipo; qué pasa si se escribe
-  menos; W o A; la secadora al cambiar el inmueble; anuncios (mínimo por circuito); archivos con 0.
 - **Los avisos de la tabla:** el texto final de cada uno, aprobado por David (2026-10-07), por verificar
   con un agente que haga de usuario en el navegador —
   [`../conocimiento/avisos-de-la-captura.md`](../conocimiento/avisos-de-la-captura.md). Falta la segunda entrega
