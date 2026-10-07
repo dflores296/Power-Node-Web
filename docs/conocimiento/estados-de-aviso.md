@@ -1,10 +1,10 @@
-# Componente: el estado del circuito (error y advertencia) — propuesta
+# Componente: el estado del circuito (error y advertencia)
 
-**PROPUESTA · Claude · 2026-10-07** — pedida por David: «necesitamos una forma clara de detectar warnings y
+**DECIDIDA · David · 2026-10-07: opción A** (abajo). Propuesta de Claude del mismo día — pedida por David: «necesitamos una forma clara de detectar warnings y
 errors en la tabla». Vista: [`../mockups/desglose-por-bloques.html`](../mockups/desglose-por-bloques.html)
 (capturas `-1900.png` y `-1440.png`), con las tres opciones lado a lado. Qué dice cada aviso:
 [`../decisiones/redaccion-de-avisos.md`](../decisiones/redaccion-de-avisos.md) y
-[`avisos-de-la-captura.md`](avisos-de-la-captura.md). Falta que David escoja.
+[`avisos-de-la-captura.md`](avisos-de-la-captura.md).
 
 ## El problema
 
@@ -44,8 +44,33 @@ es un ⚠ chico junto a la descripción, que no se ve al recorrer un tablero de 
 - **B · Pintar el renglón en color fuerte.** Se ve, pero con tres o cuatro avisos la tabla se vuelve un
   semáforo y el texto pierde contraste.
 
-## Por decidir (David)
+## Lo que decidió David (2026-10-07)
 
-1. ¿C, o A, o B?
-2. ¿El contador arriba del cuadro?
-3. ¿La tarjeta «Avisos» del pie se queda (todos juntos) o sale ahora que cada circuito lo enseña?
+1. **Opción A · enmarcar el aviso: solo la celda, con borde.** Sin tinte del renglón, sin barra, sin ícono.
+   - **Error:** el mensaje en las celdas de resultado (In, Protec., Fase, e %), enmarcado en `--alerta`. En el
+     desplegable, el campo que falta con borde `--alerta`.
+   - **Advertencia:** la celda del valor que la causa (la protección, la caída…), enmarcada en `--aviso-borde`
+     y su valor en `--aviso-texto`. El mensaje, al pasar el cursor por esa celda, con la referencia en otra
+     línea. (Antes iba en el ⚠ junto a la descripción: con A, el ⚠ sale.)
+2. **El contador arriba del cuadro: sí.** «1 error · 2 advertencias»; un clic lleva al siguiente.
+3. **La tarjeta «Avisos» del pie: se queda**, con todos juntos.
+
+La recomendación de Claude era C; queda en la vista como referencia.
+
+### Qué celda enmarca cada advertencia (propuesta de Claude)
+
+Con A, cada advertencia necesita la celda del valor que la causa. Las de
+[`avisos-de-la-captura.md`](avisos-de-la-captura.md):
+
+| Advertencia | Celda |
+|---|---|
+| B7 Contactos de 15 o 20 A en un circuito de más de 20 A | Protec. (A) |
+| B8 Equipo fijo de más del 50 % del circuito | Protec. (A) |
+| B9 a B11 Alumbrado en un circuito de 30 A, 40 o 50 A, o más | Protec. (A) |
+| B12 Contactos de vivienda a más de 120 V | P (los polos dan la tensión) |
+| B13 Caída combinada de más de 5 % | e (%) |
+| B14, B15 Acondicionador de habitación de más del 80 % o 50 % | Protec. (A) |
+| B16 Con bypass, ninguna protección cabe | Protec. (A) |
+| B18 Ningún tubo admite los conductores | Canal. |
+
+Dos advertencias en la misma celda: un solo marco, y las dos en su cuadro de ayuda, una por línea.

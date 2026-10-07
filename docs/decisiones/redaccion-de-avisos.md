@@ -69,7 +69,8 @@ Convierten el aviso en un comentario de desarrollo.
    datos: **[Conflicto]. [Acción].** «El contacto del refrigerador va solo. Pasa las demás cargas a otro
    circuito.»
 2. **El artículo de una advertencia (el ⚠ del renglón)** — A: en el mismo cuadro de ayuda, en una segunda
-   línea apartada: «· Tabla 210-21(b)(3)».
+   línea apartada: «· Tabla 210-21(b)(3)». Con la opción A de [`../conocimiento/estados-de-aviso.md`](../conocimiento/estados-de-aviso.md) el ⚠ sale:
+   ese cuadro de ayuda es el de la celda enmarcada.
 3. **La acción tiene que poderse hacer en la pantalla.** Si no hay una acción concreta, «Revísalo.»
 4. **Los mensajes del motor de cálculo** — A: la pantalla traduce los casos conocidos al formato de esta
    guía, sin tocar el motor (se copia, no se reescribe); los desconocidos dicen «No se puede calcular el
