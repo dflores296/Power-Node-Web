@@ -130,7 +130,9 @@ con la propuesta de Claude (tres niveles y un puente a la memoria) en cada rengl
 [`../mockups/desglose-por-bloques.html`](../mockups/desglose-por-bloques.html) (capturas a 1900 y 1440 px), 2026-10-07,
 segunda versión con las observaciones de David: el título del desplegable arriba y el nombre de cada bloque
 en su primera celda («Cargas», «Motores», «Motocompresores», «Variadores»); el sobrante repartido entre las
-columnas de la derecha, con tope de 40 % (Descripción, Tipo, Subtipo y Cant., iguales en todos los bloques);
+columnas de la derecha (Descripción, Tipo, Subtipo y Cant., iguales en todos los bloques); todos los bloques
+de un desplegable del mismo largo, hasta el borde (David: «¿por qué tienen diferente longitud y les faltan
+bordes?» — el tope de 40 % los dejaba cortos);
 si no caben, el bloque se recorre de lado; el error, dentro del renglón del circuito; las notas, fuera de la
 tabla. Los estados de error y advertencia: [`../conocimiento/estados-de-aviso.md`](../conocimiento/estados-de-aviso.md).
 

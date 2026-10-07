@@ -221,7 +221,7 @@ tr.fila-desglose > td { background:var(--fondo-suave); padding:8px 4px 12px; tex
 <ol class="notas">
   <li><b>Circuito 1.</b> Contactos y alumbrado comparten columnas: un solo bloque, «Cargas». El mínimo de 180 VA ya viene en el campo <span class="pendiente">D14</span>.</li>
   <li><b>Encabezados.</b> El título del desplegable va arriba, una vez. La primera celda de cada bloque dice qué hay en él: «Cargas», «Motores», «Motocompresores», «Variadores».</li>
-  <li><b>Anchos.</b> Ninguna columna se queda con el sobrante: se reparte en proporción entre las de la derecha, y ninguna crece más del 40 % sobre su ancho; lo que sobre de ahí queda libre al final del bloque. Descripción, Tipo, Subtipo y Cant. miden lo mismo en todos los bloques, y la descripción termina en la línea de la del cuadro. Si no caben, cada bloque se recorre de lado; nada se aplasta.</li>
+  <li><b>Anchos.</b> Ninguna columna se queda con el sobrante: se reparte en proporción entre las de la derecha. Todos los bloques de un desplegable miden lo mismo y llegan al borde. Descripción, Tipo, Subtipo y Cant. miden lo mismo en todos los bloques, y la descripción termina en la línea de la del cuadro. Si no caben, cada bloque se recorre de lado; nada se aplasta.</li>
   <li><b>Circuito 5 (error).</b> «Falta la tensión de entrada.» va en las celdas de resultado, que sin cálculo quedan vacías, enmarcado en rojo. En el desplegable, la tensión con borde rojo.</li>
   <li><b>Circuito 7.</b> Tres bloques. En las bombas, «No arranca» y «Terminal 75 °C» apagadas (son 3); en el variador, «Bypass» y «HP del motor» apagados (está en un grupo).</li>
   <li><b>Circuitos 9 y 13 (advertencias).</b> El valor que la causa, enmarcado en ámbar (la protección de 30 A, la caída de 6.20 %). El mensaje sale al pasar el cursor por esa celda, con la referencia en otra línea.</li>
@@ -256,17 +256,20 @@ tr.fila-desglose > td { background:var(--fondo-suave); padding:8px 4px 12px; tex
 function anchos() {
   const th = document.getElementById('th-desc').getBoundingClientRect();
   document.querySelectorAll('.recorre').forEach(r => {
-    const izq = r.getBoundingClientRect().left;
-    const desc = th.right - izq;
-    r.querySelectorAll('table.bloque').forEach(t => {
+    const desc = th.right - r.getBoundingClientRect().left;
+    const tablas = [...r.querySelectorAll('table.bloque')];
+    const datos = tablas.map(t => {
       const cols = [...t.querySelectorAll('col')];
       const base = cols.reduce((s, c) => s + (+c.dataset.w || 0), 0);
-      // Descripción, Tipo, Subtipo y Cant. miden lo mismo en todos los bloques: el sobrante, solo a las demás.
       const repartible = cols.filter(c => c.dataset.w && !c.hasAttribute('data-g')).reduce((s, c) => s + (+c.dataset.w), 0);
-      // Ninguna crece más del 40 % sobre su base: lo que sobre de ahí se queda libre a la derecha.
-      const ancho = Math.min(Math.max(r.clientWidth, base + desc), base + desc + 0.4 * repartible);
+      return { t, cols, base, repartible };
+    });
+    // Todos los bloques de un desplegable, del mismo largo: el del desplegable, o el del bloque más ancho si no cabe.
+    const ancho = Math.max(r.clientWidth, ...datos.map(d => d.base + desc));
+    datos.forEach(({ t, cols, base, repartible }) => {
       t.style.width = ancho + 'px';
       const sobra = ancho - base - desc;
+      // Descripción, Tipo, Subtipo y Cant., iguales en todos; el sobrante, en proporción entre las demás.
       cols.forEach(c => { c.style.width = c.hasAttribute('data-desc') ? desc + 'px'
         : c.hasAttribute('data-g') ? c.dataset.w + 'px' : ((+c.dataset.w) + sobra * (+c.dataset.w) / repartible) + 'px'; });
     });
