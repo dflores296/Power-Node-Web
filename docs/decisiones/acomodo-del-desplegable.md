@@ -97,6 +97,14 @@ todas: vas a agregar entre cada carga un nuevo renglón de encabezados correspon
 Antes se había contestado D4 como «la unión de las columnas de los subtipos del circuito»; los bloques la
 reemplazan.
 
+## D8 · Bypass y HP del motor del variador — CONTESTADA (David, 2026-10-07: «A, A»)
+
+- Las dos, columnas del bloque del variador. «HP del motor» se ve **apagada** hasta marcar «Bypass» (ayuda:
+  «Solo con bypass.»); al marcarlo se enciende y, vacía, se pone en rojo: «Faltan los HP del motor.».
+- **Un variador dentro de un grupo:** «Bypass» y «HP del motor» se ven apagadas (ayuda: «Solo con el variador
+  solo en su circuito.»). Lo que no cuenta no se deja marcar; la advertencia B17 de los avisos («El bypass no
+  cuenta en un grupo…») ya no hace falta.
+
 ## R3 · Los artículos en la tabla — REEMPLAZADA por la guía de David
 
 David escribió cómo se redactan los avisos: [`redaccion-de-avisos.md`](redaccion-de-avisos.md) (2026-10-07).
@@ -114,7 +122,6 @@ con la propuesta de Claude (tres niveles y un puente a la memoria) en cada rengl
 Detalle de cada una (cómo está hoy, opciones, recomendación) en la conversación del 2026-10-07; aquí, lo
 que hay que decidir:
 
-- **D8.** Bypass y HP del motor del variador: columnas propias; ¿HP apagada hasta marcar el bypass?
 - **D9.** «No arranca con la Tabla 430-52 (400 %)» y «Terminal 75 °C»: columnas propias, solo con motor
   solo.
 - **D10.** «Arranque 225 %» del motocompresor: columna propia; en grupo, ¿solo activa en el mayor?

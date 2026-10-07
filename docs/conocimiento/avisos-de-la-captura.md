@@ -70,7 +70,7 @@ Al pasar el cursor por el ⚠ sale el mensaje. La referencia va en una segunda l
 | B14 | A/A de habitación solo, más del 80 % | **El acondicionador usa más del 80 % del circuito. Revísalo.** | 440-62(b) |
 | B15 | A/A de habitación con otras cargas, más del 50 % | **El acondicionador usa más del 50 % del circuito. Pasa las demás cargas a otro circuito.** | 440-62(c) |
 | B16 | Con bypass, ninguna protección cabe | **Con bypass, ninguna protección cabe entre {mín.} y {máx.} A. Revísalo con el fabricante.** | 430-122(b) |
-| B17 | Variador con bypass dentro de un grupo | **El bypass no cuenta en un grupo. Pasa el variador a su propio circuito.** | 430-53 |
+| B17 | Variador con bypass dentro de un grupo | **Sale** (D8: en un grupo, «Bypass» se ve apagada y no se puede marcar) | — |
 | B18 | Ningún tubo alcanza | **Ningún tubo admite todos los conductores. Reparte los circuitos en más canalizaciones.** | Cap. 10, Tabla 1 |
 
 ## C · Errores del renglón (fila roja)
