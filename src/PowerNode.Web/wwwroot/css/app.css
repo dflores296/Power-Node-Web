@@ -1101,7 +1101,7 @@ polygon.riel-a { fill: var(--barra-a); } polygon.riel-b { fill: var(--barra-b); 
 .cuadro table.desglose th.izq { width: auto; }
 .cuadro table.desglose th:last-child { width: 40px; }
 /* EL ANCHO, REPARTIDO SEGÚN LO QUE HAY (David, 2026-10-07; antes, anchos fijos — I-140):
-   - La descripción, siempre el 25 %: no se estira ni se encoge al cambiar de tipo (I-140).
+   - La descripción, siempre el 25 % y no menos de 300 px: no se estira ni se encoge al cambiar de tipo (I-140).
    - Las demás, lo que pide el campo más ancho de las líneas de ESTE circuito: «Carga c/u» mide 140 con
      una carga en VA y 310 con los HP y la corriente de placa; «Servicio», 148 con «No continua» y 208
      con «Intermitente · 30-60 min». Con anchos fijos para el peor caso, la carga en VA quedaba en una
@@ -1112,25 +1112,35 @@ polygon.riel-a { fill: var(--barra-a); } polygon.riel-b { fill: var(--barra-b); 
 .cuadro table.desglose { table-layout: fixed; }
 /* La celda que lo contiene no crece por él: con anchos fijos y 100 %, sin esto la tabla se iba a lo ancho. */
 .cuadro tr.fila-desglose > td:last-child { max-width: 0; }
+/* Los tres anchos que cambian con lo que lleva el circuito, en variables: la tabla no baja de la suma de todas
+   más 300 px de descripción (722 = tipo, subtipo, cant., unidad, F.P., total y quitar). */
+.cuadro table.desglose { --w-carga: 140px; --w-servicio: 148px; --w-tension: 0px;
+                         min-width: calc(722px + var(--w-carga) + var(--w-servicio) + var(--w-tension) + 300px); }
+.cuadro table.desglose:has(> tbody .nota-min.larga) { --w-carga: 196px; }
+.cuadro table.desglose:has(> tbody td.dos-campos) { --w-carga: 172px; }
+.cuadro table.desglose:has(> tbody select.hp) { --w-carga: 234px; }
+.cuadro table.desglose:has(> tbody input.placa-servicio) { --w-carga: 310px; }
+.cuadro table.desglose:has(> tbody select.servicio) { --w-servicio: 208px; }
+.cuadro table.desglose:has(> thead th[data-col="ap-tension"]) { --w-tension: 150px; }
+/* SCROLL PROPIO (David, 2026-10-07: «no se trata de atiborrar todo en los píxeles que tenemos»): si no
+   cabe, el desplegable se recorre de lado; ni la descripción ni los campos se aprietan. */
+.cuadro .desglose-scroll { overflow-x: auto; border-radius: var(--radio-sm); }
 .cuadro table.desglose th[data-col="ap-desc"] { width: 25%; }
 .cuadro table.desglose th[data-col="ap-tipo"] { width: 140px; }
 .cuadro table.desglose th[data-col="ap-subtipo"] { width: 200px; }
 .cuadro table.desglose th[data-col="ap-cant"] { width: 72px; }
 .cuadro table.desglose th[data-col="ap-unidad"] { width: 96px; }
-.cuadro table.desglose th[data-col="ap-carga"] { width: 140px; }
-.cuadro table.desglose:has(> tbody .nota-min.larga) th[data-col="ap-carga"] { width: 196px; }
-.cuadro table.desglose:has(> tbody td.dos-campos) th[data-col="ap-carga"] { width: 172px; }
-.cuadro table.desglose:has(> tbody select.hp) th[data-col="ap-carga"] { width: 234px; }
-.cuadro table.desglose:has(> tbody input.placa-servicio) th[data-col="ap-carga"] { width: 310px; }
-.cuadro table.desglose th[data-col="ap-continua"] { width: 148px; }
-.cuadro table.desglose:has(> tbody select.servicio) th[data-col="ap-continua"] { width: 208px; }
+.cuadro table.desglose th[data-col="ap-tension"] { width: var(--w-tension); }
+.cuadro table.desglose th[data-col="ap-carga"] { width: var(--w-carga); }
+.cuadro table.desglose th[data-col="ap-continua"] { width: var(--w-servicio); }
 .cuadro table.desglose th[data-col="ap-fp"] { width: 78px; }
 .cuadro table.desglose th:nth-last-child(2) { width: 96px; }
 .cuadro table.desglose th:nth-last-child(2) { text-align: center; }
 /* Cada campo llena su celda (las reglas del renglón llevan #sec-cuadro: estas también, para ganarles). */
 #sec-cuadro table.desglose select.tipo, #sec-cuadro table.desglose select.unidad,
 #sec-cuadro table.desglose select.hp, #sec-cuadro table.desglose select.servicio,
-#sec-cuadro table.desglose select.servicio-carga, #sec-cuadro table.desglose td > input.va { width: 100%; }
+#sec-cuadro table.desglose select.servicio-carga, #sec-cuadro table.desglose select.tension,
+#sec-cuadro table.desglose td > input.va { width: 100%; }
 #sec-cuadro table.desglose select.subtipo { width: calc(100% - 19px); } /* y su «?»: 15 px más 4 */
 #sec-cuadro table.desglose td:has(> input.placa-servicio) > select.hp { width: calc(100% - 76px); }
 #sec-cuadro table.desglose .cantidad { display: flex; width: 100%; }
@@ -1205,7 +1215,7 @@ polygon.riel-a { fill: var(--barra-a); } polygon.riel-b { fill: var(--barra-b); 
 .cuadro table.desglose tfoot .nota-opcion { font-style: italic; margin-right: 16px; }
 .cuadro table.desglose tfoot label.arranque-225 { display: inline-flex; align-items: center; gap: 5px; margin-right: 16px; }
 /* I-189: la tensión de placa que falta, en rojo como el error del renglón. */
-.cuadro table.desglose tfoot select.falta { border-color: var(--alerta); color: var(--alerta); }
+.cuadro table.desglose select.falta { border-color: var(--alerta); color: var(--alerta); }
 
 /* ------------------------------------------------------------------------------------------------
    CANALIZACIONES — decisión canalizaciones-y-agrupamiento (2026-09-24).
