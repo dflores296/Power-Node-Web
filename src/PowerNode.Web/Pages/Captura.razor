@@ -1580,6 +1580,7 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
         {
             _arrastre = DotNetObjectReference.Create(this);
             await JS.InvokeVoidAsync("powerNode.arrastre.conectar", _arrastre);
+            await JS.InvokeVoidAsync("powerNode.desglose.conectar");
         }
         if (_enfocar is { } selector)
         {
@@ -1642,6 +1643,7 @@ title="Capturar la corriente de selección del circuito derivado, si la placa la
         _sinGuardar?.Cancel();
         Proyecto.Cambio -= AlAbrirOtroTablero;
         _ = JS.InvokeVoidAsync("powerNode.arrastre.desconectar").AsTask();
+        _ = JS.InvokeVoidAsync("powerNode.desglose.desconectar").AsTask();
         _arrastre?.Dispose();
     }
 

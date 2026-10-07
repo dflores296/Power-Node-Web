@@ -1101,7 +1101,7 @@ polygon.riel-a { fill: var(--barra-a); } polygon.riel-b { fill: var(--barra-b); 
 .cuadro table.desglose th.izq { width: auto; }
 .cuadro table.desglose th:last-child { width: 40px; }
 /* EL ANCHO, REPARTIDO SEGÚN LO QUE HAY (David, 2026-10-07; antes, anchos fijos — I-140):
-   - La descripción, siempre el 25 % y no menos de 300 px: no se estira ni se encoge al cambiar de tipo (I-140).
+   - La descripción, del ancho de la del circuito (I-200): no se estira ni se encoge al cambiar de tipo (I-140).
    - Las demás, lo que pide el campo más ancho de las líneas de ESTE circuito: «Carga c/u» mide 140 con
      una carga en VA y 310 con los HP y la corriente de placa; «Servicio», 148 con «No continua» y 208
      con «Intermitente · 30-60 min». Con anchos fijos para el peor caso, la carga en VA quedaba en una
@@ -1113,9 +1113,9 @@ polygon.riel-a { fill: var(--barra-a); } polygon.riel-b { fill: var(--barra-b); 
 /* La celda que lo contiene no crece por él: con anchos fijos y 100 %, sin esto la tabla se iba a lo ancho. */
 .cuadro tr.fila-desglose > td:last-child { max-width: 0; }
 /* Los tres anchos que cambian con lo que lleva el circuito, en variables: la tabla no baja de la suma de todas
-   más 300 px de descripción (722 = tipo, subtipo, cant., unidad, F.P., total y quitar). */
+   más la descripción (722 = tipo, subtipo, cant., unidad, F.P., total y quitar); si no cabe, se recorre. */
 .cuadro table.desglose { --w-carga: 140px; --w-servicio: 148px; --w-tension: 0px;
-                         min-width: calc(722px + var(--w-carga) + var(--w-servicio) + var(--w-tension) + 300px); }
+                         min-width: calc(722px + var(--w-carga) + var(--w-servicio) + var(--w-tension) + var(--desc-ancho, 300px)); }
 .cuadro table.desglose:has(> tbody .nota-min.larga) { --w-carga: 196px; }
 .cuadro table.desglose:has(> tbody td.dos-campos) { --w-carga: 172px; }
 .cuadro table.desglose:has(> tbody select.hp) { --w-carga: 234px; }
@@ -1125,7 +1125,10 @@ polygon.riel-a { fill: var(--barra-a); } polygon.riel-b { fill: var(--barra-b); 
 /* SCROLL PROPIO (David, 2026-10-07: «no se trata de atiborrar todo en los píxeles que tenemos»): si no
    cabe, el desplegable se recorre de lado; ni la descripción ni los campos se aprietan. */
 .cuadro .desglose-scroll { overflow-x: auto; border-radius: var(--radio-sm); }
-.cuadro table.desglose th[data-col="ap-desc"] { width: 25%; }
+/* La descripción termina en la misma línea que la del circuito (I-200): js/desglose.js mide la del cuadro y
+   deja qué fracción del desplegable le toca. Fracción y no píxeles: el ancho que sobra se lo reparten las demás.
+   Sin el script, el 25 %. */
+.cuadro table.desglose th[data-col="ap-desc"] { width: calc(var(--desc-fraccion, .25) * 100%); }
 .cuadro table.desglose th[data-col="ap-tipo"] { width: 140px; }
 .cuadro table.desglose th[data-col="ap-subtipo"] { width: 200px; }
 .cuadro table.desglose th[data-col="ap-cant"] { width: 72px; }
