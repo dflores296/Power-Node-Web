@@ -18,10 +18,12 @@ Registro de acciones por sesión, con hallazgo y commit.
   avisos de David, [`../decisiones/redaccion-de-avisos.md`](../decisiones/redaccion-de-avisos.md); los estados de
   error y advertencia (opción A), [`../conocimiento/estados-de-aviso.md`](../conocimiento/estados-de-aviso.md); el
   mockup, [`../mockups/desglose-por-bloques.html`](../mockups/desglose-por-bloques.html).
-- I-201, `8782a79`: el desplegable por bloques, primera de tres partes («Sí a todo, ya implementa en main»). Faltan
-  los avisos con la opción A y el mínimo de 220-14 en «Carga c/u» (D14 a D19).
+- I-201, `8782a79`: el desplegable por bloques, primera de tres partes («Sí a todo, ya implementa en main»).
+- I-202, `1f97c39`: los avisos de la tabla con la opción A, el contador y los textos de la guía (David: «termina la
+  parte 2 y 3, termínalo todo»).
+- I-203, `e52fd74`: el mínimo de 220-14 en «Carga c/u» (D14 a D19); D2, fijado con una prueba.
 
-Pruebas: 641 en `PowerNode.Web.Tests` y 52 en `PowerNode.Normativa.Tests`, sin cambio.
+Pruebas: 662 en `PowerNode.Web.Tests` (+21) y 52 en `PowerNode.Normativa.Tests`.
 
 ## 2026-10-05
 

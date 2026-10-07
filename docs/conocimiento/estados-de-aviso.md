@@ -1,6 +1,6 @@
 # Componente: el estado del circuito (error y advertencia)
 
-**DECIDIDA · David · 2026-10-07: opción A** (abajo). Propuesta de Claude del mismo día — pedida por David: «necesitamos una forma clara de detectar warnings y
+**DECIDIDA · David · 2026-10-07: opción A** (abajo). **Implementada** en `1f97c39` (I-202). Propuesta de Claude del mismo día — pedida por David: «necesitamos una forma clara de detectar warnings y
 errors en la tabla». Vista: [`../mockups/desglose-por-bloques.html`](../mockups/desglose-por-bloques.html)
 (capturas `-1900.png` y `-1440.png`), con las tres opciones lado a lado. Qué dice cada aviso:
 [`../decisiones/redaccion-de-avisos.md`](../decisiones/redaccion-de-avisos.md) y

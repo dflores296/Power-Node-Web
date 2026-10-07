@@ -3,7 +3,9 @@
 Cada aviso y cada ayuda de la tabla de captura (el cuadro y su desplegable), con su texto final según la
 guía de David: [`../decisiones/redaccion-de-avisos.md`](../decisiones/redaccion-de-avisos.md). Sacado del
 código el 2026-10-07 (`Pages/Captura.razor`, `CuadroDeCarga.cs`, `CircuitoDelCuadro.cs`, y los mensajes del
-motor de cálculo que llegan a un circuito). Nada está implementado.
+motor de cálculo que llegan a un circuito). **Implementado** en `1f97c39` (I-202) y `e52fd74` (I-203): A, B (sin B6, que
+espera la entrada de la memoria por circuito), C, D, E y F. Lo que el catálogo no traía (210-3, 422-11(e), 600-5(a),
+600-5(b)(2), serie de interruptores) va con texto de Claude en `AvisosDeLaTabla`: por revisar.
 
 **APROBADA · David · 2026-10-07 — por verificar.** David: «lo apruebo todo, pero falta revisar los casos; ya
 lo haremos con un agente automático más adelante que haga de usuario y directo abra en el navegador. Lo

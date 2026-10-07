@@ -227,6 +227,8 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-199 · La tensión de placa, en el pie del desplegable y no en la línea del equipo; sin scroll, las columnas se apretaban | P3 | **Cerrado** | `c21d2af` |
 | I-200 · La descripción del desplegable terminaba más a la derecha que la del circuito | P3 | **Cerrado** | `6fff8a6` |
 | I-201 · El desplegable mezclaba en una fila de encabezados las columnas de cargas distintas y ponía controles del cálculo en su pie | P3 | **Cerrado** | `8782a79` |
+| I-202 · Los avisos de la tabla: el error, en una fila roja que cruzaba la tabla; la advertencia, un ⚠ chico; los textos, con artículos y en voz de desarrollo | P3 | **Cerrado** | `1f97c39` |
+| I-203 · «Carga c/u» podía quedar en 0 o abajo del mínimo de 220-14, con una nota «mín. 180 VA» debajo; el cálculo usaba otro valor que el del campo | P3 | **Cerrado** | `e52fd74` |
 | M-14 · Sin el mínimo de alumbrado general por superficie (220-12) en el alimentador; en vivienda, contactos de uso general sumados aparte (220-14(j)) | P1 | **Cerrado** | `71abc56` |
 | M-15 · Motor: la Excepción 1 de 430-52(c)(1) redondeaba dentro de la serie (35 → 40 A en riel DIN) y se citaba sin redondeo; sin Excepción 2 | P1 | **Cerrado** | `8b4d893`, `60a4f91` |
 | M-16 · «Húmedo o mojado» en una opción: XHHW mojado a 90 °C (conductor de menos); RHH y XHH aceptados en mojado | P1 | **Cerrado** | `a3fded5` |
@@ -1177,7 +1179,31 @@ bloque ancho lo ensanchaba. Navegador, a 1900, 1280 y 1100: cargas, motor solo, 
 · 3 motores»), grupo de motor, motocompresor y variador (tres bloques), variador con bypass, A/A con ampacidad,
 de habitación y tablero: la descripción de cada bloque a 0.0 px de la del cuadro, las seis generales alineadas en
 todos los bloques, ningún campo fuera de su celda, la barra de ayuda con el texto del encabezado, sin errores.
-Pendiente de D2: que una protección fijada del motor solo se guarde y vuelva al regresar a Cant. 1.
+D2 (la protección fijada y las casillas del motor solo regresan al volver a Cant. 1) ya se cumplía: se fijó con
+`CantidadDelMotorSoloTests` en `e52fd74`.
+
+**I-202** — Hecho (David, 2026-10-07: opción A de [`../conocimiento/estados-de-aviso.md`](../conocimiento/estados-de-aviso.md); la
+guía [`../decisiones/redaccion-de-avisos.md`](../decisiones/redaccion-de-avisos.md); los textos aprobados de
+[`../conocimiento/avisos-de-la-captura.md`](../conocimiento/avisos-de-la-captura.md)). El error va donde iría el resultado
+(In a e %), enmarcado en `--alerta`, y en el desplegable el campo que falta o choca lleva borde rojo; la fila roja sale.
+Cada advertencia enmarca su celda (Protec., P, Canal., e %, la clase) en `--aviso-borde` y su mensaje sale al pasar el
+cursor, con la referencia en otra línea; el ⚠ sale. Arriba del cuadro, el contador «1 error · 1 advertencia»: un clic
+lleva al siguiente. `AvisosDeLaTabla` (Modelo) traduce sin tocar el cálculo: C1 a C31 por el mensaje, B7 a B18 por la
+regla y su referencia; un caso desconocido dice «No se puede calcular el circuito. Revisa sus datos.». El mensaje
+completo de lo que no se calcula va a la memoria («Circuitos sin calcular»). Las ayudas del cuadro (A1 a A15), B1 a B5
+y los avisos flotantes F1 a F3, con los textos aprobados. Las reglas que el catálogo no traía (210-3, 422-11(e),
+600-5(a), 600-5(b)(2), la serie de interruptores) llevan texto de Claude con la misma guía: por revisar. Navegador:
+variador sin tensión («Falta la tensión de entrada.», el selector en rojo), alumbrado de 3,000 VA (Protec. enmarcada,
+210-23(b)), el contador y su clic; sin errores en la consola. Pruebas: `AvisosDeLaTablaTests`.
+
+**I-203** — Hecho (D14 a D19, David, 2026-10-07: «Sí a todo»). `MinimosDeLaCarga` (Modelo): el campo trae el mínimo al
+escoger el subtipo; lo escrito abajo sube solo, con el aviso «Contacto: no menos de 180 VA.» (y el campo se reescribe
+con `powerNode.restablecer`: ya decía 180 y Blazor no lo tocaba, se quedaba lo tecleado — visto en el navegador);
+contactos, portalámparas pesado y ensamble, solo en VA; la secadora convierte su mínimo de unidad (hacia arriba, a dos
+decimales) y sigue al inmueble si traía el mínimo; anuncios, 1,200 VA si es su única línea; un archivo con la carga en
+0 enseña el mínimo al abrir. El resultado no cambia: el cálculo ya usaba el piso. Navegador: contacto 180 VA y la
+unidad fija; 100 → 180 con su aviso; anuncios 1,200; secadora 5,000 VA, 39.37 A, y fuera de vivienda vacía; sin
+errores. Pruebas: `MinimosDeLaCargaTests`.
 
 **M-21** (AM-4) — 25 HP a 220 V: FLC 68 A, 125 % = 85 A, rango de 90 a 175 A. Con 175 A (la calculada) el
 circuito es de más de 100 A y va a 75 °C: 4 AWG (85 A) — 110-14(c)(1)b.; fijada en 100 A, a 60 °C: 3 AWG

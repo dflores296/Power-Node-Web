@@ -1,9 +1,8 @@
 # El acomodo del desplegable: un renglón, sus columnas y el mínimo de la carga
 
 **PROPUESTA · Claude · 2026-10-07** — las preguntas las armó Claude; David las va contestando una por una.
-Lo contestado va abajo con sus palabras. Falta que David la marque CONFIRMADA. Implementado R1, R2 y D1 a D13
-(I-201, `8782a79`), salvo lo de D2 de guardar la protección fijada; faltan D14 a D19 (el mínimo de 220-14) y los
-avisos.
+Lo contestado va abajo con sus palabras. Falta que David la marque CONFIRMADA. Implementado todo: R1, R2 y D1 a D13
+(I-201, `8782a79`), D14 a D19 (I-203, `e52fd74`) y los avisos (I-202, `1f97c39`).
 
 Es un tema de **acomodo, no de cálculo** (David). Sigue a
 [`captura-en-el-desplegable.md`](captura-en-el-desplegable.md), que puso el equipo solo como un renglón
