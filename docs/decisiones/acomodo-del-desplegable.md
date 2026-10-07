@@ -68,6 +68,16 @@ David: «1 sí, 2 sí, 3 A». Con Cant. fija en 1, cada uno en su renglón:
 
 Todos los demás aparatos, Cant. libre (D1).
 
+## D4 · Cuándo aparece una columna — CONTESTADA (David, 2026-10-07: «A»)
+
+**Según los subtipos que hay en el circuito.** Cada subtipo trae su juego fijo de columnas; el circuito
+enseña la unión de las de sus renglones. Mientras no cambie un subtipo, las columnas no se mueven. Una columna
+que el subtipo trae pero que no aplica por otro dato se ve **apagada**, no desaparece («HP del motor» sin
+bypass, «Corriente de placa» en un motor continuo). En los renglones de otro subtipo, la celda dice «—».
+
+Descartadas: todas siempre (13 columnas en «—» en un circuito de contactos) y según los valores capturados
+(la tabla se reacomoda mientras se captura, lo que molestaba en I-140).
+
 ## R3 · Los artículos en la tabla — REEMPLAZADA por la guía de David
 
 David escribió cómo se redactan los avisos: [`redaccion-de-avisos.md`](redaccion-de-avisos.md) (2026-10-07).
@@ -85,7 +95,6 @@ con la propuesta de Claude (tres niveles y un puente a la memoria) en cada rengl
 Detalle de cada una (cómo está hoy, opciones, recomendación) en la conversación del 2026-10-07; aquí, lo
 que hay que decidir:
 
-- **D4.** ¿Una columna aparece solo si alguna línea del circuito la usa, o siempre?
 - **D5.** Una celda, un dato: separar «Entrada · Máx.», «Nominal · Selección», «Ampac. · Máx.» y «HP +
   Placa A» en columnas propias.
 - **D6.** ¿Columnas compartidas por concepto («Corriente de placa (A)», «Protección máxima (A)») o una por
