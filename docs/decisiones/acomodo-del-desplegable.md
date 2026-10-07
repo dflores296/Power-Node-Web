@@ -55,6 +55,19 @@ del motor solo se ven apagadas mientras sea grupo, con su marca, y con una ayuda
 (David: «ayuda corta está bien»), sin artículo: «Solo con un motor solo». La celda «Tipo» del circuito
 cambia como hoy («Grupo de motores · 3 salidas»).
 
+## D3 · Los renglones con Cant. fija en 1 — CONTESTADA (David, 2026-10-07)
+
+David: «1 sí, 2 sí, 3 A». Con Cant. fija en 1, cada uno en su renglón:
+
+- **El contacto del refrigerador** — va solo en su circuito y es uno (210-52(b)(1) Excepción 2). Si no:
+  «El contacto del refrigerador va solo. Pasa las demás cargas a otro circuito.» / «… es uno. Deja la
+  cantidad en 1.» (C12, C13 de los avisos).
+- **El A/A «Carga combinada»** — la ampacidad mínima y la protección máxima de su placa son de un equipo.
+- **Otro tablero** — cada tablero con su nombre, su carga y su protección (408-36).
+- **El variador** — ya en D1.2.
+
+Todos los demás aparatos, Cant. libre (D1).
+
 ## R3 · Los artículos en la tabla — REEMPLAZADA por la guía de David
 
 David escribió cómo se redactan los avisos: [`redaccion-de-avisos.md`](redaccion-de-avisos.md) (2026-10-07).
@@ -72,8 +85,6 @@ con la propuesta de Claude (tres niveles y un puente a la memoria) en cada rengl
 Detalle de cada una (cómo está hoy, opciones, recomendación) en la conversación del 2026-10-07; aquí, lo
 que hay que decidir:
 
-- **D3.** ¿Siguen con Cant. bloqueada el contacto del refrigerador, el A/A «Carga combinada» y otro
-  tablero?
 - **D4.** ¿Una columna aparece solo si alguna línea del circuito la usa, o siempre?
 - **D5.** Una celda, un dato: separar «Entrada · Máx.», «Nominal · Selección», «Ampac. · Máx.» y «HP +
   Placa A» en columnas propias.
