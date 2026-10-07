@@ -4,194 +4,271 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Desplegable por bloques</title>
-<!-- MOCKUP del acomodo del desplegable — docs/decisiones/acomodo-del-desplegable.md (2026-10-07).
-     Estático: no calcula. Los colores son los tokens de la app (wwwroot/css/app.css). -->
+<!-- MOCKUP — docs/decisiones/acomodo-del-desplegable.md y docs/conocimiento/estados-de-aviso.md (2026-10-07).
+     Estático: no calcula. Colores: los tokens de la app (wwwroot/css/app.css), tema claro. -->
 <style>
 :root {
   --tinta:#101418; --acento:#0B6E99; --tenue:#45505c; --linea:#c2cbd6; --fondo:#e6ebf1; --papel:#fff;
-  --alerta:#b3261e; --alerta-fondo:#fdeceb; --encabezado:#dfe6ee; --linea-suave:#d8dfe7; --fondo-suave:#f7f8fa;
-  --acento-suave:#eaf3f8; --acento-borde:#bcd7e5; --aviso-fondo:#fdf6e3; --aviso-borde:#d9a441; --aviso-texto:#7a5a12;
+  --linea-suave:#d8dfe7; --fondo-suave:#f7f8fa;
+  /* Los de aviso, los mismos de la app (cada uno con su pareja en el tema oscuro) */
+  --alerta:#b3261e; --alerta-fondo:#fdeceb;
+  --aviso-texto:#7a5a12; --aviso-fondo:#fdf6e3; --aviso-borde:#d9a441;
   --radio-xs:6px; --radio-sm:9px; --radio-md:14px;
-  --desc: 300px;            /* la columna Descripción del cuadro */
-  --sangria: 4px;           /* la celda del desplegable */
+  --desc: 300px;
 }
-* { box-sizing: border-box; }
+* { box-sizing:border-box; }
 body { margin:0; background:var(--fondo); color:var(--tinta); font:13px/1.35 Inter, "Segoe UI", system-ui, sans-serif; padding:24px; }
 h1 { font-size:18px; margin:0 0 4px; }
-.nota { color:var(--tenue); margin:0 0 16px; max-width:1100px; }
-.pendiente { display:inline-block; background:var(--aviso-fondo); border:1px solid var(--aviso-borde); color:var(--aviso-texto);
-             border-radius:var(--radio-xs); padding:1px 6px; font-size:11px; }
-.tarjeta { background:var(--papel); border:1px solid var(--linea); border-radius:var(--radio-md); overflow:hidden; margin-bottom:22px; }
-.tarjeta > h2 { font-size:13px; margin:0; padding:10px 14px; border-bottom:1px solid var(--linea); background:var(--papel); }
+.nota { color:var(--tenue); margin:0 0 14px; max-width:1100px; }
+.pendiente { display:inline-block; background:#eef1f5; border:1px dashed var(--tenue); color:var(--tenue); border-radius:var(--radio-xs); padding:0 5px; font-size:10.5px; }
+.tarjeta { background:var(--papel); border:1px solid var(--linea); border-radius:var(--radio-md); overflow:hidden; margin-bottom:14px; }
+.tarjeta > h2 { font-size:13px; margin:0; padding:10px 14px; border-bottom:1px solid var(--linea); }
 .tarjeta > h2 small { font-weight:400; color:var(--tenue); margin-left:8px; }
+.notas { margin:0 0 26px; padding-left:20px; color:var(--tenue); max-width:1150px; }
+.notas li { margin:3px 0; }
+.ref { display:inline-grid; place-items:center; width:16px; height:16px; border-radius:50%; background:var(--tinta); color:#fff; font-size:10px; font-weight:700; vertical-align:1px; }
 
-/* El cuadro, simplificado */
+/* ── El cuadro (simplificado) ──────────────────────────────────────────────── */
 table { border-collapse:collapse; }
 table.cuadro { width:100%; table-layout:fixed; }
 .cuadro th { background:var(--fondo-suave); color:var(--tenue); font-size:10px; font-weight:600; text-transform:uppercase;
-             padding:8px 6px; border-bottom:1px solid var(--linea); border-right:1px solid var(--linea-suave); text-align:center; }
-.cuadro td { padding:8px 6px; border-bottom:1px solid var(--linea-suave); border-right:1px solid var(--linea-suave); text-align:center; vertical-align:middle; }
+             padding:8px 6px; border-bottom:1px solid var(--linea); border-right:1px solid var(--linea-suave); }
+.cuadro td { padding:9px 6px; border-bottom:1px solid var(--linea-suave); border-right:1px solid var(--linea-suave); text-align:center; vertical-align:middle; }
 .cuadro th:last-child, .cuadro td:last-child { border-right:0; }
 .cuadro .izq { text-align:left; }
 .num-c { display:inline-grid; place-items:center; min-width:22px; height:18px; border-radius:5px; color:#fff; font-weight:700; font-size:11px; }
 .fa { background:#1b1f23; } .fb { background:#c62828; } .fc { background:#1565c0; }
 .clase { font-size:13px; } .en-va { display:block; font-size:10px; color:var(--tenue); margin-top:2px; }
-.err td { color:var(--alerta); }
-tr.fila-error td { background:var(--alerta-fondo); color:var(--alerta); text-align:left; font-size:12px; padding:5px 10px; }
+.desc { display:flex; align-items:center; gap:6px; }
+.flecha { color:var(--tenue); font-size:10px; }
 
-/* El desplegable: bloques apilados, cada uno con su encabezado */
-tr.fila-desglose > td { background:var(--fondo-suave); padding:8px var(--sangria) 12px; text-align:left; }
-.bloques { border:1px solid var(--linea); border-radius:var(--radio-sm); overflow:hidden; background:var(--papel); }
-.bloque { width:100%; table-layout:fixed; }
+/* ── ESTADOS DEL CIRCUITO (la propuesta) ───────────────────────────────────── */
+/* 1. El renglón entero, tintado suave; 2. una barra de 3 px a la izquierda; 3. el ícono junto a la
+      descripción; 4. el error dice qué falta en las celdas de resultado; la advertencia marca el valor. */
+tr.error > td   { background:var(--alerta-fondo); }
+tr.aviso > td   { background:var(--aviso-fondo); }
+tr.error > td:first-child { box-shadow:inset 3px 0 0 var(--alerta); }
+tr.aviso > td:first-child { box-shadow:inset 3px 0 0 var(--aviso-borde); }
+.ic { display:inline-grid; place-items:center; width:16px; height:16px; flex:none; font-size:10px; font-weight:800; line-height:1; }
+.ic.error { border-radius:50%; background:var(--alerta); color:#fff; }
+.ic.aviso { width:0; height:0; border-left:8px solid transparent; border-right:8px solid transparent; border-bottom:14px solid var(--aviso-borde); position:relative; }
+.ic.aviso::after { content:"!"; position:absolute; top:3px; left:-2px; color:var(--tinta); font-size:9px; font-weight:800; }
+td.msg-error { color:var(--alerta); font-weight:600; text-align:left !important; padding-left:12px !important; }
+.marcado-aviso { color:var(--aviso-texto); font-weight:700; text-decoration:underline dotted var(--aviso-borde); text-underline-offset:3px; }
+.globo { position:absolute; z-index:6; background:var(--tinta); color:#fff; font-size:11.5px; line-height:1.4; padding:7px 10px; border-radius:7px; white-space:nowrap; }
+.globo .r { display:block; color:#b9c2cc; margin-top:3px; font-size:10.5px; }
+.contador { float:right; font-weight:400; font-size:12px; display:flex; gap:10px; align-items:center; }
+.chip { display:inline-flex; align-items:center; gap:6px; padding:2px 8px; border-radius:999px; font-size:11.5px; border:1px solid; }
+.chip.error { color:var(--alerta); background:var(--alerta-fondo); border-color:#f2b8b5; }
+.chip.aviso { color:var(--aviso-texto); background:var(--aviso-fondo); border-color:var(--aviso-borde); }
+
+/* ── El desplegable ────────────────────────────────────────────────────────── */
+tr.fila-desglose > td { background:var(--fondo-suave); padding:8px 4px 12px; text-align:left; }
+.desglose { border:1px solid var(--linea); border-radius:var(--radio-sm); background:var(--papel); overflow:hidden; }
+.titulo-desglose { font-size:10.5px; font-weight:600; letter-spacing:.03em; text-transform:uppercase; color:var(--tenue); padding:7px 10px; border-bottom:1px solid var(--linea); }
+.recorre { overflow-x:auto; }
+.bloque { table-layout:fixed; }
 .bloque + .bloque { border-top:2px solid var(--linea); }
 .bloque th { background:var(--fondo-suave); color:var(--tenue); font-size:10px; font-weight:600; text-transform:uppercase;
              padding:7px 8px; border-bottom:1px solid var(--linea); border-right:1px solid var(--linea-suave); text-align:center; }
+.bloque th.nombre { text-align:left; color:var(--tinta); }
 .bloque td { padding:12px 8px; border-bottom:1px solid var(--linea-suave); border-right:1px solid var(--linea-suave); text-align:center; vertical-align:middle; position:relative; }
-.bloque th:last-child, .bloque td:last-child { border-right:0; width:36px; }
+.bloque th:last-child, .bloque td:last-child { border-right:0; }
 .bloque tbody tr:last-child td { border-bottom:0; }
 .bloque .izq { text-align:left; }
-/* Las cuatro generales, del mismo ancho en todos los bloques (3 A); Descripción termina en la línea del cuadro */
-.bloque col.c-desc { width:calc(var(--desc) - var(--sangria) - 2px); }
-.bloque col.c-tipo { width:130px; } .bloque col.c-sub { width:176px; } .bloque col.c-cant { width:76px; }
-.bloque col.c-x { width:36px; }
-.pie { display:flex; justify-content:space-between; align-items:center; padding:7px 10px; border-top:1px solid var(--linea);
-       font-size:11px; color:var(--tenue); background:var(--papel); }
+.pie { display:flex; justify-content:space-between; align-items:center; padding:7px 10px; border-top:1px solid var(--linea); font-size:11px; color:var(--tenue); }
 .agregar { color:var(--acento); font-size:11px; }
 
-/* Campos */
 .campo, .sel { display:inline-block; width:100%; height:28px; line-height:26px; border:1px solid var(--linea); border-radius:var(--radio-xs);
                background:var(--papel); padding:0 8px; text-align:left; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-size:13px; }
-.sel { position:relative; padding-right:22px; }
-.sel::after { content:"▾"; position:absolute; right:7px; top:0; color:var(--tenue); }
+.sel { position:relative; padding-right:22px; } .sel::after { content:"▾"; position:absolute; right:7px; top:0; color:var(--tenue); }
 .campo.num { text-align:center; }
-.fijo { color:var(--tinta); }
 .apagado { opacity:.42; background:var(--fondo-suave); }
-.falta { border-color:var(--alerta); color:var(--alerta); }
+.campo.falta, .sel.falta { border-color:var(--alerta); box-shadow:0 0 0 2px var(--alerta-fondo); color:var(--alerta); }
 .caja { display:inline-block; width:15px; height:15px; border:1px solid var(--tenue); border-radius:3px; vertical-align:middle; background:var(--papel); }
 .caja.apagado { border-color:var(--linea); }
-.ayuda { position:absolute; left:50%; transform:translateX(-50%); bottom:-1px; font-size:9.5px; color:var(--tenue); white-space:nowrap; }
-.globo { position:absolute; z-index:5; bottom:-27px; left:50%; transform:translateX(-50%); background:var(--tinta); color:#fff; font-size:11px;
-         padding:4px 8px; border-radius:6px; white-space:nowrap; }
-.globo::after { content:""; position:absolute; left:50%; top:-4px; margin-left:-4px; border:4px solid transparent; border-top:0; border-bottom-color:var(--tinta); }
+.debajo { position:absolute; left:50%; transform:translateX(-50%); bottom:-1px; font-size:9.5px; color:var(--tenue); white-space:nowrap; }
 .tenue { color:var(--tenue); }
-.leyenda { display:flex; gap:18px; flex-wrap:wrap; font-size:12px; color:var(--tenue); margin:-6px 0 18px; }
-.leyenda span { display:inline-flex; gap:6px; align-items:center; }
+
+/* ── Comparación de variantes ──────────────────────────────────────────────── */
+.variantes td.etq { text-align:left; font-size:11.5px; color:var(--tenue); width:240px; background:var(--papel) !important; box-shadow:none !important; }
+.v-a-error td.res { outline:2px solid var(--alerta); outline-offset:-4px; }
+.v-a-aviso td.res2 { outline:2px solid var(--aviso-borde); outline-offset:-4px; }
+.v-b-error > td:not(.etq) { background:#e9a19d; }
+.v-b-aviso > td:not(.etq) { background:#f3d68c; }
 </style>
 </head>
 <body>
 
-<h1>Desplegable por bloques — mockup</h1>
-<p class="nota">Cada juego de columnas lleva su fila de encabezados; los renglones se agrupan solos. Descripción, Tipo, Subtipo y Cant. miden lo mismo en todos los bloques, y Descripción termina en la línea de la del cuadro. Nada de controles en el pie. Estático: los números son de ejemplo.
-<br>Con <span class="pendiente">por decidir</span>, mi recomendación para lo que falta (D11 a D19).</p>
-<div class="leyenda">
-  <span><span class="campo" style="width:60px">20</span> se captura</span>
-  <span><span class="campo apagado" style="width:60px">—</span> apagada: no aplica por otro dato</span>
-  <span><span class="campo falta" style="width:60px">—</span> falta: en rojo</span>
-</div>
+<h1>Desplegable por bloques y estados de aviso — mockup</h1>
+<p class="nota">Estático: los números son de ejemplo. Las notas numeradas están debajo de cada tarjeta, no dentro de la tabla. <span class="pendiente">por decidir</span> marca lo que todavía no decides (D11 a D19), con mi recomendación.</p>
 
-<!-- ====================================================================================== -->
+<!-- ═════════════════════════════════════════════════════════════════════════════════ -->
 <div class="tarjeta">
-<h2>Cuadro de carga <small>(simplificado: solo las columnas que hacen falta para ver el acomodo)</small></h2>
-<table class="cuadro">
-  <colgroup><col style="width:38px"><col style="width:var(--desc)"><col style="width:150px"><col><col style="width:70px"><col style="width:50px"><col style="width:70px"><col style="width:80px"><col style="width:80px"><col style="width:60px"></colgroup>
-  <thead><tr><th>N.º</th><th class="izq">Descripción</th><th>Tipo</th><th>Carga (VA)</th><th>L (m)</th><th>P</th><th>In (A)</th><th>Protec. (A)</th><th>Fase</th><th>e (%)</th></tr></thead>
+<h2>Cuadro de carga <small>simplificado</small>
+  <span class="contador"><span class="chip error"><span class="ic error">!</span>1 error</span><span class="chip aviso"><span class="ic aviso"></span>&nbsp;2 advertencias</span></span></h2>
+<table class="cuadro" id="cuadro">
+  <colgroup><col style="width:38px"><col style="width:var(--desc)"><col style="width:150px"><col><col style="width:70px"><col style="width:50px"><col style="width:76px"><col style="width:84px"><col style="width:84px"><col style="width:64px"></colgroup>
+  <thead><tr><th>N.º</th><th class="izq" id="th-desc">Descripción</th><th>Tipo</th><th>Carga (VA)</th><th>L (m)</th><th>P</th><th>In (A)</th><th>Protec. (A)</th><th>Fase</th><th>e (%)</th></tr></thead>
   <tbody>
 
-  <!-- 1 · CONTACTOS Y ALUMBRADO: el mismo juego de columnas, un solo bloque -->
-  <tr><td><span class="num-c fa">1</span></td><td class="izq">▾ Cocina</td><td><span class="clase">Uso general</span><span class="en-va">6 salidas</span></td><td>1,200</td><td>18</td><td>1</td><td>9.45</td><td>15</td><td>14 AWG</td><td>1.10</td></tr>
+  <!-- 1 · Cocina: contactos y alumbrado, un bloque -->
+  <tr><td><span class="num-c fa">1</span></td><td class="izq"><span class="desc"><span class="flecha">▼</span>Cocina</span></td><td><span class="clase">Uso general</span><span class="en-va">6 salidas</span></td><td>1,200</td><td>18</td><td>1</td><td>9.45</td><td>15</td><td>14 AWG</td><td>1.10</td></tr>
   <tr class="fila-desglose"><td></td><td colspan="9">
-    <div class="bloques">
+    <div class="desglose">
+      <div class="titulo-desglose">Salidas y cargas del circuito 1</div>
+      <div class="recorre">
       <table class="bloque">
-        <colgroup><col class="c-desc"><col class="c-tipo"><col class="c-sub"><col class="c-cant"><col style="width:96px"><col><col style="width:150px"><col style="width:80px"><col style="width:96px"><col class="c-x"></colgroup>
-        <thead><tr><th class="izq">Salidas y cargas del circuito 1</th><th>Tipo</th><th>Subtipo</th><th>Cant.</th><th>Unidad</th><th>Carga c/u</th><th>Servicio</th><th>F.P.</th><th>Total (VA)</th><th></th></tr></thead>
+        <colgroup><col data-desc><col data-w="130" data-g><col data-w="176" data-g><col data-w="76" data-g><col data-w="84"><col data-w="110"><col data-w="150"><col data-w="74"><col data-w="92"><col data-w="36"></colgroup>
+        <thead><tr><th class="izq nombre">Cargas</th><th>Tipo</th><th>Subtipo</th><th>Cant.</th><th>Unidad</th><th>Carga c/u</th><th>Servicio</th><th>F.P.</th><th>Total (VA)</th><th></th></tr></thead>
         <tbody>
-          <tr><td class="izq"><span class="campo">Lámparas</span></td><td><span class="sel">Alumbrado</span></td><td><span class="sel">Luminarias</span></td><td><span class="campo num">2</span></td><td><span class="sel">VA</span></td>
-              <td><span class="campo num">240</span></td><td><span class="sel">Continua</span></td><td><span class="campo num">0.90</span></td><td>480</td><td class="tenue">🗑</td></tr>
-          <tr><td class="izq"><span class="campo">Contactos de barra</span></td><td><span class="sel">Contactos</span></td><td><span class="sel">Uso general</span></td><td><span class="campo num">4</span></td><td><span class="sel">VA</span></td>
-              <td><span class="campo num">180</span><span class="globo">Carga mínima por salida: 180 VA · 220-14(i)</span></td><td><span class="sel">No continua</span></td><td><span class="campo num">0.90</span></td><td>720</td><td class="tenue">🗑</td></tr>
+          <tr><td class="izq"><span class="campo">Lámparas</span></td><td><span class="sel">Alumbrado</span></td><td><span class="sel">Luminarias</span></td><td><span class="campo num">2</span></td><td><span class="sel">VA</span></td><td><span class="campo num">240</span></td><td><span class="sel">Continua</span></td><td><span class="campo num">0.90</span></td><td>480</td><td class="tenue">🗑</td></tr>
+          <tr><td class="izq"><span class="campo">Contactos de barra</span></td><td><span class="sel">Contactos</span></td><td><span class="sel">Uso general</span></td><td><span class="campo num">4</span></td><td><span class="sel">VA</span></td><td><span class="campo num">180</span></td><td><span class="sel">No continua</span></td><td><span class="campo num">0.90</span></td><td>720</td><td class="tenue">🗑</td></tr>
         </tbody>
       </table>
+      </div>
       <div class="pie"><span class="agregar">⊕ Agregar carga</span><span>Total: continua 480 · no continua 720 VA · F.P. 0.90</span></div>
     </div>
-    <p class="nota" style="margin:6px 0 0">El mínimo de 180 VA ya viene en el campo <span class="pendiente">por decidir · D14 A</span> y la nota de abajo se quita.</p>
   </td></tr>
 
-  <!-- 3 · UN MOTOR SOLO -->
-  <tr><td><span class="num-c fb">3</span></td><td class="izq">▾ Bomba de agua</td><td><span class="clase">Individual</span><span class="en-va">OL</span></td><td>1,245</td><td>25</td><td>1</td><td>12.25</td><td>20</td><td>12 AWG</td><td>1.85</td></tr>
+  <!-- 3 · Bomba: motor solo -->
+  <tr><td><span class="num-c fb">3</span></td><td class="izq"><span class="desc"><span class="flecha">▼</span>Bomba de agua</span></td><td><span class="clase">Individual</span><span class="en-va">OL</span></td><td>1,245</td><td>25</td><td>1</td><td>12.25</td><td>20</td><td>12 AWG</td><td>1.85</td></tr>
   <tr class="fila-desglose"><td></td><td colspan="9">
-    <div class="bloques">
+    <div class="desglose">
+      <div class="titulo-desglose">Salidas y cargas del circuito 3</div>
+      <div class="recorre">
       <table class="bloque">
-        <colgroup><col class="c-desc"><col class="c-tipo"><col class="c-sub"><col class="c-cant"><col style="width:80px"><col><col style="width:100px"><col style="width:180px"><col style="width:80px"><col style="width:96px"><col style="width:70px"><col style="width:90px"><col class="c-x"></colgroup>
-        <thead><tr><th class="izq">Salidas y cargas del circuito 3</th><th>Tipo</th><th>Subtipo</th><th>Cant.</th><th>Unidad</th><th>HP</th><th>Corriente de placa (A)</th><th>Servicio</th><th>No arranca</th><th>Terminal 75 °C</th><th>F.P.</th><th>Total (VA)</th><th></th></tr></thead>
+        <colgroup><col data-desc><col data-w="130" data-g><col data-w="176" data-g><col data-w="76" data-g><col data-w="84"><col data-w="120"><col data-w="110"><col data-w="150"><col data-w="84"><col data-w="96"><col data-w="74"><col data-w="92"><col data-w="36"></colgroup>
+        <thead><tr><th class="izq nombre">Motores</th><th>Tipo</th><th>Subtipo</th><th>Cant.</th><th>Unidad</th><th>HP</th><th>Corriente de placa (A)</th><th>Servicio</th><th>No arranca</th><th>Terminal 75 °C</th><th>F.P.</th><th>Total (VA)</th><th></th></tr></thead>
         <tbody>
           <tr><td class="izq"><span class="campo">Bomba</span></td><td><span class="sel">Motores</span></td><td><span class="sel">Uso general</span></td><td><span class="campo num">1</span></td><td><span class="sel">HP</span></td>
-              <td><span class="sel">½ HP</span><span class="ayuda">127 V · FLC 9.80 A</span></td>
-              <td><span class="campo num apagado">—</span><span class="globo">Corriente usada para motores de servicio no continuo · 430-22(e)</span></td>
-              <td><span class="sel">Continuo</span></td><td><span class="caja"></span></td><td><span class="caja"></span></td><td><span class="campo num">0.90</span></td><td>1,245</td><td class="tenue">🗑</td></tr>
+              <td><span class="sel">½ HP</span><span class="debajo">127 V · FLC 9.80 A</span></td><td><span class="campo num apagado">—</span></td><td><span class="sel">Continuo</span></td><td><span class="caja"></span></td><td><span class="caja"></span></td><td><span class="campo num">0.90</span></td><td>1,245</td><td class="tenue">🗑</td></tr>
         </tbody>
       </table>
+      </div>
       <div class="pie"><span class="agregar">⊕ Agregar carga</span><span>Máquinas 9.80 A</span></div>
     </div>
-    <p class="nota" style="margin:6px 0 0">El selector de HP enseña solo «½ HP»; la lista sigue diciendo «½ HP · 127 V — 9.80 A», y la tensión y la FLC van en la nota de abajo. «Corriente de placa» se enciende al escoger un servicio no continuo. Con Cant. 2 o más, el circuito pasa a grupo y «No arranca» y «Terminal 75 °C» se apagan (D2).</p>
   </td></tr>
 
-  <!-- 5 · UN VARIADOR SOLO, SIN TENSIÓN: error -->
-  <tr class="err"><td><span class="num-c fc">5</span></td><td class="izq">▾ Ventilador de torre</td><td><span class="clase">Individual</span></td><td></td><td>30</td><td>2</td><td></td><td></td><td></td><td></td></tr>
-  <tr class="fila-error"><td></td><td colspan="9">Falta la tensión de entrada.</td></tr>
+  <!-- 5 · Ventilador: ERROR -->
+  <tr class="error"><td><span class="num-c fc">5</span></td><td class="izq"><span class="desc"><span class="flecha">▼</span><span class="ic error">!</span>Ventilador de torre</span></td><td><span class="clase">Individual</span></td><td></td><td>30</td><td>2</td>
+      <td colspan="4" class="msg-error">Falta la tensión de entrada.</td></tr>
   <tr class="fila-desglose"><td></td><td colspan="9">
-    <div class="bloques">
+    <div class="desglose">
+      <div class="titulo-desglose">Salidas y cargas del circuito 5</div>
+      <div class="recorre">
       <table class="bloque">
-        <colgroup><col class="c-desc"><col class="c-tipo"><col class="c-sub"><col class="c-cant"><col style="width:150px"><col><col><col style="width:80px"><col style="width:150px"><col style="width:80px"><col style="width:96px"><col class="c-x"></colgroup>
-        <thead><tr><th class="izq">Salidas y cargas del circuito 5</th><th>Tipo</th><th>Subtipo</th><th>Cant.</th><th>Tensión de entrada</th><th>Corriente de entrada (A)</th><th>Prot. máx. del fabricante (A)</th><th>Bypass</th><th>HP del motor</th><th>F.P.</th><th>Total (VA)</th><th></th></tr></thead>
+        <colgroup><col data-desc><col data-w="130" data-g><col data-w="176" data-g><col data-w="76" data-g><col data-w="150"><col data-w="130"><col data-w="150"><col data-w="80"><col data-w="140"><col data-w="74"><col data-w="92"><col data-w="36"></colgroup>
+        <thead><tr><th class="izq nombre">Variadores</th><th>Tipo</th><th>Subtipo</th><th>Cant.</th><th>Tensión de entrada</th><th>Corriente de entrada (A)</th><th>Prot. máx. del fabricante (A)</th><th>Bypass</th><th>HP del motor</th><th>F.P.</th><th>Total (VA)</th><th></th></tr></thead>
         <tbody>
-          <tr><td class="izq"><span class="campo">Variador</span></td><td><span class="sel">Motores</span></td><td><span class="sel">Velocidad ajustable</span></td><td class="fijo">1</td>
-              <td><span class="sel falta">— escoger —</span></td><td><span class="campo num">42</span></td><td><span class="campo num">70</span></td><td><span class="caja"></span></td>
-              <td><span class="sel apagado">—</span><span class="globo">Solo con bypass.</span></td><td><span class="campo num">0.90</span></td><td class="tenue">—</td><td class="tenue">🗑</td></tr>
+          <tr><td class="izq"><span class="campo">Variador</span></td><td><span class="sel">Motores</span></td><td><span class="sel">Velocidad ajustable</span></td><td>1</td>
+              <td><span class="sel falta">— escoger —</span></td><td><span class="campo num">42</span></td><td><span class="campo num">70</span></td><td><span class="caja"></span></td><td><span class="sel apagado">—</span></td><td><span class="campo num">0.90</span></td><td class="tenue">—</td><td class="tenue">🗑</td></tr>
         </tbody>
       </table>
+      </div>
       <div class="pie"><span class="agregar">⊕ Agregar carga</span><span></span></div>
     </div>
-    <p class="nota" style="margin:6px 0 0">Sin columna «Unidad» ni «Servicio»: el variador no tiene nada que escoger ahí (D7). Cant. fija en 1 (D1.2).</p>
   </td></tr>
 
-  <!-- 7 · GRUPO: 3 MOTORES + 1 MOTOCOMPRESOR + 1 VARIADOR: tres bloques -->
-  <tr><td><span class="num-c fa">7</span></td><td class="izq">▾ Cuarto de máquinas</td><td><span class="clase">Grupo de motores</span><span class="en-va">5 salidas · OL</span></td><td>9,870</td><td>15</td><td>2</td><td>41.10</td><td>50</td><td>8 AWG</td><td>1.42</td></tr>
+  <!-- 7 · Cuarto de máquinas: grupo, tres bloques -->
+  <tr><td><span class="num-c fa">7</span></td><td class="izq"><span class="desc"><span class="flecha">▼</span>Cuarto de máquinas</span></td><td><span class="clase">Grupo de motores</span><span class="en-va">5 salidas · OL</span></td><td>9,870</td><td>15</td><td>2</td><td>41.10</td><td>50</td><td>8 AWG</td><td>1.42</td></tr>
   <tr class="fila-desglose"><td></td><td colspan="9">
-    <div class="bloques">
+    <div class="desglose">
+      <div class="titulo-desglose">Salidas y cargas del circuito 7</div>
+      <div class="recorre">
       <table class="bloque">
-        <colgroup><col class="c-desc"><col class="c-tipo"><col class="c-sub"><col class="c-cant"><col style="width:80px"><col><col style="width:100px"><col style="width:180px"><col style="width:80px"><col style="width:96px"><col style="width:70px"><col style="width:90px"><col class="c-x"></colgroup>
-        <thead><tr><th class="izq">Salidas y cargas del circuito 7</th><th>Tipo</th><th>Subtipo</th><th>Cant.</th><th>Unidad</th><th>HP</th><th>Corriente de placa (A)</th><th>Servicio</th><th>No arranca</th><th>Terminal 75 °C</th><th>F.P.</th><th>Total (VA)</th><th></th></tr></thead>
+        <colgroup><col data-desc><col data-w="130" data-g><col data-w="176" data-g><col data-w="76" data-g><col data-w="84"><col data-w="120"><col data-w="110"><col data-w="150"><col data-w="84"><col data-w="96"><col data-w="74"><col data-w="92"><col data-w="36"></colgroup>
+        <thead><tr><th class="izq nombre">Motores</th><th>Tipo</th><th>Subtipo</th><th>Cant.</th><th>Unidad</th><th>HP</th><th>Corriente de placa (A)</th><th>Servicio</th><th>No arranca</th><th>Terminal 75 °C</th><th>F.P.</th><th>Total (VA)</th><th></th></tr></thead>
         <tbody>
           <tr><td class="izq"><span class="campo">Bombas de condensados</span></td><td><span class="sel">Motores</span></td><td><span class="sel">Uso general</span></td><td><span class="campo num">3</span></td><td><span class="sel">HP</span></td>
-              <td><span class="sel">½ HP</span><span class="ayuda">220 V · FLC 4.90 A</span></td><td><span class="campo num apagado">—</span></td>
-              <td class="tenue">Continuo <span class="pendiente">D12 A</span></td><td><span class="caja apagado"></span></td><td><span class="caja apagado"></span></td><td><span class="campo num">0.90</span></td><td>3,234</td><td class="tenue">🗑</td></tr>
+              <td><span class="sel">½ HP</span><span class="debajo">220 V · FLC 4.90 A</span></td><td><span class="campo num apagado">—</span></td><td class="tenue">Continuo</td><td><span class="caja apagado"></span></td><td><span class="caja apagado"></span></td><td><span class="campo num">0.90</span></td><td>3,234</td><td class="tenue">🗑</td></tr>
         </tbody>
       </table>
       <table class="bloque">
-        <colgroup><col class="c-desc"><col class="c-tipo"><col class="c-sub"><col class="c-cant"><col><col><col style="width:110px"><col style="width:70px"><col style="width:90px"><col class="c-x"></colgroup>
-        <thead><tr><th class="izq">Motocompresor</th><th>Tipo</th><th>Subtipo</th><th>Cant.</th><th>Corriente nominal (A)</th><th>Corriente de selección (A)</th><th>Arranque 225 %</th><th>F.P.</th><th>Total (VA)</th><th></th></tr></thead>
+        <colgroup><col data-desc><col data-w="130" data-g><col data-w="176" data-g><col data-w="76" data-g><col data-w="140"><col data-w="150"><col data-w="120"><col data-w="74"><col data-w="92"><col data-w="36"></colgroup>
+        <thead><tr><th class="izq nombre">Motocompresores</th><th>Tipo</th><th>Subtipo</th><th>Cant.</th><th>Corriente nominal (A)</th><th>Corriente de selección (A)</th><th>Arranque 225 %</th><th>F.P.</th><th>Total (VA)</th><th></th></tr></thead>
         <tbody>
-          <tr><td class="izq"><span class="campo">Condensadora</span></td><td><span class="sel">A/A y refrig.</span></td><td><span class="sel">Motocompresor</span></td><td><span class="campo num">1</span></td>
-              <td><span class="campo num">12.0</span></td><td><span class="campo num">—</span></td><td><span class="caja"></span></td><td><span class="campo num">0.90</span></td><td>2,640</td><td class="tenue">🗑</td></tr>
+          <tr><td class="izq"><span class="campo">Condensadora</span></td><td><span class="sel">A/A y refrig.</span></td><td><span class="sel">Motocompresor</span></td><td><span class="campo num">1</span></td><td><span class="campo num">12.0</span></td><td><span class="campo num">—</span></td><td><span class="caja"></span></td><td><span class="campo num">0.90</span></td><td>2,640</td><td class="tenue">🗑</td></tr>
         </tbody>
       </table>
       <table class="bloque">
-        <colgroup><col class="c-desc"><col class="c-tipo"><col class="c-sub"><col class="c-cant"><col><col><col style="width:80px"><col style="width:150px"><col style="width:70px"><col style="width:90px"><col class="c-x"></colgroup>
-        <thead><tr><th class="izq">Variador</th><th>Tipo</th><th>Subtipo</th><th>Cant.</th><th>Corriente de entrada (A)</th><th>Prot. máx. del fabricante (A)</th><th>Bypass</th><th>HP del motor</th><th>F.P.</th><th>Total (VA)</th><th></th></tr></thead>
+        <colgroup><col data-desc><col data-w="130" data-g><col data-w="176" data-g><col data-w="76" data-g><col data-w="130"><col data-w="150"><col data-w="80"><col data-w="140"><col data-w="74"><col data-w="92"><col data-w="36"></colgroup>
+        <thead><tr><th class="izq nombre">Variadores</th><th>Tipo</th><th>Subtipo</th><th>Cant.</th><th>Corriente de entrada (A)</th><th>Prot. máx. del fabricante (A)</th><th>Bypass</th><th>HP del motor</th><th>F.P.</th><th>Total (VA)</th><th></th></tr></thead>
         <tbody>
-          <tr><td class="izq"><span class="campo">Ventilador</span></td><td><span class="sel">Motores</span></td><td><span class="sel">Velocidad ajustable</span></td><td class="fijo">1</td>
-              <td><span class="campo num">18.0</span></td><td><span class="campo num">35</span></td><td><span class="caja apagado"></span><span class="globo">Solo con el variador solo en su circuito.</span></td><td><span class="sel apagado">—</span></td><td><span class="campo num">0.90</span></td><td>3,960</td><td class="tenue">🗑</td></tr>
+          <tr><td class="izq"><span class="campo">Ventilador</span></td><td><span class="sel">Motores</span></td><td><span class="sel">Velocidad ajustable</span></td><td>1</td><td><span class="campo num">18.0</span></td><td><span class="campo num">35</span></td><td><span class="caja apagado"></span></td><td><span class="sel apagado">—</span></td><td><span class="campo num">0.90</span></td><td>3,960</td><td class="tenue">🗑</td></tr>
         </tbody>
       </table>
+      </div>
       <div class="pie"><span class="agregar">⊕ Agregar carga</span><span>Máquinas 44.70 A</span></div>
     </div>
-    <p class="nota" style="margin:6px 0 0">Tres juegos de columnas, tres encabezados. En las bombas, «No arranca» y «Terminal 75 °C» se ven apagadas: al pasar el cursor, «Solo con un motor solo.». El de cada bloque, después del primero, dice qué es («Motocompresor», «Variador»). Tensión de placa: en un grupo no se pide, va a la del circuito.</p>
   </td></tr>
 
+  <!-- 9 · ADVERTENCIA con su ayuda abierta -->
+  <tr class="aviso"><td><span class="num-c fb">9</span></td><td class="izq" style="position:relative"><span class="desc"><span class="flecha">▶</span><span class="ic aviso"></span>Contactos del taller</span>
+      <span class="globo" style="left:40px; top:34px">Contactos de 15 o 20 A en un circuito de 30 A. Divide los contactos en circuitos de 20 A.<span class="r">· Tabla 210-21(b)(3)</span></span></td>
+      <td><span class="clase">Uso general</span><span class="en-va">12 salidas</span></td><td>3,600</td><td>22</td><td>1</td><td>28.35</td><td><span class="marcado-aviso">30</span></td><td>10 AWG</td><td>2.40</td></tr>
+  <tr><td><span class="num-c fc">11</span></td><td class="izq"><span class="desc"><span class="flecha">▶</span>Alumbrado de oficinas</span></td><td><span class="clase">Uso general</span><span class="en-va">14 salidas</span></td><td>1,680</td><td>40</td><td>1</td><td>13.23</td><td>20</td><td>10 AWG</td><td>2.85</td></tr>
+
+  <!-- 13 · ADVERTENCIA cerrada: solo el renglón tintado, la barra y el ícono -->
+  <tr class="aviso"><td><span class="num-c fa">13</span></td><td class="izq"><span class="desc"><span class="flecha">▶</span><span class="ic aviso"></span>Bodega</span></td><td><span class="clase">Uso general</span><span class="en-va">8 salidas</span></td><td>960</td><td>85</td><td>1</td><td>7.56</td><td>15</td><td>10 AWG</td><td><span class="marcado-aviso">6.20</span></td></tr>
   </tbody>
 </table>
 </div>
+<ol class="notas">
+  <li><b>Circuito 1.</b> Contactos y alumbrado comparten columnas: un solo bloque, «Cargas». El mínimo de 180 VA ya viene en el campo <span class="pendiente">D14</span>.</li>
+  <li><b>Encabezados.</b> El título del desplegable va arriba, una vez. La primera celda de cada bloque dice qué hay en él: «Cargas», «Motores», «Motocompresores», «Variadores».</li>
+  <li><b>Anchos.</b> Ninguna columna se queda con el sobrante: se reparte en proporción entre las de la derecha, y ninguna crece más del 40 % sobre su ancho; lo que sobre de ahí queda libre al final del bloque. Descripción, Tipo, Subtipo y Cant. miden lo mismo en todos los bloques, y la descripción termina en la línea de la del cuadro. Si no caben, cada bloque se recorre de lado; nada se aplasta.</li>
+  <li><b>Circuito 5 (error).</b> El renglón, tintado en rojo con su barra y su ícono. «Falta la tensión de entrada.» va en las celdas de resultado, que sin cálculo quedan vacías. En el desplegable, la tensión con borde rojo.</li>
+  <li><b>Circuito 7.</b> Tres bloques. En las bombas, «No arranca» y «Terminal 75 °C» apagadas (son 3); en el variador, «Bypass» y «HP del motor» apagados (está en un grupo).</li>
+  <li><b>Circuitos 9 y 13 (advertencias).</b> El renglón, tintado en ámbar con su barra y su ícono; el valor que la causa, marcado (la protección de 30 A, la caída de 6.20 %). El mensaje sale al pasar el cursor por el ícono, con la referencia en otra línea.</li>
+  <li><b>El contador</b> arriba de la tabla: cuántos errores y advertencias hay. Al hacer clic, lleva al siguiente.</li>
+</ol>
 
-<p class="nota"><span class="pendiente">por decidir</span> D11 («No simultáneo con», fuera de este mockup), D12 (textos fijos de Servicio, aquí se quedan), D13 (orden de columnas, aquí el de mi propuesta), D14 a D19 (el mínimo de 220-14, aquí ya en el campo). Los globos negros son la ayuda al pasar el cursor; en la app sale uno a la vez.</p>
+<!-- ═════════════════════════════════════════════════════════════════════════════════ -->
+<div class="tarjeta">
+<h2>Cómo marcar un error y una advertencia — tres opciones <small>la C es la de arriba</small></h2>
+<table class="cuadro variantes">
+  <colgroup><col style="width:240px"><col style="width:38px"><col style="width:var(--desc)"><col style="width:150px"><col><col style="width:76px"><col style="width:84px"><col style="width:84px"><col style="width:64px"></colgroup>
+  <thead><tr><th class="izq">Opción</th><th>N.º</th><th class="izq">Descripción</th><th>Tipo</th><th>Carga (VA)</th><th>In (A)</th><th>Protec. (A)</th><th>Fase</th><th>e (%)</th></tr></thead>
+  <tbody>
+    <tr class="v-a-error"><td class="etq"><b>A · Enmarcar el aviso.</b> Solo la celda, con borde.</td><td><span class="num-c fc">5</span></td><td class="izq">Ventilador de torre</td><td>Individual</td><td></td><td colspan="4" class="res msg-error">Falta la tensión de entrada.</td></tr>
+    <tr class="v-a-aviso"><td class="etq"></td><td><span class="num-c fb">9</span></td><td class="izq">Contactos del taller</td><td>Uso general</td><td>3,600</td><td>28.35</td><td class="res2">30</td><td>10 AWG</td><td>2.40</td></tr>
+    <tr class="v-b-error"><td class="etq"><b>B · Pintar el renglón entero</b>, en color fuerte.</td><td><span class="num-c fc">5</span></td><td class="izq">Ventilador de torre</td><td>Individual</td><td></td><td colspan="4" class="msg-error">Falta la tensión de entrada.</td></tr>
+    <tr class="v-b-aviso"><td class="etq"></td><td><span class="num-c fb">9</span></td><td class="izq">Contactos del taller</td><td>Uso general</td><td>3,600</td><td>28.35</td><td>30</td><td>10 AWG</td><td>2.40</td></tr>
+    <tr class="error"><td class="etq"><b>C · Renglón tintado suave + barra + ícono</b> (recomendada).</td><td><span class="num-c fc">5</span></td><td class="izq"><span class="desc"><span class="ic error">!</span>Ventilador de torre</span></td><td>Individual</td><td></td><td colspan="4" class="msg-error">Falta la tensión de entrada.</td></tr>
+    <tr class="aviso"><td class="etq"></td><td><span class="num-c fb">9</span></td><td class="izq"><span class="desc"><span class="ic aviso"></span>Contactos del taller</span></td><td>Uso general</td><td>3,600</td><td>28.35</td><td><span class="marcado-aviso">30</span></td><td>10 AWG</td><td>2.40</td></tr>
+  </tbody>
+</table>
+</div>
+<ol class="notas" start="8">
+  <li><b>A</b> no se ve al recorrer un tablero de 42 circuitos: el borde es chico y queda lejos de la descripción.</li>
+  <li><b>B</b> se ve, pero grita: con tres o cuatro avisos la tabla se vuelve un semáforo, y el texto pierde contraste.</li>
+  <li><b>C</b> se ve al recorrer (el tinte y la barra a la izquierda, donde empieza la lectura) sin gritar. El ícono no depende del color: círculo para error, triángulo para advertencia. Los colores son los de la app y tienen pareja en el tema oscuro.</li>
+</ol>
+
+<script>
+/* Los anchos del desplegable: la descripción termina en la línea del cuadro; lo que sobra se reparte en
+   proporción entre las demás; si no cabe, el bloque se recorre (no se aplasta). */
+function anchos() {
+  const th = document.getElementById('th-desc').getBoundingClientRect();
+  document.querySelectorAll('.recorre').forEach(r => {
+    const izq = r.getBoundingClientRect().left;
+    const desc = th.right - izq;
+    r.querySelectorAll('table.bloque').forEach(t => {
+      const cols = [...t.querySelectorAll('col')];
+      const base = cols.reduce((s, c) => s + (+c.dataset.w || 0), 0);
+      // Descripción, Tipo, Subtipo y Cant. miden lo mismo en todos los bloques: el sobrante, solo a las demás.
+      const repartible = cols.filter(c => c.dataset.w && !c.hasAttribute('data-g')).reduce((s, c) => s + (+c.dataset.w), 0);
+      // Ninguna crece más del 40 % sobre su base: lo que sobre de ahí se queda libre a la derecha.
+      const ancho = Math.min(Math.max(r.clientWidth, base + desc), base + desc + 0.4 * repartible);
+      t.style.width = ancho + 'px';
+      const sobra = ancho - base - desc;
+      cols.forEach(c => { c.style.width = c.hasAttribute('data-desc') ? desc + 'px'
+        : c.hasAttribute('data-g') ? c.dataset.w + 'px' : ((+c.dataset.w) + sobra * (+c.dataset.w) / repartible) + 'px'; });
+    });
+  });
+}
+addEventListener('load', anchos); addEventListener('resize', anchos);
+</script>
 </body>
 </html>

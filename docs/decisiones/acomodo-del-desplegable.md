@@ -127,9 +127,12 @@ con la propuesta de Claude (tres niveles y un puente a la memoria) en cada rengl
 
 ## El mockup
 
-[`../mockups/desglose-por-bloques.html`](../mockups/desglose-por-bloques.html) (y su captura `.png`), 2026-10-07:
-contactos y alumbrado en un bloque, un motor solo, un variador sin tensión y un grupo de motor, motocompresor
-y variador. Lo que falta decidir, con la recomendación de Claude, marcado «por decidir».
+[`../mockups/desglose-por-bloques.html`](../mockups/desglose-por-bloques.html) (capturas a 1900 y 1440 px), 2026-10-07,
+segunda versión con las observaciones de David: el título del desplegable arriba y el nombre de cada bloque
+en su primera celda («Cargas», «Motores», «Motocompresores», «Variadores»); el sobrante repartido entre las
+columnas de la derecha, con tope de 40 % (Descripción, Tipo, Subtipo y Cant., iguales en todos los bloques);
+si no caben, el bloque se recorre de lado; el error, dentro del renglón del circuito; las notas, fuera de la
+tabla. Los estados de error y advertencia: [`../conocimiento/estados-de-aviso.md`](../conocimiento/estados-de-aviso.md).
 
 ## Pendientes, en orden
 
