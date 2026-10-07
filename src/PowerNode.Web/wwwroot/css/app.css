@@ -376,7 +376,7 @@ select, input { font: inherit; padding: 5px 8px; border: 1px solid var(--linea);
    combinado le faltara el borde.
 */
 .cuadro th.ultima, .cuadro td.ultima { border-right: 0; }
-.cuadro tr.separador td, .cuadro tr.fila-error td + td, .cuadro tr.fila-desglose td + td { border-right: 0; }
+.cuadro tr.separador td, .cuadro tr.fila-desglose td + td { border-right: 0; }
 
 /* Cada espacio ocupa el mismo alto, tenga interruptor propio o venga combinado desde arriba: un
    multipolar de 3 polos mide exactamente lo que miden 3 renglones, como en un directorio de
@@ -494,7 +494,6 @@ input.desc:focus, input.va:focus {
 .cuadro td.col-fase { text-align: center; }
 .doc-cuadro .col-fase { width: 52px; min-width: 52px; }
 
-.fila-error td { color: var(--alerta); font-size: 11px; text-align: left; padding: 4px 8px 8px; }
 
 .memoria { margin-top: 22px; background: var(--papel); border: 1px solid var(--linea);
            border-radius: var(--radio-lg); padding: 16px 20px; }
@@ -1084,8 +1083,26 @@ polygon.riel-a { fill: var(--barra-a); } polygon.riel-b { fill: var(--barra-b); 
 
 /* Desglose de aparatos del circuito — I-35 */
 .cuadro .desc-linea { display: flex; align-items: center; gap: 4px; }
-/* Lo que hay que revisar del circuito, junto a su descripción; el texto, al pasar el cursor (P3, riesgo 1). */
-.cuadro .aviso-renglon { flex: none; display: inline-flex; color: var(--aviso-borde); cursor: help; }
+/* LOS AVISOS DEL CIRCUITO, OPCIÓN A (estados-de-aviso.md, David, 2026-10-07): solo la celda, con borde. Sin tinte del
+   renglón, sin barra y sin ícono. El error dice qué falta donde iría el resultado; la advertencia enmarca el valor
+   que la causa, y su mensaje sale al pasar el cursor. Los colores, los tokens de siempre, con su pareja oscura. */
+#sec-cuadro > .cuadro td.marco-error { box-shadow: inset 0 0 0 2px var(--alerta); }
+#sec-cuadro > .cuadro td.msg-error { color: var(--alerta); font-weight: 600; text-align: left; padding-left: 12px; white-space: normal; }
+#sec-cuadro > .cuadro td.marco-aviso { box-shadow: inset 0 0 0 2px var(--aviso-borde); color: var(--aviso-texto); font-weight: 600; cursor: help; }
+#sec-cuadro > .cuadro td.marco-aviso select { color: var(--aviso-texto); font-weight: 600; }
+#sec-cuadro > .cuadro td.marco-aviso .en-va { font-weight: 400; }
+/* En el desplegable, el campo con el dato que falta o que choca. */
+.cuadro table.desglose td[data-falta] :is(input, select) { border-color: var(--alerta); box-shadow: 0 0 0 2px var(--alerta-fondo); }
+/* El contador, arriba del cuadro: «1 error · 2 advertencias»; un clic lleva al siguiente. */
+.contador-avisos { display: flex; justify-content: flex-end; gap: 8px; padding: 0 0 8px; position: sticky; left: 0; }
+.contador-avisos .chip-aviso { display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px; border-radius: 999px;
+                               border: 1px solid; font: inherit; font-size: 12px; cursor: pointer; }
+.contador-avisos .chip-aviso.error { color: var(--alerta); background: var(--alerta-fondo); border-color: var(--alerta); }
+.contador-avisos .chip-aviso.advertencia { color: var(--aviso-texto); background: var(--aviso-fondo); border-color: var(--aviso-borde); }
+.contador-avisos .icono-aviso.error { display: inline-grid; place-items: center; width: 14px; height: 14px; border-radius: 50%;
+                                      background: var(--alerta); color: var(--papel); font-size: 10px; font-weight: 800; line-height: 1; }
+.contador-avisos .icono-aviso.advertencia { width: 0; height: 0; border-left: 7px solid transparent; border-right: 7px solid transparent;
+                                            border-bottom: 12px solid var(--aviso-borde); }
 .cuadro button.desglosar { display: inline-flex; align-items: center; border: 0; background: none; cursor: pointer; color: var(--tenue); padding: 0; }
 .cuadro .en-va.izq { text-align: left; }
 .cuadro tr.fila-desglose td { background: var(--fondo-suave); padding: 8px 12px 12px; text-align: left; }
@@ -1255,7 +1272,7 @@ polygon.riel-a { fill: var(--barra-a); } polygon.riel-b { fill: var(--barra-b); 
    desglose, que es otra tabla adentro. La N.º mide 32 px. */
 @media (min-width: 761px) {
     #sec-cuadro > .cuadro > thead > tr:first-child > th:nth-child(2),
-    #sec-cuadro > .cuadro > tbody > tr:not(.separador):not(.fila-principal):not(.fila-error):not(.fila-desglose) > td:nth-child(2) {
+    #sec-cuadro > .cuadro > tbody > tr:not(.separador):not(.fila-principal):not(.fila-desglose) > td:nth-child(2) {
         position: sticky; left: 32px; z-index: 1;
         box-shadow: 1px 0 0 var(--linea);
     }

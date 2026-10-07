@@ -370,6 +370,21 @@ else
             <p class="derivado">Todavía no hay circuitos calculados: captura la carga de alguno y la memoria se arma sola.</p>
         }
 
+        @* LO QUE NO SE CALCULA, CON EL MENSAJE COMPLETO (redaccion-de-avisos.md, punto 4): la tabla de captura dice
+           «Falta la tensión de placa.»; aquí va el porqué, con su artículo. *@
+        @if (Cuadro.Circuitos.Where(x => !x.EsContinuacion && x.Error is not null).ToList() is { Count: > 0 } sinCalcular)
+        {
+            <section class="hoja">
+                <h3>Circuitos sin calcular</h3>
+                <ul class="citas">
+                    @foreach (var x in sinCalcular)
+                    {
+                        <li><strong>Circuito @x.Espacio@(string.IsNullOrWhiteSpace(x.Descripcion) ? "" : $" — {x.Descripcion.Trim()}")</strong>: @x.Error</li>
+                    }
+                </ul>
+            </section>
+        }
+
         @foreach (var hoja in Hojas)
         {
             <section class="hoja">

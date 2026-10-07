@@ -195,6 +195,24 @@
 </section>
 
 <section class="cuadro-completo" id="sec-cuadro">
+    @* EL CONTADOR (estados-de-aviso.md, David, 2026-10-07): cuántos circuitos no se calculan y cuántos hay que revisar; un clic
+       lleva al siguiente. El círculo es error y el triángulo advertencia: no depende del color. *@
+    @{ var conError = ConError; var conAdvertencias = ConAdvertencias; }
+    @if (conError.Count > 0 || conAdvertencias.Count > 0)
+    {
+        <div class="contador-avisos" role="status">
+            @if (conError.Count > 0)
+            {
+                <button type="button" class="chip-aviso error" @onclick="() => IrAlSiguiente(true)" title="Ir al siguiente circuito que no se calcula.">
+                    <span class="icono-aviso error" aria-hidden="true">!</span>@conError.Count @(conError.Count == 1 ? "error" : "errores")</button>
+            }
+            @if (conAdvertencias.Count > 0)
+            {
+                <button type="button" class="chip-aviso advertencia" @onclick="() => IrAlSiguiente(false)" title="Ir al siguiente circuito que hay que revisar.">
+                    <span class="icono-aviso advertencia" aria-hidden="true"></span>@conAdvertencias.Count @(conAdvertencias.Count == 1 ? "advertencia" : "advertencias")</button>
+            }
+        </div>
+    }
     <table class="cuadro">
         <thead>
             @*
@@ -206,29 +224,29 @@
             <tr>
                 <th rowspan="2"><span class="ayuda" title="@(Cuadro.UnaSolaBarra ? "Identificar el circuito por su espacio en la barra. Una sola barra: en orden." : "Identificar el circuito por su espacio en la barra. Nones arriba, pares abajo.")">N.º</span></th>
                 <th rowspan="2" class="izq descripcion" data-col="desc" title="Describir el circuito. Ctrl+Enter abre o cierra el desglose de sus aparatos.">Descripción</th>
-                <th rowspan="2" data-col="tipo"><span class="ayuda" title="La clase del circuito, que sale de sus cargas — Art. 100: Individual (un solo equipo), Uso general (salidas de alumbrado o contactos), Para aparatos, Grupo de motores (430-53) o Alimentador (otro tablero, Art. 215). No se captura: el tipo de cada carga se escoge en el desplegable (la flecha junto a la descripción). «?»: la guía de cargas.">Tipo</span><a class="a-la-guia" href="guia#rama-clases" target="_blank" rel="noopener" title="Abrir la guía de cargas en otra pestaña: los tipos de carga y las clases de circuito." aria-label="Guía de cargas">?</a></th>
-                <th colspan="3"><span class="ayuda" title="La carga del circuito: la suma de sus salidas y cargas del desplegable, en VA. Se captura en el desplegable (la flecha junto a la descripción), no aquí. Continua (3 h o más): 125 % — 210-19(a)(1), 210-20(a). No continua: 100 %. Un motor o un equipo de A/C, con su corriente — 430-24, 440-33.">Carga</span></th>
-                <th colspan="@Datos.Barras.Count"><span class="ayuda" title="Consultar la carga del circuito repartida entre las barras que toca.">Balanceo de fases <span class="simbolo">(VA)</span></span></th>
-                <th rowspan="2" class="col-res" data-col="l"><span class="ayuda" title="Capturar la longitud del circuito. Determina la caída de tensión — Tabla 9."><span class="simbolo">L (m)</span></span></th>
-                <th rowspan="2" data-col="canal"><span class="ayuda" title="Seleccionar la canalización del circuito de la lista de la tarjeta «Canalizaciones». Al capturar la carga, cada circuito nace en la suya (T1, T2…); para agrupar, elegir la de otro circuito, o «+ Nueva». Los circuitos de una misma canalización se agrupan y el programa cuenta sus portadores — 310-15(b)(3)(a). Si el circuito pasa por varias, la del tramo más desfavorable — 310-15(a)(2). Debajo: el tamaño que resultó.">Canal.</span></th>
-                <th rowspan="2" class="col-res" data-col="polos masn"><span class="ayuda" title="Seleccionar los polos del interruptor. Un multipolar ocupa los espacios N, N+2 y N+4 del mismo lado.">P</span></th>
-                <th rowspan="2" class="col-res"><span class="ayuda" title="Consultar la corriente de diseño de la carga capturada — 210-19(a)(1)."><span class="simbolo">In (A)</span></span></th>
-                <th rowspan="2" class="col-res dos-lineas" data-col="prot"><span class="ayuda" title="Consultar la protección: primer tamaño normalizado mayor o igual a la capacidad mínima — 240-6(a), 210-20(a). Pasar el cursor sobre el valor para consultar el desglose.&#10;&#10;En un motor, un equipo de A/C o un variador la norma solo pone el techo — 430-52(c)(1), 440-22(a), 440-4(b), 110-3(b). La lista trae los valores permitidos: llega con el calculado, y otro valor queda fijado (en color). Para regresar, escoger el calculado.">Protec.<br /><span class="simbolo">(A)</span></span></th>
-                <th rowspan="2" class="col-res"><span class="ayuda" title="Consultar el conductor de fase: designación AWG/kcmil y, debajo, su sección (mm²) — Tabla 8. Si lleva conductores en paralelo, «2 ×» antes del calibre. Pasar el cursor sobre el calibre para consultar el desglose.&#10;&#10;Colores de fase: la NOM no los fija — 210-5(c)(2) —; se usan negro, rojo y azul, la práctica común.">Fase</span></th>
-                <th rowspan="2" class="col-res"><span class="ayuda" title="Consultar el conductor de neutro. Blanco o gris claro — 200-6.">Neutro</span></th>
-                <th rowspan="2" class="col-res"><span class="ayuda" title="Consultar el conductor de puesta a tierra de equipos — Tabla 250-122 y 250-122(b). Verde, o verde con franjas amarillas — 250-119.">Tierra</span></th>
-                <th rowspan="2" class="col-res"><span class="ayuda" title="Consultar la caída de tensión del circuito. Límite recomendado: 3 % en el derivado y 5 % combinada — 210-19(a)(1), nota 4."><span class="simbolo">e (%)</span></span></th>
+                <th rowspan="2" data-col="tipo"><span class="ayuda" title="Clase del circuito, según sus cargas · Art. 100">Tipo</span><a class="a-la-guia" href="guia#rama-clases" target="_blank" rel="noopener" title="Abrir la guía de cargas en otra pestaña: los tipos de carga y las clases de circuito." aria-label="Guía de cargas">?</a></th>
+                <th colspan="3"><span class="ayuda" title="Suma de las cargas del desplegable, en VA.">Carga</span></th>
+                <th colspan="@Datos.Barras.Count"><span class="ayuda" title="Carga del circuito en cada fase, en VA.">Balanceo de fases <span class="simbolo">(VA)</span></span></th>
+                <th rowspan="2" class="col-res" data-col="l"><span class="ayuda" title="Longitud usada para calcular la caída de tensión · Tabla 9"><span class="simbolo">L (m)</span></span></th>
+                <th rowspan="2" data-col="canal"><span class="ayuda" title="Canalización del circuito; los de la misma canalización se agrupan · 310-15(b)(3)(a)">Canal.</span></th>
+                <th rowspan="2" class="col-res" data-col="polos masn"><span class="ayuda" title="Polos del interruptor.">P</span></th>
+                <th rowspan="2" class="col-res"><span class="ayuda" title="Corriente usada para seleccionar el conductor y la protección · 210-19(a)(1)"><span class="simbolo">In (A)</span></span></th>
+                <th rowspan="2" class="col-res dos-lineas" data-col="prot"><span class="ayuda" title="Protección del circuito: el tamaño normalizado que cubre la corriente · 240-6(a)">Protec.<br /><span class="simbolo">(A)</span></span></th>
+                <th rowspan="2" class="col-res"><span class="ayuda" title="Conductor de fase: calibre y sección en mm² · Tabla 8">Fase</span></th>
+                <th rowspan="2" class="col-res"><span class="ayuda" title="Conductor de neutro; blanco o gris · 200-6">Neutro</span></th>
+                <th rowspan="2" class="col-res"><span class="ayuda" title="Conductor de puesta a tierra de equipos · Tabla 250-122">Tierra</span></th>
+                <th rowspan="2" class="col-res"><span class="ayuda" title="Caída de tensión del circuito; se recomienda hasta 3 % · 210-19(a)(1) nota 4"><span class="simbolo">e (%)</span></span></th>
                 @* D11 (acomodo-del-desplegable.md, David, 2026-10-07): el par no simultáneo es dato del circuito, no de una
                    carga: va en su renglón, ya no en el pie del desplegable. *@
-                <th rowspan="2" class="ultima" data-col="nosim"><span class="ayuda" title="Circuito que no funciona a la vez que este; del par, al alimentador va el mayor · 220-60">No simultáneo con</span></th>
+                <th rowspan="2" class="ultima" data-col="nosim"><span class="ayuda" title="Circuito que no funciona a la vez que este; al alimentador va el mayor · 220-60">No simultáneo con</span></th>
             </tr>
             <tr>
-                <th data-col="continua" class="col-carga"><span class="ayuda" title="La suma de las cargas continuas (3 h o más), en VA: entran al 125 % — 210-19(a)(1), 210-20(a).">Continua</span></th>
-                <th data-col="nocontinua" class="col-carga"><span class="ayuda" title="La suma de las cargas no continuas, en VA: entran al 100 %.">No continua</span></th>
-                <th data-col="fp" class="col-carga"><span class="ayuda" title="El factor de potencia del conjunto de sus cargas: P ÷ √(P² + Q²). Cada carga lleva el suyo en el desplegable.">F.P.</span></th>
+                <th data-col="continua" class="col-carga"><span class="ayuda" title="Cargas que operan 3 h o más; se consideran al 125 % · 210-19(a)(1)">Continua</span></th>
+                <th data-col="nocontinua" class="col-carga"><span class="ayuda" title="Cargas que operan menos de 3 h; se consideran al 100 %.">No continua</span></th>
+                <th data-col="fp" class="col-carga"><span class="ayuda" title="Factor de potencia del conjunto de cargas del circuito.">F.P.</span></th>
                 @foreach (var barra in Datos.Barras)
                 {
-                    <th class="col-fase"><span class="ayuda" title="Consultar la carga que el circuito asigna a la barra @barra."><span class="fase-rect fase-rect-@char.ToLowerInvariant(barra)">@barra</span></span></th>
+                    <th class="col-fase"><span class="ayuda" title="Carga del circuito en esta fase, en VA."><span class="fase-rect fase-rect-@char.ToLowerInvariant(barra)">@barra</span></span></th>
                 }
             </tr>
         </thead>
@@ -279,7 +297,11 @@
                        RenglonMemorizado compara la firma del circuito y la del tablero con las del último dibujo. Si el
                        renglón enseña algo nuevo, va también en FirmaDeDibujo (FirmaDeDibujoTests lo exige). *@
                     <RenglonMemorizado Firma="@FirmaDeDibujo.De(c)" Tablero="@firmaDelTablero" Abierto="@Abierto(c)">
-                    <tr class="@(c.Resultado is null ? "vacio" : null) @(LlevaNotas(c) ? "con-nota" : null) @(c.Polos == 2 ? "dos-polos" : null)" data-espacio="@c.Espacio">
+                    @* LOS AVISOS DEL CIRCUITO, OPCIÓN A (estados-de-aviso.md, David, 2026-10-07): el error, en las celdas de
+                       resultado y enmarcado; cada advertencia enmarca la celda que la causa, con su mensaje al pasar el cursor. *@
+                    @{ var errorDeLaTabla = AvisosDeLaTabla.ErrorDe(Cuadro, c); var advertencias = AvisosDeLaTabla.AdvertenciasDe(Cuadro, c); }
+                    <tr class="@(c.Resultado is null ? "vacio" : null) @(LlevaNotas(c) ? "con-nota" : null) @(c.Polos == 2 ? "dos-polos" : null)" data-espacio="@c.Espacio"
+                        data-aviso="@(errorDeLaTabla is not null ? "error" : advertencias.Count > 0 ? "advertencia" : null)" aria-invalid="@(errorDeLaTabla is not null ? "true" : null)">
                         <td class="num @(c.TieneCaptura ? "asa" : null)" data-destino="@c.Espacio" data-arrastre="@(c.TieneCaptura ? c.Espacio : null)" data-etiqueta="@EtiquetaDeArrastre(c)" title="@(c.TieneCaptura ? "Arrastrar para mover el circuito a otro espacio" : null)">@NumeroConFase(c.Espacio)</td>
                         <td rowspan="@c.Polos">
                             <div class="desc-linea">
@@ -288,28 +310,25 @@
                                         @onclick="() => AlternarDesglose(c)"><Icono Nombre="@(Abierto(c) ? "desglose-abierto" : "desglose")" Tamano="14" /></button>
                                 @* Vacía, enseña el nombre de su carga en gris (I-191): es la que sale en el cuadro y la memoria. *@
                                 <input class="desc" data-col="desc" aria-label="Circuito @c.Espacio · Descripción" @bind="c.Descripcion" @bind:event="oninput" @bind:after="DibujarAlPausar" placeholder="@(c.TieneCarga ? c.NombreDeSusCargas ?? "—" : "—")" />
-                                @* Lo que hay que revisar, en el renglón y no solo al pie (auditoría del 2026-09-29, riesgo 1). *@
-                                @if (Cuadro.AvisosDe(c) is { Count: > 0 } avisosDelRenglon)
-                                {
-                                    <span class="aviso-renglon" role="img" aria-label="Avisos del circuito @c.Espacio: @string.Join(" ", avisosDelRenglon)" title="@string.Join("\n\n", avisosDelRenglon)"><Icono Nombre="aviso" Tamano="14" /></span>
-                                }
                             </div>
                         </td>
                         @* LA CLASE DEL CIRCUITO, NO EL TIPO DE CARGA (captura-en-el-desplegable.md, David 2026-09-30): sale
                            de sus líneas del desplegable; no se captura. *@
-                        <td rowspan="@c.Polos" class="clase-td">
+                        <td rowspan="@c.Polos" class="clase-td @MarcoDe(advertencias, CeldaDelAviso.Clase)" title="@TituloDe(advertencias, CeldaDelAviso.Clase)">
                             @if (c.SinTipo)
                             {
                                 <span class="tenue">Sin tipo</span>
                             }
                             else if (c.ClaseDelCircuito is { } claseDelCircuito)
                             {
-                                <span class="clase-circuito" title="@(claseDelCircuito.NombreNom()) — sale de sus cargas; no se captura.">@claseDelCircuito.Nombre()</span>
-                                @* I-183: «OL» como el ICFT — la sobrecarga que pide el equipo, aparte del interruptor. *@
+                                <span class="clase-circuito" title="@(claseDelCircuito.NombreNom()). La clase sale de sus cargas.">@claseDelCircuito.Nombre()</span>
+                                @* I-183: «OL» como el ICFT — la sobrecarga que pide el equipo, aparte del interruptor. Cada uno con su
+                                   ayuda (B1 a B3 de avisos-de-la-captura.md). *@
                                 var ol = c.Sobrecarga is { Aparte: true } sobrecarga ? sobrecarga : null;
-                                @if (DetalleDeClase(c) is var detalle && (detalle is not null || ol is not null))
+                                var icft = c.ReglasDeClase.Any(x => x.Referencia.StartsWith("210-8", StringComparison.Ordinal));
+                                @if (DetalleDeClase(c) is var detalle && (detalle is not null || ol is not null || icft))
                                 {
-                                    <span class="en-va">@detalle@if (ol is not null) {@(detalle is null ? "" : " · ")<abbr class="ol" title="@ol.Titulo">@SobrecargaRequerida.Etiqueta</abbr>}</span>
+                                    <span class="en-va" title="@(claseDelCircuito == ClaseDeCircuito.Alimentador ? "Carga del otro tablero, ya con sus factores de demanda · 220-40" : null)">@detalle@if (icft) {@(detalle is null ? "" : " · ")<abbr title="El circuito lleva protección por falla a tierra · 210-8">ICFT</abbr>}@if (ol is not null) {@(detalle is null && !icft ? "" : " · ")<abbr class="ol" title="El equipo pide protección contra sobrecarga aparte del interruptor · @ol.Referencia">@SobrecargaRequerida.Etiqueta</abbr>}</span>
                                 }
                             }
                             else
@@ -339,7 +358,7 @@
                             <td rowspan="@c.Polos" class="num tenue col-fase">@(c.TieneCarga && c.Fases.Contains(barra) ? c.CargaPorFaseVA.ToString("#,0.##") : "")</td>
                         }
                         <td rowspan="@c.Polos"><input data-requerido class="va corto" type="text" inputmode="decimal" autocomplete="off" data-numero min="@Numero(LongitudMinimaM)" data-col="l" aria-label="Circuito @c.Espacio · Longitud (m)" value="@Numero(c.LongitudM)" @onchange="e => { c.LongitudM = Leer(e, c.LongitudM, LongitudMinimaM); Recalcular(); }" /></td>
-                        <td rowspan="@c.Polos" class="canal">
+                        <td rowspan="@c.Polos" class="canal @MarcoDe(advertencias, CeldaDelAviso.Canalizacion)" title="@TituloDe(advertencias, CeldaDelAviso.Canalizacion)">
                             <select class="canal" data-col="canal" aria-label="Circuito @c.Espacio · Canalización" value="@(c.Canalizacion ?? "")" @onchange="e => CambiarCanalizacion(c, e.Value?.ToString())">
                                 @if (!c.TieneCarga)
                                 {
@@ -358,7 +377,7 @@
                                 <span class="en-va">@canal.TamanoRotulo</span>
                             }
                         </td>
-                        <td rowspan="@c.Polos">
+                        <td rowspan="@c.Polos" class="@MarcoDe(advertencias, CeldaDelAviso.Polos)" title="@TituloDe(advertencias, CeldaDelAviso.Polos)">
                             <select class="polos" data-col="polos" aria-label="Circuito @c.Espacio · Polos" value="@c.Polos"
                                     @onchange="e => CambiarPolos(c, e.Value?.ToString())">
                                 @foreach (var p in Enumerable.Range(1, Datos.MaximoPolos)) { <option value="@p">@p</option> }
@@ -366,13 +385,20 @@
                             @* Un motor trifásico no lleva neutro: sin la casilla (I-114). *@
                             @if (c.Polos > 1 && TieneNeutro && !(c.EsMotor && c.Polos == 3))
                             {
-                                <label class="mas-n" title="Marcar si la carga es F-N (220/127 V) y el circuito lleva neutro. En 2 fases + neutro de estrella el neutro cuenta como portador — 310-15(b)(5)(2).">
+                                <label class="mas-n" title="La carga va entre fase y neutro: el circuito lleva neutro · 310-15(b)(5)">
                                     <input type="checkbox" data-col="masn" aria-label="Circuito @c.Espacio · Con neutro" checked="@c.ConNeutro" @onchange="e => { c.ConNeutro = e.Value is true; Recalcular(); }" />+N</label>
                             }
                         </td>
+                        @if (errorDeLaTabla is not null)
+                        {
+                            @* El error, donde iría el resultado: no se calcula (C1 a C31). El mensaje completo, en la memoria. *@
+                            <td rowspan="@c.Polos" colspan="6" class="msg-error marco-error" role="alert">@errorDeLaTabla.Texto</td>
+                        }
+                        else
+                        {
                         <td rowspan="@c.Polos" class="num">@c.Resultado?.CorrienteDisenoA.ToString("N2")</td>
-                        @{ var desglose = Cuadro.Desglose(c); }
-                        <td rowspan="@c.Polos" class="num">
+                        var desglose = Cuadro.Desglose(c);
+                        <td rowspan="@c.Polos" class="num @MarcoDe(advertencias, CeldaDelAviso.Proteccion)" title="@TituloDe(advertencias, CeldaDelAviso.Proteccion)">
                             @* M-20, I-182: en un motor solo, un equipo de A/C y un variador la protección se escoge dentro de su
                                rango. La lista trae solo los valores permitidos (David, 2026-10-03): llega con el calculado, y otro
                                valor queda fijado, en el color de acento como el tubo; escoger el calculado lo regresa.
@@ -383,7 +409,7 @@
                             @if (c.ProteccionEscogible && c.Resultado!.Rango is { } rango)
                             {
                                 <select class="proteccion @(CuadroDeCarga.ProteccionFijada(c) ? "fijado" : null)" data-col="prot" aria-label="Circuito @c.Espacio · Protección (A)"
-                                        title="@AyudaDeLaProteccion(c, desglose)" value="@c.Resultado.ProteccionA.ToString(CultureInfo.InvariantCulture)"
+                                        title="@ConAvisos(AyudaDeLaProteccion(c, desglose), advertencias, CeldaDelAviso.Proteccion)" value="@c.Resultado.ProteccionA.ToString(CultureInfo.InvariantCulture)"
                                         @onchange="e => CambiarProteccion(c, e.Value?.ToString())">
                                     @foreach (var v in rango.Valores) { <option @key="v" value="@v.ToString(CultureInfo.InvariantCulture)">@v.ToString("N0")</option> }
                                 </select>
@@ -396,7 +422,8 @@
                         @Conductor(c.Resultado?.CalibreFase, c.Resultado?.NumeroConductoresParalelo ?? 0, c.Polos, desglose?.Conductor)
                         @Conductor(c.Resultado?.CalibreNeutro, c.Resultado is null ? 0 : 1, c.Polos, sinConductor: c.Resultado is not null && !c.LlevaNeutro)
                         @Conductor(c.Resultado?.CalibreTierra, c.Resultado is null ? 0 : 1, c.Polos)
-                        <td rowspan="@c.Polos" class="num @(Excede(c) ? "excede" : null)">@c.Resultado?.CaidaTensionPct.ToString("N2")</td>
+                        <td rowspan="@c.Polos" class="num @(Excede(c) ? "excede" : null) @MarcoDe(advertencias, CeldaDelAviso.Caida)" title="@TituloDe(advertencias, CeldaDelAviso.Caida)">@c.Resultado?.CaidaTensionPct.ToString("N2")</td>
+                        }
                         <td rowspan="@c.Polos" class="ultima no-simultaneo">
                             @if (MuestraNoSimultaneo(c))
                             {
@@ -424,14 +451,6 @@
                     {
                         <tr class="@(c.Resultado is null ? "vacio" : null) @(c.Polos == 2 ? "dos-polos" : null)">
                             <td class="num @(c.TieneCaptura ? "asa" : null)" data-destino="@seguido.Espacio" data-arrastre="@(c.TieneCaptura ? seguido.Espacio : null)" data-etiqueta="@EtiquetaDeArrastre(c)">@NumeroConFase(seguido.Espacio)</td>
-                        </tr>
-                    }
-
-                    @if (c.Error is not null)
-                    {
-                        <tr class="fila-error">
-                            <td></td>
-                            <td colspan="@(Columnas - 1)">@c.Error</td>
                         </tr>
                     }
 
@@ -1224,7 +1243,7 @@
         // I-182: una protección fijada que regresó al cálculo, porque cambió su rango, se avisa una vez.
         if (Cuadro.TomarProteccionesQueRegresaron() is { Count: > 0 } regresaron)
         {
-            Avisar(ProteccionQueRegreso.Aviso(regresaron), bien: false);
+            Avisar(AvisosDeLaTabla.ProteccionQueRegreso(regresaron), bien: false);
             StateHasChanged();
         }
         // Con cambios sin guardar, el navegador pregunta antes de cerrar la pestaña (I-05). La huella
@@ -1559,10 +1578,62 @@
     /// La ayuda de la celda (David: «hay que explicar por qué se permite seleccionar»): el rango, la calculada o
     /// la fijada y cuál es la calculada — I-182; y el desglose del valor.
     /// </summary>
-    private string? AyudaDeLaProteccion(CircuitoDelCuadro c, DesgloseDeSeleccion? desglose) =>
-        Cuadro.AyudaDeLaProteccion(c) is not { } ayuda ? null
-        : desglose is null ? ayuda
-        : $"{ayuda}\n\n{DesgloseDeSeleccion.ComoTexto(desglose.Proteccion)}";
+    private string? AyudaDeLaProteccion(CircuitoDelCuadro c, DesgloseDeSeleccion? desglose)
+    {
+        // B5 (avisos-de-la-captura.md): el rango y su artículo; fijada, también cuánto da el cálculo. El desglose,
+        // abajo, hasta que la memoria tenga su entrada por circuito (B6).
+        if (c.Resultado is not { Rango: { } r } resultado)
+            return null;
+        var ayuda = r.Valores.Count == 1 ? $"Solo se permite {r.MaximoA:N0} A." : $"Se permite de {r.MinimoA:N0} a {r.MaximoA:N0} A.";
+        if (CuadroDeCarga.ProteccionFijada(c))
+            ayuda += $" Fijada en {resultado.ProteccionA:N0} A" + (Cuadro.ProteccionCalculada(c) is { } calc ? $"; el cálculo da {calc:N0} A." : ".");
+        ayuda += $"\n· {r.Regla}";
+        return desglose is null ? ayuda : $"{ayuda}\n\n{DesgloseDeSeleccion.ComoTexto(desglose.Proteccion)}";
+    }
+
+    /// <summary>Opción A: la celda que causa una advertencia, enmarcada (estados-de-aviso.md).</summary>
+    private static string? MarcoDe(IReadOnlyList<AdvertenciaDeLaTabla> avisos, CeldaDelAviso celda) =>
+        avisos.Any(a => a.Celda == celda) ? "marco-aviso" : null;
+
+    /// <summary>
+    /// El cuadro de ayuda de la celda enmarcada: cada advertencia con su referencia en otra línea, apartada
+    /// (guía de David, punto 2); dos en la misma celda, una debajo de otra.
+    /// </summary>
+    private static string? TituloDe(IReadOnlyList<AdvertenciaDeLaTabla> avisos, CeldaDelAviso celda) =>
+        avisos.Where(a => a.Celda == celda).ToList() is { Count: > 0 } deLaCelda
+            ? string.Join("\n\n", deLaCelda.Select(a => $"{a.Texto}\n· {a.Referencia}"))
+            : null;
+
+    /// <summary>La ayuda propia de un campo, con las advertencias de su celda antes.</summary>
+    private static string? ConAvisos(string? propia, IReadOnlyList<AdvertenciaDeLaTabla> avisos, CeldaDelAviso celda) =>
+        TituloDe(avisos, celda) is { } aviso ? propia is null ? aviso : $"{aviso}\n\n{propia}" : propia;
+
+    /// <summary>
+    /// El campo del desplegable con el dato que falta o que choca: con borde rojo (opción A). <paramref name="aparato"/>
+    /// nulo es el equipo del circuito.
+    /// </summary>
+    private string? FaltaEn(CircuitoDelCuadro c, CargaDelCircuito? aparato, ColDesglose col) =>
+        c.Error is not null && AvisosDeLaTabla.ErrorDe(Cuadro, c) is { Campo: { } campo } e && campo == col.ToString()
+        && (ReferenceEquals(e.Linea, aparato) || (col == ColDesglose.Tipo && aparato is { Subtipo: null }))
+            ? "1" : null;
+
+    // EL CONTADOR, ARRIBA DEL CUADRO (David, 2026-10-07): «1 error · 2 advertencias»; un clic lleva al siguiente.
+    private int _siguienteError = -1;
+    private int _siguienteAdvertencia = -1;
+
+    private IReadOnlyList<int> ConError => [.. Cuadro.Circuitos.Where(x => !x.EsContinuacion && x.Error is not null).Select(x => x.Espacio)];
+
+    private IReadOnlyList<int> ConAdvertencias => [.. Cuadro.Circuitos.Where(x => !x.EsContinuacion && x.Error is null && AvisosDeLaTabla.AdvertenciasDe(Cuadro, x).Count > 0).Select(x => x.Espacio)];
+
+    private void IrAlSiguiente(bool error)
+    {
+        var lista = error ? ConError : ConAdvertencias;
+        if (lista.Count == 0)
+            return;
+        ref var i = ref error ? ref _siguienteError : ref _siguienteAdvertencia;
+        i = (i + 1) % lista.Count;
+        _enfocar = $"tr[data-espacio=\"{lista[i]}\"] input[data-col=\"desc\"]";
+    }
 
     /// <summary>
     /// Una canalización de la lista, o «+ Nueva»: sin carga, crea la siguiente y lo pone ahí; con carga
@@ -1779,7 +1850,7 @@
         if (subtipo.SoloEnElRenglon())
         {
             if (!c.PasarARenglon(subtipo))
-                Avisar($"{subtipo.Nombre()} va solo en su circuito: quita primero las demás líneas del circuito {c.Espacio}.", bien: false);
+                Avisar($"{subtipo.Nombre()} va solo. Quita primero las demás líneas del circuito {c.Espacio}.", bien: false);
             Recalcular();
             return;
         }
@@ -2011,7 +2082,7 @@
         TensionDePlaca? tension = Enum.TryParse<TensionDePlaca>(valor, out var t) && Enum.IsDefined(t) ? t : null;
         if (Cuadro.CambiarTensionDePlaca(c, tension) is { } motivo)
         {
-            Avisar($"El circuito {c.Espacio} no puede pasar a {tension!.Value.Polos()} polos para {tension.Value.Texto()}. {motivo}", bien: false);
+            Avisar($"El circuito {c.Espacio} no cabe con {tension!.Value.Polos()} polos. {motivo}", bien: false);
             var etiqueta = c.EsVariador ? "Tensión de entrada del variador" : "Tensión de placa";
             await Restablecer($"[aria-label=\"Circuito {c.Espacio} · {etiqueta}\"]", c.TensionDePlaca?.ToString() ?? "");
             return;
@@ -2076,7 +2147,7 @@
 
         if (polos != c.Polos && Cuadro.CambiarPolos(c, polos) is { } motivo)
         {
-            Avisar($"El circuito {c.Espacio} no puede pasar a {polos} polos. {motivo}", bien: false);
+            Avisar($"El circuito {c.Espacio} no cabe con {polos} polos. {motivo}", bien: false);
             await Restablecer($"[aria-label=\"Circuito {c.Espacio} · HP\"]", ValorHpConPolos(c.Polos, c.Hp ?? 0m));
             return;
         }
@@ -2127,25 +2198,22 @@
 
         if (Cuadro.CambiarPolos(circuito, polos) is { } motivo)
         {
-            Avisar($"El circuito {circuito.Espacio} no puede pasar a {polos} polos. {motivo}", bien: false);
+            Avisar($"El circuito {circuito.Espacio} no cabe con {polos} polos. {motivo}", bien: false);
             await Restablecer($"[aria-label=\"Circuito {circuito.Espacio} · Polos\"]", circuito.Polos.ToString(CultureInfo.InvariantCulture));
         }
     }
 
     /// <summary>
-    /// Bajo la clase: «15 salidas», «carga total», «sin F.D. (220-40)», «2 motores, 1 carga» — cómo está
+    /// Bajo la clase: «15 salidas», «carga total», «sin F.D.», «2 motores, 1 carga» — cómo está
     /// hecha. <c>null</c> sin nada que añadir.
     /// </summary>
     private static string? DetalleDeClase(CircuitoDelCuadro c) =>
         c.ClaseDelCircuito is not { } clase ? null
-        : clase == ClaseDeCircuito.Alimentador ? (c.Cargas.Count(x => x.EsTablero) is > 1 and var tableros ? $"{tableros} tableros · sin F.D. (220-40)" : "sin F.D. (220-40)")
+        : clase == ClaseDeCircuito.Alimentador ? (c.Cargas.Count(x => x.EsTablero) is > 1 and var tableros ? $"{tableros} tableros · sin F.D." : "sin F.D.")
         : c.EsGrupo ? TextoDelGrupo(c)
-        : (c.Salidas is { } n && clase != ClaseDeCircuito.Individual ? $"{n} {(n == 1 ? "salida" : "salidas")}"
-           : c.EsCargaTotal ? "carga total"
-           : null) is var detalle && c.ReglasDeClase.Any(x => x.Referencia.StartsWith("210-8", StringComparison.Ordinal))
-            // ICFT — 210-8 (P3-4): a la vista en el renglón; la regla completa va en el desglose y la memoria.
-            ? (detalle is null ? "ICFT" : $"{detalle} · ICFT")
-            : detalle;
+        : c.Salidas is { } n && clase != ClaseDeCircuito.Individual ? $"{n} {(n == 1 ? "salida" : "salidas")}"
+        : c.EsCargaTotal ? "carga total"
+        : null;
 
     /// <summary>«5 HP · FLC 15.20 A», «Ampacidad 18 A · prot. máx. 30 A»: la placa del equipo, bajo sus VA. Un grupo, nada.</summary>
     private static string PlacaDelEquipo(CircuitoDelCuadro c) =>
@@ -2385,17 +2453,17 @@
         switch (col)
         {
             case ColDesglose.Desc:
-                <td class="izq"><input class="desc" data-col="ap-desc" aria-label="Circuito @c.Espacio, equipo · Descripción" @bind="c.DescripcionDelEquipo" @bind:after="Recalcular" placeholder="Descripción" /></td>
+                <td data-falta="@FaltaEn(c, null, col)" class="izq"><input class="desc" data-col="ap-desc" aria-label="Circuito @c.Espacio, equipo · Descripción" @bind="c.DescripcionDelEquipo" @bind:after="Recalcular" placeholder="Descripción" /></td>
                 break;
             case ColDesglose.Tipo:
-                <td>
+                <td data-falta="@FaltaEn(c, null, col)">
                     <select class="tipo" data-col="ap-tipo" aria-label="Circuito @c.Espacio, equipo · Tipo" value="@tipo" @onchange="e => CambiarTipoDelRenglon(c, e.Value?.ToString())">
                         @foreach (var t in CategoriasDeCarga.Todas) { <option value="@t">@t.Nombre()</option> }
                     </select>
                 </td>
                 break;
             case ColDesglose.Subtipo:
-                <td class="subtipo">
+                <td data-falta="@FaltaEn(c, null, col)" class="subtipo">
                     <select class="subtipo" data-col="ap-subtipo" aria-label="Circuito @c.Espacio, equipo · Subtipo" value="@subtipo" @onchange="e => CambiarSubtipoDelRenglon(c, e.Value?.ToString())">
                         @foreach (var sub in SubtiposDeCarga.De(tipo)) { <option @key="sub" value="@sub">@sub.Nombre()</option> }
                     </select>
@@ -2405,16 +2473,16 @@
             case ColDesglose.Cant:
                 @if (b.Juego is JuegoDeColumnas.Variadores or JuegoDeColumnas.Combinada)
                 {
-                    <td><span class="fijo" title="Un equipo por renglón.">1</span></td>
+                    <td data-falta="@FaltaEn(c, null, col)"><span class="fijo" title="Un equipo por renglón.">1</span></td>
                 }
                 else
                 {
-                    <td><input class="va corto" data-col="ap-cant" type="text" inputmode="numeric" autocomplete="off" data-numero min="1" step="1" aria-label="Circuito @c.Espacio, equipo · Cantidad" value="1" @onchange="e => CambiarCantidadDelRenglon(c, e)" /></td>
+                    <td data-falta="@FaltaEn(c, null, col)"><input class="va corto" data-col="ap-cant" type="text" inputmode="numeric" autocomplete="off" data-numero min="1" step="1" aria-label="Circuito @c.Espacio, equipo · Cantidad" value="1" @onchange="e => CambiarCantidadDelRenglon(c, e)" /></td>
                 }
                 break;
             case ColDesglose.Tension:
                 var tensiones = TensionesDePlaca.De(Datos);
-                <td>
+                <td data-falta="@FaltaEn(c, null, col)">
                     <select class="tension @(c.TensionDePlaca is null ? "falta" : null)" data-col="ap-tension" aria-label="Circuito @c.Espacio · @(c.EsVariador ? "Tensión de entrada del variador" : "Tensión de placa")" aria-invalid="@(c.TensionDePlaca is null ? "true" : null)"
                             value="@(c.TensionDePlaca?.ToString() ?? "")" @onchange="e => CambiarTensionDePlaca(c, e.Value?.ToString())">
                         <option @key="@("ninguna")" value="">— escoger —</option>
@@ -2424,7 +2492,7 @@
                 </td>
                 break;
             case ColDesglose.Unidad:
-                <td>
+                <td data-falta="@FaltaEn(c, null, col)">
                     <select class="unidad" data-col="ap-unidad" aria-label="Circuito @c.Espacio, equipo · Unidad" value="@c.CapturaMotor" @onchange="e => CambiarUnidad(c, e.Value?.ToString())">
                         <option value="@nameof(CapturaDeMotor.Hp)">HP</option>
                         <option value="@nameof(CapturaDeMotor.Amperes)">A</option>
@@ -2434,7 +2502,7 @@
             case ColDesglose.Hp:
                 @if (c.CapturaMotor == CapturaDeMotor.Hp)
                 {
-                    <td>
+                    <td data-falta="@FaltaEn(c, null, col)">
                         <select class="hp" data-col="ap-carga" aria-label="Circuito @c.Espacio · HP" value="@ValorHpConPolos(c.Polos, c.Hp ?? 0m)" @onchange="e => CambiarHp(c, e.Value?.ToString())">
                             <option @key="@($"{c.Polos}|0")" value="@ValorHpConPolos(c.Polos, 0m)">—</option>
                             @for (var p = 1; p <= Datos.MaximoPolos; p++)
@@ -2456,24 +2524,24 @@
                 }
                 else
                 {
-                    <td><span class="fijo" title="HP que le corresponden por su corriente · 430-6(a)(1)">@(c.MotorEnAmperes is { } m ? $"{m.Hp:0.##} HP" : "—")</span></td>
+                    <td data-falta="@FaltaEn(c, null, col)"><span class="fijo" title="HP que le corresponden por su corriente · 430-6(a)(1)">@(c.MotorEnAmperes is { } m ? $"{m.Hp:0.##} HP" : "—")</span></td>
                 }
                 break;
             case ColDesglose.CorrientePlaca:
                 @if (c.CapturaMotor == CapturaDeMotor.Amperes)
                 {
-                    <td><input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="A" data-col="@CampoDe(ColDesglose.CorrientePlaca)" aria-label="Circuito @c.Espacio · Corriente de placa del motor (A)" value="@Carga(c.CorrientePlacaA)" @onchange="e => { c.CorrientePlacaA = LeerCarga(e, c.CorrientePlacaA); Recalcular(); }"
+                    <td data-falta="@FaltaEn(c, null, col)"><input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="A" data-col="@CampoDe(ColDesglose.CorrientePlaca)" aria-label="Circuito @c.Espacio · Corriente de placa del motor (A)" value="@Carga(c.CorrientePlacaA)" @onchange="e => { c.CorrientePlacaA = LeerCarga(e, c.CorrientePlacaA); Recalcular(); }"
                                title="Corriente de la placa del motor · 430-6(a)(1)" /></td>
                 }
                 else
                 {
                     var noContinuo = c.Servicio is not null;
-                    <td><input class="va placa-servicio @Apagado(!noContinuo)" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="—" disabled="@(!noContinuo)" data-col="@CampoDe(ColDesglose.CorrientePlaca)" aria-label="Circuito @c.Espacio · Corriente de placa del motor (servicio)" value="@Carga(c.CorrientePlacaServicioA)" @onchange="e => { c.CorrientePlacaServicioA = LeerCarga(e, c.CorrientePlacaServicioA); Recalcular(); }"
+                    <td data-falta="@FaltaEn(c, null, col)"><input class="va placa-servicio @Apagado(!noContinuo)" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="—" disabled="@(!noContinuo)" data-col="@CampoDe(ColDesglose.CorrientePlaca)" aria-label="Circuito @c.Espacio · Corriente de placa del motor (servicio)" value="@Carga(c.CorrientePlacaServicioA)" @onchange="e => { c.CorrientePlacaServicioA = LeerCarga(e, c.CorrientePlacaServicioA); Recalcular(); }"
                                title="@(noContinuo ? "Corriente usada para motores de servicio no continuo · 430-22(e)" : "Solo con servicio no continuo.")" /></td>
                 }
                 break;
             case ColDesglose.Servicio:
-                <td>
+                <td data-falta="@FaltaEn(c, null, col)">
                     <select class="servicio" data-col="ap-continua" aria-label="Circuito @c.Espacio · Servicio del motor" value="@ValorServicio(c)" @onchange="e => CambiarServicio(c, e.Value?.ToString())">
                         <option value="">Continuo</option>
                         @foreach (var sv in Enum.GetValues<ServicioDeMotor>())
@@ -2489,27 +2557,27 @@
                 </td>
                 break;
             case ColDesglose.NoArranca:
-                <td><input type="checkbox" class="@Apagado(!c.EsMotorSolo)" disabled="@(!c.EsMotorSolo)" data-col="@CampoDe(ColDesglose.NoArranca)" aria-label="Circuito @c.Espacio · El motor no arranca con la protección de tabla" checked="@c.NoArrancaConLaTabla" @onchange="e => { c.NoArrancaConLaTabla = e.Value is true; Recalcular(); }"
+                <td data-falta="@FaltaEn(c, null, col)"><input type="checkbox" class="@Apagado(!c.EsMotorSolo)" disabled="@(!c.EsMotorSolo)" data-col="@CampoDe(ColDesglose.NoArranca)" aria-label="Circuito @c.Espacio · El motor no arranca con la protección de tabla" checked="@c.NoArrancaConLaTabla" @onchange="e => { c.NoArrancaConLaTabla = e.Value is true; Recalcular(); }"
                            title="@(c.EsMotorSolo ? $"El motor no arranca con la protección de tabla: hasta {(c.FlcA > 100m ? 300 : 400)} % · 430-52(c)(1)" : "Solo con un motor solo.")" /></td>
                 break;
             case ColDesglose.Terminal75:
-                <td><input type="checkbox" class="@Apagado(!c.EsMotorSolo)" disabled="@(!c.EsMotorSolo)" data-col="@CampoDe(ColDesglose.Terminal75)" aria-label="Circuito @c.Espacio · Motor diseño B a E y arrancador marcado 75 °C" checked="@c.MotorYArrancadorMarcados75C" @onchange="e => { c.MotorYArrancadorMarcados75C = e.Value is true; Recalcular(); }"
+                <td data-falta="@FaltaEn(c, null, col)"><input type="checkbox" class="@Apagado(!c.EsMotorSolo)" disabled="@(!c.EsMotorSolo)" data-col="@CampoDe(ColDesglose.Terminal75)" aria-label="Circuito @c.Espacio · Motor diseño B a E y arrancador marcado 75 °C" checked="@c.MotorYArrancadorMarcados75C" @onchange="e => { c.MotorYArrancadorMarcados75C = e.Value is true; Recalcular(); }"
                            title="@(c.EsMotorSolo ? "Motor de diseño B a E con arrancador marcado 75 °C · 110-14(c)" : "Solo con un motor solo.")" /></td>
                 break;
             case ColDesglose.CorrienteEntrada:
-                <td><input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="A" data-col="ap-carga" aria-label="Circuito @c.Espacio · Corriente de entrada del variador (A)" value="@Carga(c.CorrienteEntradaVariadorA)" @onchange="e => { c.CorrienteEntradaVariadorA = LeerCarga(e, c.CorrienteEntradaVariadorA); Recalcular(); }"
+                <td data-falta="@FaltaEn(c, null, col)"><input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="A" data-col="ap-carga" aria-label="Circuito @c.Espacio · Corriente de entrada del variador (A)" value="@Carga(c.CorrienteEntradaVariadorA)" @onchange="e => { c.CorrienteEntradaVariadorA = LeerCarga(e, c.CorrienteEntradaVariadorA); Recalcular(); }"
                            title="Corriente de entrada de la placa del variador · 430-122(a)" /></td>
                 break;
             case ColDesglose.ProtMaxFabricante:
-                <td><input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="A" data-col="@CampoDe(ColDesglose.ProtMaxFabricante)" aria-label="Circuito @c.Espacio · Protección máxima del variador (A)" value="@Carga(c.ProteccionMaximaVariadorA)" @onchange="e => { c.ProteccionMaximaVariadorA = LeerCarga(e, c.ProteccionMaximaVariadorA); Recalcular(); }"
+                <td data-falta="@FaltaEn(c, null, col)"><input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="A" data-col="@CampoDe(ColDesglose.ProtMaxFabricante)" aria-label="Circuito @c.Espacio · Protección máxima del variador (A)" value="@Carga(c.ProteccionMaximaVariadorA)" @onchange="e => { c.ProteccionMaximaVariadorA = LeerCarga(e, c.ProteccionMaximaVariadorA); Recalcular(); }"
                            title="Protección máxima permitida por el fabricante · 110-3(b)" /></td>
                 break;
             case ColDesglose.Bypass:
-                <td><input type="checkbox" data-col="@CampoDe(ColDesglose.Bypass)" aria-label="Circuito @c.Espacio · Variador con bypass" checked="@c.VariadorConBypass" @onchange="e => { c.VariadorConBypass = e.Value is true; Recalcular(); }" title="El variador tiene bypass a la línea · 430-122(b)" /></td>
+                <td data-falta="@FaltaEn(c, null, col)"><input type="checkbox" data-col="@CampoDe(ColDesglose.Bypass)" aria-label="Circuito @c.Espacio · Variador con bypass" checked="@c.VariadorConBypass" @onchange="e => { c.VariadorConBypass = e.Value is true; Recalcular(); }" title="El variador tiene bypass a la línea · 430-122(b)" /></td>
                 break;
             case ColDesglose.HpMotor:
                 var conBypass = c.VariadorConBypass;
-                <td>
+                <td data-falta="@FaltaEn(c, null, col)">
                     <select class="hp @Apagado(!conBypass) @(conBypass && !(c.HpMotorDelVariador > 0m) ? "falta" : null)" disabled="@(!conBypass)" data-col="@CampoDe(ColDesglose.HpMotor)" aria-label="Circuito @c.Espacio · HP del motor del variador" value="@ValorHp(c.HpMotorDelVariador)" @onchange="e => CambiarHpDelVariador(c, e.Value?.ToString())"
                             title="@(conBypass ? "Potencia del motor que mueve el variador · 430-6(a)" : "Solo con bypass.")">
                         <option @key="@("ninguno")" value="">—</option>
@@ -2519,39 +2587,39 @@
                 </td>
                 break;
             case ColDesglose.CorrienteNominal:
-                <td><input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="A" data-col="ap-carga" aria-label="Circuito @c.Espacio · Corriente de carga nominal (A)" value="@Carga(c.CorrientePlacaA)" @onchange="e => { c.CorrientePlacaA = LeerCarga(e, c.CorrientePlacaA); Recalcular(); }"
+                <td data-falta="@FaltaEn(c, null, col)"><input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="A" data-col="ap-carga" aria-label="Circuito @c.Espacio · Corriente de carga nominal (A)" value="@Carga(c.CorrientePlacaA)" @onchange="e => { c.CorrientePlacaA = LeerCarga(e, c.CorrientePlacaA); Recalcular(); }"
                            title="Corriente de carga nominal de la placa · 440-6(a)" /></td>
                 break;
             case ColDesglose.CorrienteSeleccion:
-                <td><input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="—" data-col="@CampoDe(ColDesglose.CorrienteSeleccion)" aria-label="Circuito @c.Espacio · Corriente de selección (A)" value="@Carga(c.CorrienteSeleccionA ?? 0m)" @onchange="e => { var v = LeerCarga(e, c.CorrienteSeleccionA ?? 0m); c.CorrienteSeleccionA = v > 0m ? v : null; Recalcular(); }"
+                <td data-falta="@FaltaEn(c, null, col)"><input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="—" data-col="@CampoDe(ColDesglose.CorrienteSeleccion)" aria-label="Circuito @c.Espacio · Corriente de selección (A)" value="@Carga(c.CorrienteSeleccionA ?? 0m)" @onchange="e => { var v = LeerCarga(e, c.CorrienteSeleccionA ?? 0m); c.CorrienteSeleccionA = v > 0m ? v : null; Recalcular(); }"
                            title="Corriente de selección de la placa, si la trae · 440-6(a)" /></td>
                 break;
             case ColDesglose.Arranque225:
-                <td><input type="checkbox" data-col="@CampoDe(ColDesglose.Arranque225)" aria-label="Circuito @c.Espacio · No arranca al 175 %" checked="@c.ArranqueAl225" @onchange="e => { c.ArranqueAl225 = e.Value is true; Recalcular(); }" title="No arranca con la protección al 175 % · 440-22(a)" /></td>
+                <td data-falta="@FaltaEn(c, null, col)"><input type="checkbox" data-col="@CampoDe(ColDesglose.Arranque225)" aria-label="Circuito @c.Espacio · No arranca al 175 %" checked="@c.ArranqueAl225" @onchange="e => { c.ArranqueAl225 = e.Value is true; Recalcular(); }" title="No arranca con la protección al 175 % · 440-22(a)" /></td>
                 break;
             case ColDesglose.Ampacidad:
-                <td><input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="A" data-col="ap-carga" aria-label="Circuito @c.Espacio · Ampacidad de los conductores (MCA)" value="@Carga(c.AmpacidadMinimaA)" @onchange="e => { c.AmpacidadMinimaA = LeerCarga(e, c.AmpacidadMinimaA); Recalcular(); }"
+                <td data-falta="@FaltaEn(c, null, col)"><input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="A" data-col="ap-carga" aria-label="Circuito @c.Espacio · Ampacidad de los conductores (MCA)" value="@Carga(c.AmpacidadMinimaA)" @onchange="e => { c.AmpacidadMinimaA = LeerCarga(e, c.AmpacidadMinimaA); Recalcular(); }"
                            title="Ampacidad mínima de los conductores, de la placa · 440-4(b)" /></td>
                 break;
             case ColDesglose.ProtMaxPlaca:
-                <td><input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="A" data-col="@CampoDe(ColDesglose.ProtMaxPlaca)" aria-label="Circuito @c.Espacio · Protección máxima (MOCP)" value="@Carga(c.ProteccionMaximaA)" @onchange="e => { c.ProteccionMaximaA = LeerCarga(e, c.ProteccionMaximaA); Recalcular(); }"
+                <td data-falta="@FaltaEn(c, null, col)"><input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="A" data-col="@CampoDe(ColDesglose.ProtMaxPlaca)" aria-label="Circuito @c.Espacio · Protección máxima (MOCP)" value="@Carga(c.ProteccionMaximaA)" @onchange="e => { c.ProteccionMaximaA = LeerCarga(e, c.ProteccionMaximaA); Recalcular(); }"
                            title="Protección máxima de la placa · 440-4(b)" /></td>
                 break;
             case ColDesglose.CorrienteTotal:
-                <td><input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="A" data-col="ap-carga" aria-label="Circuito @c.Espacio · Corriente total del acondicionador (A)" value="@Carga(c.CorrientePlacaA)" @onchange="e => { c.CorrientePlacaA = LeerCarga(e, c.CorrientePlacaA); Recalcular(); }"
+                <td data-falta="@FaltaEn(c, null, col)"><input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="A" data-col="ap-carga" aria-label="Circuito @c.Espacio · Corriente total del acondicionador (A)" value="@Carga(c.CorrientePlacaA)" @onchange="e => { c.CorrientePlacaA = LeerCarga(e, c.CorrientePlacaA); Recalcular(); }"
                            title="Corriente total de la placa del acondicionador · 440-62" /></td>
                 break;
             case ColDesglose.Fp:
-                <td><input data-requerido class="va fp" type="text" inputmode="decimal" autocomplete="off" data-numero min="@FactorMinimo" max="1" step="0.05" data-col="ap-fp" aria-label="Circuito @c.Espacio, equipo · F.P." value="@Factor(c.FactorPotencia)" @onchange="e => { c.FactorPotencia = LeerFactor(e, c.FactorPotencia); Recalcular(); }" /></td>
+                <td data-falta="@FaltaEn(c, null, col)"><input data-requerido class="va fp" type="text" inputmode="decimal" autocomplete="off" data-numero min="@FactorMinimo" max="1" step="0.05" data-col="ap-fp" aria-label="Circuito @c.Espacio, equipo · F.P." value="@Factor(c.FactorPotencia)" @onchange="e => { c.FactorPotencia = LeerFactor(e, c.FactorPotencia); Recalcular(); }" /></td>
                 break;
             case ColDesglose.Total:
-                <td class="num">@c.CargaInstaladaVA.ToString("#,0.##")</td>
+                <td data-falta="@FaltaEn(c, null, col)" class="num">@c.CargaInstaladaVA.ToString("#,0.##")</td>
                 break;
             case ColDesglose.Quitar:
-                <td><button class="quitar" title="Quitar el equipo del circuito" aria-label="Quitar el equipo del circuito @c.Espacio" @onclick="() => QuitarRenglon(c)"><Icono Nombre="quitar" Tamano="14" /></button></td>
+                <td data-falta="@FaltaEn(c, null, col)"><button class="quitar" title="Quitar el equipo del circuito" aria-label="Quitar el equipo del circuito @c.Espacio" @onclick="() => QuitarRenglon(c)"><Icono Nombre="quitar" Tamano="14" /></button></td>
                 break;
             default:
-                <td class="tenue">—</td>
+                <td data-falta="@FaltaEn(c, null, col)" class="tenue">—</td>
                 break;
         }
     };
@@ -2563,10 +2631,10 @@
         switch (col)
         {
             case ColDesglose.Desc:
-                <td class="izq"><input class="desc" data-col="ap-desc" aria-label="Circuito @c.Espacio, carga @n · Descripción" @bind="aparato.Descripcion" @bind:after="Recalcular" placeholder="Descripción" /></td>
+                <td data-falta="@FaltaEn(c, aparato, col)" class="izq"><input class="desc" data-col="ap-desc" aria-label="Circuito @c.Espacio, carga @n · Descripción" @bind="aparato.Descripcion" @bind:after="Recalcular" placeholder="Descripción" /></td>
                 break;
             case ColDesglose.Tipo:
-                <td>
+                <td data-falta="@FaltaEn(c, aparato, col)">
                     <select class="tipo" data-col="ap-tipo" aria-label="Circuito @c.Espacio, carga @n · Tipo" value="@(aparato.Subtipo is null && !c.TipoElegido ? "" : tipoDeLinea.ToString())" @onchange="e => CambiarTipoDeCarga(c, aparato, e.Value?.ToString())">
                         @if (aparato.Subtipo is null && !c.TipoElegido) { <option value="">—</option> }
                         @foreach (var t in CategoriasDeCarga.Todas) { <option value="@t">@t.Nombre()</option> }
@@ -2574,7 +2642,7 @@
                 </td>
                 break;
             case ColDesglose.Subtipo:
-                <td class="subtipo">
+                <td data-falta="@FaltaEn(c, aparato, col)" class="subtipo">
                     <select class="subtipo" data-col="ap-subtipo" aria-label="Circuito @c.Espacio, carga @n · Subtipo" value="@(aparato.Subtipo?.ToString() ?? "")" @onchange="e => CambiarSubtipo(c, aparato, e.Value?.ToString())">
                         @if (aparato.Subtipo is null) { <option value="">—</option> }
                         @foreach (var sub in SubtiposDeCarga.De(tipoDeLinea).Where(x => !x.SoloEnElRenglon() || c.Cargas.Count == 1)) { <option @key="sub" value="@sub">@sub.Nombre()</option> }
@@ -2587,11 +2655,11 @@
                 var cantidadFija = aparato.Subtipo?.VaSolo() == true || aparato.EsTablero || aparato.Clase == ClaseDeAparato.Variador;
                 @if (cantidadFija)
                 {
-                    <td><span class="fijo" title="@(aparato.EsTablero ? "Cada tablero en su renglón." : aparato.Clase == ClaseDeAparato.Variador ? "Cada variador en su renglón." : "Va solo en su circuito: uno.")">@aparato.Cantidad</span></td>
+                    <td data-falta="@FaltaEn(c, aparato, col)"><span class="fijo" title="@(aparato.EsTablero ? "Cada tablero en su renglón." : aparato.Clase == ClaseDeAparato.Variador ? "Cada variador en su renglón." : "Va solo en su circuito: uno.")">@aparato.Cantidad</span></td>
                 }
                 else
                 {
-                    <td><span class="cantidad"><input data-requerido data-col="ap-cant" aria-label="Circuito @c.Espacio, carga @n · Cantidad" class="va corto" type="text" inputmode="decimal" autocomplete="off" data-numero min="1" step="1" @bind="aparato.Cantidad" @bind:culture="CultureInfo.InvariantCulture" @bind:after="() => TrasEditarLinea(c)" />
+                    <td data-falta="@FaltaEn(c, aparato, col)"><span class="cantidad"><input data-requerido data-col="ap-cant" aria-label="Circuito @c.Espacio, carga @n · Cantidad" class="va corto" type="text" inputmode="decimal" autocomplete="off" data-numero min="1" step="1" @bind="aparato.Cantidad" @bind:culture="CultureInfo.InvariantCulture" @bind:after="() => TrasEditarLinea(c)" />
                         <span class="flechas">
                             <button type="button" class="flecha" tabindex="-1" title="Una más" aria-label="Circuito @c.Espacio, carga @n · Una más" @onclick="() => CambiarCantidad(c, aparato, 1)"><svg viewBox="0 0 10 6" width="9" height="6" aria-hidden="true"><path d="M1 5 5 1 9 5" fill="none" stroke="currentColor" stroke-width="1.6" /></svg></button>
                             <button type="button" class="flecha" tabindex="-1" title="Una menos" aria-label="Circuito @c.Espacio, carga @n · Una menos" disabled="@(aparato.Cantidad <= 1)" @onclick="() => CambiarCantidad(c, aparato, -1)"><svg viewBox="0 0 10 6" width="9" height="6" aria-hidden="true"><path d="M1 1 5 5 9 1" fill="none" stroke="currentColor" stroke-width="1.6" /></svg></button>
@@ -2599,7 +2667,7 @@
                 }
                 break;
             case ColDesglose.Unidad:
-                <td>
+                <td data-falta="@FaltaEn(c, aparato, col)">
                     <select class="unidad" data-col="ap-unidad" aria-label="Circuito @c.Espacio, carga @n · Unidad" value="@UnidadDeMiembro(aparato)" @onchange="e => CambiarUnidadDeMiembro(aparato, e.Value?.ToString())">
                         @if (aparato.Clase == ClaseDeAparato.Motor)
                         {
@@ -2616,7 +2684,7 @@
                 </td>
                 break;
             case ColDesglose.CargaCU:
-                <td>
+                <td data-falta="@FaltaEn(c, aparato, col)">
                     <input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="0" data-col="ap-carga" aria-label="Circuito @c.Espacio, carga @n · Carga c/u" value="@Carga(aparato.CargaUnitaria)" @onchange="e => { aparato.CargaUnitaria = LeerCarga(e, aparato.CargaUnitaria); Recalcular(); }" />
                     @if (aparato.Subtipo?.MinimoUnitarioVA(Datos.Inmueble.EsVivienda()) is { } minimo)
                     {
@@ -2631,7 +2699,7 @@
             case ColDesglose.Hp:
                 @if (aparato.CapturaMotor == CapturaDeMotor.Hp)
                 {
-                    <td>
+                    <td data-falta="@FaltaEn(c, aparato, col)">
                         <select class="hp" data-col="ap-carga" aria-label="Circuito @c.Espacio, carga @n · HP" value="@(aparato.Hp?.ToString(CultureInfo.InvariantCulture) ?? "0")" @onchange="e => CambiarHpDeMiembro(aparato, e.Value?.ToString())"
                                 title="Potencia del motor, con su corriente de tabla · 430-6(a)">
                             <option value="0">—</option>
@@ -2642,16 +2710,16 @@
                 }
                 else
                 {
-                    <td><span class="fijo" title="HP que le corresponden por su corriente · 430-6(a)(1)">@(aparato.MotorEnAmperes is { } m ? $"{m.Hp:0.##} HP" : "—")</span></td>
+                    <td data-falta="@FaltaEn(c, aparato, col)"><span class="fijo" title="HP que le corresponden por su corriente · 430-6(a)(1)">@(aparato.MotorEnAmperes is { } m ? $"{m.Hp:0.##} HP" : "—")</span></td>
                 }
                 break;
             case ColDesglose.CorrientePlaca:
                 var enAmperes = aparato.CapturaMotor == CapturaDeMotor.Amperes;
-                <td><input class="va @Apagado(!enAmperes)" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="—" disabled="@(!enAmperes)" data-col="@CampoDe(ColDesglose.CorrientePlaca)" aria-label="Circuito @c.Espacio, carga @n · Corriente de placa (A)" value="@(enAmperes ? Carga(aparato.CorrientePlacaA) : "")" @onchange="e => { aparato.CorrientePlacaA = LeerCarga(e, aparato.CorrientePlacaA); Recalcular(); }"
+                <td data-falta="@FaltaEn(c, aparato, col)"><input class="va @Apagado(!enAmperes)" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="—" disabled="@(!enAmperes)" data-col="@CampoDe(ColDesglose.CorrientePlaca)" aria-label="Circuito @c.Espacio, carga @n · Corriente de placa (A)" value="@(enAmperes ? Carga(aparato.CorrientePlacaA) : "")" @onchange="e => { aparato.CorrientePlacaA = LeerCarga(e, aparato.CorrientePlacaA); Recalcular(); }"
                            title="@(enAmperes ? "Corriente de la placa del motor · 430-6(a)(1)" : "Solo con la unidad en A.")" /></td>
                 break;
             case ColDesglose.Servicio:
-                <td>
+                <td data-falta="@FaltaEn(c, aparato, col)">
                     @if (aparato.Clase == ClaseDeAparato.Motor)
                     {
                         @if (ReferenceEquals(c.MotorAl125, aparato))
@@ -2680,58 +2748,58 @@
                 break;
             case ColDesglose.NoArranca:
             case ColDesglose.Terminal75:
-                <td><input type="checkbox" class="apagado" disabled data-col="@CampoDe(col)" aria-label="Circuito @c.Espacio, carga @n · @(col == ColDesglose.NoArranca ? "No arranca" : "Terminal 75 °C")" title="Solo con un motor solo." /></td>
+                <td data-falta="@FaltaEn(c, aparato, col)"><input type="checkbox" class="apagado" disabled data-col="@CampoDe(col)" aria-label="Circuito @c.Espacio, carga @n · @(col == ColDesglose.NoArranca ? "No arranca" : "Terminal 75 °C")" title="Solo con un motor solo." /></td>
                 break;
             case ColDesglose.CorrienteEntrada:
-                <td><input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="A" data-col="ap-carga" aria-label="Circuito @c.Espacio, carga @n · Corriente de entrada del variador (A)" value="@Carga(aparato.CorrientePlacaA)" @onchange="e => { aparato.CorrientePlacaA = LeerCarga(e, aparato.CorrientePlacaA); Recalcular(); }"
+                <td data-falta="@FaltaEn(c, aparato, col)"><input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="A" data-col="ap-carga" aria-label="Circuito @c.Espacio, carga @n · Corriente de entrada del variador (A)" value="@Carga(aparato.CorrientePlacaA)" @onchange="e => { aparato.CorrientePlacaA = LeerCarga(e, aparato.CorrientePlacaA); Recalcular(); }"
                            title="Corriente de entrada de la placa del variador · 430-122(a)" /></td>
                 break;
             case ColDesglose.ProtMaxFabricante:
-                <td><input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="A" data-col="@CampoDe(ColDesglose.ProtMaxFabricante)" aria-label="Circuito @c.Espacio, carga @n · Protección máxima del variador (A)" value="@Carga(aparato.ProteccionMaximaA)" @onchange="e => { aparato.ProteccionMaximaA = LeerCarga(e, aparato.ProteccionMaximaA); Recalcular(); }"
+                <td data-falta="@FaltaEn(c, aparato, col)"><input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="A" data-col="@CampoDe(ColDesglose.ProtMaxFabricante)" aria-label="Circuito @c.Espacio, carga @n · Protección máxima del variador (A)" value="@Carga(aparato.ProteccionMaximaA)" @onchange="e => { aparato.ProteccionMaximaA = LeerCarga(e, aparato.ProteccionMaximaA); Recalcular(); }"
                            title="Protección máxima permitida por el fabricante · 110-3(b)" /></td>
                 break;
             case ColDesglose.Bypass:
             case ColDesglose.HpMotor:
                 @* D8: en un grupo, el bypass no entra al cálculo (430-53 cuenta el variador con su corriente de entrada). *@
-                <td>@if (col == ColDesglose.Bypass) { <input type="checkbox" class="apagado" disabled data-col="@CampoDe(ColDesglose.Bypass)" aria-label="Circuito @c.Espacio, carga @n · Bypass" title="Solo con el variador solo en su circuito." /> } else { <select class="hp apagado" disabled data-col="@CampoDe(ColDesglose.HpMotor)" aria-label="Circuito @c.Espacio, carga @n · HP del motor" title="Solo con el variador solo en su circuito."><option>—</option></select> }</td>
+                <td data-falta="@FaltaEn(c, aparato, col)">@if (col == ColDesglose.Bypass) { <input type="checkbox" class="apagado" disabled data-col="@CampoDe(ColDesglose.Bypass)" aria-label="Circuito @c.Espacio, carga @n · Bypass" title="Solo con el variador solo en su circuito." /> } else { <select class="hp apagado" disabled data-col="@CampoDe(ColDesglose.HpMotor)" aria-label="Circuito @c.Espacio, carga @n · HP del motor" title="Solo con el variador solo en su circuito."><option>—</option></select> }</td>
                 break;
             case ColDesglose.CorrienteNominal:
-                <td><input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="A" data-col="ap-carga" aria-label="Circuito @c.Espacio, carga @n · Corriente de carga nominal (A)" value="@Carga(aparato.CorrientePlacaA)" @onchange="e => { aparato.CorrientePlacaA = LeerCarga(e, aparato.CorrientePlacaA); Recalcular(); }"
+                <td data-falta="@FaltaEn(c, aparato, col)"><input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="A" data-col="ap-carga" aria-label="Circuito @c.Espacio, carga @n · Corriente de carga nominal (A)" value="@Carga(aparato.CorrientePlacaA)" @onchange="e => { aparato.CorrientePlacaA = LeerCarga(e, aparato.CorrientePlacaA); Recalcular(); }"
                            title="Corriente de carga nominal de la placa · 440-6(a)" /></td>
                 break;
             case ColDesglose.CorrienteSeleccion:
-                <td><input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="—" data-col="@CampoDe(ColDesglose.CorrienteSeleccion)" aria-label="Circuito @c.Espacio, carga @n · Corriente de selección (A)" value="@Carga(aparato.CorrienteSeleccionA ?? 0m)" @onchange="e => { var v = LeerCarga(e, aparato.CorrienteSeleccionA ?? 0m); aparato.CorrienteSeleccionA = v > 0m ? v : null; Recalcular(); }"
+                <td data-falta="@FaltaEn(c, aparato, col)"><input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="—" data-col="@CampoDe(ColDesglose.CorrienteSeleccion)" aria-label="Circuito @c.Espacio, carga @n · Corriente de selección (A)" value="@Carga(aparato.CorrienteSeleccionA ?? 0m)" @onchange="e => { var v = LeerCarga(e, aparato.CorrienteSeleccionA ?? 0m); aparato.CorrienteSeleccionA = v > 0m ? v : null; Recalcular(); }"
                            title="Corriente de selección de la placa, si la trae · 440-6(a)" /></td>
                 break;
             case ColDesglose.Arranque225:
                 @* D10: solo el mayor, y en un circuito de A/A — 440-22(b)(1). *@
                 var activa = c.EsAireAcondicionado && ReferenceEquals(MotocompresorMayor(c), aparato);
-                <td><input type="checkbox" class="@Apagado(!activa)" disabled="@(!activa)" data-col="@CampoDe(ColDesglose.Arranque225)" aria-label="Circuito @c.Espacio, carga @n · No arranca al 175 %" checked="@(activa && c.ArranqueAl225)" @onchange="e => { c.ArranqueAl225 = e.Value is true; Recalcular(); }"
+                <td data-falta="@FaltaEn(c, aparato, col)"><input type="checkbox" class="@Apagado(!activa)" disabled="@(!activa)" data-col="@CampoDe(ColDesglose.Arranque225)" aria-label="Circuito @c.Espacio, carga @n · No arranca al 175 %" checked="@(activa && c.ArranqueAl225)" @onchange="e => { c.ArranqueAl225 = e.Value is true; Recalcular(); }"
                            title="@(activa ? "No arranca con la protección al 175 % · 440-22(a)" : "Solo en el motocompresor mayor.")" /></td>
                 break;
             case ColDesglose.CorrienteTotal:
-                <td><input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="A" data-col="ap-carga" aria-label="Circuito @c.Espacio, carga @n · Corriente total (A)" value="@Carga(aparato.CorrientePlacaA)" @onchange="e => { aparato.CorrientePlacaA = LeerCarga(e, aparato.CorrientePlacaA); Recalcular(); }"
+                <td data-falta="@FaltaEn(c, aparato, col)"><input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="A" data-col="ap-carga" aria-label="Circuito @c.Espacio, carga @n · Corriente total (A)" value="@Carga(aparato.CorrientePlacaA)" @onchange="e => { aparato.CorrientePlacaA = LeerCarga(e, aparato.CorrientePlacaA); Recalcular(); }"
                            title="Corriente total de la placa del acondicionador · 440-62" /></td>
                 break;
             case ColDesglose.ContinuaTablero:
-                <td><input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="0" data-col="ap-carga" aria-label="Circuito @c.Espacio, carga @n · Continua" value="@Carga(aparato.CargaUnitaria)" @onchange="e => { aparato.CargaUnitaria = LeerCarga(e, aparato.CargaUnitaria); Recalcular(); }"
+                <td data-falta="@FaltaEn(c, aparato, col)"><input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="0" data-col="ap-carga" aria-label="Circuito @c.Espacio, carga @n · Continua" value="@Carga(aparato.CargaUnitaria)" @onchange="e => { aparato.CargaUnitaria = LeerCarga(e, aparato.CargaUnitaria); Recalcular(); }"
                            title="Carga continua del otro tablero, ya con sus factores de demanda · 220-40" /></td>
                 break;
             case ColDesglose.NoContinuaTablero:
-                <td><input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="0" data-col="ap-continua" aria-label="Circuito @c.Espacio, carga @n · No continua" value="@Carga(aparato.NoContinua)" @onchange="e => { aparato.NoContinua = LeerCarga(e, aparato.NoContinua); Recalcular(); }"
+                <td data-falta="@FaltaEn(c, aparato, col)"><input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="0" data-col="ap-continua" aria-label="Circuito @c.Espacio, carga @n · No continua" value="@Carga(aparato.NoContinua)" @onchange="e => { aparato.NoContinua = LeerCarga(e, aparato.NoContinua); Recalcular(); }"
                            title="Carga no continua del otro tablero, ya con sus factores de demanda · 220-40" /></td>
                 break;
             case ColDesglose.Fp:
-                <td><input data-requerido class="va fp" type="text" inputmode="decimal" autocomplete="off" data-numero min="@FactorMinimo" max="1" step="0.05" data-col="ap-fp" aria-label="Circuito @c.Espacio, carga @n · F.P." value="@Factor(aparato.FactorPotencia)" @onchange="e => { aparato.FactorPotencia = LeerFactor(e, aparato.FactorPotencia); Recalcular(); }" /></td>
+                <td data-falta="@FaltaEn(c, aparato, col)"><input data-requerido class="va fp" type="text" inputmode="decimal" autocomplete="off" data-numero min="@FactorMinimo" max="1" step="0.05" data-col="ap-fp" aria-label="Circuito @c.Espacio, carga @n · F.P." value="@Factor(aparato.FactorPotencia)" @onchange="e => { aparato.FactorPotencia = LeerFactor(e, aparato.FactorPotencia); Recalcular(); }" /></td>
                 break;
             case ColDesglose.Total:
-                <td class="num" title="@(aparato.EsMaquina && aparato.CorrienteUnitariaA > 0m ? $"{aparato.Cantidad} × {aparato.CorrienteUnitariaA:N2} A = {aparato.Cantidad * aparato.CorrienteUnitariaA:N2} A" : aparato.ReferenciaMinimo is { } rm ? $"Incluye la carga mínima · {rm}" : null)">@aparato.TotalVA.ToString("#,0.##")</td>
+                <td data-falta="@FaltaEn(c, aparato, col)" class="num" title="@(aparato.EsMaquina && aparato.CorrienteUnitariaA > 0m ? $"{aparato.Cantidad} × {aparato.CorrienteUnitariaA:N2} A = {aparato.Cantidad * aparato.CorrienteUnitariaA:N2} A" : aparato.ReferenciaMinimo is { } rm ? $"Incluye la carga mínima · {rm}" : null)">@aparato.TotalVA.ToString("#,0.##")</td>
                 break;
             case ColDesglose.Quitar:
-                <td><button class="quitar" title="Quitar la carga" aria-label="Quitar la carga @n del circuito @c.Espacio" @onclick="() => QuitarAparato(c, aparato, n)"><Icono Nombre="quitar" Tamano="14" /></button></td>
+                <td data-falta="@FaltaEn(c, aparato, col)"><button class="quitar" title="Quitar la carga" aria-label="Quitar la carga @n del circuito @c.Espacio" @onclick="() => QuitarAparato(c, aparato, n)"><Icono Nombre="quitar" Tamano="14" /></button></td>
                 break;
             default:
-                <td class="tenue">—</td>
+                <td data-falta="@FaltaEn(c, aparato, col)" class="tenue">—</td>
                 break;
         }
     };

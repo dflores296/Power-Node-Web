@@ -35,9 +35,11 @@ public class LoQueLeeElDibujoTests
 
         // Cada uno, cubierto: los avisos y el desglose salen del circuito, su canalización y el tablero; la
         // protección fijada, del circuito; barras, canalizaciones y polos, de FirmaDeDibujo.De(Datos). Los demás
-        // circuitos (la lista de «No simultáneo con», D11), de FirmaDelPar(), que va con la firma del tablero.
+        // circuitos (la lista de «No simultáneo con», D11), de FirmaDelPar(), que va con la firma del tablero. Los
+        // avisos de la tabla (AvisosDeLaTabla, opción A) salen del error, las reglas de clase, la caída combinada, la
+        // canalización y los datos del tablero: todo en las dos firmas.
         Assert.Equal(
-            ["Cuadro.AvisosDe", "Cuadro.Circuitos", "Cuadro.Desglose", "CuadroDeCarga.ProteccionFijada", "Datos.Barras", "Datos.Canalizaciones", "Datos.MaximoPolos"],
+            ["Cuadro.Circuitos", "Cuadro.Desglose", "CuadroDeCarga.ProteccionFijada", "Datos.Barras", "Datos.Canalizaciones", "Datos.MaximoPolos"],
             LoQueLee(captura[inicio..fin]));
     }
 
