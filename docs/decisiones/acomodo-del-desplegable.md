@@ -68,15 +68,34 @@ David: «1 sí, 2 sí, 3 A». Con Cant. fija en 1, cada uno en su renglón:
 
 Todos los demás aparatos, Cant. libre (D1).
 
-## D4 · Cuándo aparece una columna — CONTESTADA (David, 2026-10-07: «A»)
+## D4, D5, D6 y D7 · Las columnas: un bloque por juego de columnas — CONTESTADAS (David, 2026-10-07)
 
-**Según los subtipos que hay en el circuito.** Cada subtipo trae su juego fijo de columnas; el circuito
-enseña la unión de las de sus renglones. Mientras no cambie un subtipo, las columnas no se mueven. Una columna
-que el subtipo trae pero que no aplica por otro dato se ve **apagada**, no desaparece («HP del motor» sin
-bypass, «Corriente de placa» en un motor continuo). En los renglones de otro subtipo, la celda dice «—».
+David: «Hay una fila de encabezados hasta arriba; si todos los tipos de carga en los renglones son los mismos,
+comparten esa fila de encabezados de columna. Si un renglón tiene sus propias columnas, no vas a atiborrar
+todas: vas a agregar entre cada carga un nuevo renglón de encabezados correspondiente a cada carga.»
 
-Descartadas: todas siempre (13 columnas en «—» en un circuito de contactos) y según los valores capturados
-(la tabla se reacomoda mientras se captura, lo que molestaba en I-140).
+- **El desplegable se arma por bloques.** Cada bloque es una fila de encabezados y los renglones que llevan
+  ese mismo juego de columnas. Con un solo juego, un solo encabezado, como hoy. Nada de columnas de otra
+  carga con «—».
+- **Qué comparte bloque** (1 A): el mismo juego de columnas, no el mismo «Tipo». Un motor de uso general y
+  un variador son «Motores», pero van en bloques distintos.
+- **Orden** (2 A): los renglones se agrupan solos por juego de columnas; un bloque y un encabezado por
+  juego, aunque se capturen intercalados.
+- **Alineación** (3 A): Descripción, Tipo, Subtipo y Cant. van primero en todos los bloques y miden lo mismo,
+  una debajo de otra; Descripción, alineada con la del circuito (I-200). Lo que cambia de bloque a bloque son
+  las columnas de la derecha.
+- **D5 (una celda, un dato):** lo resuelve R1. Las celdas de dos casillas se separan en columnas.
+- **D6 (nombres):** cada bloque nombra sus columnas con precisión: Corriente de placa (A) del motor,
+  Corriente nominal (A) y Corriente de selección (A) del motocompresor, Corriente total (A) del de
+  habitación, Corriente de entrada (A) y Prot. máx. del fabricante (A) del variador, Ampacidad mínima (A) y
+  Prot. máx. de placa (A) del A/A «Carga combinada». Las siglas de placa (FLA, RLA, MCA, MOCP), en la ayuda.
+- **D7 («Unidad»):** solo la lleva el bloque de un subtipo con algo que escoger: cargas (VA / W / A) y motor
+  de uso general (HP / A). Variador, motocompresor y A/A no la llevan: la unidad va en el encabezado.
+- Dentro de un bloque, una columna que no aplica por otro dato se ve **apagada**, con su ayuda corta
+  («HP del motor» sin bypass, «Corriente de placa» en un motor continuo).
+
+Antes se había contestado D4 como «la unión de las columnas de los subtipos del circuito»; los bloques la
+reemplazan.
 
 ## R3 · Los artículos en la tabla — REEMPLAZADA por la guía de David
 
@@ -95,11 +114,6 @@ con la propuesta de Claude (tres niveles y un puente a la memoria) en cada rengl
 Detalle de cada una (cómo está hoy, opciones, recomendación) en la conversación del 2026-10-07; aquí, lo
 que hay que decidir:
 
-- **D5.** Una celda, un dato: separar «Entrada · Máx.», «Nominal · Selección», «Ampac. · Máx.» y «HP +
-  Placa A» en columnas propias.
-- **D6.** ¿Columnas compartidas por concepto («Corriente de placa (A)», «Protección máxima (A)») o una por
-  equipo?
-- **D7.** «Unidad» en variador, motocompresor y A/A: ¿«—» o «A» como texto?
 - **D8.** Bypass y HP del motor del variador: columnas propias; ¿HP apagada hasta marcar el bypass?
 - **D9.** «No arranca con la Tabla 430-52 (400 %)» y «Terminal 75 °C»: columnas propias, solo con motor
   solo.
