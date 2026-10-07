@@ -105,6 +105,14 @@ reemplazan.
   solo en su circuito.»). Lo que no cuenta no se deja marcar; la advertencia B17 de los avisos («El bypass no
   cuenta en un grupo…») ya no hace falta.
 
+## D9 y D10 · Las casillas del motor solo y el 225 % — CONTESTADAS (David, 2026-10-07: «D9 sí, D10 A»)
+
+- **D9:** «No arranca con la protección de tabla» y «Terminal 75 °C», columnas del bloque de motor de uso
+  general; apagadas cuando el circuito no es un motor solo, con su marca guardada (D2). El cálculo no cambia:
+  la de 75 °C sigue siendo solo del motor solo.
+- **D10:** «Arranque 225 %», columna del bloque del motocompresor; en un grupo, solo activa en el renglón del
+  mayor (440-22(b)(1)); en los demás, apagada: «Solo en el motocompresor mayor.».
+
 ## R3 · Los artículos en la tabla — REEMPLAZADA por la guía de David
 
 David escribió cómo se redactan los avisos: [`redaccion-de-avisos.md`](redaccion-de-avisos.md) (2026-10-07).
@@ -117,14 +125,17 @@ discretos, que la tabla y la memoria hagan sinergia». Pidió el inventario de t
 artículo, para decidir cada uno: [`../conocimiento/avisos-de-la-captura.md`](../conocimiento/avisos-de-la-captura.md),
 con la propuesta de Claude (tres niveles y un puente a la memoria) en cada renglón.
 
+## El mockup
+
+[`../mockups/desglose-por-bloques.html`](../mockups/desglose-por-bloques.html) (y su captura `.png`), 2026-10-07:
+contactos y alumbrado en un bloque, un motor solo, un variador sin tensión y un grupo de motor, motocompresor
+y variador. Lo que falta decidir, con la recomendación de Claude, marcado «por decidir».
+
 ## Pendientes, en orden
 
 Detalle de cada una (cómo está hoy, opciones, recomendación) en la conversación del 2026-10-07; aquí, lo
 que hay que decidir:
 
-- **D9.** «No arranca con la Tabla 430-52 (400 %)» y «Terminal 75 °C»: columnas propias, solo con motor
-  solo.
-- **D10.** «Arranque 225 %» del motocompresor: columna propia; en grupo, ¿solo activa en el mayor?
 - **D11.** «No simultáneo con» (es del circuito, no de una carga): ¿columna del cuadro, primera línea del
   desplegable, o banda encima?
 - **D12.** Los textos fijos de «Servicio» («motor mayor · 125 %», «440-62», «—»): ¿se quedan?
