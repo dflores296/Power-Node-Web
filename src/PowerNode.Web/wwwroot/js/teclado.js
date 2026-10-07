@@ -211,7 +211,7 @@
 
     /** Ctrl+Enter en cualquier campo del circuito o de su desglose. */
     function alternarDesglose(el) {
-        const espacio = el.closest('table.desglose')?.dataset.circuito ?? el.closest('tr[data-espacio]')?.dataset.espacio;
+        const espacio = el.closest('.desglose-tarjeta')?.dataset.circuito ?? el.closest('tr[data-espacio]')?.dataset.espacio;
         const boton = espacio && document.querySelector(`tr[data-espacio="${espacio}"] button.desglosar`);
         if (!boton)
             return false;

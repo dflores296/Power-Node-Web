@@ -1,30 +1,58 @@
-// LA DESCRIPCIÓN DEL DESPLEGABLE, ALINEADA CON LA DEL CIRCUITO — I-200 (David, 2026-10-07).
+// LOS ANCHOS DEL DESPLEGABLE POR BLOQUES — acomodo-del-desplegable.md (David, 2026-10-07); antes, I-200.
 //
-// La columna «Descripción» del cuadro la mide el navegador (table-layout automático: según lo
-// capturado y el ancho de la ventana), así que CSS no la conoce. Aquí se mide y se deja como la
-// fracción del desplegable que le toca a su descripción (--desc-fraccion), para que las dos terminen
-// en la misma línea. Fracción y no píxeles: con table-layout: fixed, el ancho que sobra se reparte
-// entre las columnas con ancho en píxeles —la descripción se pasaba de la línea— y no entre las de
-// porcentaje. --desc-ancho, en píxeles, es para el ancho mínimo del desplegable antes del scroll.
+// La columna «Descripción» del cuadro la mide el navegador (table-layout automático: según lo capturado y
+// el ancho de la ventana), así que CSS no la conoce. Aquí se mide y, en cada desplegable abierto:
+//   - la descripción de cada bloque termina en la misma línea que la del circuito (I-200);
+//   - Tipo, Subtipo, Cant., F.P., Total y el bote (data-g) miden su base en todos los bloques: quedan
+//     una debajo de otra (David: «los botes de basura también se pueden alinear»);
+//   - lo que sobra se reparte entre las columnas del medio, en proporción a su base (data-w);
+//   - todos los bloques del mismo largo: el del desplegable o, si no cabe, el del bloque más ancho. El
+//     desplegable se recorre de lado; los campos no se aprietan (David: «existe el scroll»).
+// Se vuelve a medir cuando cambia el ancho del cuadro o de su descripción, y cuando Blazor dibuja otros
+// bloques (un desplegable que se abre, una línea que cambia de juego de columnas).
+//
+// La línea se toma del borde izquierdo de «Tipo», no del derecho de «Descripción»: la descripción del cuadro
+// es fija al recorrer el cuadro de lado (sticky) y el desplegable no; «Tipo» se mueve con él.
 (() => {
-    let observador = null;
+    let tamano = null;
+    let cambios = null;
+    let pendiente = 0;
 
-    function medir(cuadro, th) {
-        const d = th.getBoundingClientRect();
-        const t = cuadro.getBoundingClientRect();
-        // El desplegable va en la celda que empieza en la descripción y llega al final del renglón;
-        // su sangría es la de las celdas del cuadro. Su borde izquierdo (1 px) va antes de la columna.
-        const celda = cuadro.querySelector(':scope > tbody > tr > td');
-        const estilo = celda ? getComputedStyle(celda) : null;
-        const izq = estilo ? parseFloat(estilo.paddingLeft) : 0;
-        const der = estilo ? parseFloat(estilo.paddingRight) : 0;
-        const ancho = d.width - izq - 1;
-        const disponible = t.right - d.left - izq - der - 2;
-        if (ancho <= 0 || disponible <= 0)
+    function medir() {
+        pendiente = 0;
+        const cuadro = document.querySelector('#sec-cuadro > .cuadro');
+        const tipo = cuadro?.querySelector(':scope > thead th[data-col="tipo"]');
+        if (!tipo)
             return;
-        const raiz = document.documentElement.style;
-        raiz.setProperty('--desc-fraccion', (ancho / disponible).toFixed(5));
-        raiz.setProperty('--desc-ancho', `${ancho}px`);
+        const linea = tipo.getBoundingClientRect().left;
+        for (const recorre of cuadro.querySelectorAll('.desglose-scroll')) {
+            const tablas = [...recorre.querySelectorAll(':scope > table.desglose')];
+            if (tablas.length === 0)
+                continue;
+            const desc = Math.max(160, linea - recorre.getBoundingClientRect().left);
+            const datos = tablas.map(t => {
+                const cols = [...t.querySelectorAll(':scope > colgroup > col')];
+                const base = cols.reduce((s, c) => s + (+c.dataset.w || 0), 0);
+                const repartible = cols.filter(c => !c.hasAttribute('data-g')).reduce((s, c) => s + (+c.dataset.w || 0), 0);
+                return { t, cols, base, repartible };
+            });
+            const ancho = Math.max(recorre.clientWidth, ...datos.map(d => d.base + desc));
+            for (const { t, cols, base, repartible } of datos) {
+                t.style.width = `${ancho}px`;
+                const sobra = ancho - base - desc;
+                for (const c of cols) {
+                    const w = +c.dataset.w || 0;
+                    c.style.width = c.dataset.col === 'Desc' ? `${desc}px`
+                        : c.hasAttribute('data-g') || repartible === 0 ? `${w}px`
+                        : `${w + sobra * w / repartible}px`;
+                }
+            }
+        }
+    }
+
+    function pedir() {
+        if (!pendiente)
+            pendiente = requestAnimationFrame(medir);
     }
 
     function conectar(intentos = 20) {
@@ -36,17 +64,21 @@
             if (intentos > 0) requestAnimationFrame(() => conectar(intentos - 1));
             return;
         }
-        observador = new ResizeObserver(() => medir(cuadro, th));
-        observador.observe(th);
-        observador.observe(cuadro);
-        medir(cuadro, th);
+        tamano = new ResizeObserver(pedir);
+        tamano.observe(th);
+        tamano.observe(cuadro);
+        // Solo los renglones que entran o salen: los anchos que se ponen aquí son atributos, no cuentan.
+        cambios = new MutationObserver(pedir);
+        cambios.observe(cuadro, { childList: true, subtree: true });
+        pedir();
     }
 
     function desconectar() {
-        observador?.disconnect();
-        observador = null;
-        document.documentElement.style.removeProperty('--desc-fraccion');
-        document.documentElement.style.removeProperty('--desc-ancho');
+        tamano?.disconnect();
+        cambios?.disconnect();
+        tamano = cambios = null;
+        if (pendiente) cancelAnimationFrame(pendiente);
+        pendiente = 0;
     }
 
     (window.powerNode ??= {}).desglose = { conectar: () => conectar(), desconectar };

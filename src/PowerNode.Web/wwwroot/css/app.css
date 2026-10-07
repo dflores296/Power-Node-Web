@@ -1089,63 +1089,42 @@ polygon.riel-a { fill: var(--barra-a); } polygon.riel-b { fill: var(--barra-b); 
 .cuadro button.desglosar { display: inline-flex; align-items: center; border: 0; background: none; cursor: pointer; color: var(--tenue); padding: 0; }
 .cuadro .en-va.izq { text-align: left; }
 .cuadro tr.fila-desglose td { background: var(--fondo-suave); padding: 8px 12px 12px; text-align: left; }
-/* El desglose es una lista dentro del circuito (David, 2026-09-24): tarjeta blanca a todo el ancho
-   del renglón, con una línea entre aparato y aparato. La descripción se queda con lo que sobra.
-   separate y no collapse, por el border-radius — ver .cuadro. */
-.cuadro table.desglose { border-collapse: separate; border-spacing: 0; width: 100%; margin: 0;
-                         background: var(--papel); border: 1px solid var(--linea);
-                         border-radius: var(--radio-sm); overflow: hidden; }
+/* EL DESPLEGABLE POR BLOQUES (acomodo-del-desplegable.md, David, 2026-10-07). Una tarjeta blanca a todo el
+   ancho del renglón: el título una vez; un bloque (una tabla) por juego de columnas, cada uno con su fila de
+   encabezados y una línea más gruesa entre bloque y bloque; abajo, «Agregar» y la suma, sin controles. */
+.cuadro .desglose-tarjeta { background: var(--papel); border: 1px solid var(--linea); border-radius: var(--radio-sm); overflow: hidden; }
+/* La tarjeta no le pide ancho al cuadro (width: 0) y llena su celda (min-width: 100 %): un desplegable que no cabe
+   se recorre adentro; sin esto, el bloque ancho ensanchaba el cuadro y la descripción se salía de su línea. */
+.cuadro .desglose-tarjeta { width: 0; min-width: 100%; box-sizing: border-box; }
+.cuadro .desglose-titulo { font-size: 10.5px; font-weight: 600; letter-spacing: .03em; text-transform: uppercase; color: var(--tenue);
+                           padding: 7px 10px; border-bottom: 1px solid var(--linea); }
+/* SCROLL PROPIO (David, 2026-10-07: «no se trata de atiborrar todo en los píxeles que tenemos»): si no cabe,
+   el desplegable se recorre de lado; ni la descripción ni los campos se aprietan. */
+.cuadro .desglose-scroll { overflow-x: auto; }
+/* LOS ANCHOS (js/desglose.js): la descripción termina en la línea de la del circuito (I-200); Tipo, Subtipo,
+   Cant., F.P., Total y el bote miden lo mismo en todos los bloques; lo que sobra se reparte entre las del
+   medio, en proporción a su base (data-w). Todos los bloques de un desplegable, del mismo largo. */
+.cuadro table.desglose { border-collapse: separate; border-spacing: 0; table-layout: fixed; width: 100%; margin: 0;
+                         background: var(--papel); }
+.cuadro table.desglose + table.desglose { border-top: 2px solid var(--linea); }
 .cuadro table.desglose th { font-size: 10px; font-weight: 600; text-transform: uppercase; color: var(--tenue);
-                            padding: 7px 10px; border: 0; border-bottom: 1px solid var(--linea);
-                            background: var(--fondo-suave); width: 120px; }
-.cuadro table.desglose th.izq { width: auto; }
-.cuadro table.desglose th:last-child { width: 40px; }
-/* EL ANCHO, REPARTIDO SEGÚN LO QUE HAY (David, 2026-10-07; antes, anchos fijos — I-140):
-   - La descripción, del ancho de la del circuito (I-200): no se estira ni se encoge al cambiar de tipo (I-140).
-   - Las demás, lo que pide el campo más ancho de las líneas de ESTE circuito: «Carga c/u» mide 140 con
-     una carga en VA y 310 con los HP y la corriente de placa; «Servicio», 148 con «No continua» y 208
-     con «Intermitente · 30-60 min». Con anchos fijos para el peor caso, la carga en VA quedaba en una
-     columna de 272 px con su campo de 80.
-   - Lo que sobra se reparte entre todas en proporción (table-layout: fixed lo hace solo), y cada campo
-     llena su celda, como en el renglón del circuito: ninguno se ve apretado ni rodeado de hueco.
-   Los anchos son de base; cada uno cabe su campo y su nota («mín. 180 VA — 220-14(h)»). */
-.cuadro table.desglose { table-layout: fixed; }
-/* La celda que lo contiene no crece por él: con anchos fijos y 100 %, sin esto la tabla se iba a lo ancho. */
-.cuadro tr.fila-desglose > td:last-child { max-width: 0; }
-/* Los tres anchos que cambian con lo que lleva el circuito, en variables: la tabla no baja de la suma de todas
-   más la descripción (722 = tipo, subtipo, cant., unidad, F.P., total y quitar); si no cabe, se recorre. */
-.cuadro table.desglose { --w-carga: 140px; --w-servicio: 148px; --w-tension: 0px;
-                         min-width: calc(722px + var(--w-carga) + var(--w-servicio) + var(--w-tension) + var(--desc-ancho, 300px)); }
-.cuadro table.desglose:has(> tbody .nota-min.larga) { --w-carga: 196px; }
-.cuadro table.desglose:has(> tbody td.dos-campos) { --w-carga: 172px; }
-.cuadro table.desglose:has(> tbody select.hp) { --w-carga: 234px; }
-.cuadro table.desglose:has(> tbody input.placa-servicio) { --w-carga: 310px; }
-.cuadro table.desglose:has(> tbody select.servicio) { --w-servicio: 208px; }
-.cuadro table.desglose:has(> thead th[data-col="ap-tension"]) { --w-tension: 150px; }
-/* SCROLL PROPIO (David, 2026-10-07: «no se trata de atiborrar todo en los píxeles que tenemos»): si no
-   cabe, el desplegable se recorre de lado; ni la descripción ni los campos se aprietan. */
-.cuadro .desglose-scroll { overflow-x: auto; border-radius: var(--radio-sm); }
-/* La descripción termina en la misma línea que la del circuito (I-200): js/desglose.js mide la del cuadro y
-   deja qué fracción del desplegable le toca. Fracción y no píxeles: el ancho que sobra se lo reparten las demás.
-   Sin el script, el 25 %. */
-.cuadro table.desglose th[data-col="ap-desc"] { width: calc(var(--desc-fraccion, .25) * 100%); }
-.cuadro table.desglose th[data-col="ap-tipo"] { width: 140px; }
-.cuadro table.desglose th[data-col="ap-subtipo"] { width: 200px; }
-.cuadro table.desglose th[data-col="ap-cant"] { width: 72px; }
-.cuadro table.desglose th[data-col="ap-unidad"] { width: 96px; }
-.cuadro table.desglose th[data-col="ap-tension"] { width: var(--w-tension); }
-.cuadro table.desglose th[data-col="ap-carga"] { width: var(--w-carga); }
-.cuadro table.desglose th[data-col="ap-continua"] { width: var(--w-servicio); }
-.cuadro table.desglose th[data-col="ap-fp"] { width: 78px; }
-.cuadro table.desglose th:nth-last-child(2) { width: 96px; }
-.cuadro table.desglose th:nth-last-child(2) { text-align: center; }
+                            padding: 7px 8px; border: 0; border-bottom: 1px solid var(--linea);
+                            background: var(--fondo-suave); text-align: center; white-space: normal; line-height: 1.25; }
+/* El nombre del bloque, en su primera celda: «Cargas», «Motores», «Variadores»… */
+.cuadro table.desglose th.nombre-bloque { color: var(--tinta); }
+/* La primera columna de un bloque no es la del N.º del cuadro: sin su fondo ni su capa. Y el equipo del circuito ya
+   no es un renglón azul aparte (D1): se ve como cualquier línea. */
+.cuadro table.desglose > thead > tr > th:first-child { background: var(--fondo-suave); z-index: auto; }
+.cuadro table.desglose > tbody > tr > td:first-child { background: none; }
+.cuadro .desglose-pie { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 7px 10px;
+                        border-top: 1px solid var(--linea); font-size: 11px; color: var(--tenue); }
+.cuadro .desglose-suma { text-align: right; }
 /* Cada campo llena su celda (las reglas del renglón llevan #sec-cuadro: estas también, para ganarles). */
 #sec-cuadro table.desglose select.tipo, #sec-cuadro table.desglose select.unidad,
 #sec-cuadro table.desglose select.hp, #sec-cuadro table.desglose select.servicio,
 #sec-cuadro table.desglose select.servicio-carga, #sec-cuadro table.desglose select.tension,
 #sec-cuadro table.desglose td > input.va { width: 100%; }
 #sec-cuadro table.desglose select.subtipo { width: calc(100% - 19px); } /* y su «?»: 15 px más 4 */
-#sec-cuadro table.desglose td:has(> input.placa-servicio) > select.hp { width: calc(100% - 76px); }
 #sec-cuadro table.desglose .cantidad { display: flex; width: 100%; }
 #sec-cuadro table.desglose .cantidad > input.va { flex: 1; min-width: 0; width: auto; }
 .cuadro table.desglose td { padding: 5px 10px; border: 0; border-bottom: 1px solid var(--linea-suave);
@@ -1164,8 +1143,6 @@ polygon.riel-a { fill: var(--barra-a); } polygon.riel-b { fill: var(--barra-b); 
    máx.») cuelga debajo del campo sin empujarlo hacia arriba, como en el renglón del circuito. */
 .cuadro table.desglose tbody td { position: relative; padding-top: 14px; padding-bottom: 14px; }
 .cuadro table.desglose input.desc { width: 100%; }
-.cuadro table.desglose tfoot td { padding: 8px 10px; font-size: 11px; color: var(--tenue);
-                                  border-top: 1px solid var(--linea); border-bottom: 0; }
 .cuadro button.agregar, .cuadro button.quitar { display: inline-flex; align-items: center; gap: 5px; border: 0; background: none; cursor: pointer; color: var(--acento); font-size: 11px; padding: 2px 4px; }
 .cuadro button.quitar { color: var(--tenue); }
 /* Una máquina del desglose (I-115, I-118): en lugar de la casilla «Continua», qué es. */
@@ -1181,8 +1158,6 @@ polygon.riel-a { fill: var(--barra-a); } polygon.riel-b { fill: var(--barra-b); 
 .cuadro table.desglose .flecha:hover:not(:disabled) { color: var(--acento); border-color: var(--acento-borde); }
 .cuadro table.desglose .flecha:disabled { opacity: .4; cursor: default; }
 .cuadro table.desglose select.servicio-carga:disabled { opacity: 1; color: var(--tenue); }
-#sec-cuadro table.desglose td > input.va.placa-servicio { width: 72px; margin-left: 4px; }
-.cuadro table.desglose td:has(> input.placa-servicio) { white-space: nowrap; }
 /* SALIDAS Y CARGAS (I-123): tipo y subtipo de cada línea, con su «?» a la guía; el mínimo de 220-14,
    debajo de la carga. */
 .cuadro table.desglose select.subtipo { padding: 2px 2px 2px 5px; border-radius: var(--radio-xs); }
@@ -1197,13 +1172,7 @@ polygon.riel-a { fill: var(--barra-a); } polygon.riel-b { fill: var(--barra-b); 
 #sec-cuadro > .cuadro > tbody > tr > td.clase-td > .en-va { white-space: nowrap; }
 /* Continua, No continua y F.P., centradas y del mismo ancho, como las de Balanceo de fases. */
 #sec-cuadro > .cuadro .col-carga { width: 90px; min-width: 90px; box-sizing: border-box; text-align: center; }
-/* El equipo del renglón (motor, variador, A/A, otro tablero), como la primera línea del desplegable. */
-.cuadro table.desglose tr.linea-renglon td { background: var(--acento-suave); }
 .cuadro select.tipo.combinadas { font-style: italic; color: var(--acento); background: var(--acento-suave); border-color: var(--acento-borde); opacity: 1; }
-/* RLA y selección de un motocompresor, lado a lado en la celda de la carga (I-116). */
-.cuadro table.desglose td.dos-campos { white-space: nowrap; }
-#sec-cuadro table.desglose td.dos-campos input.va { width: calc(50% - 2px); }
-.cuadro table.desglose td.dos-campos input.va + input.va { margin-left: 4px; }
 /* Lo del circuito que no es de un aparato, arriba del desglose (I-120, I-121). */
 .cuadro .opciones-circuito { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px; margin: 0 0 8px;
                              font-size: 12px; color: var(--tenue); }
@@ -1212,13 +1181,17 @@ polygon.riel-a { fill: var(--barra-a); } polygon.riel-b { fill: var(--barra-b); 
 .cuadro .opciones-circuito select, .cuadro .opciones-circuito input.va { height: 28px; font-size: 12px; color: var(--tinta); }
 .cuadro .opciones-circuito input.va { width: 70px; }
 .cuadro .opciones-circuito .nota-opcion { font-style: italic; }
-/* «No simultáneo con», abajo junto a la suma (David, 2026-09-30); solo donde aplica. */
-.cuadro table.desglose tfoot label.no-simultaneo { display: inline-flex; align-items: center; gap: 6px; margin-right: 16px; color: var(--tinta); font-size: 12px; }
-.cuadro table.desglose tfoot label.no-simultaneo select { height: 26px; font-size: 12px; }
-.cuadro table.desglose tfoot .nota-opcion { font-style: italic; margin-right: 16px; }
-.cuadro table.desglose tfoot label.arranque-225 { display: inline-flex; align-items: center; gap: 5px; margin-right: 16px; }
 /* I-189: la tensión de placa que falta, en rojo como el error del renglón. */
 .cuadro table.desglose select.falta { border-color: var(--alerta); color: var(--alerta); }
+/* APAGADA (D2, D7-D10): la columna no aplica por otro dato de la línea; se ve, sin dejarse capturar, y dice por
+   qué al pasar el cursor. La marca guardada no se pierde. */
+.cuadro table.desglose .apagado { opacity: .42; cursor: not-allowed; }
+.cuadro table.desglose input.va.apagado:disabled { border-color: var(--linea); background: var(--fondo-suave); }
+.cuadro table.desglose td > input[type="checkbox"] { width: 15px; height: 15px; margin: 0; vertical-align: middle; }
+/* Lo que no se escoge en la línea (Cant. de un variador, los HP de un motor en A): texto, no campo. */
+.cuadro table.desglose .fijo { color: var(--tenue); }
+/* D11: «No simultáneo con», columna del cuadro. */
+#sec-cuadro > .cuadro select.no-simultaneo { width: 100%; min-width: 104px; }
 
 /* ------------------------------------------------------------------------------------------------
    CANALIZACIONES — decisión canalizaciones-y-agrupamiento (2026-09-24).
@@ -1471,7 +1444,7 @@ body.arrastrando-principal .zona-zocalo .al-arrastrar { display: inline; }
     b, strong { font-weight: 590; }
 
     /* Superficies: línea de 1 px, sin sombra. */
-    .ficha .grupo, .tarjeta, .memoria, .documento, .cuadro, .cuadro table.desglose {
+    .ficha .grupo, .tarjeta, .memoria, .documento, .cuadro, .cuadro .desglose-tarjeta {
         border: 1px solid var(--linea); box-shadow: var(--brillo-tarjeta);
     }
 

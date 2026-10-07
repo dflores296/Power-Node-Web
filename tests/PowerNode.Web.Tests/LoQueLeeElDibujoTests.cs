@@ -34,9 +34,10 @@ public class LoQueLeeElDibujoTests
         Assert.True(inicio > 0 && fin > inicio, "No se encontró el renglón memorizado en Captura.razor.");
 
         // Cada uno, cubierto: los avisos y el desglose salen del circuito, su canalización y el tablero; la
-        // protección fijada, del circuito; barras, canalizaciones y polos, de FirmaDeDibujo.De(Datos).
+        // protección fijada, del circuito; barras, canalizaciones y polos, de FirmaDeDibujo.De(Datos). Los demás
+        // circuitos (la lista de «No simultáneo con», D11), de FirmaDelPar(), que va con la firma del tablero.
         Assert.Equal(
-            ["Cuadro.AvisosDe", "Cuadro.Desglose", "CuadroDeCarga.ProteccionFijada", "Datos.Barras", "Datos.Canalizaciones", "Datos.MaximoPolos"],
+            ["Cuadro.AvisosDe", "Cuadro.Circuitos", "Cuadro.Desglose", "CuadroDeCarga.ProteccionFijada", "Datos.Barras", "Datos.Canalizaciones", "Datos.MaximoPolos"],
             LoQueLee(captura[inicio..fin]));
     }
 
