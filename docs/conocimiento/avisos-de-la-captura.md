@@ -1,175 +1,214 @@
-# Los artículos y avisos de la tabla de captura — inventario del 2026-10-07
+# Los avisos de la tabla de captura, reescritos con la guía — 2026-10-07
 
-Todo lo que la tabla de captura (el cuadro y su desplegable) dice con un artículo de la NOM, sacado del
-código (`Pages/Captura.razor`, `CuadroDeCarga.cs`, `CircuitoDelCuadro.cs`) el 2026-10-07. Es para que David
-decida cada uno — [`../decisiones/acomodo-del-desplegable.md`](../decisiones/acomodo-del-desplegable.md), R3.
+Cada aviso y cada ayuda de la tabla de captura (el cuadro y su desplegable), con su texto final según la
+guía de David: [`../decisiones/redaccion-de-avisos.md`](../decisiones/redaccion-de-avisos.md). Sacado del
+código el 2026-10-07 (`Pages/Captura.razor`, `CuadroDeCarga.cs`, `CircuitoDelCuadro.cs`, y los mensajes del
+motor de cálculo que llegan a un circuito). **Propuesta de Claude: falta que David la revise.** Nada está
+implementado.
 
-Fuera de este inventario (no son la tabla): la tarjeta «Avisos» al pie de la página, la tarjeta del
-alimentador, la de canalizaciones y la ficha del tablero.
+El resto de la página de captura (ficha, canalizaciones, resumen, alimentador, tarjeta «Avisos», avisos
+flotantes que no son de la tabla) va en una segunda entrega: alcance B de la guía.
 
-## Cómo se ve cada cosa hoy
-
-- **Visible**: está escrito en la tabla, siempre.
-- **Cursor**: aparece al pasar el cursor (ayuda).
-- **Ícono ⚠**: el triángulo junto a la descripción del circuito; el texto, al pasar el cursor.
-- **Fila roja**: un renglón rojo bajo el circuito; el circuito no se calculó.
-- **Flotante**: un aviso arriba de la página, que se va solo.
-
-## La propuesta (columna «Propuesta»)
-
-Tres niveles, de lo discreto a lo completo, y un puente entre la tabla y la memoria:
-
-| Nivel | Dónde | Qué lleva |
-|---|---|---|
-| 1 · A la vista | La tabla | Valores, estados y lo que hay que corregir. Sin artículos. |
-| 2 · Al pasar el cursor | La ayuda del campo | Una frase: qué se captura o qué significa el valor, y la referencia al final («· 430-122(a)»). Nada de explicaciones largas. |
-| 3 · La memoria de cálculo | `/documento` | El porqué completo, la cuenta y todos los artículos. |
-| Puente | Clic en el valor de Protec., en el conductor o en el ⚠ | Abre la memoria en la hoja de ese circuito. |
-
-Las claves de la columna «Propuesta»:
-
-- **Queda**: sin cambio.
-- **Corta**: se queda donde está, en una frase; la referencia al final, sin explicación.
-- **Sin artículo**: se queda a la vista, pero sin el artículo.
-- **Sale**: se quita de la tabla. Lo dice otra cosa (una columna nueva, el valor del campo) o la memoria.
-- **Memoria**: sale de la tabla y queda en la memoria, con el puente.
-- **Rojo**: error que impide calcular: el campo que falta, en rojo; en la fila roja, qué hacer, sin
-  artículo.
+**Cómo leer las tablas.**
+- **Clase:** Error (no calcula), Conflicto (error por datos que chocan), Advertencia (calcula, pero hay que
+  revisar), Información (ayuda al pasar el cursor).
+- **Mensaje:** lo que se lee en la tabla o en el ⚠.
+- **Cursor:** la ayuda que sale al pasar el cursor; la referencia va al final, tras «·».
+- `{…}` es un valor que pone el cálculo.
+- Si una celda dice **Sale**, ese texto se quita de la tabla. Lo dice otra cosa: una columna nueva, el
+  valor del campo o la memoria de cálculo.
 
 ---
 
-## A · Encabezados del cuadro (cursor)
+## A · Encabezados del cuadro
 
-| # | Columna | Hoy dice (resumido) | Artículos | Propuesta |
-|---|---|---|---|---|
-| A1 | Tipo | La clase sale de sus cargas; lista de clases | Art. 100, 430-53, Art. 215 | Corta: «La clase del circuito: sale de sus cargas.» |
-| A2 | Carga | Suma del desplegable; continua al 125 %, no continua al 100 %; motor y A/C con su corriente | 210-19(a)(1), 210-20(a), 430-24, 440-33 | Corta |
-| A3 | Continua | Entran al 125 % | 210-19(a)(1), 210-20(a) | Corta |
-| A4 | L (m) | Determina la caída | Tabla 9 | Corta |
-| A5 | Canal. | Cómo se agrupan los circuitos y se cuentan portadores | 310-15(b)(3)(a), 310-15(a)(2) | Corta: «Escoger la canalización; los de la misma se agrupan.» |
-| A6 | In (A) | Corriente de diseño | 210-19(a)(1) | Corta |
-| A7 | Protec. (A) | Primer tamaño normalizado; en motores, solo el techo; cómo se fija | 240-6(a), 210-20(a), 430-52(c)(1), 440-22(a), 440-4(b), 110-3(b) | Corta: «La protección. En motores y A/C, escoger dentro del rango.» |
-| A8 | Fase | AWG y mm²; paralelo; colores | Tabla 8, 210-5(c)(2) | Corta (los colores, a la memoria) |
-| A9 | Neutro | Blanco o gris | 200-6 | Corta |
-| A10 | Tierra | Tamaño y color | Tabla 250-122, 250-122(b), 250-119 | Corta |
-| A11 | e (%) | Límite 3 % y 5 % | 210-19(a)(1) nota 4 | Corta |
+| # | Columna | Clase | Cursor (hoy, resumido → propuesta) |
+|---|---|---|---|
+| A1 | Tipo | Información | Las clases y el «?» → **Clase del circuito, según sus cargas · Art. 100** |
+| A2 | Carga | Información | Cómo se suma, 125 %, motores → **Suma de las cargas del desplegable, en VA.** |
+| A3 | Continua | Información | → **Cargas que operan 3 h o más; se consideran al 125 % · 210-19(a)(1)** |
+| A4 | No continua | Información | → **Cargas que operan menos de 3 h; se consideran al 100 %.** |
+| A5 | F.P. | Información | Fórmula → **Factor de potencia del conjunto de cargas del circuito.** |
+| A6 | L (m) | Información | → **Longitud usada para calcular la caída de tensión · Tabla 9** |
+| A7 | Canal. | Información | Cómo se agrupan y el tramo más desfavorable → **Canalización del circuito; los de la misma canalización se agrupan · 310-15(b)(3)(a)** |
+| A8 | P | Información | → **Polos del interruptor.** |
+| A9 | In (A) | Información | → **Corriente usada para seleccionar el conductor y la protección · 210-19(a)(1)** |
+| A10 | Protec. (A) | Información | Tamaño normalizado, rango de motores, cómo se fija → **Protección del circuito: el tamaño normalizado que cubre la corriente · 240-6(a)** |
+| A11 | Fase | Información | AWG, mm², paralelo y colores → **Conductor de fase: calibre y sección en mm² · Tabla 8** |
+| A12 | Neutro | Información | → **Conductor de neutro; blanco o gris · 200-6** |
+| A13 | Tierra | Información | → **Conductor de puesta a tierra de equipos · Tabla 250-122** |
+| A14 | e (%) | Información | → **Caída de tensión del circuito; se recomienda hasta 3 % · 210-19(a)(1) nota 4** |
+| A15 | A, B, C | Información | → **Carga del circuito en esta fase, en VA.** |
 
 ## B · El renglón del circuito
 
-| # | Qué | Cómo se ve | Hoy dice | Artículos | Propuesta |
-|---|---|---|---|---|---|
-| B1 | Detalle bajo la clase, alimentador a tableros | Visible | «sin F.D. (220-40)» | 220-40 | Sin artículo: «sin F.D.» |
-| B2 | «ICFT» bajo la clase | Visible | «ICFT» | (210-8 en el desglose) | Queda |
-| B3 | «OL» bajo la clase | Visible + cursor | «Protección contra sobrecarga — 430-32(a): …» | 430-32(a), 430-32(b), 430-33, 430-124(a), (b), 430-126, 430-53, 440-52 (según el equipo) | Queda (OL a la vista; el cursor, corto) |
-| B4 | «+N» de los polos | Cursor | Cuándo lleva neutro; neutro como portador | 310-15(b)(5)(2) | Corta |
-| B5 | Selector de Protec. (motor, A/C, variador) | Cursor | Fijada o calculada; el rango; **y el desglose completo** | 430-52, 440-22(a), 110-3(b) y los del desglose | Corta: «Se permite de 15 a 25 A» y si está fijada. El desglose: Memoria |
-| B6 | Valor de Protec. y del conductor (todos los circuitos) | Cursor | El desglose completo del cálculo, con sus citas | Varios por circuito | Memoria, con el puente |
-| B7 | ⚠ Reglas de la clase que no se cumplen | Ícono ⚠ | Por ejemplo: «Los contactos de uso general (15 o 20 A) no van en un circuito de 30 A… — Tabla 210-21(b)(3)» | Tabla 210-21(b)(3), 210-23(a)(2), 210-23(b), 210-23(c), 210-23(d), 210-6(a)(2) | Queda el ⚠. El texto, corto y sin artículo: «Contactos de 15 o 20 A en un circuito de 30 A: pártelos.» El artículo: Memoria |
-| B8 | ⚠ Caída combinada > 5 % | Ícono ⚠ | La cuenta completa | 215-2(a)(4) nota 2, 210-19(a)(1) nota 4 | Ídem: «Caída combinada de 6.2 %: pasa del 5 %.» |
-| B9 | ⚠ A/A de habitación pasa del 80 % o 50 % | Ícono ⚠ | Corriente, porcentaje y circuito | 440-62(b), (c) | Ídem |
-| B10 | ⚠ Bypass: ningún tamaño en el rango | Ícono ⚠ | Las dos corrientes y «revisar con el fabricante» | 430-122(b), 110-3(b) | Ídem |
-| B11 | ⚠ Variador con bypass en un grupo | Ícono ⚠ | El bypass no entra al grupo | 430-53, 430-122(b) | Ídem |
-| B12 | ⚠ Ningún tubo alcanza | Ícono ⚠ | Reparte los circuitos | Cap. 10 Tabla 1, Tabla 4 | Ídem |
+| # | Qué | Clase | Mensaje (a la vista) | Cursor |
+|---|---|---|---|---|
+| B1 | Alimentador a otro tablero, bajo la clase | Información | «sin F.D. (220-40)» → **sin F.D.** | **Carga del otro tablero, ya con sus factores de demanda · 220-40** |
+| B2 | «ICFT» bajo la clase | Información | **ICFT** (queda) | **El circuito lleva protección por falla a tierra · 210-8** |
+| B3 | «OL» bajo la clase | Información | **OL** (queda) | **El equipo pide protección contra sobrecarga aparte del interruptor · {430-32(a), 430-124, 440-52…}** |
+| B4 | «+N» | Información | **+N** (queda) | **La carga va entre fase y neutro: el circuito lleva neutro · 310-15(b)(5)** |
+| B5 | Selector de Protec. (motor, A/C, variador) | Información | (el valor) | **Se permite de {mín.} a {máx.} A · {430-52(c)(1)}**; si está fijada, segunda oración: **Fijada en {x} A; el cálculo da {y} A.** |
+| B6 | Valor de Protec. y del conductor | Información | (el valor) | El desglose completo **sale** a la memoria. Cursor: **Clic para ver el cálculo en la memoria.** (requiere el puente: la memoria con un punto de entrada por circuito) |
+
+### Advertencias del ⚠
+
+Al pasar el cursor por el ⚠ sale el mensaje. La referencia va en una segunda línea apartada: «· {ref}» (guía, punto 2).
+
+| # | Cuándo | Mensaje | Ref. |
+|---|---|---|---|
+| B7 | Contactos de uso general en un circuito de más de 20 A | **Contactos de 15 o 20 A en un circuito de {P} A. Divide los contactos en circuitos de 20 A.** | Tabla 210-21(b)(3) |
+| B8 | Equipo fijo de más del 50 % con alumbrado o contactos | **El equipo fijo usa más del 50 % del circuito. Pasa el equipo a otro circuito.** | 210-23(a)(2) |
+| B9 | Circuito de 30 A con alumbrado común | **Alumbrado común en un circuito de 30 A. Divide el alumbrado en circuitos de 20 A.** | 210-23(b) |
+| B10 | Circuito de 40 o 50 A con alumbrado común | **Alumbrado común en un circuito de {P} A. Divide el alumbrado en circuitos de 20 A.** | 210-23(c) |
+| B11 | Circuito de más de 50 A con alumbrado | **Alumbrado en un circuito de {P} A. Pasa el alumbrado a otro circuito.** | 210-23(d) |
+| B12 | Contactos de vivienda a más de 120 V | **Contactos de vivienda a {V} V. Pasa los contactos a un circuito de 127 V.** | 210-6(a)(2) |
+| B13 | Caída combinada de más de 5 % | **Caída combinada de {x} %. Baja la caída permitida en Condiciones de cálculo.** | 215-2(a)(4) nota 2 |
+| B14 | A/A de habitación solo, más del 80 % | **El acondicionador usa más del 80 % del circuito. Revísalo.** | 440-62(b) |
+| B15 | A/A de habitación con otras cargas, más del 50 % | **El acondicionador usa más del 50 % del circuito. Pasa las demás cargas a otro circuito.** | 440-62(c) |
+| B16 | Con bypass, ninguna protección cabe | **Con bypass, ninguna protección cabe entre {mín.} y {máx.} A. Revísalo con el fabricante.** | 430-122(b) |
+| B17 | Variador con bypass dentro de un grupo | **El bypass no cuenta en un grupo. Pasa el variador a su propio circuito.** | 430-53 |
+| B18 | Ningún tubo alcanza | **Ningún tubo admite todos los conductores. Reparte los circuitos en más canalizaciones.** | Cap. 10, Tabla 1 |
 
 ## C · Errores del renglón (fila roja)
 
-| # | Cuándo | Hoy dice (resumido) | Artículos | Propuesta |
-|---|---|---|---|---|
-| C1 | Falta la tensión de placa, o no es de este tablero, o no va con los polos | «Falta la tensión de placa del equipo: escógela en el desplegable…» | — | Rojo: la columna «Tensión de placa» en rojo; fila: «Falta la tensión de placa.» |
-| C2 | Motor de servicio no continuo sin corriente de placa | «430-22(e): el conductor… va sobre la corriente de placa…» | 430-22(e) | Rojo: «Falta la corriente de placa.» |
-| C3 | Servicio de corta duración con tiempo «continuo» | «Tabla 430-22(e): un motor de servicio de corta duración no se especifica…» | Tabla 430-22(e) | Rojo: «Escoge los minutos del servicio.» |
-| C4 | Grupo sin motores | «430-53: el grupo no tiene motores…» | 430-53 | Rojo: «El grupo no tiene motores.» |
-| C5 | Variador con bypass sin HP, o HP fuera de tabla | «430-122(b): con bypass el conductor lleva también el 125 %…» | 430-122(b) | Rojo: la columna «HP del motor» en rojo; fila: «Con bypass, faltan los HP del motor.» |
-| C6 | Desglose con solo motores y líneas sin carga | «220-18(a): el circuito solo alimenta motores… (430-53)» | 220-18(a), 430-53 | Rojo, sin artículo |
-| C7 | Alimentador a tableros con otras cargas | «…solo lleva tableros — Art. 100, 215» | Art. 100, 215 | Rojo, sin artículo |
-| C8 | Contacto del refrigerador con más líneas o Cant. > 1 | «…va solo en su circuito y es uno — 210-52(b)(1) Excepción 2» | 210-52(b)(1) Exc. 2 | Rojo, sin artículo |
-| C9 | Aparatos pequeños, lavadora o baño con otras cargas | «…el circuito solo alimenta esas salidas — 210-52(b)(2) / 210-11(c)(2) / (3)» | 210-52(b)(2), 210-11(c)(2), (3) | Rojo, sin artículo |
-| C10 | Un motor que la tabla no trae (HP o amperes) | Mensaje de la tabla de motores | Tabla 430-248 / 430-250 | Rojo, sin artículo |
-| C11 | Lo que no puede calcular el motor de cálculo (sin calibre, sin protección…) | El mensaje del motor tal cual | Varios | **Por ver**: el motor se copia y no se reescribe; se puede acortar en la pantalla sin tocarlo |
+El dato que falta se marca en rojo en su columna. La fila roja dice:
 
-## D · Encabezados del desplegable (cursor)
-
-| # | Columna | Artículos | Propuesta |
+| # | Cuándo | Clase | Mensaje |
 |---|---|---|---|
-| D1 | Tipo | 220 Parte C | Corta |
-| D2 | Subtipo | 220-14 | Corta |
-| D3 | Unidad | 430-6(a), 430-6(a)(1), 440-6(a), 440-62 | Corta (con las columnas nuevas, casi todo esto sale) |
-| D4 | No continua (tablero) | 220-40 | Corta |
-| D5 | Servicio | 210-19(a)(1), 424-3(b), 422-13, 430-22(e), Tabla 430-22(e) | Corta |
+| C1 | Sin tensión de placa | Error | **Falta la tensión de placa.** (variador: **Falta la tensión de entrada.**) |
+| C2 | La tensión de placa no es de este tablero | Conflicto | **La tensión de placa no es de este tablero. Escoge otra tensión.** |
+| C3 | La tensión de placa no va con los polos | Conflicto | **La tensión de placa pide {n} polos. Escoge otra tensión o cambia los polos.** |
+| C4 | Motor de servicio no continuo sin corriente de placa | Error | **Falta la corriente de placa.** |
+| C5 | Corta duración con tiempo «continuo» | Error | **Faltan los minutos del servicio.** |
+| C6 | Grupo sin motores | Error | **El grupo no tiene motores.** |
+| C7 | Variador con bypass sin HP | Error | **Faltan los HP del motor.** |
+| C8 | HP que la tabla no trae a esa tensión | Conflicto | **La tabla no trae un motor de {hp} HP a {V} V. Escoge otros HP.** |
+| C9 | Motor en amperes que la tabla no alcanza | Conflicto | **La tabla no trae un motor de {A} A a {V} V. Revisa la corriente de placa.** |
+| C10 | Desglose con motores y líneas sin carga | Conflicto | **El circuito lleva motores y líneas sin carga. Quita las líneas sin carga.** |
+| C11 | Alimentador a tableros con otras cargas | Conflicto | **Un alimentador a tableros solo lleva tableros. Pasa las demás cargas a otro circuito.** |
+| C12 | Contacto del refrigerador con otras líneas | Conflicto | **El contacto del refrigerador va solo. Pasa las demás cargas a otro circuito.** |
+| C13 | Contacto del refrigerador con Cant. mayor que 1 | Conflicto | **El contacto del refrigerador es uno. Deja la cantidad en 1.** |
+| C14 | Contactos de aparatos pequeños, lavadora o baño con otras cargas | Conflicto | **Los contactos de {uso} van solos. Pasa las demás cargas a otro circuito.** |
 
-## E · Celdas del desplegable, por tipo de carga
+### Lo que el motor de cálculo no puede calcular (guía, punto 4)
 
-### Alumbrado, contactos, aparatos, calefacción
+La pantalla traduce estos casos; el motor no se toca. El mensaje original va a la memoria.
 
-| # | Qué | Cómo se ve | Hoy dice | Propuesta |
-|---|---|---|---|---|
-| E1 | Mínimo por salida bajo «Carga c/u» | Visible | «mín. 180 VA — 220-14(i)» (también 90 VA, 600 VA, 180 VA (h), 5000 VA 220-54) | Sale (con D14 el campo ya trae el mínimo). En el cursor del campo: «No menos de 180 VA · 220-14(i)» |
-| E2 | Mínimo de anuncios | Visible + cursor | «mín. 1,200 VA por circuito — 220-14(f)»; 600-5(a) | Según D18 |
-| E3 | Servicio de la carga | Cursor | «Continua: opera 3 h o más y entra al 125 % — 210-19(a)(1), 215-2(a)(1)»; apagada: «Siempre continua — 422-13 / 424-3(b) / 600-5(b)» | Corta |
-| E4 | Total (VA) con mínimo | Cursor | «Con el mínimo de 220-14(i)» | Queda |
-| E5 | Aparato con motor (el mayor) en «Servicio» | Visible + cursor | «motor mayor · 125 %» — 220-18(a) | Queda visible; cursor corto |
-| E6 | Aparato con motor (los demás) | Cursor sobre «—» | «al 100 %; solo el mayor va al 125 % — 220-18(a)» | Corta |
+| # | El motor dice hoy (resumido) | Clase | Mensaje |
+|---|---|---|---|
+| C15 | «440-6(a): falta la corriente de carga nominal…» | Error | **Falta la corriente de placa.** |
+| C16 | «440-4(b): falta la ampacidad mínima…» | Error | **Falta la ampacidad mínima (MCA).** |
+| C17 | «440-4(b): falta la protección máxima…» | Error | **Falta la protección máxima.** |
+| C18 | «440-62(a)(3): falta la corriente total…» | Error | **Falta la corriente de placa.** |
+| C19 | «430-122(a): falta la corriente nominal de entrada…» | Error | **Falta la corriente de entrada.** |
+| C20 | «110-3(b): falta la protección máxima que marca el fabricante…» | Error | **Falta la protección máxima.** |
+| C21 | «440-60: un acondicionador de habitación trifásico o de más de 250 V no es de la Parte G…» | Conflicto | **Un acondicionador trifásico o de más de 250 V no es de habitación. Escoge otro subtipo de A/A.** |
+| C22 | «440-62(a)(2): {x} A pasa de los 40 A de un acondicionador de habitación…» | Conflicto | **Un acondicionador de más de 40 A no es de habitación. Escoge otro subtipo de A/A.** |
+| C23 | «440-4(b) / 110-3(b): la protección máxima ({x} A) es menor que el tamaño estándar más chico» | Conflicto | **La protección máxima de {x} A es menor que cualquier interruptor. Revisa la placa.** |
+| C24 | «430-53(c)(2): la protección máxima de un variador no lleva la corriente del grupo…» | Conflicto | **La protección del variador no alcanza la corriente del grupo. Pasa el variador a su propio circuito.** |
+| C25 | «{regla}: el límite de la protección no deja un interruptor que lleve la corriente del grupo…» | Conflicto | **Ninguna protección cabe para la corriente del grupo. Divide los motores en más circuitos.** |
+| C26 | «Las Tablas 430-247/248/249/250 no traen una fila para…» | Conflicto | Igual que C8. |
+| C27 | «Ni subiendo hasta {n} conductores en paralelo alcanza la ampacidad…» | Conflicto | **Ningún conductor alcanza la corriente del circuito. Divide la carga en más circuitos.** |
+| C28 | «Ni con el calibre más grande… baja la caída de tensión a {x} %…» | Conflicto | **Ningún conductor baja la caída a {x} %. Acorta el circuito o sube la caída permitida en Condiciones de cálculo.** |
+| C29 | «'{aislamiento}' no se reconoce, o no es válido para el lugar…» | Conflicto | **El aislamiento {x} no vale en lugar {lugar}. Cambia el aislamiento en Condiciones de cálculo.** |
+| C30 | «La Tabla 310-15(b)(2)(a) no cubre {t} °C…» | Conflicto | **La temperatura ambiente de {t} °C está fuera de tabla. Cambia la temperatura en Condiciones de cálculo.** |
+| C31 | Cualquier otro | Error | **No se puede calcular el circuito. Revisa sus datos.** |
+
+## D · Encabezados del desplegable
+
+| # | Columna | Cursor |
+|---|---|---|
+| D1 | Tipo | **Familia de la carga; define su factor de demanda en el alimentador · 220 Parte C** |
+| D2 | Subtipo | **Qué es la carga dentro de su tipo; define su carga mínima · 220-14** |
+| D3 | Cant. | **Cuántas salidas iguales lleva el circuito.** |
+| D4 | Unidad | **Unidad de la carga: VA, W o A; en motores, HP o A.** |
+| D5 | Carga c/u | **Carga de cada salida.** |
+| D6 | Servicio | **Tiempo de trabajo de la carga: continua (3 h o más) o no continua · 210-19(a)(1)** |
+| D7 | F.P. | **Factor de potencia de la carga.** |
+| D8 | Total (VA) | **Carga de todas las salidas del renglón, en VA.** |
+| D9 | Continua / No continua (tableros) | **Carga continua (o no continua) del otro tablero, ya con sus factores de demanda · 220-40** |
+
+Las columnas nuevas de [`../decisiones/acomodo-del-desplegable.md`](../decisiones/acomodo-del-desplegable.md) (tensión de placa, corrientes,
+bypass, HP del motor, casillas del motor solo, 225 %) llevan su ayuda en E.
+
+## E · Las celdas del desplegable, por tipo de carga
+
+### Alumbrado, contactos, aparatos y calefacción
+
+| # | Qué | Hoy | Propuesta |
+|---|---|---|---|
+| E1 | Mínimo bajo «Carga c/u» | Visible: «mín. 180 VA — 220-14(i)» | **Sale** (con D14 el campo ya trae el mínimo). Cursor del campo: **Carga mínima por salida: {180} VA · {220-14(i)}** |
+| E2 | Mínimo de anuncios | Visible: «mín. 1,200 VA por circuito — 220-14(f)» | Según D18. Cursor: **Carga mínima por circuito de anuncios: 1,200 VA · 220-14(f)** |
+| E3 | Servicio de la carga | Cursor largo | **Continua: opera 3 h o más · 210-19(a)(1)**. Apagada: **Siempre continua · {422-13 / 424-3(b) / 600-5(b)}** |
+| E4 | Total con el mínimo | Cursor «Con el mínimo de 220-14(i)» | **Incluye la carga mínima · 220-14(i)** |
+| E5 | Aparato con motor, el mayor | Visible «motor mayor · 125 %» | Queda visible. Cursor: **El motor mayor del circuito se considera al 125 % · 220-18(a)** |
+| E6 | Aparato con motor, los demás | Cursor sobre «—» | **Se considera al 100 % · 220-18(a)** |
 
 ### Motor de uso general
 
-| # | Qué | Cómo se ve | Hoy dice | Propuesta |
-|---|---|---|---|---|
-| E7 | Unidad HP / A | Cursor | Interpolación — 430-6(a)(1) | Corta |
-| E8 | Selector de HP | Cursor | La corriente sale de la tabla — 430-6(a); 2 polos a 220 V es monofásico — Tabla 430-248 | Corta |
-| E9 | Nota bajo los HP | Visible | «Monofásico 127 V · Tabla 430-248 · FLC 9.80 A» | Sin artículo: «127 V · FLC 9.80 A». La tabla, en el cursor |
-| E10 | Motor en A: nota bajo la corriente | Visible + cursor | «1.5 HP · Monofásico 127 V»; interpolación — 430-6(a)(1) | Sin artículo; cursor corto |
-| E11 | «Placa A» (servicio no continuo) | Cursor | 430-22(e) | Corta (pasa a su columna, D5) |
-| E12 | Servicio del motor | Cursor | 430-33, Tabla 430-22(e), 430-22(e) | Corta |
-| E13 | «No arranca con la Tabla 430-52: hasta 400 %» | Visible (pie) + cursor largo | 430-52(c)(1) Excepción 2(3) | Pasa a columna (D9). Encabezado sin artículo; cursor corto |
-| E14 | «Motor diseño B a E y arrancador marcado 75 °C» | Visible (pie) + cursor largo | 110-14(c)(1)a.(3), a.(4), 110-14(c) | Ídem |
-| E15 | En grupo: «Continuo» en Servicio | Visible + cursor | 430-24 Excepción 1 no se captura en grupo | Queda visible; cursor corto |
+| # | Qué | Hoy | Propuesta |
+|---|---|---|---|
+| E7 | Unidad HP / A | Cursor | **HP: corriente de tabla. A: corriente de placa · 430-6(a)** |
+| E8 | Selector de HP | Cursor largo | **Potencia del motor, con su corriente de tabla · 430-6(a)** |
+| E9 | Nota bajo los HP | Visible «Monofásico 127 V · Tabla 430-248 · FLC 9.80 A» | **127 V · FLC 9.80 A** (sin la tabla). Cursor: **Corriente de plena carga de tabla · Tabla 430-248** |
+| E10 | Motor en A: nota | Visible «1.5 HP · Monofásico 127 V» | **1.5 HP · 127 V**. Cursor: **HP que le corresponden por su corriente · 430-6(a)(1)** |
+| E11 | Corriente de placa (servicio no continuo) | Cursor | **Corriente usada para motores de servicio no continuo · 430-22(e)** (el ejemplo de la guía) |
+| E12 | Servicio del motor | Cursor largo | **Tiempo de trabajo del motor · Tabla 430-22(e)** |
+| E13 | Casilla «no arranca con la tabla» (columna nueva) | Visible + cursor largo | Encabezado: **No arranca**. Cursor: **El motor no arranca con la protección de tabla · 430-52(c)(1)** |
+| E14 | Casilla «terminal 75 °C» (columna nueva) | Visible + cursor largo | Encabezado: **Terminal 75 °C**. Cursor: **Motor de diseño B a E con arrancador marcado 75 °C · 110-14(c)** |
+| E15 | Columnas del motor solo, apagadas en grupo | — | Cursor: **Solo con un motor solo.** (D2) |
+| E16 | En grupo: «Continuo» en Servicio | Visible + cursor | Queda visible. Cursor: **En un grupo, cada motor se considera continuo.** |
 
 ### Variador
 
-| # | Qué | Cómo se ve | Hoy dice | Propuesta |
-|---|---|---|---|---|
-| E16 | Corriente de entrada | Cursor | 430-122(a) (solo); 430-122(a) en grupo | Corta |
-| E17 | Protección máxima | Cursor | 110-3(b); en grupo 430-53(c)(2), 110-3(b) | Corta |
-| E18 | Nota «Entrada · Prot. máx.» | Visible + cursor | 430-122(a), 110-3(b) | Sale (cada una en su columna, D5) |
-| E19 | «—» en Servicio | Cursor | 430-22(e), 430-122, Art. 440 | Corta: «No aplica al variador.» |
-| E20 | «Con bypass» | Visible (pie) + cursor largo | 430-122(b), 430-120, Parte D, 430-124(b), 430-128, 430-110(a) | Pasa a columna (D8). Cursor: «El motor también trabaja directo de la línea; pide los HP del motor.» El resto: Memoria |
-| E21 | «HP del motor» | Visible (pie) + cursor | 430-6(a) | Pasa a columna (D8); cursor corto |
-| E22 | En grupo: «variador» en Servicio | Visible + cursor | 430-122(a), 430-53 | Queda visible; cursor corto |
+| # | Qué | Hoy | Propuesta |
+|---|---|---|---|
+| E17 | Tensión de entrada | Cursor | **Tensión de entrada de la placa del variador.** |
+| E18 | Corriente de entrada | Cursor | **Corriente de entrada de la placa del variador · 430-122(a)** |
+| E19 | Protección máxima | Cursor | **Protección máxima permitida por el fabricante · 110-3(b)** (el ejemplo de la guía) |
+| E20 | Nota «Entrada · Prot. máx.» | Visible | **Sale** (cada dato en su columna) |
+| E21 | «—» en Servicio | Cursor | **No aplica al variador.** |
+| E22 | Bypass (columna nueva) | Visible + cursor largo | Cursor: **El variador tiene bypass a la línea · 430-122(b)** |
+| E23 | HP del motor (columna nueva) | Visible + cursor | **Potencia del motor que mueve el variador · 430-6(a)**. Apagada sin bypass: **Solo con bypass.** |
+| E24 | En grupo: «variador» en Servicio | Visible + cursor | Queda visible. Cursor: **Cuenta con su corriente de entrada · 430-122(a)** |
 
 ### A/A y refrigeración
 
-| # | Qué | Cómo se ve | Hoy dice | Propuesta |
-|---|---|---|---|---|
-| E23 | Carga combinada: nota | Visible | «Ampacidad · Prot. máx. — 440-4(b)» | Sale (columnas, D5) |
-| E24 | MCA | Cursor | 440-4(b) | Corta |
-| E25 | MOCP | Cursor | 440-4(b) | Corta |
-| E26 | Motocompresor: nota | Visible | «Nominal · Selección — 440-6(a)» | Sale (columnas, D5) |
-| E27 | Corriente nominal (RLA) | Cursor | 440-6(a), 440-32, 440-22(a) | Corta |
-| E28 | Corriente de selección | Cursor | 440-6(a) Excepción 1 | Corta |
-| E29 | «225 %» | Visible + cursor | 440-22(a); en grupo, 440-22(b)(1) | Pasa a columna (D10); cursor corto |
-| E30 | Motocompresor en grupo, «—» en Servicio | Cursor | 440-6(a), 440-33 | Corta |
-| E31 | De habitación: nota | Visible | «Corriente total — 440 Parte G» | Sale (la columna dice «Corriente de placa (A)») |
-| E32 | De habitación: corriente | Cursor | 440-62 | Corta |
-| E33 | De habitación: «440-62» en Servicio | **Visible** | «440-62» y en el cursor 80 % / 50 % — 440-62(b), (c) | Sale el artículo visible: «—»; cursor corto |
+| # | Qué | Hoy | Propuesta |
+|---|---|---|---|
+| E25 | Tensión de placa | Cursor | **Tensión de la placa del equipo.** |
+| E26 | Nota «Ampacidad · Prot. máx. — 440-4(b)» | Visible | **Sale** (columnas) |
+| E27 | Ampacidad mínima (MCA) | Cursor | **Ampacidad mínima de los conductores, de la placa · 440-4(b)** |
+| E28 | Protección máxima (MOCP) | Cursor | **Protección máxima de la placa · 440-4(b)** |
+| E29 | Nota «Nominal · Selección — 440-6(a)» | Visible | **Sale** (columnas) |
+| E30 | Corriente nominal del motocompresor | Cursor | **Corriente de carga nominal de la placa · 440-6(a)** |
+| E31 | Corriente de selección | Cursor | **Corriente de selección de la placa, si la trae · 440-6(a)** |
+| E32 | 225 % (columna nueva) | Visible + cursor | Encabezado: **Arranque 225 %**. Cursor: **No arranca con la protección al 175 % · 440-22(a)** |
+| E33 | Motocompresor en grupo, «—» en Servicio | Cursor | **El mayor se considera al 125 % · 440-33** |
+| E34 | Nota «Corriente total — 440 Parte G» | Visible | **Sale** |
+| E35 | Corriente total (de habitación) | Cursor | **Corriente total de la placa del acondicionador · 440-62** |
+| E36 | «440-62» en Servicio | **Visible** | **Sale**: «—». Cursor: **No aplica al acondicionador de habitación.** |
 
 ### Otro tablero
 
-| # | Qué | Cómo se ve | Hoy dice | Propuesta |
-|---|---|---|---|---|
-| E34 | Continua / No continua | Cursor | 220-40 | Corta |
-| E35 | «Agregar tablero» | Cursor | 215-2(a)(1), 408-36 | Corta |
+| # | Qué | Propuesta (cursor) |
+|---|---|---|
+| E37 | Continua / No continua | Como D9 |
+| E38 | «Agregar tablero» | **Agrega otro tablero al mismo alimentador.** |
 
 ### Del desplegable en general
 
-| # | Qué | Cómo se ve | Hoy dice | Propuesta |
-|---|---|---|---|---|
-| E36 | «Agregar carga» con un equipo solo | Cursor | «…el circuito se calcula como grupo — 430-53, 440-22(b)» | Sale (con D1 ya no hay renglón azul): «Agregar una salida o una carga.» |
-| E37 | «No simultáneo con» | Visible (pie) + cursor | 220-60, 430-24 Exc. 3, 440-33 Exc. 1 | Según D11; cursor corto |
+| # | Qué | Propuesta |
+|---|---|---|
+| E39 | «Agregar carga» | **Agrega una salida o una carga.** (con D1 ya no hay renglón azul ni «pasa a grupo») |
+| E40 | «No simultáneo con» | Según D11. Cursor: **Circuito que no funciona a la vez que este; al alimentador va el mayor · 220-60** |
+| E41 | «No entra al alimentador: es el menor del par.» | Queda (ya cumple) |
 
 ## F · Avisos flotantes de la tabla
 
-| # | Cuándo | Hoy dice | Artículos | Propuesta |
-|---|---|---|---|---|
-| F1 | Una protección fijada regresa al cálculo (I-182) | El circuito y los valores | Según el caso | Con D2, en el cambio a grupo ya no sale. En los demás casos: queda, sin artículo |
-| F2 | Subtipo que va solo, con otras líneas | «…va solo en su circuito: quita primero las demás líneas» | — | Queda |
-| F3 | Polos que no se pueden cambiar | El motivo | — | Queda |
+| # | Cuándo | Clase | Mensaje |
+|---|---|---|---|
+| F1 | Una protección fijada regresa al cálculo | Advertencia | **La protección fijada del circuito {n} ya no está en su rango. Regresa a {x} A.** |
+| F2 | Un subtipo que va solo, con otras líneas | Conflicto | **{Subtipo} va solo. Quita primero las demás líneas del circuito {n}.** |
+| F3 | Polos que no se pueden cambiar | Conflicto | **El circuito {n} no cabe con {p} polos. {motivo}** (el motivo, con la misma guía) |

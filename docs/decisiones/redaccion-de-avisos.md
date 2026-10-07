@@ -62,3 +62,40 @@ Los avisos no justifican: describen. La referencia normativa no forma parte del 
 «Este comportamiento existe porque…», «La aplicación calcula…», «El sistema determina…», «Por diseño…»,
 «Durante el cálculo…», «Se implementó…», «Se decidió…», «La arquitectura considera…», «Internamente…».
 Convierten el aviso en un comentario de desarrollo.
+
+## Lo que preguntó Claude y contestó David (2026-10-07)
+
+1. **Errores por conflicto** — aceptado. Además de «Falta [dato].», un error puede ser un conflicto entre
+   datos: **[Conflicto]. [Acción].** «El contacto del refrigerador va solo. Pasa las demás cargas a otro
+   circuito.»
+2. **El artículo de una advertencia (el ⚠ del renglón)** — A: en el mismo cuadro de ayuda, en una segunda
+   línea apartada: «· Tabla 210-21(b)(3)».
+3. **La acción tiene que poderse hacer en la pantalla.** Si no hay una acción concreta, «Revísalo.»
+4. **Los mensajes del motor de cálculo** — A: la pantalla traduce los casos conocidos al formato de esta
+   guía, sin tocar el motor (se copia, no se reescribe); los desconocidos dicen «No se puede calcular el
+   circuito. Revisa sus datos.» y el mensaje completo va a la memoria.
+5. **Alcance** — B: toda la página de captura (ficha, cuadro, desplegable, canalizaciones, resumen,
+   alimentador, tarjeta «Avisos», avisos flotantes). La memoria de cálculo no: ahí va la justificación.
+6. **Ayuda de una casilla** — «qué es» es la condición que marca: «El variador tiene bypass a la línea ·
+   430-122(b)».
+
+David, sobre las acciones: «estandarizar las recomendaciones igual que todos los avisos».
+
+## Las acciones, estandarizadas (propuesta de Claude, 2026-10-07)
+
+Cada acción empieza con uno de estos verbos, en imperativo y de tú, y dice dónde se hace si no es en el mismo
+renglón.
+
+| Situación | Verbo | Forma | Ejemplo |
+|---|---|---|---|
+| Falta un dato | — | Falta / Faltan + dato. El campo, en rojo. | Faltan los HP del motor. |
+| Un valor de una lista no vale | Escoge | Escoge + qué. | Escoge otra tensión. |
+| Una carga no puede ir con las demás | Pasa | Pasa + qué + a otro circuito. | Pasa las demás cargas a otro circuito. |
+| Muchas salidas en un circuito que no las admite | Divide | Divide + qué + en circuitos de N A. | Divide los contactos en circuitos de 20 A. |
+| Canalizaciones | Reparte | Reparte + qué + en más canalizaciones. | Reparte los circuitos en más canalizaciones. |
+| Algo sobra | Quita | Quita + qué. | Quita las líneas sin carga. |
+| Un ajuste de otra sección | Cambia / Baja / Sube | Verbo + qué + en + sección. | Baja la caída permitida en Condiciones de cálculo. |
+| Nada en la pantalla lo resuelve | Revisa | Revísalo + con quién, si aplica. | Revísalo con el fabricante. |
+
+La condición nombra el elemento (circuito, contactos, motor, tubo) y el número que importa: «Caída combinada
+de 6.20 %.», «Contactos de 15 o 20 A en un circuito de 30 A.».
