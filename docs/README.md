@@ -55,6 +55,7 @@ Solo David confirma una decisión.
 | [`decisiones/dibujo-por-renglon.md`](decisiones/dibujo-por-renglon.md) | PROPUESTA · Claude · 2026-10-03 (I-188; David contestó el 2026-10-05: las dos fases, implementadas) |
 | [`decisiones/criterio-de-la-auditoria-de-motores.md`](decisiones/criterio-de-la-auditoria-de-motores.md) | CONFIRMADA · David · 2026-10-05 (AM-4 terminales del motor, AM-5 430-62(b), AM-7 variador con bypass, AM-11 tensión de placa) |
 | [`decisiones/acomodo-del-desplegable.md`](decisiones/acomodo-del-desplegable.md) | PROPUESTA · Claude · 2026-10-07 (R1 y R2 de David; D1: un renglón es un aparato con su cantidad; D2 a D19 pendientes) |
+| [`decisiones/redaccion-de-avisos.md`](decisiones/redaccion-de-avisos.md) | Guía de David · 2026-10-07 (errores, advertencias y ayudas: qué dicen, cómo y dónde va el artículo) |
 | [`decisiones/descarga-en-brotli.md`](decisiones/descarga-en-brotli.md) | CONFIRMADA · David · 2026-10-05 (P-3, I-152: los `.br` con su decodificador, sin InvariantGlobalization) |
 
 ## `conocimiento/` — referencia técnica

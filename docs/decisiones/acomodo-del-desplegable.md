@@ -55,7 +55,12 @@ del motor solo se ven apagadas mientras sea grupo, con su marca, y con una ayuda
 (David: «ayuda corta está bien»), sin artículo: «Solo con un motor solo». La celda «Tipo» del circuito
 cambia como hoy («Grupo de motores · 3 salidas»).
 
-## R3 · Los artículos en la tabla — EN DISCUSIÓN
+## R3 · Los artículos en la tabla — REEMPLAZADA por la guía de David
+
+David escribió cómo se redactan los avisos: [`redaccion-de-avisos.md`](redaccion-de-avisos.md) (2026-10-07).
+Lo de abajo queda como historia.
+
+### Antes (en discusión)
 
 David no la quiere como «sin artículos»: «tampoco podemos dejar pelona la tabla, hay que ayudar pero ser
 discretos, que la tabla y la memoria hagan sinergia». Pidió el inventario de todo lo que la tabla dice con un
