@@ -112,6 +112,8 @@ public static class ArchivoDelCuadro
         {
             return Apertura.Fallo($"El archivo está dañado: {e.Message}");
         }
+        // D19: la carga en 0 enseña el mínimo de 220-14; el resultado no cambia.
+        MinimosDeLaCarga.LlenarAlAbrir(cuadro);
         cuadro.Recalcular();
 
         // I-182: LA PANTALLA SOLO TIENE CALCULADA O FIJADA. Un «cond.» o «máx.» de formato 12 —o el máximo

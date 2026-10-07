@@ -112,7 +112,7 @@
             <p class="aviso"><Icono Nombre="aviso" Clase="aviso-icono" /><span>@avisoSerie</span></p>
         }
         <label><span class="rotulo"><Icono Nombre="inmueble" Tamano="14" /><span class="ayuda" title="Seleccionar el inmueble. Decide dos cosas: el mínimo del principal si el tablero es equipo de acometida — 230-79 (vivienda unifamiliar: según la carga; vivienda popular hasta 60 m²: 30 A; los demás: 60 A) — y qué justificaciones del factor de demanda aplican — Tabla 220-42, vivienda o no vivienda.">Inmueble</span></span>
-            <select @bind="Datos.Inmueble" @bind:after="Recalcular">
+            <select value="@Datos.Inmueble" @onchange="e => CambiarInmueble(e.Value?.ToString())">
                 @foreach (var inmueble in Enum.GetValues<TipoDeInmueble>()) { <option value="@inmueble">@inmueble.Nombre()</option> }
             </select></label>
         @* M-14: el mínimo de alumbrado general por superficie — 220-12, Tabla 220-12. *@
@@ -1795,6 +1795,7 @@
         var nueva = c.AgregarCarga();
         // Sin tipo elegido, la línea empieza en «—»: el tipo se escoge en ella, una sola vez.
         nueva.Subtipo = c.TipoElegido ? SubtiposDeCarga.PorOmision(c.Categoria) : null;
+        MinimosDeLaCarga.LlenarAlEscoger(Cuadro, c, nueva); // D14
         Nombrar(c, nueva);
         Recalcular();
         _enfocar = DescripcionDeAparato(c.Espacio, c.Cargas.Count);
@@ -1835,6 +1836,7 @@
         }
         var subtipos = SubtiposDeCarga.De(tipo).Where(s => !s.SoloEnElRenglon()).ToList();
         a.Subtipo = subtipos.FirstOrDefault(s => s.Clase() == a.Clase, subtipos[0]);
+        MinimosDeLaCarga.LlenarAlEscoger(Cuadro, c, a);
         Nombrar(c, a);
         TrasEditarLinea(c);
     }
@@ -1855,8 +1857,49 @@
             return;
         }
         a.Subtipo = subtipo;
+        MinimosDeLaCarga.LlenarAlEscoger(Cuadro, c, a); // D14
         Nombrar(c, a);
         TrasEditarLinea(c);
+    }
+
+    /// <summary>D15: la carga de cada salida; abajo del mínimo de 220-14, sube sola y lo dice.</summary>
+    private async Task CambiarCargaUnitaria(CircuitoDelCuadro c, CargaDelCircuito a, int n, ChangeEventArgs e)
+    {
+        a.CargaUnitaria = LeerCarga(e, a.CargaUnitaria);
+        var aviso = MinimosDeLaCarga.SubirAlMinimo(Cuadro, c, a);
+        Recalcular();
+        if (aviso is null)
+            return;
+        Avisar(aviso, bien: false);
+        // El campo ya decía el mínimo antes de escribir: Blazor no lo vuelve a escribir, y se quedaba lo tecleado.
+        await Restablecer($"[aria-label=\"Circuito {c.Espacio}, carga {n} · Carga c/u\"]", Carga(a.CargaUnitaria));
+    }
+
+    /// <summary>E1, E2: el mínimo de la línea, en la ayuda del campo.</summary>
+    private string? AyudaDelMinimo(CircuitoDelCuadro c, CargaDelCircuito a) =>
+        MinimosDeLaCarga.MinimoDe(Cuadro, c, a) is not { } m ? "Carga de cada salida."
+        : a.Subtipo == SubtipoDeCarga.Anuncios ? $"Carga mínima por circuito de anuncios: {m.Valor * a.Cantidad:#,0.##} {MinimosDeLaCarga.Simbolo(a.Unidad)} · {m.Referencia}"
+        : $"Carga mínima por salida: {m.Valor:#,0.##} {MinimosDeLaCarga.Simbolo(a.Unidad)} · {m.Referencia}";
+
+    /// <summary>La unidad de una línea; la de una carga con mínimo lo convierte (D16).</summary>
+    private void CambiarUnidadDeLinea(CircuitoDelCuadro c, CargaDelCircuito a, string? valor)
+    {
+        if (a.Clase == ClaseDeAparato.Carga && valor?.Split('|') is ["Carga", var u] && Enum.TryParse<UnidadConsumo>(u, out var unidad))
+        {
+            MinimosDeLaCarga.CambiarUnidad(Cuadro, c, a, unidad);
+            Recalcular();
+            return;
+        }
+        CambiarUnidadDeMiembro(a, valor);
+    }
+
+    /// <summary>D17: el inmueble; la secadora que traía el mínimo toma el del inmueble nuevo.</summary>
+    private void CambiarInmueble(string? valor)
+    {
+        if (!Enum.TryParse<TipoDeInmueble>(valor, out var inmueble))
+            return;
+        MinimosDeLaCarga.CambiarInmueble(Cuadro, inmueble);
+        Recalcular();
     }
 
     /// <summary>Las flechas de la cantidad: una más o una menos, sin bajar de 1.</summary>
@@ -2667,8 +2710,14 @@
                 }
                 break;
             case ColDesglose.Unidad:
+                @if (aparato.Subtipo?.SoloEnVA() == true)
+                {
+                    @* D16: contactos, portalámparas de servicio pesado y ensamble de salidas, solo en VA. *@
+                    <td data-falta="@FaltaEn(c, aparato, col)"><span class="fijo" title="Su carga mínima es en VA · 220-14">VA</span></td>
+                    break;
+                }
                 <td data-falta="@FaltaEn(c, aparato, col)">
-                    <select class="unidad" data-col="ap-unidad" aria-label="Circuito @c.Espacio, carga @n · Unidad" value="@UnidadDeMiembro(aparato)" @onchange="e => CambiarUnidadDeMiembro(aparato, e.Value?.ToString())">
+                    <select class="unidad" data-col="ap-unidad" aria-label="Circuito @c.Espacio, carga @n · Unidad" value="@UnidadDeMiembro(aparato)" @onchange="e => CambiarUnidadDeLinea(c, aparato, e.Value?.ToString())">
                         @if (aparato.Clase == ClaseDeAparato.Motor)
                         {
                             <option value="Motor|@CapturaDeMotor.Hp">HP</option>
@@ -2685,15 +2734,10 @@
                 break;
             case ColDesglose.CargaCU:
                 <td data-falta="@FaltaEn(c, aparato, col)">
-                    <input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="0" data-col="ap-carga" aria-label="Circuito @c.Espacio, carga @n · Carga c/u" value="@Carga(aparato.CargaUnitaria)" @onchange="e => { aparato.CargaUnitaria = LeerCarga(e, aparato.CargaUnitaria); Recalcular(); }" />
-                    @if (aparato.Subtipo?.MinimoUnitarioVA(Datos.Inmueble.EsVivienda()) is { } minimo)
-                    {
-                        <span class="nota-min" title="Carga mínima por salida: @minimo.VA.ToString("#,0") VA · @minimo.Referencia">mín. @minimo.VA.ToString("#,0") VA</span>
-                    }
-                    else if (aparato.Subtipo?.MinimoPorCircuitoVA() is { } porCircuito)
-                    {
-                        <span class="nota-min larga" title="Carga mínima por circuito de anuncios: @porCircuito.VA.ToString("#,0") VA · @porCircuito.Referencia">mín. @porCircuito.VA.ToString("#,0") VA por circuito</span>
-                    }
+                    @* D14, D15 (David, 2026-10-07): el campo trae el mínimo de 220-14 y no se deja debajo; la nota «mín. 180 VA»
+                       sale, y el mínimo va en la ayuda (E1, E2). *@
+                    <input class="va" type="text" inputmode="decimal" autocomplete="off" data-numero min="0" placeholder="0" data-col="ap-carga" aria-label="Circuito @c.Espacio, carga @n · Carga c/u" value="@Carga(aparato.CargaUnitaria)" @onchange="e => CambiarCargaUnitaria(c, aparato, n, e)"
+                           title="@AyudaDelMinimo(c, aparato)" />
                 </td>
                 break;
             case ColDesglose.Hp:
