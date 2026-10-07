@@ -226,6 +226,7 @@ ID: `<letra>-<número>` — `E` estructura, `P` publicación, `M` motor, `I` int
 | I-198 · En el desplegable, «Carga c/u» y «Servicio» ocupaban mucho más que su campo; los anchos, del peor caso | P3 | **Cerrado** | `15c2f1b` |
 | I-199 · La tensión de placa, en el pie del desplegable y no en la línea del equipo; sin scroll, las columnas se apretaban | P3 | **Cerrado** | `c21d2af` |
 | I-200 · La descripción del desplegable terminaba más a la derecha que la del circuito | P3 | **Cerrado** | `6fff8a6` |
+| I-201 · El desplegable mezclaba en una fila de encabezados las columnas de cargas distintas y ponía controles del cálculo en su pie | P3 | **Cerrado** | `8782a79` |
 | M-14 · Sin el mínimo de alumbrado general por superficie (220-12) en el alimentador; en vivienda, contactos de uso general sumados aparte (220-14(j)) | P1 | **Cerrado** | `71abc56` |
 | M-15 · Motor: la Excepción 1 de 430-52(c)(1) redondeaba dentro de la serie (35 → 40 A en riel DIN) y se citaba sin redondeo; sin Excepción 2 | P1 | **Cerrado** | `8b4d893`, `60a4f91` |
 | M-16 · «Húmedo o mojado» en una opción: XHHW mojado a 90 °C (conductor de menos); RHH y XHH aceptados en mojado | P1 | **Cerrado** | `a3fded5` |
@@ -1159,6 +1160,24 @@ ancho que sobra se reparte entre las columnas con ancho en píxeles, y en píxel
 de la línea. Lo que se quitó a la descripción lo ganan las demás: a 1440, ninguno de los 15 estados de I-199
 necesita ya scroll. Navegador: a 1920, 1680, 1440 y 1280, vacía, alumbrado, variador y con una descripción larga, las
 dos líneas a 0.2 px o menos; al ir al cuadro de carga y regresar, se desconecta y se vuelve a medir; sin errores.
+
+**I-201** — Hecho (David, 2026-10-07: «todo va en columnas»; «esa zona inferior no lleva controles»; las decisiones
+D1 a D13 de [`../decisiones/acomodo-del-desplegable.md`](../decisiones/acomodo-del-desplegable.md)). Antes, una sola
+fila de encabezados para todas las líneas: «Carga c/u» llevaba HP, corriente de placa, corriente de entrada y
+protección máxima según la línea, con dos campos en una celda; la tensión de 225 %, «No arranca», «Terminal 75 °C»,
+bypass, HP del motor y «No simultáneo con», en el pie. Corrección: un bloque (una tabla) por juego de columnas, cada
+uno con su fila de encabezados y su nombre en la primera celda; cada dato que afecta el cálculo, en su columna, de lo
+general a lo específico; las que no aplican, apagadas con su ayuda corta («Solo con bypass.», «Solo con un motor
+solo.», «Solo en el motocompresor mayor.»); Cant. editable en el equipo del circuito (de 2 en adelante, grupo) y fija
+en 1 en variador, A/A con ampacidad de placa y tablero; en el pie, solo «Agregar carga» y la suma; «No simultáneo
+con», columna del cuadro, con su lista en la firma del renglón memorizado (I-188; `LoQueLeeElDibujoTests` lo exige).
+`js/desglose.js` mide desde el borde izquierdo de «Tipo» del cuadro: la descripción es sticky y, con el cuadro
+recorrido de lado, la medida se corría; la tarjeta no le pide ancho al cuadro (`width: 0; min-width: 100%`), o el
+bloque ancho lo ensanchaba. Navegador, a 1900, 1280 y 1100: cargas, motor solo, motor con Cant. 3 («Grupo de motores
+· 3 motores»), grupo de motor, motocompresor y variador (tres bloques), variador con bypass, A/A con ampacidad,
+de habitación y tablero: la descripción de cada bloque a 0.0 px de la del cuadro, las seis generales alineadas en
+todos los bloques, ningún campo fuera de su celda, la barra de ayuda con el texto del encabezado, sin errores.
+Pendiente de D2: que una protección fijada del motor solo se guarde y vuelva al regresar a Cant. 1.
 
 **M-21** (AM-4) — 25 HP a 220 V: FLC 68 A, 125 % = 85 A, rango de 90 a 175 A. Con 175 A (la calculada) el
 circuito es de más de 100 A y va a 75 °C: 4 AWG (85 A) — 110-14(c)(1)b.; fijada en 100 A, a 60 °C: 3 AWG

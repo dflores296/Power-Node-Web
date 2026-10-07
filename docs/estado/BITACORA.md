@@ -13,6 +13,13 @@ Registro de acciones por sesión, con hallazgo y commit.
 - I-199, `c21d2af`: la tensión de placa, en su columna de la línea (estaba en el pie); el desplegable, con su propio
   scroll de lado en lugar de apretar columnas.
 - I-200, `6fff8a6`: la descripción del desplegable termina en la misma línea que la del circuito (`js/desglose.js`).
+- El acomodo del desplegable, deliberado con David pregunta por pregunta (R1, R2, D1 a D19):
+  [`../decisiones/acomodo-del-desplegable.md`](../decisiones/acomodo-del-desplegable.md); la guía de redacción de
+  avisos de David, [`../decisiones/redaccion-de-avisos.md`](../decisiones/redaccion-de-avisos.md); los estados de
+  error y advertencia (opción A), [`../conocimiento/estados-de-aviso.md`](../conocimiento/estados-de-aviso.md); el
+  mockup, [`../mockups/desglose-por-bloques.html`](../mockups/desglose-por-bloques.html).
+- I-201, `8782a79`: el desplegable por bloques, primera de tres partes («Sí a todo, ya implementa en main»). Faltan
+  los avisos con la opción A y el mínimo de 220-14 en «Carga c/u» (D14 a D19).
 
 Pruebas: 641 en `PowerNode.Web.Tests` y 52 en `PowerNode.Normativa.Tests`, sin cambio.
 
