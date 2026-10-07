@@ -43,13 +43,30 @@ unidades más el 25 % de una sola, la mayor (`CalculadoraCircuitoDerivadoGrupo`,
 alimentador cada unidad entra por separado (`Enumerable.Repeat` por la cantidad). Lo que cambia es la
 pantalla.
 
+## D2 · Cant. de un motor de 1 a 2 o más — CONTESTADA (David, 2026-10-07)
+
+David: «¿por qué saturar de avisos y de artículos la tabla, si puedes ir a la ventana de memoria y ver
+exactamente con qué artículo se está calculando ese circuito de acuerdo a su carga?»
+
+**Decidido** («Sí»): al cambiar la cantidad, el cálculo se ajusta solo, sin aviso, confirmación ni cita. La
+tabla enseña el resultado; el porqué y su artículo, la memoria de cálculo. Lo capturado no se pierde: una
+protección fijada en «Protec. (A)» del motor solo se guarda y vuelve al regresar a Cant. 1; las dos casillas
+del motor solo se ven apagadas mientras sea grupo, con su marca, y con una ayuda corta al pasar el cursor
+(David: «ayuda corta está bien»), sin artículo: «Solo con un motor solo». La celda «Tipo» del circuito
+cambia como hoy («Grupo de motores · 3 salidas»).
+
+## R3 · Los artículos en la tabla — EN DISCUSIÓN
+
+David no la quiere como «sin artículos»: «tampoco podemos dejar pelona la tabla, hay que ayudar pero ser
+discretos, que la tabla y la memoria hagan sinergia». Pidió el inventario de todo lo que la tabla dice con un
+artículo, para decidir cada uno: [`../conocimiento/avisos-de-la-captura.md`](../conocimiento/avisos-de-la-captura.md),
+con la propuesta de Claude (tres niveles y un puente a la memoria) en cada renglón.
+
 ## Pendientes, en orden
 
 Detalle de cada una (cómo está hoy, opciones, recomendación) en la conversación del 2026-10-07; aquí, lo
 que hay que decidir:
 
-- **D2.** Cant. de 1 a 2 o más en un motor: el cálculo pasa de motor solo (430-22, 430-52) a grupo
-  (430-53). ¿Cambio automático visible en el renglón del circuito, con confirmación, o fija?
 - **D3.** ¿Siguen con Cant. bloqueada el contacto del refrigerador, el A/A «Carga combinada» y otro
   tablero?
 - **D4.** ¿Una columna aparece solo si alguna línea del circuito la usa, o siempre?
